@@ -9350,6 +9350,8 @@ footer .footer-theme {
   .navbar-inner {
     -ms-flex-direction: row;
     flex-direction: row;
+    -ms-flex-pack: justify;
+    justify-content: space-between;
   }
 }
 
