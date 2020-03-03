@@ -4,7 +4,7 @@
   <fieldset>
     <legend><label class="form-label">{{label}}{% if tooltip %}<a href="javascript:void(0)" class="js-tooltip" data-tooltip="{{tooltipTitle}}"><svg class="icon-svg" focusable="false" aria-hidden="true" ><use xlink:href="#help-circle-outline"></use></svg></a>{% endif %}</label>
     <span class="form-hint">{{hint}}</span></legend>
-    <span class="form-error-message {% if not error %} d-none{% endif %}" id="{{ id.error | default('form-error-message-input-error') }}" role="alert">{{error}}</span>
+    <span class="form-error-message {% if not error %} d-none{% endif %}" id="{{ id.error | default('form-error-message-input-error') }}">{{error}}</span>
     <div class="date-group js-calendar-group mt-3">
       <div class="form-group form-group-day">
         <label class="form-label" for="{{ id.day | default('date-day') }}">{{day}}</label>

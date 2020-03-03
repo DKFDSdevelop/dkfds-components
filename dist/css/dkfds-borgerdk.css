@@ -7824,6 +7824,14 @@ body {
   flex: 1 0 auto;
 }
 
+.js-radio-toggle-group li[aria-expanded=true] > .radio-collapse-content {
+  display: block;
+}
+
+.js-radio-toggle-group li[aria-expanded=false] > .radio-collapse-content {
+  display: none;
+}
+
 .collapsed:not(.dataTable) {
   display: none;
 }

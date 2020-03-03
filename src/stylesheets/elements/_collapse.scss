@@ -1,4 +1,14 @@
 
+// Radio
+.js-radio-toggle-group{
+  li[aria-expanded=true] > .radio-collapse-content{
+    display: block;
+  }
+  li[aria-expanded=false] > .radio-collapse-content{
+    display: none;
+  }
+}
+
 .collapsed:not(.dataTable){
     display: none;
 }
@@ -13,5 +23,4 @@
     overflow: hidden;
     transition: height .2s ease;
 }
-  
-      
+

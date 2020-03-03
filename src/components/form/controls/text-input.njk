@@ -7,8 +7,8 @@
       {% if hint %}<span class="form-hint" id="input-hint-message-{{id}}">
       {{hint}}
       </span>{% endif %}
-      {% if error %}<span class="form-error-message" id="form-error-message-{{id}}" role="alert">
+      {% if error %}<span class="form-error-message" id="form-error-message-{{id}}">
       {{error}}
       </span>{% endif %}
-     <input class="form-input  {{class}} " {% if optionallabel == nil %}required {% endif %}{% if placeholder %} placeholder="{{placeholder}}" {% endif %}id="{{id}}" value="{{value}}" name="{{name}}" type="{{type | default('text') }}" {% if disabled %}disabled="disabled"{% endif %} {% if error %}aria-invalid="true" aria-describedby="form-error-message-{{id}}"{% endif %} {% if hint %}aria-labelledby="form-label-{{id}} input-hint-message-{{id}}"{% endif %} {% if readonly %} readonly {% endif %}>
+     <input class="form-input {{class}}" {% if optionallabel == nil %}required {% endif %}{% if placeholder %} placeholder="{{placeholder}}" {% endif %}id="{{id}}" value="{{value}}" name="{{name}}" type="{{type | default('text') }}" {% if disabled %}disabled="disabled"{% endif %} aria-describedby="input-hint-message-{{id}} {% if error %}form-error-message-{{id}}"{% endif %}" {% if hint %}aria-labelledby="form-label-{{id}} "{% endif %} {% if error %}aria-invalid="true"{% endif %} {% if readonly %} readonly {% endif %}>
   </div>{% endmacro %}

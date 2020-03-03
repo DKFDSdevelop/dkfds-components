@@ -24,7 +24,12 @@ class RadioToggleGroup{
         for(let i = 0; i < this.radioEls.length; i++){
           var radio = this.radioEls[ i ];
           radio.addEventListener('change', function (){
+            let liParent = this.parentNode;
+            let list = liParent.parentNode;
+            let lis = list.children;
+            console.log(lis);
             for(let a = 0; a < that.radioEls.length; a++ ){
+              console.log('that.radioEls[ a ]', that.radioEls[ a ]);
               that.toggle(that.radioEls[ a ]);
             }
           });
@@ -32,36 +37,23 @@ class RadioToggleGroup{
           this.toggle(radio); //Initial value;
         }
     }
-
     toggle (triggerEl){
-        var targetAttr = triggerEl.getAttribute(this.jsToggleTarget);
-        if(targetAttr !== null && targetAttr !== undefined){
-            var targetEl = document.querySelector(targetAttr);
-            if(targetEl !== null && targetEl !== undefined){
-                if(triggerEl.checked){
-                    this.open(triggerEl, targetEl);
-                }else{
-                    this.close(triggerEl, targetEl);
-                }
-            }
-        }
+      if(triggerEl.checked){
+        this.open(triggerEl);
+      }else{
+        this.close(triggerEl);
+      }
     }
 
-    open(triggerEl, targetEl){
-        if(triggerEl !== null && triggerEl !== undefined && targetEl !== null && targetEl !== undefined){
-            triggerEl.setAttribute('aria-expanded', 'true');
-            targetEl.classList.remove('collapsed');
-            targetEl.setAttribute('aria-hidden', 'false');
-            triggerEl.dispatchEvent(this.eventOpen);
-        }
+    open (triggerEl){
+        console.log('treeItem', triggerEl.parentNode);
+        triggerEl.parentNode.setAttribute('aria-expanded', 'true');
+        triggerEl.dispatchEvent(this.eventOpen);
     }
-    close(triggerEl, targetEl){
-        if(triggerEl !== null && triggerEl !== undefined && targetEl !== null && targetEl !== undefined){
-            triggerEl.setAttribute('aria-expanded', 'false');
-            targetEl.classList.add('collapsed');
-            targetEl.setAttribute('aria-hidden', 'true');
-            triggerEl.dispatchEvent(this.eventClose);
-        }
+    close (triggerEl){
+        triggerEl.parentNode.setAttribute('aria-expanded', 'false');
+        console.log('triggerEl.parentNode', triggerEl.parentNode);
+        triggerEl.dispatchEvent(this.eventClose);
     }
 }
 
