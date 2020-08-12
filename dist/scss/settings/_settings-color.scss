@@ -1,0 +1,169 @@
+/*
+//color contrasting
+$color-base-001:              #ffffff !default;
+$color-base-002:              #1a1a1a !default;
+
+//Gray
+$color-gray-001:              $color-base-002 !default;
+$color-gray-002:              #454545 !default;
+"gray-50":              #747474 !default;
+"gray-40":              #999999 !default;
+$color-gray-005:              #BFBFBF !default;
+$color-gray-055:              #DCDCDC !default;
+"gray-10":              #F5F5F5 !default;
+
+//Greeen
+$color-green-001:             #568331 !default;
+$color-green-002:             #3C5C22 !default;
+$color-green-021:             #233614 !default;
+$color-green-003:             #358000 !default;
+$color-green-004:             #eeffe2  !default;
+"green-30":             #358000 !default;
+
+//orange
+$color-orange-004:            #febb30 !default;
+$color-orange-005:            #ffeecc !default;
+
+//red
+"red-5":               #CC0000 !default;
+"red-10":               #ffe0e0 !default;
+
+//blue
+$color-blue-001:              #004D99 !default;
+$color-blue-002:              #004080 !default;
+$color-blue-003:              #000040 !default;
+"blue-30":              #e2f2fb !default;
+$color-blue-005:              #067293 !default;
+$color-blue-006:              #04556E !default;
+$color-blue-007:              #033747 !default;
+"blue-70":              #1B86C3 !default;
+
+//purple
+$color-purple-001:            #800080!default;
+
+//Data visualisation colors
+$color-data-turquoise-001:     #56D4D6 !default;
+$color-data-turquoise-002:     #9AE5E6 !default;
+$color-data-turquoise-003:     #CCF2F3 !default;
+$color-data-turquoise-004:     #EEFAFA !default;
+
+$color-data-teal-001:          #15b094 !default;
+$color-data-teal-002:          #73D0BF !default;
+$color-data-teal-003:          #B9E7DF !default;
+$color-data-teal-004:          #E7F7F4 !default;
+
+$color-data-orange-001:        #FF6A38 !default;
+$color-data-orange-002:        #FFA688 !default;
+$color-data-orange-003:        #FFD2C3 !default;
+$color-data-orange-004:        #FFF0EB !default;
+
+$color-data-magenta-001:       #D81884!default;
+$color-data-magenta-002:       #E874B5!default;
+$color-data-magenta-003:       #F3BADA!default;
+$color-data-magenta-004:       #FBE7F2!default;
+
+$color-data-purple-001:        #8F2B8F !default;
+$color-data-purple-002:        #BC80BC !default;
+$color-data-purple-003:        #DDBFDD !default;
+$color-data-purple-004:        #F3E9F3 !default;
+
+$color-data-violet-001:        #474E95 !default;
+$color-data-violet-002:        #9195BF !default;
+$color-data-violet-003:        #C8CADF !default;
+$color-data-violet-004:        #ECEDF4 !default;*/
+
+//############################### Component variables ####################
+//########################################################################
+
+// Base colors
+$color-white: "base-5" !default;
+$color-black: "base-10" !default;
+
+// Gray-scales
+
+// Base colors
+$color-base-family: "gray" !default;
+$color-base-lightest: "gray-5" !default;
+$color-base-lighter: "gray-10" !default;
+$color-base-light: "gray-20" !default;
+$color-base: "gray-30" !default;
+$color-base-dark: "gray-40" !default;
+$color-base-darker: "gray-50" !default;
+$color-base-darkest: "gray-60" !default;
+$color-base-ink: "gray-70" !default;
+
+
+// Primary colors
+$color-primary-family: "gray" !default;
+$color-primary-lightest: false !default;
+$color-primary-lighter: false !default;
+$color-primary-light: false !default;
+$color-primary: "gray-50" !default;
+$color-primary-dark: "gray-60" !default;
+$color-primary-darker: false !default;
+$color-primary-darkest: "gray-70" !default;
+
+//Focus
+$color-focus:                 "gray-40" !default;
+
+// Text color
+$color-text:                  "gray-70" !default;
+$color-text-secondary:        "gray-50" !default;
+$color-text-bright:           "gray-10" !default;
+
+//Links color
+$color-link:                  "blue-5" !default;
+$color-link-hover:            "blue-20" !default;
+$color-link-focus:            "blue-5" !default;
+$color-link-visited:          "purple-5" !default;
+
+// Default neutral color-scheme (the neutral one that is neither virk.dk nor borger.dk)
+$color-neutral:               "gray-60" !default;
+$color-neutral-darker:        "gray-70" !default;
+$color-neutral-darkest:       "gray-70" !default;
+$color-neutral-lightest:      "gray-40" !default;
+
+// Functional theme colors
+$color-primary:               "gray-50" !default;
+$color-primary-medium:        "gray-40" !default;
+$color-primary-dark:          "gray-70" !default;
+
+$color-positive:              "green-30" !default;
+$color-negative:              "red-5" !default;
+
+//$color-primary-dark:
+$color-primary-darker:        "gray-70" !default;
+$color-primary-darkest:       "gray-70" !default;
+$color-primary-lightest:      "gray-40" !default;
+$color-background:            "gray-10" !default;
+
+// Special text colors
+$color-text-positive:         "green-30" !default;
+$color-text-negative:         "red-5" !default;
+
+// Colors used for alert boxes
+$color-success:               "green-30" !default;
+$color-success-light:         "green-30" !default;
+$color-warning:               "orange-5" !default;
+$color-warning-light:         "orange-10" !default;
+$color-error:                 "red-5" !default;
+$color-error-light:           "red-10" !default;
+$color-info:                  "blue-70" !default;
+$color-info-light:            "blue-30" !default;
+
+// Special colors
+$color-alt-background:        "gray-10" !default;
+$color-alt-background-hover:  "blue-30" !default;
+$color-alt-table-header:      "gray-40" !default;
+$color-required:              "red-5" !default;
+
+
+$color-shadow: rgba(#000, 0.3) !default;
+$color-transparent: rgba(#000, 0) !default;
+
+
+//Backgrounds
+$background-normal: "gray-5";
+$background-alternative: "gray-10";
+$background-modal: rgba(0, 0, 0, 0.75);
+

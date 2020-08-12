@@ -4,8 +4,8 @@
   ul{
     @include unstyled-list();
   }
-  border-bottom: $outer-border;
-  border-top: $outer-border;
+  border-bottom: border("100");
+  border-top: border("100");
 
 
 
@@ -127,10 +127,10 @@
   > li {
     background-color: transparent;
     font-size: $base-font-size;
-    border-top: $inner-border;
+    border-top: border("200");
 
     &.active > a{
-      color: $color-black;
+      color: color("black");
     }
 
     &.current{
@@ -146,7 +146,7 @@
       }
     }
     li{
-      border-top: $inner-inner-border;
+      border-top: border("300");
       font-size: $small-text;
     }
   }
@@ -155,7 +155,7 @@
   @include unstyled-list();
 
   > li {
-    border-top: $inner-border;
+    border-top: border("200");
     cursor:default;
 
     &:first-child {
@@ -182,7 +182,7 @@
 
 
     &:hover {
-      background-color: $color-white;
+      background-color: color("white");
       text-decoration: none;
       color: $sidenav-link-color-hover;
       cursor:default;

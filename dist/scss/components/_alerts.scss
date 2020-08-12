@@ -51,7 +51,7 @@ $icon-size: 24px;
     top: map-get($spacers, 4);
     right: map-get($spacers, 4);
     @include small-text;
-    color: $color-black;
+    color: color("black");
     .icon-svg{
       margin-right: map-get($spacers, 2);
       width: 1.6rem;

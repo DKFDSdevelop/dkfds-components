@@ -10,7 +10,7 @@ footer {
 
   //generel for footer
   .footer {
-    border-top: $outer-border;
+    border-top: border("100");
     padding-top: calc(#{map-get($spacers, 5)} - 1px);
     padding-bottom: calc(#{map-get($spacers, 4)} - 1px);
     margin-top: 8rem;

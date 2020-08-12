@@ -1,0 +1,280 @@
+/*
+----------------------------------------
+Borders
+----------------------------------------
+*/
+$system-borders: (
+  100: "1px solid" + color("gray-50"),
+  200: "1px solid" + color("gray-30"),
+  300: "1px solid" + color("gray-20")
+);
+
+
+/*
+----------------------------------------
+Typescale
+----------------------------------------
+*/
+
+$system-type-scale: (
+  "micro": 10px,
+  1: 12px,
+  2: 13px,
+  3: 14px,
+  4: 15px,
+  5: 16px,
+  6: 17px,
+  7: 18px,
+  8: 20px,
+  9: 22px,
+  10: 24px,
+  11: 28px,
+  12: 32px,
+  13: 36px,
+  14: 40px,
+  15: 48px,
+  16: 56px,
+  17: 64px,
+  18: 80px,
+  19: 120px,
+  20: 140px
+);
+
+/*
+----------------------------------------
+Line height
+----------------------------------------
+*/
+
+$system-line-height: (
+  1: 2.4rem,
+);
+
+/*
+----------------------------------------
+Colors
+----------------------------------------
+*/
+
+@import "system-tokens/blue";
+@import "system-tokens/gray";
+@import "system-tokens/green";
+@import "system-tokens/magenta";
+@import "system-tokens/orange";
+@import "system-tokens/orange-warm";
+@import "system-tokens/purple";
+@import "system-tokens/red";
+@import "system-tokens/teal";
+@import "system-tokens/turquoise";
+@import "system-tokens/violet";
+
+$system-colors: map-collect(
+    $system-color-blue,
+    $system-color-gray,
+    $system-color-green,
+    $system-color-magenta,
+    $system-color-orange,
+    $system-color-orange-warm,
+    $system-color-purple,
+    $system-color-red,
+    $system-color-teal,
+    $system-color-turquoise,
+    $system-color-violet
+);
+
+// blue
+$color-blue-5: get-system-color("blue", 5);
+$color-blue-10: get-system-color("blue", 10);
+$color-blue-20: get-system-color("blue", 20);
+$color-blue-30: get-system-color("blue", 30);
+$color-blue-40: get-system-color("blue", 40);
+$color-blue-50: get-system-color("blue", 50);
+$color-blue-60: get-system-color("blue", 60);
+$color-blue-70: get-system-color("blue", 70);
+
+// gray
+$color-gray-5: get-system-color("gray", 5);
+$color-gray-10: get-system-color("gray", 10);
+$color-gray-20: get-system-color("gray", 20);
+$color-gray-30: get-system-color("gray", 30);
+$color-gray-40: get-system-color("gray", 40);
+$color-gray-50: get-system-color("gray", 50);
+$color-gray-60: get-system-color("gray", 60);
+$color-gray-70: get-system-color("gray", 70);
+
+// green
+$color-green-5: get-system-color("green", 5);
+$color-green-10: get-system-color("green", 10);
+$color-green-20: get-system-color("green", 20);
+$color-green-30: get-system-color("green", 30);
+$color-green-40: get-system-color("green", 40);
+
+// magenta
+$color-magenta-5: get-system-color("magenta", 5);
+$color-magenta-10: get-system-color("magenta", 10);
+$color-magenta-20: get-system-color("magenta", 20);
+$color-magenta-30: get-system-color("magenta", 30);
+
+// orange
+$color-orange-5: get-system-color("orange", 5);
+$color-orange-10: get-system-color("orange", 10);
+
+// orange-warm
+$color-orange-warm-5: get-system-color("orange-warm", 5);
+$color-orange-warm-10: get-system-color("orange-warm", 10);
+$color-orange-warm-20: get-system-color("orange-warm", 20);
+$color-orange-warm-30: get-system-color("orange-warm", 30);
+
+// purple
+$color-purple-5: get-system-color("purple", 5);
+$color-purple-10: get-system-color("purple", 10);
+$color-purple-20: get-system-color("purple", 20);
+$color-purple-30: get-system-color("purple", 30);
+$color-purple-40: get-system-color("purple", 40);
+
+// red
+$color-red-5: get-system-color("red", 5);
+$color-red-10: get-system-color("red", 10);
+
+// teal
+$color-teal-5: get-system-color("teal", 5);
+$color-teal-10: get-system-color("teal", 10);
+$color-teal-20: get-system-color("teal", 20);
+$color-teal-30: get-system-color("teal", 30);
+
+// turquoise
+$color-turquoise-5: get-system-color("turquoise", 5);
+$color-turquoise-10: get-system-color("turquoise", 10);
+$color-turquoise-20: get-system-color("turquoise", 20);
+$color-turquoise-30: get-system-color("turquoise", 30);
+
+// violet
+$color-violet-5: get-system-color("violet", 5);
+$color-violet-10: get-system-color("violet", 10);
+$color-violet-20: get-system-color("violet", 20);
+$color-violet-30: get-system-color("violet", 30);
+
+$system-color-shortcodes: (
+  "transparent": transparent,
+  "black": $color-gray-70,
+  "white": white,
+  "blue-5": $color-blue-5,
+  "blue-10": $color-blue-10,
+  "blue-20": $color-blue-20,
+  "blue-30": $color-blue-30,
+  "blue-40": $color-blue-40,
+  "blue-50": $color-blue-50,
+  "blue-60": $color-blue-60,
+  "blue-70": $color-blue-70,
+  "gray-5": $color-gray-5,
+  "gray-10": $color-gray-10,
+  "gray-20": $color-gray-20,
+  "gray-30": $color-gray-30,
+  "gray-40": $color-gray-40,
+  "gray-50": $color-gray-50,
+  "gray-60": $color-gray-60,
+  "gray-70": $color-gray-70,
+  "green-5": $color-green-5,
+  "green-10": $color-green-10,
+  "green-20": $color-green-20,
+  "green-30": $color-green-30,
+  "green-40": $color-green-40,
+  "magenta-5": $color-magenta-5,
+  "magenta-10": $color-magenta-10,
+  "magenta-20": $color-magenta-20,
+  "magenta-30": $color-magenta-30,
+  "orange-5": $color-orange-5,
+  "orange-10": $color-orange-10,
+  "orange-warm-5": $color-orange-warm-5,
+  "orange-warm-10": $color-orange-warm-10,
+  "orange-warm-20": $color-orange-warm-20,
+  "orange-warm-30": $color-orange-warm-30,
+  "purple-5": $color-purple-5,
+  "purple-10": $color-purple-10,
+  "purple-20": $color-purple-20,
+  "purple-30": $color-purple-30,
+  "purple-40": $color-purple-40,
+  "red-5": $color-red-5,
+  "red-10": $color-red-10,
+  "teal-5": $color-teal-5,
+  "teal-10": $color-teal-10,
+  "teal-20": $color-teal-20,
+  "teal-30": $color-teal-30,
+  "turquoise-5": $color-turquoise-5,
+  "turquoise-10": $color-turquoise-10,
+  "turquoise-20": $color-turquoise-20,
+  "turquoise-30": $color-turquoise-30,
+  "violet-5": $color-violet-5,
+  "violet-10": $color-violet-10,
+  "violet-20": $color-violet-20,
+  "violet-30": $color-violet-30
+);
+
+
+// Spacing
+$neg-prefix: "neg";
+$system-spacing: (
+  smaller: (
+    "1px": 1px,
+    "2px": 2px
+  ),
+  small: (
+    "05": spacing-multiple(0.5),
+    1: spacing-multiple(1),
+    "105": spacing-multiple(1.5),
+    2: spacing-multiple(2),
+    "205": spacing-multiple(2.5),
+    3: spacing-multiple(3)
+  ),
+  smaller-negative: (
+    "#{$neg-prefix}-1px": -1px,
+    "#{$neg-prefix}-2px": -2px
+  ),
+  small-negative: (
+    "#{$neg-prefix}-05": spacing-multiple(-0.5),
+    "#{$neg-prefix}-1": spacing-multiple(-1),
+    "#{$neg-prefix}-105": spacing-multiple(-1.5),
+    "#{$neg-prefix}-2": spacing-multiple(-2),
+    "#{$neg-prefix}-205": spacing-multiple(-2.5),
+    "#{$neg-prefix}-3": spacing-multiple(-3)
+  ),
+  medium: (
+    4: spacing-multiple(4),
+    5: spacing-multiple(5),
+    6: spacing-multiple(6),
+    7: spacing-multiple(7),
+    8: spacing-multiple(8),
+    9: spacing-multiple(9),
+    10: spacing-multiple(10),
+    15: spacing-multiple(15)
+  ),
+  medium-negative: (
+    "#{$neg-prefix}-4": spacing-multiple(-4),
+    "#{$neg-prefix}-5": spacing-multiple(-5),
+    "#{$neg-prefix}-6": spacing-multiple(-6),
+    "#{$neg-prefix}-7": spacing-multiple(-7),
+    "#{$neg-prefix}-8": spacing-multiple(-8),
+    "#{$neg-prefix}-9": spacing-multiple(-9),
+    "#{$neg-prefix}-10": spacing-multiple(-10),
+    "#{$neg-prefix}-15": spacing-multiple(-15)
+  ),
+  large: (
+    "card": spacing-multiple(20),
+    "card-lg": spacing-multiple(30),
+    "mobile": spacing-multiple(40)
+  ),
+  larger: (
+    "mobile-lg": spacing-multiple(60),
+    "tablet": spacing-multiple(80),
+    "tablet-lg": spacing-multiple(110)
+  ),
+  largest: (
+    "desktop": spacing-multiple(128),
+    "desktop-lg": spacing-multiple(150),
+    "widescreen": spacing-multiple(175)
+  ),
+  special: (
+    0: 0,
+    "auto": auto
+  )
+);

@@ -17,7 +17,7 @@ $overflow-menu-dropdown-distance: 8px;
         padding: 8px 0;
         align-items: center;
         justify-content: center;
-        color: $color-black;
+        color: color("black");
 
         &:hover{
             text-decoration: underline;
@@ -43,7 +43,7 @@ $overflow-menu-dropdown-distance: 8px;
             margin-left: calc((#{$overflow-menu-arrow-size} - 1px)*-1);
         }
         &:before {
-            border-bottom-color: $color-gray-medium-light;
+            border-bottom-color: color("gray-40");
             border-width: $overflow-menu-arrow-size;
             margin-left: calc(#{$overflow-menu-arrow-size} *-1);
         }
@@ -70,7 +70,7 @@ $overflow-menu-dropdown-distance: 8px;
         position: absolute;
         z-index: 2;
         width: auto;
-        border: $outer-border;
+        border: border("100");
         box-shadow: $box-shadow-moderately;
         background: #fff;
         padding-top: map-get($spacers, 3);

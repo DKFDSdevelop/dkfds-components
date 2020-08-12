@@ -1,6 +1,23 @@
 // virkdk theme
 
-@import './lib/normalize';
-@import './themes/virkdk';  //import variable-overrides specific to this theme 
-@import './core/variables';
-@import 'dkfds-base';
+// borgerdk theme
+
+/*! DKFDS @version */
+
+// Required
+// -------------------------------------
+@import "packages/required";
+
+@import './themes/virkdk';  //import variable-overrides specific to this theme
+
+// Global
+// -------------------------------------
+@import "packages/global";
+
+// Components
+// -------------------------------------
+@import "packages/components";
+
+// Utilities
+// -------------------------------------
+@import "packages/utilities";

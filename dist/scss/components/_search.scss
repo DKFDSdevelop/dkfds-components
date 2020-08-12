@@ -1,6 +1,6 @@
 .search {
   display: flex;
-  
+
   .form-input{
     margin-top: 0;
     border-top-right-radius: 0;
@@ -21,7 +21,7 @@
     font-weight: 400;
     width: inherit; //not 100& width on mobile
     &:hover{
-      background-color: $color-gray-mediumpale;
+      background-color: color("gray-20");
     }
   }
 }
@@ -30,5 +30,5 @@
 input[type=search] { /* stylelint-disable-line selector-no-qualifying-type */
   box-sizing: border-box;
   appearance: none;
-  -webkit-appearance: none; //Fixes border-radius bug on iPhone X Safari. 
+  -webkit-appearance: none; //Fixes border-radius bug on iPhone X Safari.
 }

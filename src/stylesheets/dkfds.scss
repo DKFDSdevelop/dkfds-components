@@ -1,5 +1,19 @@
-// this is the neutral theme (so no virkdk or borgerdk specific stuff)
+/*! DKFDS @version */
 
-@import './lib/normalize';
-@import './core/variables';
-@import 'dkfds-base';
+// Required
+// -------------------------------------
+@import "packages/required";
+
+
+// Global
+// -------------------------------------
+@import "packages/global";
+
+// Components
+// -------------------------------------
+@import "packages/components";
+
+// Utilities
+// -------------------------------------
+@import "packages/utilities";
+

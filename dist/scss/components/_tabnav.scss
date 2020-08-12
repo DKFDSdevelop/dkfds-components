@@ -17,7 +17,7 @@
     margin-bottom: map-get($spacers, 3);
 
     &[aria-selected=true]{
-      background-color: $color-gray-mediumpale;
+      background-color: color("gray-20");
     }
 
     &[aria-selected=false]{
@@ -45,7 +45,7 @@
       padding-right: map-get($spacers, 5);
       margin: 0 map-get($spacers, 2) map-get($spacers, 2) 0px;
       text-decoration: underline;
-      border-top: map-get($spacers, 2) solid $color-white;
+      border-top: map-get($spacers, 2) solid color("white");
 
       &[aria-selected=false]{
         background-color: $background-alternative;
@@ -54,7 +54,7 @@
       }
 
       &:hover {
-          background-color: $color-gray-mediumpale;
+          background-color: color("gray-20");
       }
 
       &:focus{
@@ -65,12 +65,12 @@
       }
 
       &[aria-selected=true] {
-        background-color: $color-white;
+        background-color: color("white");
         background-image: none;
-        border: $outer-border;
+        border: border("100");
         padding-left: calc(#{map-get($spacers, 5)} - 1px);
         padding-right: calc(#{map-get($spacers, 5)} - 1px);
-        border-bottom: 1px solid $color-white;
+        border-bottom: 1px solid color("white");
         border-radius: 0px;
         text-decoration: none;
         margin: 0 map-get($spacers, 2) -1px 0px;
@@ -95,7 +95,7 @@
     @extend .accordion-content;
     @include media-breakpoint-up(md) {
       display: none;
-      border: $outer-border;
+      border: border("100");
       overflow: hidden;
       margin-bottom: calc(#{map-get($spacers, 4)});
       background-color: transparent;

@@ -82,20 +82,20 @@ a.button{
 
   //############ Secondary ##############
   &.button-secondary {
-    color: $color-black;
+    color: color("black");
     background-color: $color-gray-pale;
     border-color: $color-gray-medium-dark;
 
     &:hover,
     &.button-hover {
-      background-color: $color-gray-mediumpale;
+      background-color: color("gray-20");
       border-color: $color-gray-dark;
     }
 
     &:active,
     &.button-active {
-      background-color: $color-gray-light;
-      border-color: $color-black;
+      background-color: color("gray-30");
+      border-color: color("black");
     }
 
     &.focus,
@@ -108,12 +108,12 @@ a.button{
       opacity:0.3;
       box-shadow: none !important;
       cursor: not-allowed;
-      border-color: $color-gray-light !important;
+      border-color: color("gray-30") !important;
 
       &:hover {
-        color: $color-black !important;
+        color: color("black") !important;
         background-color: $color-gray-pale !important;
-        border-color: $color-gray-light !important;
+        border-color: color("gray-30") !important;
         opacity:0.3 !important;
         box-shadow: none !important;
       }
@@ -124,7 +124,7 @@ a.button{
   &.button-tertiary {
     border-color: $color-gray-medium-dark;
     background-color: transparent;
-    color: $color-black;
+    color: color("black");
     font-weight: $font-weight-normal;
 
     &:hover,
@@ -134,7 +134,7 @@ a.button{
 
     &:active,
     &.button-active {
-      border-color: $color-black;
+      border-color: color("black");
     }
 
     &.focus,
@@ -152,7 +152,7 @@ a.button{
       &:hover {
         border-color:$color-gray-medium-dark !important;
         background-color: transparent !important;
-        color: $color-black;
+        color: color("black");
         font-weight: $font-weight-normal !important;
         opacity:0.3;
         box-shadow: none !important;
@@ -171,21 +171,21 @@ a.button{
 
     &:hover,
     &.button-hover {
-      background-color: $color-gray-mediumpale;
+      background-color: color("gray-20");
       box-shadow:none;
       border-bottom-color: transparent;
     }
 
     &:active,
     &.button-active {
-      background-color: $color-gray-light;
+      background-color: color("gray-30");
       box-shadow:none;
       border-bottom-color: transparent;
     }
 
     &.focus,
     &:focus {
-      color: $color-black;
+      color: color("black");
       box-shadow:none;
       border-bottom-color: transparent;
     }

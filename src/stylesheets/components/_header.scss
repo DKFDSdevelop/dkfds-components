@@ -67,7 +67,7 @@ $z-index-nav:     9000;
   }
 
   .portal-header{
-    border-bottom: $inner-border;
+    border-bottom: border("200");
     width: 100%;
     &.portal-header-compact{
 
@@ -124,15 +124,15 @@ $z-index-nav:     9000;
   }
 
   .solution-header{
-    border-bottom: $outer-border;
+    border-bottom: border("100");
 
     @include media-breakpoint-up(lg) {
-      border-bottom: $inner-border;
+      border-bottom: border("200");
     }
 
     width: 100%;
     &.header-end{
-      border-bottom: $outer-border;
+      border-bottom: border("100");
     }
 
     .solution-header-inner{
@@ -148,7 +148,7 @@ $z-index-nav:     9000;
         font-size: 2.8rem;
         line-height: 3.2rem;
         font-weight: $font-weight-semibold;
-        color: $color-black;
+        color: color("black");
         text-decoration: none;
         display: inline-block;
         @include media-breakpoint-down(sm) {
@@ -180,7 +180,7 @@ $z-index-nav:     9000;
 
   .portal-info-mobile{
     padding: map-get($spacers, 5) map-get($spacers, 4);
-    border-bottom: $inner-border;
+    border-bottom: border("200");
     text-align: right;
     p{
       margin-bottom: map-get($spacers, 3);
@@ -227,7 +227,7 @@ $z-index-nav:     9000;
     bottom: 0;
     left: auto;
 
-    background: $color-white;
+    background: color("white");
     display: none;
     flex-direction: column;
     overflow-y: auto;
@@ -308,7 +308,7 @@ $z-index-nav:     9000;
   right: 0;
   bottom: 0;
   left: 0;
-  background: $color-black;
+  background: color("black");
   opacity: 0;
   transition: opacity 0.2s ease-in-out;
   visibility: hidden;

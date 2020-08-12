@@ -131,7 +131,7 @@
         display: none;
       }
       tr {
-        border-bottom: $inner-border;
+        border-bottom: border("200");
         &:last-child {
           border-bottom: 0;
         }
@@ -150,10 +150,10 @@
 
       &.table--borderless tbody tr {
         &:first-child {
-          border-top: solid 1px $color-gray-light;
+          border-top: solid 1px color("gray-30");
         }
         &:last-child {
-          border-bottom: solid 1px $color-gray-light;
+          border-bottom: solid 1px color("gray-30");
         }
         td:first-child, th:first-child {
           padding-left: 16px;
@@ -195,7 +195,7 @@
     transform: rotate(-45deg);
     border: solid;
     border-width: 0 0 3px 3px;
-    border-color: $color-black;
+    border-color: color("black");
     border-top-color: transparent;
     background: transparent;
     box-shadow: none;

@@ -15,7 +15,7 @@ $chevron-border-colour: $color-text-secondary;
 $chevron-altitude-calculated: 5.655px;
 
 .breadcrumbs {
-  color: $color-black;
+  color: color("black");
   font-size: $small-text;
 }
 
@@ -84,8 +84,8 @@ $chevron-altitude-calculated: 5.655px;
 }
 
 .breadcrumbs__link {
-  color: $color-black;
+  color: color("black");
   &:visited, &:hover, &:active{
-    color: $color-black;
+    color: color("black");
   }
 }

@@ -1,7 +1,7 @@
 .table {
     margin: 0;
     line-height: $body-text-line-height;
-    border: $outer-border;
+    border: border("100");
     width: calc(100% - 2px);
 
     &.table--compact {
@@ -27,10 +27,10 @@
         padding: calc(#{map-get($spacers, 4)} - 1px); //16px -1px (for the border)
         padding-bottom: #{map-get($spacers, 4)}; //16px -1px (for the border)
         background-color: inherit;
-        border-right: $inner-border;
+        border-right: border("200");
         vertical-align: top;
         text-align: left;
-        border-bottom: $inner-border;
+        border-bottom: border("200");
 
         &:last-child{
             border-right: none;
@@ -43,12 +43,12 @@
     thead {
         background-color: $color-gray-pale;
         tr {
-            border-bottom: $inner-border;
+            border-bottom: border("200");
         }
         th{
             font-weight: $font-weight-semibold;
             text-align: left;
-            border-bottom: solid 1px $color-gray-light;
+            border-bottom: solid 1px color("gray-30");
         }
     }
     tbody{
@@ -76,7 +76,7 @@
     &.table--borderless {
         tr {
             &:last-child{
-                border-bottom: $inner-border;
+                border-bottom: border("200");
             }
         }
         border: 0;
@@ -92,7 +92,7 @@
                 border-top-color: transparent;
                 border-left: 0;
                 border-right: 0;
-                border-bottom: $inner-border;
+                border-bottom: border("200");
 
                 &:first-child{
                     padding-left: 0;
@@ -106,7 +106,7 @@
         tbody{
             tr{
                 td, th {
-                    border: $inner-border;
+                    border: border("200");
                     border-left: 0;
                     border-right: 0;
                     &:first-child{
@@ -200,7 +200,7 @@
             display: block;
           }
           tr {
-            border-bottom: $inner-border;
+            border-bottom: border("200");
             &:last-child {
               border-bottom: 0;
             }
@@ -219,10 +219,10 @@
 
           &.table--borderless tbody tr {
             &:first-child {
-              border-top: solid 1px $color-gray-light;
+              border-top: solid 1px color("gray-30");
             }
             &:last-child {
-              border-bottom: solid 1px $color-gray-light;
+              border-bottom: solid 1px color("gray-30");
             }
             td:first-child, th:first-child {
               padding-left: 16px;

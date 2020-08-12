@@ -27,7 +27,7 @@
   padding-top: map-get($spacers, 5);
   padding-bottom: map-get($spacers, 5);
   @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
-    border-bottom: $inner-border;
+    border-bottom: border("200");
   }
   display: flex;
   flex-direction: column;
@@ -41,7 +41,7 @@
 .navbar-primary{
 
   @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
-    border-bottom: $outer-border;
+    border-bottom: border("100");
   }
   padding-top: 0;
 }
@@ -68,7 +68,7 @@
   }
 
   & > li:first-of-type {
-    border-top: $inner-border;
+    border-top: border("200");
   }
 
   @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
@@ -78,7 +78,7 @@
   }
 
   > li {
-    border-bottom: $inner-border;
+    border-bottom: border("200");
     @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
       border-bottom: 0;
     }
@@ -158,7 +158,7 @@
 
   .current > a{
     font-weight: $font-weight-medium;
-    color: $color-black;
+    color: color("black");
   }
   button.current{
     font-weight: $font-weight-medium;
@@ -226,7 +226,7 @@
 .nav-primary{
   .overflow-menu{
     .button-overflow-menu{
-      color: $color-black;
+      color: color("black");
       font-size: $base-font-size;
       line-height: $base-line-height;
       display: block;
@@ -287,8 +287,8 @@
           background-image: url('#{$icons-folder-path}/angle-arrow-down-white.svg');
           background-position: right 1rem center;
           //create borders:
-          border-left: 1px solid $color-gray-medium-light;
-          border-right: 1px solid $color-gray-medium-light;
+          border-left: 1px solid color("gray-40");
+          border-right: 1px solid color("gray-40");
           //box-shadow: 0px 2px 0px -1px #fff; //hide nav bottom border.
           background-color: $color-subnav-background;
           color: #fff;
@@ -306,13 +306,13 @@
       color: $color-text;
       background-color: #fff;
       padding-left: 16px;
-      border-top: $inner-border;
+      border-top: border("200");
       padding-top: 0;
       padding-bottom: 0;
 
       @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
         width: 30rem;
-        border: $outer-border;
+        border: border("100");
         border-top: 0;
         padding-left: 0;
         position: absolute;
@@ -381,7 +381,7 @@
 
       button, a{
         padding: 15px 0 15px 0;
-        border-top: $inner-border;
+        border-top: border("200");
         width: 100%;
 
         @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {

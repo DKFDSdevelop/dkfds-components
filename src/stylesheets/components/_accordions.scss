@@ -8,7 +8,7 @@ $v-padding: $spacing-md-small;
 
 @mixin accordion-list-styles {
   @include unstyled-list;
-  color: $color-black;
+  color: color("black");
   margin: 0;
   padding: 0;
   width: 100%;
@@ -24,12 +24,12 @@ $v-padding: $spacing-md-small;
 // scss-lint:disable PropertyCount
 @mixin accordion-button-styles {
   @include button-unstyled;
-  background-color: $color-gray-pale;
+  background-color: $accordion-button-background-color;
   background-image: url('#{$icons-folder-path}/minus.svg');
   background-position: left $h-padding center;
   background-repeat: no-repeat;
   background-size: $icon-size;
-  color: $color-black;
+  color: $accordion-button-default-text-color;
   cursor: pointer;
   display: inline-block;
   margin: 0;
@@ -38,7 +38,8 @@ $v-padding: $spacing-md-small;
   width: 100%;
 
   &:hover {
-    background-color: $color-gray-mediumpale;
+    background-color: $accordion-button-hover-background-color;
+    color: $accordion-button-hover-text-color;
   }
 
   h1, .h1,
@@ -101,14 +102,14 @@ $v-padding: $spacing-md-small;
    }
 
     .icon-svg {
-      fill: $color-black;
+      fill: color("gray-5");
       float: left;
     }
   }
 }
 .accordion-bordered .accordion-button{
-  border: $outer-border;
-  border-radius: $border-radius $border-radius 0 0;
+  border: $accordion-border-width solid $accordion-border-color;
+  border-radius: $accordion-border-radius $accordion-border-radius 0 0;
 }
 
 .accordion,
@@ -128,15 +129,15 @@ $v-padding: $spacing-md-small;
 
 .accordion-bordered {
   .accordion-content {
-    border-bottom: $outer-border;
-    border-left: $outer-border;
-    border-right: $outer-border;
-    border-radius: 0 0 $border-radius $border-radius;
+    border-bottom: $accordion-border-width solid $accordion-border-color;
+    border-left: $accordion-border-width solid $accordion-border-color;
+    border-right: $accordion-border-width solid $accordion-border-color;
+    border-radius: 0 0 $accordion-border-radius $accordion-border-radius;
   }
 }
 
 .accordion-content {
-  background-color: $color-white;
+  background-color: $accordion-panel-background-color;
   overflow: auto;
   padding: $spacing-md-small;
 
@@ -158,16 +159,15 @@ $v-padding: $spacing-md-small;
 }
 .accordion-button[aria-describedby="error-message"],
 .accordion-button.accordion-error {
-  border: solid 2px $color-error !important;
+  border: 2px solid $color-error;
 }
 .accordion-button[aria-expanded=true] {
-  background-color: $color-gray-mediumpale;
+  background-color: $accordion-button-active-background-color;
   .accordion-bordered &{
-    border-bottom: $inner-border;
+    border-bottom: border("200");
   }
 }
 .accordion-button[aria-expanded=false] {
   @include accordion-button-unopened-styles;
-  border-radius: $border-radius $border-radius $border-radius $border-radius;
-  // display: flex;
+  border-radius: $accordion-border-radius $accordion-border-radius $accordion-border-radius $accordion-border-radius;
 }

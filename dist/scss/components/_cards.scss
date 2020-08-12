@@ -1,10 +1,10 @@
 .card {
   position: relative;
   border-radius: map-get($spacers, 0);
-  box-shadow: 0 2px 4px 0 $color-gray-light;
-  border: $outer-border;
+  box-shadow: 0 2px 4px 0 color("gray-30");
+  border: border("100");
   overflow: hidden;
-  background: $color-white;
+  background: color("white");
 
   //small card
   &-small {
@@ -65,12 +65,12 @@
 }
 //card-header
 .card-header {
-  background-color: $color-white;
+  background-color: color("white");
   padding: map-get($spacers, 4) map-get($spacers, 5);
   .header-title {
     @include body-copy-text;
     font-weight: $font-weight-semibold;
-    color: $color-black;
+    color: color("black");
     margin:map-get($spacers, 0);
 
     &.large-text {
@@ -87,7 +87,7 @@
 }
 
 .card-text {
-  background-color: $color-white;
+  background-color: color("white");
   padding: map-get($spacers, 4) map-get($spacers, 5);
   .text {
     @include body-copy-text;

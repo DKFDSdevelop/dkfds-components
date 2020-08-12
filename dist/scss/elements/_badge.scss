@@ -7,7 +7,7 @@
   border: none;
   font-weight: $font-weight-semibold;
   color: $button-primary-color;
-  background: $color-black;
+  background: color("black");
   @include font-smoothing;
   text-align: center;
   text-transform: uppercase;
@@ -16,31 +16,31 @@
   //############ Large badge ###############
   &.badge-large {
     color: $button-primary-color;
-    background-color: $color-black;
+    background-color: color("black");
     font-size: $base-font-size;
     line-height: $body-text-line-height;
   }
  //############ Small badge ###############
   &.badge-small {
     color: $button-primary-color;
-    background-color: $color-black;
+    background-color: color("black");
     font-size: $small-text;
     line-height: $small-text-line-height;
   }
   &.badge-info{
-    color: $color-black;
+    color: color("black");
     background-color: $color-info-light;
   }
   &.badge-success{
-    color: $color-black;
+    color: color("black");
     background-color: $color-success-light;
   }
   &.badge-warning{
-    color: $color-black;
+    color: color("black");
     background-color: $color-warning-light;
   }
   &.badge-error{
-    color: $color-black;
+    color: color("black");
     background-color: $color-error-light;
   }
 }

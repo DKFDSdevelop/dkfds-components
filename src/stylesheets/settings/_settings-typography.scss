@@ -1,0 +1,191 @@
+
+
+/*
+----------------------------------------
+Root font size
+----------------------------------------
+Setting $theme-respect-user-font-size to
+true sets the root font size to 100% and
+uses ems for media queries
+----------------------------------------
+$theme-root-font-size only applies when
+$theme-respect-user-font-size is set to
+false.
+
+This will set the root font size
+as a specific px value and use px values
+for media queries.
+
+Accepts true or false
+----------------------------------------
+*/
+
+$theme-respect-user-font-size: true !default;
+
+// $theme-root-font-size only applies when
+// $theme-respect-user-font-size is set to
+// false.
+
+// This will set the root font size
+// as a specific px value and use px values
+// for media queries.
+
+// Accepts values in px
+
+$theme-root-font-size: 10px !default;
+
+
+////////////////////////////////////////////////////////////////////77//////////////////////////////////////////////////////////////////////////////////////////
+// These variables drive almost every aspect of the Frontend Styleguide.
+// Every variable is declared as !default so that it can be overridden
+// by a previous import.
+//
+
+//----------------
+// -to-rem
+//----------------
+$global-font-size:  100% !default;
+// Removing the !default from $em-base so we are not inheriting that
+// value from Bourbon.
+$em-base:           62.5%; //-> 10px for standard browsers, now 'Font size' from the browser setting works correctly if the uses specifies a bigger standard font-size.
+
+$base-font-size:    1.6rem !default;
+$base-line-height:  2.4rem !default;
+
+// Paths
+// Relative font and image file paths
+$font-path:                     '../fonts/IBMPlexSans/' !default;
+$image-path:                    '../img' !default;
+$icons-folder-path:             "../img/svg-icons" !default;
+// Typography
+// Typography font-size and line-height
+
+$font-name: 'IBM Plex Sans'!default;
+
+$h1-font-size:                4.0rem !default;
+$h1-line-height:              4.8rem !default;
+
+$h2-font-size:                3.0rem !default;
+$h2-line-height:              4.0rem !default;
+
+$h3-font-size:                2.4rem !default;
+$h3-line-height:              3.2rem !default;
+
+$h4-font-size:                2.0rem !default;
+$h4-line-height:              3.2rem !default;
+
+$h5-font-size:                1.6rem !default;
+$h5-line-height:              2.4rem !default;
+
+$h6-font-size:                1.3rem !default;
+$h6-line-height:              2.4rem !default;
+
+$display-1-heading-size:        4.8rem !default;
+$display-1-heading-line-height: 5.6rem !default;
+
+$display-2-heading-size:        3.2rem !default;
+$display-2-heading-line-height: 4.0rem !default;
+
+$body-text:                   1.6rem !default;
+$body-text-line-height:       2.4rem !default;
+
+$form-label:                  1.6rem !default;
+$form-label-line-height:      2.4rem !default;
+
+$small-text:                  1.4rem !default;
+$small-text-line-height:      2rem !default;
+
+$lead-font-size:              2.0rem !default;
+$lead-line-height:            3.2rem !default;
+
+$font-weight-normal:          400 !default;
+$font-weight-medium:          500 !default;
+$font-weight-semibold:        600 !default;
+$font-weight-bold:            700 !default;
+$font-style-normal:           normal !default;
+$font-style-italic:           italic !default;
+
+$font-family:                'IBM Plex Sans', 'system' !default;
+
+
+//font-family, font-size and line-height for h1-h6, bodytext and smalltext
+@mixin h1{
+  font-size: $h1-font-size;
+  line-height: $h1-line-height;
+  font-weight: $font-weight-bold;
+  color: color("black");
+  text-transform: none;
+  word-break: break-word;
+}
+@mixin h2 {
+  font-size: $h2-font-size;
+  line-height: $h2-line-height;
+  font-weight: $font-weight-semibold;
+  color: color("black");
+  text-transform: none;
+}
+@mixin h3 {
+  font-size: $h3-font-size;
+  line-height: $h3-line-height;
+  font-weight: $font-weight-semibold;
+  color: color("black");
+  text-transform: none;
+}
+@mixin h4{
+  font-size: $h4-font-size;
+  line-height: $h4-line-height;
+  font-weight: $font-weight-semibold;
+  color: color("black");
+  text-transform: none;
+}
+@mixin h5 {
+  font-size: $h5-font-size;
+  line-height: $h5-line-height;
+  font-weight: $font-weight-semibold;
+  color: color("black");
+  text-transform: none;
+}
+@mixin body-copy-text {
+  font-size: $body-text;
+  line-height: $body-text-line-height;
+  font-weight: $font-weight-normal;
+  color: $color-text;
+  text-transform: none;
+}
+@mixin form-label-text {
+  font-size: $form-label;
+  line-height: $form-label-line-height;
+  font-weight: $font-weight-semibold;
+  color: color("black");
+  text-transform: none;
+}
+@mixin h6 {
+  font-size: $h6-font-size;
+  line-height: $h6-line-height;
+  font-weight: $font-weight-medium;
+  color: color("black");
+  text-transform: uppercase;
+}
+@mixin small-text {
+  font-size: $small-text;
+  line-height: $small-text-line-height;
+  font-weight: $font-weight-medium;
+}
+
+@mixin font-weight-bold {
+  font-weight: $font-weight-semibold;
+  color:$color-gray-dark;
+}
+
+@mixin font-style-italic {
+  font-style: $font-style-italic;
+  color:$color-gray-dark
+}
+
+@mixin color-text-positive {
+  color:$color-text-positive;
+}
+
+@mixin color-text-negative {
+  color:$color-text-negative;
+}

@@ -22,9 +22,9 @@
 
 .form-input{
   appearance: none;
-  border: $outer-border;
+  border: border("100");
   border-radius: $input-border-radius;
-  color: $color-black; // standardize on firefox
+  color: color("black"); // standardize on firefox
   display: block;
   font-size: $input-font-size;
   line-height: $input-line-height;
@@ -58,9 +58,9 @@ textarea.form-input{
 ////////////////
 
 .form-select {
-  border: $outer-border;
+  border: border("100");
   border-radius: $input-border-radius;
-  color: $color-black; // standardize on firefox
+  color: color("black"); // standardize on firefox
   display: block;
   font-size: $input-font-size;
   line-height: $input-line-height;
@@ -82,7 +82,7 @@ textarea.form-input{
   // Remove dotted outline from select element on focus in Firefox
   &:-moz-focusring {
     color: transparent;
-    text-shadow: 0 0 0 $color-black;
+    text-shadow: 0 0 0 color("black");
   }
 
   &:focus, &.focus{
@@ -95,7 +95,7 @@ textarea.form-input{
 
   &:disabled {
     background-color: $color-gray-pale;
-    color:$color-gray-medium-light;
+    color:color("gray-40");
     cursor: not-allowed;
   }
 
@@ -139,7 +139,7 @@ table {
 
 input[type=text]:disabled, textarea:disabled{
   background: $color-gray-pale;
-  color:$color-gray-medium-light;
+  color:color("gray-40");
   cursor: not-allowed;
 }
 input[readonly][type=text]{
@@ -150,7 +150,7 @@ input[readonly][type=text]{
 }
 input[readonly][type=text], textarea[readonly]{
   background-color: transparent;
-  color:$color-black;
+  color:color("black");
   border: none;
   cursor: default;
   padding: 0;
@@ -182,7 +182,7 @@ $radio-size-large: 34px;
   margin-bottom: 0;
   display: inline-block;
   outline: none;
-  color: $color-black;
+  color: color("black");
   position: relative;
   padding-left: calc(#{$checkbox-size} + 8px);
   min-height: $checkbox-size;
@@ -198,7 +198,7 @@ $radio-size-large: 34px;
 .form-radio + label::before {
   content: '';
   display: inline-block;
-  background: $color-white;
+  background: color("white");
   border-radius: $checkbox-border-radius;
   border: 2px solid $color-text;
   height: $checkbox-size;
@@ -301,10 +301,10 @@ $radio-size-large: 34px;
 //Disable
 .form-checkbox:disabled + label,
 .form-radio:disabled + label {
-  color: $color-gray-medium-light;
+  color: color("gray-40");
   cursor: not-allowed;
   &:before{
-    border-color: $color-gray-light;
+    border-color: color("gray-30");
     background-color: $color-gray-pale;
   }
 }
@@ -346,7 +346,7 @@ $radio-size-large: 34px;
 }
 
 [type=range]::-webkit-slider-runnable-track {
-  background: $color-gray-light;
+  background: color("gray-30");
   border: 1px solid $color-gray-medium-dark;
   cursor: pointer;
   height: 1.2rem;
@@ -399,13 +399,13 @@ $radio-size-large: 34px;
 }
 
 [type=range]::-ms-fill-lower {
-  background: $color-gray-light;
+  background: color("gray-30");
   border: 1px solid $color-gray-medium-dark;
   border-radius: 2rem;
 }
 
 [type=range]::-ms-fill-upper {
-  background: $color-gray-light;
+  background: color("gray-30");
   border: 1px solid $color-gray-medium-dark;
   border-radius: 2rem;
 }

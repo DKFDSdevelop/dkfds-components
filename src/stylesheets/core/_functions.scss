@@ -1,0 +1,583 @@
+/*
+========================================
+Functions
+----------------------------------------
+*/
+
+/*
+========================================
+Functions
+----------------------------------------
+*/
+
+// The following vars need to be set
+// here, before the rest of the system
+// variables are set
+
+$root-font-size: if($theme-respect-user-font-size, 100%, $theme-root-font-size);
+
+$root-font-size-equiv: if(
+    $theme-respect-user-font-size,
+    16px,
+    $theme-root-font-size
+);
+
+
+
+/*
+----------------------------------------
+Spacing grid multiplier
+----------------------------------------
+*/
+
+$system-spacing-grid-base: 8px;
+
+/*
+----------------------------------------
+Spacing grid
+----------------------------------------
+*/
+
+
+/*
+----------------------------------------
+spacing-multiple()
+----------------------------------------
+Converts a spacing unit multiple into
+the desired final units (currently rem)
+----------------------------------------
+*/
+
+@function spacing-multiple($unit) {
+  $grid-to-rem: ($system-spacing-grid-base * $unit) / $root-font-size-equiv *
+    1rem;
+
+  @return $grid-to-rem;
+}
+
+
+/*
+----------------------------------------
+number-to-token()
+----------------------------------------
+Converts an integer or numeric value
+into a system value
+
+Ex: 0.5   --> '05'
+    -1px  --> 'neg-1px'
+----------------------------------------
+*/
+
+@function number-to-token($number) {
+  $number: inspect($number);
+
+  @if not map-has-key($number-to-value, $number) {
+    @return false;
+  }
+
+  @return map-get($number-to-value, $number);
+}
+
+/*
+----------------------------------------
+units()
+----------------------------------------
+Converts a spacing unit into
+the desired final units (currently rem)
+----------------------------------------
+*/
+
+@function units($value) {
+  $converted: if(
+      type-of($value) == "string",
+      quote($value),
+      number-to-token($value)
+  );
+
+  @if not map-has-key($project-spacing-standard, $converted) {
+    @error '`#{$value}` is not a valid spacing unit token. '
+      + 'Valid spacing unit tokens: '
+      + '#{map-keys($project-spacing-standard)}';
+  }
+
+  @return map-get($project-spacing-standard, $converted);
+}
+
+/*
+----------------------------------------
+get-last()
+----------------------------------------
+Return the last item of a list,
+Return null if the value is null
+----------------------------------------
+*/
+
+@function get-last($props) {
+  $length: length($props);
+  $last: if($length == 0, null, nth($props, -1));
+
+  @return $last;
+}
+
+/*
+----------------------------------------
+has-important()
+----------------------------------------
+Check to see if `!important` is
+being passed in a mixin's props
+----------------------------------------
+*/
+
+@function has-important($props) {
+  $props: de-list($props);
+
+  @if get-last($props) == "!important" {
+    @return true;
+  }
+
+  @return false;
+}
+
+/*
+----------------------------------------
+map-deep-get()
+----------------------------------------
+@author Hugo Giraudel
+@access public
+@param {Map} $map - Map
+@param {Arglist} $keys - Key chain
+@return {*} - Desired value
+----------------------------------------
+*/
+
+@function map-deep-get($map, $keys...) {
+  @each $key in $keys {
+    $map: map-get($map, $key);
+  }
+
+  @return $map;
+}
+
+/*
+----------------------------------------
+strip-unit()
+----------------------------------------
+Remove the unit of a length
+@author Hugo Giraudel
+@param {Number} $number - Number to remove unit from
+@return {Number} - Unitless number
+----------------------------------------
+*/
+
+@function strip-unit($number) {
+  @if type-of($number) == "number" and not unitless($number) {
+    @return $number / ($number * 0 + 1);
+  }
+
+  @return $number;
+}
+
+/*
+----------------------------------------
+map-collect()
+----------------------------------------
+Collect multiple maps into a single
+large map
+source: https://gist.github.com/bigglesrocks/d75091700f8f2be5abfe
+----------------------------------------
+*/
+
+@function map-collect($maps...) {
+  $collection: ();
+
+  @each $map in $maps {
+    $collection: map-merge($collection, $map);
+  }
+
+  @return $collection;
+}
+
+/*
+----------------------------------------
+smart-quote()
+----------------------------------------
+Quotes strings
+Inspects `px`, `xs`, and `xl` numbers
+Leaves bools as is
+----------------------------------------
+*/
+
+@function smart-quote($value) {
+  @if type-of($value) == "string" {
+    @return quote($value);
+  }
+
+  @if type-of($value) == "number" and index(("px", "xl", "xs"), unit($value)) {
+    @return inspect($value);
+  }
+
+  @if type-of($value) == "color" {
+    @error 'Only use quoted color tokens in USWDS functions and mixins. '
+      + 'See designsystem.digital.gov/design-tokens/color '
+      + 'for more information.';
+  }
+
+  @return $value;
+}
+
+/*
+----------------------------------------
+remove()
+----------------------------------------
+Remove a value from a list
+----------------------------------------
+*/
+
+@function remove($list, $value, $recursive: false) {
+  $result: ();
+
+  @for $i from 1 through length($list) {
+    @if type-of(nth($list, $i)) == list and $recursive {
+      $result: append($result, remove(nth($list, $i), $value, $recursive));
+    } @else if nth($list, $i) != $value {
+      $result: append($result, nth($list, $i));
+    }
+  }
+
+  @return $result;
+}
+
+/*
+----------------------------------------
+px-to-rem()
+----------------------------------------
+Converts a value in px to a value in rem
+----------------------------------------
+*/
+
+@function px-to-rem($pixels) {
+  @if not $pixels {
+    @return false;
+  }
+  $px-to-rem: ($pixels / $root-font-size-equiv) * 1rem;
+  $px-to-rem: round($px-to-rem * 100) / 100;
+
+  @return $px-to-rem;
+}
+
+/*
+----------------------------------------
+smart-quote()
+----------------------------------------
+Quotes strings
+Inspects `px`, `xs`, and `xl` numbers
+Leaves bools as is
+----------------------------------------
+*/
+
+@function smart-quote($value) {
+  @if type-of($value) == "string" {
+    @return quote($value);
+  }
+
+  @if type-of($value) == "number" and index(("px", "xl", "xs"), unit($value)) {
+    @return inspect($value);
+  }
+
+  @if type-of($value) == "color" {
+    @error 'Only use quoted color tokens in USWDS functions and mixins. '
+      + 'See designsystem.digital.gov/design-tokens/color '
+      + 'for more information.';
+  }
+
+  @return $value;
+}
+
+/*
+----------------------------------------
+de-list()
+----------------------------------------
+Transform a one-element list or arglist
+into that single element.
+----------------------------------------
+(1) => 1
+((1)) => (1)
+----------------------------------------
+*/
+
+@function de-list($value) {
+  $types: ("list", "arglist");
+
+  @if not index($types, type-of($value)) {
+    @return $value;
+  }
+
+  $output: if(length($value) == 1, nth($value, 1), $value);
+
+  @return $output;
+}
+
+/*
+----------------------------------------
+unpack()
+----------------------------------------
+Create lists of single items from lists
+of lists.
+----------------------------------------
+(1, (2.1, 2.2), 3) -->
+(1, 2.1, 2.2, 3)
+----------------------------------------
+*/
+
+@function unpack($value) {
+  $output: ();
+
+  @if length($value) == 0 {
+    @return $value;
+  }
+
+  @each $i in $value {
+    @if type-of($i) == "list" {
+      @each $ii in $i {
+        $output: append($output, $ii, comma);
+      }
+    } @else {
+      $output: append($output, $i, comma);
+    }
+  }
+
+  @return de-list($output);
+}
+
+
+/*
+----------------------------------------
+get-system-color()
+----------------------------------------
+Derive a system color from its
+family, value, and vivid or a passed
+variable that is, itself, a list
+----------------------------------------
+*/
+
+@function get-system-color(
+  $color-family: false,
+  $color-grade: false,
+  $color-variant: false
+) {
+  // If the arg being passed to the fn
+  // is a variable defined as a list,
+  // $color-family will contain this
+  // entire list, and needs to be
+  // unpacked.
+  // ex:
+  //    in settings:
+  //      $theme-color-primary.'dark': 'blue', 70
+  //    in the theme colors map:
+  //      $color-primary-dark: get-system-color($theme-color-primary.'dark'),
+
+  @if type-of($color-family) == "list" {
+    @if length($color-family) > 2 {
+      $color-variant: nth($color-family, 3);
+    }
+    $color-grade: nth($color-family, 2);
+    $color-family: nth($color-family, 1);
+  }
+
+  $color-family: smart-quote($color-family);
+  $color-variant: smart-quote($color-variant);
+
+  // If the arg being passed to the fn
+  // is false, it should output as `false`
+  // to preserve a false value in the
+  // target map
+  // ex:
+  //    in settings:
+  //      $theme-color-primary.'darkest': false;
+  //    in the theme colors map:
+  //      'darkest': get-system-color($theme-color-primary.'darkest'),
+  //      'darkest': false, // is the desired outcome
+  // TODO: should a false-pass color function be a separate fn?
+
+  @if not $color-family {
+    @return false;
+  }
+
+  @if $color-variant {
+    $output: map-deep-get(
+        $system-colors,
+        $color-family,
+        $color-variant,
+        $color-grade
+    );
+
+    @return $output;
+  }
+
+  $output: map-deep-get($system-colors, $color-family, $color-grade);
+
+  @return $output;
+}
+
+
+/*
+----------------------------------------
+color()
+----------------------------------------
+Derive a color from a color shortcode
+----------------------------------------
+*/
+
+@function color($value, $flags...) {
+  $value: unpack($value);
+
+  // Non-token colors may be passed with specific flags
+  @if type-of($value) == color {
+    // override or set-theme will allow any color
+    @if index($flags, override) or index($flags, set-theme) {
+      // override + no-warn will skip warnings
+      @if index($flags, no-warn) {
+        @return $value;
+      }
+
+      @if $theme-show-compile-warnings {
+        @warn 'Override: `#{$value}` is not a USWDS color token.';
+      }
+
+      @return $value;
+    }
+  }
+
+  // False values may be passed through when setting theme colors
+  @if $value == false {
+    @if index($flags, set-theme) {
+      @return $value;
+    }
+  }
+
+  // Now, any value should be evaluated as a token
+
+  $value: smart-quote($value);
+
+  @if map-has-key($system-color-shortcodes, $value) {
+    $our-color: map-get($system-color-shortcodes, $value);
+    @if $our-color == false {
+      @error '`#{$value}` is a color that does not exist '
+        + 'or is set to false.';
+    }
+    @return $our-color;
+  }
+
+  @error '`#{$value}` is not a valid USWDS color token. '
+      + 'See designsystem.digital.gov/design-tokens/color '
+      + 'for more information.';
+}
+
+
+/*
+----------------------------------------
+line-height()
+lh()
+----------------------------------------
+Get a normalized line-height from
+a family and a line-height scale unit
+----------------------------------------
+*/
+
+@function lh($props...) {
+  $props: unpack($props);
+
+  @if not(length($props) == 1) {
+    @error 'lh() needs parameter for line height token '
+      + 'in the format `lh(HEIGHT)`.';
+  }
+
+  $scale: smart-quote(nth($props, 1));
+
+  @if not map-get($system-line-height, $scale) {
+    @error '`#{$scale}` is not a valid line-height token. '
+      + 'Valid tokens: #{map-keys($system-line-height)}';
+  }
+
+  $this-line-height: map-get($system-line-height, $scale);
+
+  @return $this-line-height;
+}
+
+@function line-height($props...) {
+  @return lh($props...);
+}
+/*
+----------------------------------------
+normalize-type-scale()
+----------------------------------------
+Normalizes a specific face's optical size
+to a set target
+----------------------------------------
+*/
+
+@function normalize-type-scale($cap-height, $scale) {
+  @if not $cap-height {
+    @return false;
+  }
+
+  $this-scale: $system-base-cap-height * strip-unit($scale) / $cap-height * 1px;
+
+  @return px-to-rem($this-scale);
+}
+
+/*
+----------------------------------------
+font-size()
+----------------------------------------
+Get type scale value from a [family] and
+[scale]
+----------------------------------------
+*/
+
+@function font-size($family, $scale, $force: false) {
+  $our-family: smart-quote($family);
+  $our-scale: smart-quote($scale);
+
+  @if not map-has-key($project-cap-heights, $our-family) {
+    @error '#{$our-family} is not a valid font family token. '
+      + 'Valid tokens: #{map-keys($project-cap-heights)}';
+  }
+  @if not map-get($all-type-scale, $our-scale) {
+    @error '`#{$our-scale}` is not a valid font scale token. '
+      + 'Valid token: #{map-keys($all-type-scale)}';
+  }
+
+  $this-cap: map-get($project-cap-heights, $our-family);
+  $this-scale: map-get($all-type-scale, $our-scale);
+
+  @if not $force {
+    @if not($this-scale and $this-cap) {
+      @error 'The scale `#{$our-scale}` is disabled '
+        + 'in your project\'s theme settings. '
+        + 'Set its value to `true` to use this family.';
+    }
+  }
+
+  @return normalize-type-scale($this-cap, $this-scale);
+}
+
+@function fs($family, $scale) {
+  @return font-size($family, $scale);
+}
+
+@function size($family, $scale) {
+  @return font-size($family, $scale);
+}
+
+/*
+----------------------------------------
+border()
+----------------------------------------
+Derive a border value from number
+----------------------------------------
+*/
+
+@function border($index) {
+  @return map_get($system-borders, $index);
+}
