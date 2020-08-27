@@ -186,15 +186,118 @@ $button-border-radius:          4px !default;
 $static-border-radius:          0;
 $interactive-border-radius:     4px;
 $button-box-shadow:             rgba(0,0,0,.4) !default;
-$box-shadow:                    0 0 2px $color-shadow !default;
-$focus-outline:                 4px solid $color-focus;
+$box-shadow:                    0 0 2px color('black-transparent-30') !default;
+$focus-outline:                 4px solid color($theme-focus-outline-color);
 $focus-spacing:                 1px;
 $nav-responsive-breakpoint:     lg !default; // 992px
 
-$box-shadow-heavy:               0 8px 16px 0 $color-shadow;
-$box-shadow-moderately:          0 4px 8px 0 $color-shadow;
-$box-shadow-slightly:            0 2px 4px 0 $color-shadow;
+$box-shadow-heavy:               0 8px 16px 0 color('black-transparent-30');
+$box-shadow-moderately:          0 4px 8px 0 color('black-transparent-30');
+$box-shadow-slightly:            0 2px 4px 0 color('black-transparent-30');
 
 
 // 44 x 44 pixels hit target following Apple iOS Human Interface
 $hit-area:                      4.4rem !default;
+
+
+/*
+----------------------------------------
+Theme color map
+----------------------------------------
+*/
+
+
+$project-colors: (
+  "base": (
+    "lightest": color($theme-color-base-lightest, set-theme),
+    "lighter": color($theme-color-base-lighter, set-theme),
+    "light": color($theme-color-base-light, set-theme),
+    "default": color($theme-color-base, set-theme),
+    "dark": color($theme-color-base-dark, set-theme),
+    "darker": color($theme-color-base-darker, set-theme),
+    "darkest": color($theme-color-base-darkest, set-theme)
+  ),
+  "primary": (
+    "lightest": color($theme-color-primary-lightest, set-theme),
+    "lighter": color($theme-color-primary-lighter, set-theme),
+    "light": color($theme-color-primary-light, set-theme),
+    "default": color($theme-color-primary, set-theme),
+    "dark": color($theme-color-primary-dark, set-theme),
+    "darker": color($theme-color-primary-darker, set-theme),
+    "darkest": color($theme-color-primary-darkest, set-theme)
+  )
+);
+
+$project-state-colors: (
+  "error": (
+    "light": color($theme-color-error-light, set-theme),
+    "default": color($theme-color-error, set-theme),
+  ),
+  "warning": (
+    "light": color($theme-color-warning-light, set-theme),
+    "default": color($theme-color-warning, set-theme),
+  ),
+  "success": (
+    "light": color($theme-color-success-light, set-theme),
+    "default": color($theme-color-success, set-theme),
+  ),
+  "info": (
+    "light": color($theme-color-info-light, set-theme),
+    "default": color($theme-color-info, set-theme),
+  ),
+  "disabled": (
+    "light": color($theme-color-disabled-light, set-theme),
+    "default": color($theme-color-disabled, set-theme),
+  )
+);
+
+$all-project-colors: map-collect($project-colors, $project-state-colors);
+
+/*
+----------------------------------------
+Theme color shortcodes
+----------------------------------------
+*/
+
+$tokens-color-theme: (
+  "base-lightest": color($theme-color-base-lightest, set-theme, no-warn),
+  "base-lighter": color($theme-color-base-lighter, set-theme, no-warn),
+  "base-light": color($theme-color-base-light, set-theme, no-warn),
+  "base": color($theme-color-base, set-theme, no-warn),
+  "base-dark": color($theme-color-base-dark, set-theme, no-warn),
+  "base-darker": color($theme-color-base-darker, set-theme, no-warn),
+  "base-darkest": color($theme-color-base-darkest, set-theme, no-warn),
+  "ink": color($theme-color-base-ink, set-theme, no-warn),
+  "primary-lightest": color($theme-color-primary-lightest, set-theme, no-warn),
+  "primary-lighter": color($theme-color-primary-lighter, set-theme, no-warn),
+  "primary-light": color($theme-color-primary-light, set-theme, no-warn),
+  "primary": color($theme-color-primary, set-theme, no-warn),
+  "primary-dark": color($theme-color-primary-dark, set-theme, no-warn),
+  "primary-darker": color($theme-color-primary-darker, set-theme, no-warn),
+  "primary-darkest": color($theme-color-primary-darkest, set-theme, no-warn),
+);
+
+$tokens-color-state: (
+  "error-light": color($theme-color-error-light, set-theme, no-warn),
+  "error": color($theme-color-error, set-theme, no-warn),
+  "warning-light": color($theme-color-warning-light, set-theme, no-warn),
+  "warning": color($theme-color-warning, set-theme, no-warn),
+  "success-light": color($theme-color-success-light, set-theme, no-warn),
+  "success": color($theme-color-success, set-theme, no-warn),
+  "info-light": color($theme-color-info-light, set-theme, no-warn),
+  "info": color($theme-color-info, set-theme, no-warn),
+  "disabled-light": color($theme-color-disabled-light, set-theme, no-warn),
+  "disabled": color($theme-color-disabled, set-theme, no-warn),
+  "disabled-dark": color($theme-color-disabled-dark, set-theme, no-warn)
+);
+
+
+$project-color-shortcodes: map-collect(
+    $tokens-color-theme,
+    $tokens-color-state
+);
+
+$all-color-shortcodes: map-collect(
+    $system-color-shortcodes,
+    $project-color-shortcodes
+);

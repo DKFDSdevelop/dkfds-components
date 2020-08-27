@@ -15,11 +15,11 @@ p {
 
 
 a {
-  color: $color-link;
+  color: color($theme-link-color);
 
   &:hover,
   &.link-hover {
-    color:$color-link-hover;
+    color: color($theme-link-hover-color);
 
     &:disabled,
     .disabled {
@@ -30,44 +30,17 @@ a {
 
   &:focus,
   &.link-focus {
-    color: $color-link-focus;
+    color: color($theme-link-focus-color);
     outline: $focus-outline;
     outline-offset: $focus-spacing;
   }
 
   &:visited,
   &.link-visited {
-    color: $color-link-visited;
+    color: color($theme-link-visited-color);
   }
-
-  &:disabled,
-  &.disabled {
-    cursor: not-allowed !important;
-    color: color("gray-60") !important;
-    opacity: 0.3;
-    &:focus{
-      outline: none;
-      background-color: transparent;
-    }
-  }
-
-  .background-dark &{
-    &:not(.button){
-      color: color("white");
-    }
-
-    &:disabled,
-    &.disabled {
-      box-shadow: none !important;
-      cursor: not-allowed !important;
-      color: color("gray-40") !important;
-      box-shadow: none !important;
-      outline-offset: inherit !important;
-      &:focus{
-        outline: none;
-        background-color: transparent;
-      }
-    }
+  &:active {
+    color: color($theme-link-active-color);
   }
 }
 
@@ -113,7 +86,7 @@ p, .body-text, .body-copy-text{
   font-weight: $font-weight-normal;
   line-height: $lead-line-height;
   max-width: $text-max-width;
-  color: $color-text;
+  color: color('ink');
 }
 
 .weight-normal {
@@ -218,7 +191,7 @@ h5, .h5, h6, .h6{
   @include body-copy-text;
   display: inline-block;
   &:hover, &:visited, &:focus{
-    color: $color-text;
+    color: color('ink');
   }
   .icon-svg{
     margin-right: map-get($spacers, 2);
@@ -357,15 +330,11 @@ a:not(.button){
 }
 
 .text-positive {
-  @include color-text-positive();
+  color: color('positive');
 }
 
 .text-negative {
-  @include color-text-negative();
-}
-
-.color-text-black {
-  color: color("black");
+  color: color('negative');
 }
 
 .background-dark {

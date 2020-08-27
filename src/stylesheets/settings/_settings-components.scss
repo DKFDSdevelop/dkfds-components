@@ -51,19 +51,77 @@ $tag-hover-bg: "gray-50" !default;
 $tag-active-bg: "black" !default;
 $tag-focus-bg: "gray-60" !default;
 
-// Button
-$button-primary-color: "white" !default;
-$button-primary-bg: "primary" !default;
-$button-primary-border-color: "primary-dark" !default;
-$button-primary-hover-bg: "primary-dark" !default;
-$button-primary-hover-border-color: "primary-darkest" !default;
-$button-primary-active-bg: "primary-darkest" !default;
-$button-primary-active-border-color: "primary-darkest" !default;
-$button-primary-focus-bg: "primary"  !default;
-$button-primary-focus-border-color: "primary-dark" !default;
-$button-disabled-bg: "gray-10" !default;
+/**
+Buttons
+ */
+
 $button-border-width: 2px;
-$button-primary-border-color: "primary-dark";
+$button-border-color: 'black';
+$button-color: 'black';
+
+// Primary
+$button-primary-default-color: "white" !default;
+$button-primary-hover-color: $button-primary-default-color !default;
+$button-primary-active-color: $button-primary-default-color !default;
+$button-primary-focus-color: $button-primary-default-color !default;
+$button-primary-background-color: "primary" !default;
+$button-primary-border-color: "primary-dark" !default;
+$button-primary-hover-background-color: "primary-dark" !default;
+$button-primary-hover-border-color: "primary-darkest" !default;
+$button-primary-active-background-color: "primary-darkest" !default;
+$button-primary-active-border-color: "primary-darkest" !default;
+$button-primary-focus-background-color: "primary"  !default;
+$button-primary-focus-border-color: "primary-dark" !default;
+$button-primary-border-width: $button-border-width !default;
+$button-primary-border-color: "primary-dark" !default;
+
+// Disabled
+$button-disabled-background: "gray-10" !default;
+
+$button-secondary-default-color: 'black' !default;
+$button-secondary-hover-color: $button-secondary-default-color !default;
+$button-secondary-active-color: $button-secondary-default-color !default;
+$button-secondary-focus-color: $button-secondary-default-color !default;
+$button-secondary-default-background: 'gray-10' !default;
+$button-secondary-hover-background: 'gray-20' !default;
+$button-secondary-active-background: 'gray-30' !default;
+$button-secondary-focus-background: $button-secondary-default-background !default;
+$button-secondary-default-border-color: 'gray-50' !default;
+$button-secondary-hover-border-color: 'gray-50' !default;
+$button-secondary-active-border-color: 'black' !default;
+$button-secondary-focus-border-color: $button-secondary-default-border-color !default;
+
+$button-disabled-background-color: "gray-10" !default;
+$button-disabled-border-color: "gray-30" !default;
+$button-disabled-color: "black" !default;
+
+
+$button-tertiary-default-color: "black" !default;
+$button-tertiary-hover-color: $button-tertiary-default-color !default;
+$button-tertiary-active-color: $button-tertiary-default-color !default;
+$button-tertiary-focus-color: $button-tertiary-default-color !default;
+$button-tertiary-default-border-color: "gray-50" !default;
+$button-tertiary-hover-border-color: "gray-60" !default;
+$button-tertiary-active-border-color: "black" !default;
+$button-tertiary-focus-border-color: "gray-50" !default;
+$button-tertiary-default-background-color: "transparent" !default;
+$button-tertiary-hover-background-color: $button-tertiary-default-background-color !default;
+$button-tertiary-active-background-color: $button-tertiary-default-background-color !default;
+$button-tertiary-focus-background-color: $button-tertiary-default-background-color !default;
+
+$button-quaternary-default-color: "black" !default;
+$button-quaternary-hover-color: $button-quaternary-default-color !default;
+$button-quaternary-active-color: $button-quaternary-default-color !default;
+$button-quaternary-focus-color: $button-quaternary-default-color !default;
+$button-quaternary-default-border-color: "transparent" !default;
+$button-quaternary-hover-border-color: $button-quaternary-default-border-color !default;
+$button-quaternary-active-border-color: $button-quaternary-default-border-color !default;
+$button-quaternary-focus-border-color: $button-quaternary-default-border-color !default;
+$button-quaternary-default-background-color: "transparent" !default;
+$button-quaternary-hover-background-color: "gray-20" !default;
+$button-quaternary-active-background-color: "gray-30" !default;
+$button-quaternary-focus-background-color: $button-quaternary-default-background-color !default;
+
 
 // Header, footer & navigation colors
 $color-header-background:     "gray-10" !default;

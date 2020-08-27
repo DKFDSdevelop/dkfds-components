@@ -468,6 +468,17 @@ Derive a color from a color shortcode
     @return $our-color;
   }
 
+  @debug $value;
+
+  @if map-has-key($project-color-shortcodes, $value) {
+    $our-color: (map-get($project-color-shortcodes, $value));
+    @if $our-color == false {
+      @error '`#{$value}` is a color that does not exist '
+        + 'or is set to false.';
+    }
+    @return $our-color;
+  }
+
   @error '`#{$value}` is not a valid USWDS color token. '
       + 'See designsystem.digital.gov/design-tokens/color '
       + 'for more information.';

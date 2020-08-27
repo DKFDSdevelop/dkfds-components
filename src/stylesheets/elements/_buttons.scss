@@ -10,11 +10,11 @@ a.button{
   //@include margin(0.5em 0.5em 0.5em null);
   padding: 0px calc(#{map-get($spacers, 4)} - #{$button-border-width}) 0px;
   border-radius: $button-border-radius;
-  border: $button-border;
+  border: $button-border-width solid color($button-border-color);
   font-size: $base-font-size;
   font-weight: 500;
   min-height: 40px;
-  color: $button-primary-color;
+  color: color($button-color);
   @include font-smoothing;
   line-height: 1em;
   text-align: center;
@@ -37,171 +37,177 @@ a.button{
   &:focus {
     outline: $focus-outline;
     outline-offset: $focus-spacing;
-    color: $button-primary-color;
+    color: color($button-color);
   }
 
   //############ Primary ###############
   &.button-primary {
-    color: $button-primary-color;
-    background-color: $button-primary-bg;
-    border-color: $button-primary-border-color;
+    color: color($button-primary-default-color);
+    background-color: color($button-primary-background-color);
+    border-color: color($button-primary-border-color);
 
     &:hover,
     &.button-hover {
-      background-color: $button-primary-hover-bg;
-      border-color: $button-primary-hover-border-color;
+      color: color($button-primary-hover-color);
+      background-color: color($button-primary-hover-background-color);
+      border-color: color($button-primary-hover-border-color);
     }
 
     &:active,
     &.button-active {
-      background-color: $button-primary-active-bg;
-      border-color: $button-primary-active-border-color;
+      color: color($button-primary-active-color);
+      background-color: color($button-primary-active-background-color);
+      border-color: color($button-primary-active-border-color);
     }
 
     &.focus,
     &:focus {
-      background-color: $button-primary-focus-bg;
-      border-color: $button-primary-focus-border-color;
+      color: color($button-primary-focus-color);
+      background-color: color($button-primary-focus-background-color);
+      border-color: color($button-primary-focus-border-color);
     }
 
     &:disabled,
     &.disabled {
       opacity:0.3;
-      box-shadow: none !important;
       cursor: not-allowed;
 
       &:hover {
-        color: $button-primary-color !important;
-        background-color: $button-primary-bg !important;
-        border-color: $button-primary-border-color !important;
-        opacity:0.3 !important;
-        box-shadow: none !important;
+        border-color: color($button-disabled-border-color) !important;
+        background-color: color($button-disabled-background-color) !important;
+        color: color($button-disabled-color);
+        font-weight: $font-weight-normal !important;
+        opacity:0.3;
       }
     }
   }
 
   //############ Secondary ##############
   &.button-secondary {
-    color: color("black");
-    background-color: $color-gray-pale;
-    border-color: $color-gray-medium-dark;
+    color: color($button-secondary-default-color);
+    background-color: color($button-secondary-default-background);
+    border-color: color($button-secondary-default-border-color);
 
     &:hover,
     &.button-hover {
-      background-color: color("gray-20");
-      border-color: $color-gray-dark;
+      color: color($button-secondary-hover-color);
+      background-color: color($button-secondary-hover-background);
+      border-color: color($button-secondary-hover-border-color);
     }
 
     &:active,
     &.button-active {
-      background-color: color("gray-30");
-      border-color: color("black");
+      color: color($button-secondary-active-color);
+      background-color: color($button-secondary-active-background);
+      border-color: color($button-secondary-active-border-color);
     }
 
     &.focus,
     &:focus {
-      background-color: $color-gray-pale;
-      border-color: $color-gray-medium-dark;
+      color: color($button-secondary-focus-color);
+      background-color: color($button-secondary-focus-background);
+      border-color: color($button-secondary-focus-border-color);
     }
     &:disabled,
     &.disabled {
       opacity:0.3;
-      box-shadow: none !important;
       cursor: not-allowed;
-      border-color: color("gray-30") !important;
+      background-color: color($button-disabled-background-color);
+      border-color: color($button-disabled-border-color) !important;
 
       &:hover {
-        color: color("black") !important;
-        background-color: $color-gray-pale !important;
-        border-color: color("gray-30") !important;
+        color: color($button-disabled-color) !important;
+        background-color: color($button-disabled-background-color) !important;
+        border-color: color($button-disabled-color) !important;
         opacity:0.3 !important;
-        box-shadow: none !important;
       }
     }
   }
 
   //############### tertiary ############
   &.button-tertiary {
-    border-color: $color-gray-medium-dark;
-    background-color: transparent;
-    color: color("black");
+    border-color: color($button-tertiary-default-border-color);
+    background-color: color($button-tertiary-default-background-color);
+    color: color($button-tertiary-default-color);
     font-weight: $font-weight-normal;
 
     &:hover,
     &.button-hover {
-      border-color: $color-gray-dark;
+      color: color($button-tertiary-hover-color);
+      border-color: color($button-tertiary-hover-border-color);
+      background-color: color($button-tertiary-hover-background-color);
     }
 
     &:active,
     &.button-active {
-      border-color: color("black");
+      color: color($button-tertiary-active-color);
+      border-color: color($button-tertiary-active-border-color);
+      background-color: color($button-tertiary-active-background-color);
     }
 
     &.focus,
     &:focus {
-      border-color:$color-gray-medium-dark;
-      background-color: transparent;
+      color: color($button-tertiary-focus-color);
+      border-color: color($button-tertiary-focus-border-color);
+      background-color: color($button-tertiary-focus-background-color);
     }
 
     &:disabled,
     &.disabled {
       opacity:0.3;
-      box-shadow: none !important;
       cursor: not-allowed;
 
       &:hover {
-        border-color:$color-gray-medium-dark !important;
-        background-color: transparent !important;
-        color: color("black");
+        border-color: color($button-disabled-border-color) !important;
+        background-color: color($button-disabled-background-color) !important;
+        color: color($button-disabled-color);
         font-weight: $font-weight-normal !important;
         opacity:0.3;
-        box-shadow: none !important;
       }
     }
   }
 
-  //############ Button quaternary - button styled as a link #################
+  //############ Button quaternary - back button #################
   &.button-quaternary {
-    color: $color-gray-dark;
-    background-color: transparent;
-    border-color: transparent;
+    color: color($button-quaternary-default-color);
+    background-color: color($button-quaternary-default-background-color);
+    border-color: color($button-quaternary-default-border-color);
     text-decoration: none;
     font-weight: $font-weight-normal;
     padding-left: calc(8px - #{$button-border-width});
 
     &:hover,
     &.button-hover {
-      background-color: color("gray-20");
-      box-shadow:none;
-      border-bottom-color: transparent;
+      color: color($button-quaternary-hover-color);
+      background-color: color($button-quaternary-hover-background-color);
+      border-bottom-color: color($button-quaternary-hover-border-color);
     }
 
     &:active,
     &.button-active {
-      background-color: color("gray-30");
-      box-shadow:none;
-      border-bottom-color: transparent;
+      color: color($button-quaternary-active-color);
+      background-color: color($button-quaternary-active-background-color);
+      border-color: color($button-quaternary-active-border-color);
     }
 
     &.focus,
     &:focus {
-      color: color("black");
-      box-shadow:none;
-      border-bottom-color: transparent;
+      color: color($button-quaternary-focus-color);
+      background-color: color($button-quaternary-focus-background-color);
+      border-color: color($button-quaternary-focus-border-color);
     }
 
     &:disabled,
     &.disabled {
       opacity:0.3;
-      box-shadow: none !important;
       cursor: not-allowed;
 
       &:hover {
-        color: $color-gray-dark !important;
-        background-color: transparent !important;
+        border-color: color($button-disabled-border-color) !important;
+        background-color: color($button-disabled-background-color) !important;
+        color: color($button-disabled-color);
         font-weight: $font-weight-normal !important;
-        opacity:0.3 !important;
-        box-shadow: none !important;
+        opacity:0.3;
       }
     }
 
