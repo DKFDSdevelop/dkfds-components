@@ -106,3 +106,26 @@ $font-style-normal:           normal !default;
 $font-style-italic:           italic !default;
 
 $font-family:                'IBM Plex Sans', 'system' !default;
+
+
+
+/*
+----------------------------------------
+Type scale
+----------------------------------------
+Define your project's type scale using
+values from the USWDS system type scale
+
+1-20
+----------------------------------------
+*/
+
+$theme-type-scale-3xs: 2 !default;
+$theme-type-scale-2xs: 3 !default;
+$theme-type-scale-xs: 4 !default;
+$theme-type-scale-sm: 5 !default;
+$theme-type-scale-md: 6 !default;
+$theme-type-scale-lg: 9 !default;
+$theme-type-scale-xl: 12 !default;
+$theme-type-scale-2xl: 14 !default;
+$theme-type-scale-3xl: 15 !default;

@@ -4,12 +4,6 @@ Functions
 ----------------------------------------
 */
 
-/*
-========================================
-Functions
-----------------------------------------
-*/
-
 // The following vars need to be set
 // here, before the rest of the system
 // variables are set
@@ -422,6 +416,29 @@ variable that is, itself, a list
 
 /*
 ----------------------------------------
+system-type-scale()
+----------------------------------------
+Get a value from the system type scale
+----------------------------------------
+*/
+
+@function system-type-scale($scale) {
+  $scale: smart-quote($scale);
+
+  @if not $scale {
+    @return false;
+  }
+
+  @if not map-has-key($system-type-scale, $scale) {
+    @error '`#{$scale}` is not a valid type scale token. '
+      + 'Valid tokens: #{map-keys($system-type-scale)}';
+  }
+
+  @return map-get($system-type-scale, $scale);
+}
+
+/*
+----------------------------------------
 color()
 ----------------------------------------
 Derive a color from a color shortcode
@@ -591,4 +608,44 @@ Derive a border value from number
 
 @function border($index) {
   @return map_get($system-borders, $index);
+}
+
+/*
+----------------------------------------
+font-size()
+----------------------------------------
+Get type scale value from a [family] and
+[scale]
+----------------------------------------
+*/
+
+@function font-size($family, $scale, $force: false) {
+  $our-family: smart-quote($family);
+  $our-scale: smart-quote($scale);
+
+  @if not map-has-key($project-cap-heights, $our-family) {
+    @error '#{$our-family} is not a valid font family token. '
+      + 'Valid tokens: #{map-keys($project-cap-heights)}';
+  }
+  @if not map-get($all-type-scale, $our-scale) {
+    @error '`#{$our-scale}` is not a valid font scale token. '
+      + 'Valid token: #{map-keys($all-type-scale)}';
+  }
+
+  $this-cap: map-get($project-cap-heights, $our-family);
+  $this-scale: map-get($all-type-scale, $our-scale);
+
+  @if not $force {
+    @if not($this-scale and $this-cap) {
+      @error 'The scale `#{$our-scale}` is disabled '
+        + 'in your project\'s theme settings. '
+        + 'Set its value to `true` to use this family.';
+    }
+  }
+
+  @return normalize-type-scale($this-cap, $this-scale);
+}
+
+@function fs($family, $scale) {
+  @return font-size($family, $scale);
 }

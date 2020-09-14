@@ -301,3 +301,25 @@ $all-color-shortcodes: map-collect(
     $system-color-shortcodes,
     $project-color-shortcodes
 );
+
+
+/*
+----------------------------------------
+Build the project type scale map
+----------------------------------------
+*/
+
+$project-type-scale: (
+  "3xs": system-type-scale($theme-type-scale-3xs),
+  "2xs": system-type-scale($theme-type-scale-2xs),
+  "xs": system-type-scale($theme-type-scale-xs),
+  "sm": system-type-scale($theme-type-scale-sm),
+  "md": system-type-scale($theme-type-scale-md),
+  "lg": system-type-scale($theme-type-scale-lg),
+  "xl": system-type-scale($theme-type-scale-xl),
+  "2xl": system-type-scale($theme-type-scale-2xl),
+  "3xl": system-type-scale($theme-type-scale-3xl)
+);
+
+
+$all-type-scale: map-collect($system-type-scale, $project-type-scale);
