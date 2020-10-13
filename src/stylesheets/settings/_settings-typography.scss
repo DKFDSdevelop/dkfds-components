@@ -1,40 +1,38 @@
+$h1-xs-font-size:             4 !default;
+$h1-sm-font-size:             false !default;
+$h1-md-font-size:             5 !default;
+$h1-lg-font-size:             6 !default;
+$h1-xl-font-size:             false !default;
 
+$h2-xs-font-size:             3 !default;
+$h2-sm-font-size:             false !default;
+$h2-md-font-size:             4 !default;
+$h2-lg-font-size:             5 !default;
+$h2-xl-font-size:             false !default;
 
-/*
-----------------------------------------
-Root font size
-----------------------------------------
-Setting $theme-respect-user-font-size to
-true sets the root font size to 100% and
-uses ems for media queries
-----------------------------------------
-$theme-root-font-size only applies when
-$theme-respect-user-font-size is set to
-false.
+$h3-xs-font-size:             1 !default;
+$h3-sm-font-size:             false !default;
+$h3-md-font-size:             2 !default;
+$h3-lg-font-size:             4 !default;
+$h3-xl-font-size:             false !default;
 
-This will set the root font size
-as a specific px value and use px values
-for media queries.
+$h4-xs-font-size:             0 !default;
+$h4-sm-font-size:             false !default;
+$h4-md-font-size:             false !default;
+$h4-lg-font-size:             2 !default;
+$h4-xl-font-size:             false !default;
 
-Accepts true or false
-----------------------------------------
-*/
+$h5-xs-font-size:             neg-1 !default;
+$h5-sm-font-size:             false !default;
+$h5-md-font-size:             false !default;
+$h5-lg-font-size:             0 !default;
+$h5-xl-font-size:             false !default;
 
-$theme-respect-user-font-size: true !default;
-
-// $theme-root-font-size only applies when
-// $theme-respect-user-font-size is set to
-// false.
-
-// This will set the root font size
-// as a specific px value and use px values
-// for media queries.
-
-// Accepts values in px
-
-$theme-root-font-size: 10px !default;
-
-
+$h6-xs-font-size:             neg-2 !default;
+$h6-sm-font-size:             false !default;
+$h6-md-font-size:             false !default;
+$h6-lg-font-size:             false !default;
+$h6-xl-font-size:             false !default;
 ////////////////////////////////////////////////////////////////////77//////////////////////////////////////////////////////////////////////////////////////////
 // These variables drive almost every aspect of the Frontend Styleguide.
 // Every variable is declared as !default so that it can be overridden
@@ -62,24 +60,6 @@ $icons-folder-path:             "../img/svg-icons" !default;
 
 $font-name: 'IBM Plex Sans'!default;
 
-$h1-font-size:                4.0rem !default;
-$h1-line-height:              4.8rem !default;
-
-$h2-font-size:                3.0rem !default;
-$h2-line-height:              4.0rem !default;
-
-$h3-font-size:                2.4rem !default;
-$h3-line-height:              3.2rem !default;
-
-$h4-font-size:                2.0rem !default;
-$h4-line-height:              3.2rem !default;
-
-$h5-font-size:                1.6rem !default;
-$h5-line-height:              2.4rem !default;
-
-$h6-font-size:                1.3rem !default;
-$h6-line-height:              2.4rem !default;
-
 $display-1-heading-size:        4.8rem !default;
 $display-1-heading-line-height: 5.6rem !default;
 
@@ -106,26 +86,3 @@ $font-style-normal:           normal !default;
 $font-style-italic:           italic !default;
 
 $font-family:                'IBM Plex Sans', 'system' !default;
-
-
-
-/*
-----------------------------------------
-Type scale
-----------------------------------------
-Define your project's type scale using
-values from the USWDS system type scale
-
-1-20
-----------------------------------------
-*/
-
-$theme-type-scale-3xs: 2 !default;
-$theme-type-scale-2xs: 3 !default;
-$theme-type-scale-xs: 4 !default;
-$theme-type-scale-sm: 5 !default;
-$theme-type-scale-md: 6 !default;
-$theme-type-scale-lg: 9 !default;
-$theme-type-scale-xl: 12 !default;
-$theme-type-scale-2xl: 14 !default;
-$theme-type-scale-3xl: 15 !default;

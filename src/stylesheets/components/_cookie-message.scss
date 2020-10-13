@@ -14,7 +14,7 @@
     @include grid-container();
 
     background-color:color("white");
-    border: border("100");
+    border: border(100);
     box-shadow: $box-shadow-heavy;
     padding-top: calc(#{map-get($spacers, 6)} - 1px);
     padding-bottom: calc(#{map-get($spacers, 7)} - 1px);

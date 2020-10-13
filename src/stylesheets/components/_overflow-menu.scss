@@ -60,7 +60,7 @@ $overflow-menu-dropdown-distance: 8px;
         .button-overflow-menu{
             padding: 0;
             &:hover{
-                background-color: $color-gray-pale;
+                background-color: color('gray-10');
             }
         }
     }
@@ -70,7 +70,7 @@ $overflow-menu-dropdown-distance: 8px;
         position: absolute;
         z-index: 2;
         width: auto;
-        border: border("100");
+        border: border(100);
         box-shadow: $box-shadow-moderately;
         background: #fff;
         padding-top: map-get($spacers, 3);
@@ -87,17 +87,18 @@ $overflow-menu-dropdown-distance: 8px;
         @include unstyled-list;
         font-size: $body-text;
         line-height: $body-text-line-height;
-        color: $color-text;
+        color: color('ink');
 
         button{
             @include button-unstyled;
         }
         a{
-            @include body-copy-text;
+          @include body-text;
+          color: color('ink');
             display: block;
             text-decoration: none;
             &:hover, &:visited, &:focus{
-                color: $color-text;
+                color: color('ink');
             }
         }
 
@@ -105,7 +106,7 @@ $overflow-menu-dropdown-distance: 8px;
             padding: 8px 16px;
             width: 100%;
             &:hover{
-                background-color: $color-gray-pale;
+                background-color: color('gray-10');
             }
         }
     }

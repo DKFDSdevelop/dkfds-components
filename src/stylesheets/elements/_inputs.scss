@@ -7,13 +7,17 @@
 
 // Hint text
 .form-hint {
-  @include body-copy-text;
+  @include body-text;
   display: block;
-  color: $color-gray-medium-dark;
+  color: color('gray-50');
 }
 .form-label {
   display: inline-block;
-  @include form-label-text();
+  font-size: $form-label;
+  line-height: $form-label-line-height;
+  font-weight: $font-weight-semibold;
+  color: color("ink");
+  text-transform: none;
 }
 
 ////////////////////
@@ -22,7 +26,7 @@
 
 .form-input{
   appearance: none;
-  border: border("100");
+  border: border(100);
   border-radius: $input-border-radius;
   color: color("black"); // standardize on firefox
   display: block;
@@ -58,7 +62,7 @@ textarea.form-input{
 ////////////////
 
 .form-select {
-  border: border("100");
+  border: border(100);
   border-radius: $input-border-radius;
   color: color("black"); // standardize on firefox
   display: block;
@@ -94,7 +98,7 @@ textarea.form-input{
   }
 
   &:disabled {
-    background-color: $color-gray-pale;
+    background-color: color('gray-10');
     color:color("gray-40");
     cursor: not-allowed;
   }
@@ -112,33 +116,37 @@ table {
 //////////////////////
 
 .form-group.form-error {
-  border-left: 4px solid $color-error;
+  border-left: 4px solid color('error');
   padding-left: calc(#{map-get($spacers, 4)} - 4px);
 
   .form-input,
   .form-select {
-    border: $input-border-width-feedback solid $color-error;
+    border: $input-border-width-feedback solid color('error');
     padding: $input-top-bottom-padding-feedback $input-left-right-padding-feedback;
   }
 
 }
 .form-error-message {
-  @include form-label-text();
+  font-size: $form-label;
+  line-height: $form-label-line-height;
+  font-weight: $font-weight-semibold;
+  color: color("ink");
+  text-transform: none;
   display: block;
-  color: $color-error;
+  color: color('error');
   margin-top: map-get($spacers, 2);
 }
 
 .form-group.form-success {
   .form-input,
   .form-select {
-    border: $input-border-width-feedback solid $color-success;
+    border: $input-border-width-feedback solid color('success');
     padding: $input-top-bottom-padding-feedback $input-left-right-padding-feedback;
   }
 }
 
 input[type=text]:disabled, textarea:disabled{
-  background: $color-gray-pale;
+  background: color('gray-10');
   color:color("gray-40");
   cursor: not-allowed;
 }
@@ -200,7 +208,7 @@ $radio-size-large: 34px;
   display: inline-block;
   background: color("white");
   border-radius: $checkbox-border-radius;
-  border: 2px solid $color-text;
+  border: 2px solid color('ink');
   height: $checkbox-size;
   line-height: $body-text-line-height;
   margin-right: map-get($spacers, 3);
@@ -249,7 +257,7 @@ $radio-size-large: 34px;
 //checked checkbox
 .form-checkbox:checked + label{
   &:before{
-    background-color: $color-text;
+    background-color: color('ink');
   }
   &:after{
     content: "";
@@ -280,7 +288,7 @@ $radio-size-large: 34px;
     content: "";
     height: calc(#{$radio-size} - 10px);
     width: calc(#{$radio-size} - 10px);
-    background-color: $color-text;
+    background-color: color('ink');
     position: absolute;
     left: 5px;
     top: 8px;
@@ -305,21 +313,21 @@ $radio-size-large: 34px;
   cursor: not-allowed;
   &:before{
     border-color: color("gray-30");
-    background-color: $color-gray-pale;
+    background-color: color('gray-10');
   }
 }
 
 //Disable checked
 .form-checkbox:checked[disabled] + label:before {
-  background-color: $color-text;
-  border-color: $color-text;
+  background-color: color('ink');
+  border-color: color('ink');
   opacity:0.5;
 }
 
 //Disable checked
 .form-radio:checked[disabled] + label:before {
-  background-color: $color-text;
-  border-color: $color-text;
+  background-color: color('ink');
+  border-color: color('ink');
   opacity:0.5;
 }
 
@@ -332,7 +340,7 @@ $radio-size-large: 34px;
 }
 .form-radio:focus + label::before,
 .form-radio.focus + label::before {
-  box-shadow: 0 0 0 3px $color-focus;
+  box-shadow: 0 0 0 3px color($theme-focus-color);
 }
 
 /////////////////////////
@@ -347,15 +355,15 @@ $radio-size-large: 34px;
 
 [type=range]::-webkit-slider-runnable-track {
   background: color("gray-30");
-  border: 1px solid $color-gray-medium-dark;
+  border: 1px solid color('gray-50');
   cursor: pointer;
   height: 1.2rem;
   width: 100%;
 }
 
 [type=range]::-moz-range-track {
-  background: $color-primary;
-  border: 1px solid $color-gray-medium-dark;
+  background: color('primary');
+  border: 1px solid color('gray-50');
   cursor: pointer;
   height: 1.2rem;
   width: 100%;
@@ -371,18 +379,18 @@ $radio-size-large: 34px;
 
 [type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  border: 1px solid $color-gray-medium-dark;
+  border: 1px solid color('gray-50');
   height: 2.2rem;
   border-radius: 1.5rem;
-  background: $color-gray-pale;
+  background: color('gray-10');
   cursor: pointer;
   margin-top: -.65rem;
   width: 2.2rem;
 }
 
 [type=range]::-moz-range-thumb {
-  background: $color-gray-pale;
-  border: 1px solid $color-gray-medium-dark;
+  background: color('gray-10');
+  border: 1px solid color('gray-50');
   border-radius: 1.5rem;
   cursor: pointer;
   height: 2.2rem;
@@ -390,8 +398,8 @@ $radio-size-large: 34px;
 }
 
 [type=range]::-ms-thumb {
-  background: $color-gray-pale;
-  border: 1px solid $color-gray-medium-dark;
+  background: color('gray-10');
+  border: 1px solid color('gray-50');
   border-radius: 1.5rem;
   cursor: pointer;
   height: 2.2rem;
@@ -400,13 +408,13 @@ $radio-size-large: 34px;
 
 [type=range]::-ms-fill-lower {
   background: color("gray-30");
-  border: 1px solid $color-gray-medium-dark;
+  border: 1px solid color('gray-50');
   border-radius: 2rem;
 }
 
 [type=range]::-ms-fill-upper {
   background: color("gray-30");
-  border: 1px solid $color-gray-medium-dark;
+  border: 1px solid color('gray-50');
   border-radius: 2rem;
 }
 

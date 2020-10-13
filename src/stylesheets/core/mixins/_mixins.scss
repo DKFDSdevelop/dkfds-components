@@ -4,6 +4,11 @@
   outline-offset: $focus-spacing;
 }
 
+@mixin focus-outline {
+  outline: $theme-focus-width $theme-focus-style color($theme-focus-color);
+  outline-offset: $theme-focus-offset;
+}
+
 // Screen reader only helper
 @mixin sr-only() {
   position: absolute;

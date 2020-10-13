@@ -1,3 +1,35 @@
+//----------------
+// font
+// ----------------
+$root-font-size:              62.5% !default;;
+
+$font-size-base:              1rem !default; // Assumes the browser default, typically `16px`
+$line-height-base:            1rem !default; // Assumes the browser default, typically `16px`
+
+$font-sizes: (
+  neg-2: 1.3,
+  neg-1: 1.4,
+  0: 1.6,
+  1: 1.8,
+  2: 2,
+  3: 2.2,
+  4: 2.5,
+  5: 3.1,
+  6: 3.9,
+) !default;
+
+$line-heights: (
+  neg-2: 2,
+  neg-1: 2,
+  0: 2.4,
+  1: 2.4,
+  2: 2.8,
+  3: 3,
+  4: 3.2,
+  5: 4,
+  6: 4.8,
+) !default;
+
 
 /*
 ----------------------------------------
@@ -260,66 +292,50 @@ Theme color shortcodes
 */
 
 $tokens-color-theme: (
-  "base-lightest": color($theme-color-base-lightest, set-theme, no-warn),
-  "base-lighter": color($theme-color-base-lighter, set-theme, no-warn),
-  "base-light": color($theme-color-base-light, set-theme, no-warn),
-  "base": color($theme-color-base, set-theme, no-warn),
-  "base-dark": color($theme-color-base-dark, set-theme, no-warn),
-  "base-darker": color($theme-color-base-darker, set-theme, no-warn),
-  "base-darkest": color($theme-color-base-darkest, set-theme, no-warn),
-  "ink": color($theme-color-base-ink, set-theme, no-warn),
-  "primary-lightest": color($theme-color-primary-lightest, set-theme, no-warn),
-  "primary-lighter": color($theme-color-primary-lighter, set-theme, no-warn),
-  "primary-light": color($theme-color-primary-light, set-theme, no-warn),
-  "primary": color($theme-color-primary, set-theme, no-warn),
-  "primary-dark": color($theme-color-primary-dark, set-theme, no-warn),
-  "primary-darker": color($theme-color-primary-darker, set-theme, no-warn),
-  "primary-darkest": color($theme-color-primary-darkest, set-theme, no-warn),
+  "base-lightest": $theme-color-base-lightest,
+  "base-lighter": $theme-color-base-lighter,
+  "base-light": $theme-color-base-light,
+  "base": $theme-color-base,
+  "base-dark": $theme-color-base-dark,
+  "base-darker": $theme-color-base-darker,
+  "base-darkest": $theme-color-base-darkest,
+  "ink": $theme-color-base-ink,
+  "primary-lightest": $theme-color-primary-lightest,
+  "primary-lighter": $theme-color-primary-lighter,
+  "primary-light": $theme-color-primary-light,
+  "primary": $theme-color-primary,
+  "primary-dark": $theme-color-primary-dark,
+  "primary-darker": $theme-color-primary-darker,
+  "primary-darkest": $theme-color-primary-darkest,
 );
 
 $tokens-color-state: (
-  "error-light": color($theme-color-error-light, set-theme, no-warn),
-  "error": color($theme-color-error, set-theme, no-warn),
-  "warning-light": color($theme-color-warning-light, set-theme, no-warn),
-  "warning": color($theme-color-warning, set-theme, no-warn),
-  "success-light": color($theme-color-success-light, set-theme, no-warn),
-  "success": color($theme-color-success, set-theme, no-warn),
-  "info-light": color($theme-color-info-light, set-theme, no-warn),
-  "info": color($theme-color-info, set-theme, no-warn),
-  "disabled-light": color($theme-color-disabled-light, set-theme, no-warn),
-  "disabled": color($theme-color-disabled, set-theme, no-warn),
-  "disabled-dark": color($theme-color-disabled-dark, set-theme, no-warn)
+  "error-light": $theme-color-error-light,
+  "error": $theme-color-error,
+  "warning-light": $theme-color-warning-light,
+  "warning": $theme-color-warning,
+  "success-light": $theme-color-success-light,
+  "success": $theme-color-success,
+  "info-light": $theme-color-info-light,
+  "info": $theme-color-info,
+  "disabled-light": $theme-color-disabled-light,
+  "disabled": $theme-color-disabled,
+  "disabled-dark": $theme-color-disabled-dark,
 );
 
 
-$project-color-shortcodes: map-collect(
+$project-color-shortcodes: map-merge(
     $tokens-color-theme,
     $tokens-color-state
 );
 
-$all-color-shortcodes: map-collect(
+
+$all-color-shortcodes: map-merge(
     $system-color-shortcodes,
     $project-color-shortcodes
 );
 
+//----------------
+// border
+// ----------------
 
-/*
-----------------------------------------
-Build the project type scale map
-----------------------------------------
-*/
-
-$project-type-scale: (
-  "3xs": system-type-scale($theme-type-scale-3xs),
-  "2xs": system-type-scale($theme-type-scale-2xs),
-  "xs": system-type-scale($theme-type-scale-xs),
-  "sm": system-type-scale($theme-type-scale-sm),
-  "md": system-type-scale($theme-type-scale-md),
-  "lg": system-type-scale($theme-type-scale-lg),
-  "xl": system-type-scale($theme-type-scale-xl),
-  "2xl": system-type-scale($theme-type-scale-2xl),
-  "3xl": system-type-scale($theme-type-scale-3xl)
-);
-
-
-$all-type-scale: map-collect($system-type-scale, $project-type-scale);

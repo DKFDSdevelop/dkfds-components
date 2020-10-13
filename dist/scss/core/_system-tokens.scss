@@ -4,9 +4,9 @@ Borders
 ----------------------------------------
 */
 $system-borders: (
-  100: "1px solid" + color("gray-50"),
-  200: "1px solid" + color("gray-30"),
-  300: "1px solid" + color("gray-20")
+  100: 1px solid #{color("gray-50")},
+  200: 1px solid #{color("gray-30")},
+  300: 1px solid #{color("gray-20")}
 );
 
 
@@ -187,6 +187,30 @@ $color-violet-10: get-system-color("violet", 10);
 $color-violet-20: get-system-color("violet", 20);
 $color-violet-30: get-system-color("violet", 30);
 
+// black-transparent
+$color-black-transparent-5: get-system-color("black-transparent", 5);
+$color-black-transparent-10: get-system-color("black-transparent", 10);
+$color-black-transparent-20: get-system-color("black-transparent", 20);
+$color-black-transparent-30: get-system-color("black-transparent", 30);
+$color-black-transparent-40: get-system-color("black-transparent", 40);
+$color-black-transparent-50: get-system-color("black-transparent", 50);
+$color-black-transparent-60: get-system-color("black-transparent", 60);
+$color-black-transparent-70: get-system-color("black-transparent", 70);
+$color-black-transparent-80: get-system-color("black-transparent", 80);
+$color-black-transparent-90: get-system-color("black-transparent", 90);
+
+// white-transparent
+$color-white-transparent-5: get-system-color("white-transparent", 5);
+$color-white-transparent-10: get-system-color("white-transparent", 10);
+$color-white-transparent-20: get-system-color("white-transparent", 20);
+$color-white-transparent-30: get-system-color("white-transparent", 30);
+$color-white-transparent-40: get-system-color("white-transparent", 40);
+$color-white-transparent-50: get-system-color("white-transparent", 50);
+$color-white-transparent-60: get-system-color("white-transparent", 60);
+$color-white-transparent-70: get-system-color("white-transparent", 70);
+$color-white-transparent-80: get-system-color("white-transparent", 80);
+$color-white-transparent-90: get-system-color("white-transparent", 90);
+
 $system-color-shortcodes: (
   "transparent": transparent,
   "black": $color-gray-70,
@@ -240,7 +264,27 @@ $system-color-shortcodes: (
   "violet-5": $color-violet-5,
   "violet-10": $color-violet-10,
   "violet-20": $color-violet-20,
-  "violet-30": $color-violet-30
+  "violet-30": $color-violet-30,
+  "black-transparent-5": $color-black-transparent-5,
+  "black-transparent-10": $color-black-transparent-10,
+  "black-transparent-20": $color-black-transparent-20,
+  "black-transparent-30": $color-black-transparent-30,
+  "black-transparent-40": $color-black-transparent-40,
+  "black-transparent-50": $color-black-transparent-50,
+  "black-transparent-60": $color-black-transparent-60,
+  "black-transparent-70": $color-black-transparent-70,
+  "black-transparent-80": $color-black-transparent-80,
+  "black-transparent-90": $color-black-transparent-90,
+  "white-transparent-5": $color-white-transparent-5,
+  "white-transparent-10": $color-white-transparent-10,
+  "white-transparent-20": $color-white-transparent-20,
+  "white-transparent-30": $color-white-transparent-30,
+  "white-transparent-40": $color-white-transparent-40,
+  "white-transparent-50": $color-white-transparent-50,
+  "white-transparent-60": $color-white-transparent-60,
+  "white-transparent-70": $color-white-transparent-70,
+  "white-transparent-80": $color-white-transparent-80,
+  "white-transparent-90": $color-white-transparent-90
 );
 
 

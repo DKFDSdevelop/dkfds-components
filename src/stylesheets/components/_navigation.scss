@@ -1,23 +1,23 @@
 // Header navigation ------------- //
 
 @mixin nav-border {
-  border-bottom: 0.4rem solid $color-primary;
+  border-bottom: 0.4rem solid color('primary');
   padding-bottom: 0.6rem;
 }
 
 @mixin nav-border-thick {
-  border-bottom: 0.7rem solid $color-primary;
+  border-bottom: 0.7rem solid color('primary');
   padding-bottom: 0.9rem;
 }
 
 @mixin nav-active {
-  border-bottom: 7px solid $color-primary;
+  border-bottom: 7px solid color('primary');
 }
 @mixin nav-hover {
-  border-bottom: 7px solid $color-primary;
+  border-bottom: 7px solid color('primary');
 }
 @mixin nav-focus {
-  border-bottom: 7px solid $color-primary;
+  border-bottom: 7px solid color('primary');
 }
 
 .navbar {
@@ -27,7 +27,7 @@
   padding-top: map-get($spacers, 5);
   padding-bottom: map-get($spacers, 5);
   @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
-    border-bottom: border("200");
+    border-bottom: border(200);
   }
   display: flex;
   flex-direction: column;
@@ -41,7 +41,7 @@
 .navbar-primary{
 
   @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
-    border-bottom: border("100");
+    border-bottom: border(100);
   }
   padding-top: 0;
 }
@@ -68,7 +68,7 @@
   }
 
   & > li:first-of-type {
-    border-top: border("200");
+    border-top: border(200);
   }
 
   @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
@@ -78,13 +78,13 @@
   }
 
   > li {
-    border-bottom: border("200");
+    border-bottom: border(200);
     @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
       border-bottom: 0;
     }
     > a {
       text-decoration: none;
-      color: $color-neutral;
+      color: color('gray-60');
       font-size: $base-font-size;
       line-height: $base-line-height;
       display: block;
@@ -125,7 +125,7 @@
   .nav-link {
     &:hover {
       @media (max-width: $nav-responsive-breakpoint) {
-        background-color: $color-gray-pale;
+        background-color: color('gray-10');
       }
       span {
         @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
@@ -303,16 +303,16 @@
       @include unstyled-list;
       font-size: $body-text;
       line-height: $body-text-line-height;
-      color: $color-text;
+      color: color('ink');
       background-color: #fff;
       padding-left: 16px;
-      border-top: border("200");
+      border-top: border(200);
       padding-top: 0;
       padding-bottom: 0;
 
       @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
         width: 30rem;
-        border: border("100");
+        border: border(100);
         border-top: 0;
         padding-left: 0;
         position: absolute;
@@ -355,11 +355,12 @@
           @include button-unstyled;
       }
       a{
-          @include body-copy-text;
+          @include body-text;
+          color: color('ink');
           display: block;
           text-decoration: none;
           &:hover, &:visited, &:focus{
-            color: $color-text;
+            color: color('ink');
             background-color: transparent;
             @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
               color: #fff!important;
@@ -373,7 +374,7 @@
 
       .active > a{
         font-weight: $font-weight-semibold;
-        color: $color-primary;
+        color: color('primary');
         @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
           color: #fff;
         }
@@ -381,7 +382,7 @@
 
       button, a{
         padding: 15px 0 15px 0;
-        border-top: border("200");
+        border-top: border(200);
         width: 100%;
 
         @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {

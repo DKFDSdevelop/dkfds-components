@@ -7,7 +7,7 @@ body.modal-open{
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: $background-modal;
+  background-color: color($modal-overlay-background-color);
   display: flex;
   justify-content: center;
   align-items: center;

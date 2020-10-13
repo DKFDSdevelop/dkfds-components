@@ -67,7 +67,7 @@ $z-index-nav:     9000;
   }
 
   .portal-header{
-    border-bottom: border("200");
+    border-bottom: border(200);
     width: 100%;
     &.portal-header-compact{
 
@@ -124,15 +124,15 @@ $z-index-nav:     9000;
   }
 
   .solution-header{
-    border-bottom: border("100");
+    border-bottom: border(100);
 
     @include media-breakpoint-up(lg) {
-      border-bottom: border("200");
+      border-bottom: border(200);
     }
 
     width: 100%;
     &.header-end{
-      border-bottom: border("100");
+      border-bottom: border(100);
     }
 
     .solution-header-inner{
@@ -168,7 +168,7 @@ $z-index-nav:     9000;
     }
   }
   .authority-name{
-    color: $color-gray-dark;
+    color: color('gray-60');
   }
   .button-contact{
     display: inline-flex;
@@ -180,7 +180,7 @@ $z-index-nav:     9000;
 
   .portal-info-mobile{
     padding: map-get($spacers, 5) map-get($spacers, 4);
-    border-bottom: border("200");
+    border-bottom: border(200);
     text-align: right;
     p{
       margin-bottom: map-get($spacers, 3);
@@ -197,7 +197,7 @@ $z-index-nav:     9000;
   .solution-info-mobile{
     padding: map-get($spacers, 5) map-get($spacers, 4);
     text-align: right;
-    background-color: $color-gray-pale;
+    background-color: color('gray-10');
     p{
       margin-bottom: map-get($spacers, 3);
       &:last-child{

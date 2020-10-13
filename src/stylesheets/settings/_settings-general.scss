@@ -12,3 +12,15 @@ Show updates and notifications.
 
 $theme-show-compile-warnings: true !default;
 $theme-show-notifications: true !default;
+
+/*
+----------------------------------------
+Focus styles
+----------------------------------------
+*/
+
+$theme-focus-color: "gray-50" !default;
+$theme-focus-offset: 1 !default;
+$theme-focus-style: solid !default;
+$theme-focus-width: 4px !default;
+

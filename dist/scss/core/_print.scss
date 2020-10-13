@@ -131,7 +131,7 @@
         display: none;
       }
       tr {
-        border-bottom: border("200");
+        border-bottom: border(200);
         &:last-child {
           border-bottom: 0;
         }

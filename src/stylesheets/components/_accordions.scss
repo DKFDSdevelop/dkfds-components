@@ -15,7 +15,7 @@ $v-padding: $spacing-md-small;
 }
 
 @mixin accordion-list-item-styles {
-  background-color: $color-gray-pale;
+  background-color: color('gray-10');
   list-style: none;
   margin-bottom: $spacing;
   width: 100%;
@@ -24,7 +24,7 @@ $v-padding: $spacing-md-small;
 // scss-lint:disable PropertyCount
 @mixin accordion-button-styles {
   @include button-unstyled;
-  background-color: $accordion-button-background-color;
+  background-color: $accordion-button-default-background-color;
   background-image: url('#{$icons-folder-path}/minus.svg');
   background-position: left $h-padding center;
   background-repeat: no-repeat;
@@ -108,7 +108,7 @@ $v-padding: $spacing-md-small;
   }
 }
 .accordion-bordered .accordion-button{
-  border: $accordion-border-width solid $accordion-border-color;
+  border: $accordion-border-width solid color($accordion-border-color);
   border-radius: $accordion-border-radius $accordion-border-radius 0 0;
 }
 
@@ -159,12 +159,12 @@ $v-padding: $spacing-md-small;
 }
 .accordion-button[aria-describedby="error-message"],
 .accordion-button.accordion-error {
-  border: 2px solid $color-error;
+  border: 2px solid color('error');
 }
 .accordion-button[aria-expanded=true] {
   background-color: $accordion-button-active-background-color;
   .accordion-bordered &{
-    border-bottom: border("200");
+    border-bottom: border(200);
   }
 }
 .accordion-button[aria-expanded=false] {

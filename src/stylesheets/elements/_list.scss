@@ -4,7 +4,7 @@
  ul {
    padding-left: 0;
    list-style-type: none;
-   color: $color-text;
+   color: color('ink');
    line-height: $body-text-line-height;
    li {
      margin-top:map-get($spacers, 3);

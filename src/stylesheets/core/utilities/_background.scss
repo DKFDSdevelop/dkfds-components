@@ -1,15 +1,15 @@
 //
-// Generates utility classes to control width in percent. 
+// Generates utility classes to control width in percent.
 // Example: .w-percent-100 .w-percent-md-30
 //
 
 $backgroundcolors: (
-  normal: $background-normal, //WHITE
-  alternative: $background-alternative, //GRAY
-  modal: $background-modal //BLACK
+  normal: 'white', //WHITE
+  alternative: 'gray-10', //GRAY
+  modal: 'black-transparent-70' //BLACK
 ) !default;
 
 
-@each $name, $color in $backgroundcolors { 
-  .bg-#{$name}         { background: $color !important; background-color: $color !important;}
+@each $name, $color in $backgroundcolors {
+  .bg-#{$name}         { background: color($color) !important; background-color: color($color) !important;}
 }

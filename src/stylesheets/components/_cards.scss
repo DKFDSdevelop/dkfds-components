@@ -2,7 +2,7 @@
   position: relative;
   border-radius: map-get($spacers, 0);
   box-shadow: 0 2px 4px 0 color("gray-30");
-  border: border("100");
+  border: border(100);
   overflow: hidden;
   background: color("white");
 
@@ -68,21 +68,21 @@
   background-color: color("white");
   padding: map-get($spacers, 4) map-get($spacers, 5);
   .header-title {
-    @include body-copy-text;
+    @include body-text;
     font-weight: $font-weight-semibold;
     color: color("black");
     margin:map-get($spacers, 0);
 
     &.large-text {
-      @include h1;
-      color: $color-gray-dark;
+      @extend h1;
+      color: color('gray-60');
     }
   }
   .sub-header {
-    @include body-copy-text;
+    @include body-text;
     margin-top:  map-get($spacers, 0);
     margin-bottom: map-get($spacers, 0);
-    color: $color-text-secondary;
+    color: color('gray-50');
   }
 }
 
@@ -90,18 +90,18 @@
   background-color: color("white");
   padding: map-get($spacers, 4) map-get($spacers, 5);
   .text {
-    @include body-copy-text;
+    @include body-text;
     margin-top: map-get($spacers, 4);
-    color: $color-gray-dark;
+    color: color('gray-60');
     margin-bottom: map-get($spacers, 0);
   }
 }
 
 //card-content
 .card-content {
-  @include body-copy-text;
+  @include body-text;
   padding: map-get($spacers, 0);
-  color: $color-gray-dark;
+  color: color('gray-60');
   ul {
     margin-bottom:map-get($spacers, 0);
   }
@@ -120,9 +120,9 @@
 
 //card-action
 .card-action {
-  @include body-copy-text;
+  @include body-text;
   padding: map-get($spacers, 4) map-get($spacers, 5);
-  color: $color-gray-dark;
+  color: color('gray-60');
   margin-bottom: map-get($spacers, 0);
 
   div:first-child {

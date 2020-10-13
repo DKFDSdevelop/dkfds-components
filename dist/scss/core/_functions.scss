@@ -4,19 +4,6 @@ Functions
 ----------------------------------------
 */
 
-// The following vars need to be set
-// here, before the rest of the system
-// variables are set
-
-$root-font-size: if($theme-respect-user-font-size, 100%, $theme-root-font-size);
-
-$root-font-size-equiv: if(
-    $theme-respect-user-font-size,
-    16px,
-    $theme-root-font-size
-);
-
-
 
 /*
 ----------------------------------------
@@ -41,13 +28,13 @@ Converts a spacing unit multiple into
 the desired final units (currently rem)
 ----------------------------------------
 */
-
+/*
 @function spacing-multiple($unit) {
   $grid-to-rem: ($system-spacing-grid-base * $unit) / $root-font-size-equiv *
     1rem;
 
   @return $grid-to-rem;
-}
+}*/
 
 
 /*
@@ -146,6 +133,7 @@ map-deep-get()
 
 @function map-deep-get($map, $keys...) {
   @each $key in $keys {
+    @debug $map;
     $map: map-get($map, $key);
   }
 
@@ -248,7 +236,7 @@ px-to-rem()
 Converts a value in px to a value in rem
 ----------------------------------------
 */
-
+/*
 @function px-to-rem($pixels) {
   @if not $pixels {
     @return false;
@@ -257,7 +245,7 @@ Converts a value in px to a value in rem
   $px-to-rem: round($px-to-rem * 100) / 100;
 
   @return $px-to-rem;
-}
+}*/
 
 /*
 ----------------------------------------
@@ -458,7 +446,7 @@ Derive a color from a color shortcode
       }
 
       @if $theme-show-compile-warnings {
-        @warn 'Override: `#{$value}` is not a USWDS color token.';
+        @warn 'Override: `#{$value}` is not a FDS color token.';
       }
 
       @return $value;
@@ -482,22 +470,23 @@ Derive a color from a color shortcode
       @error '`#{$value}` is a color that does not exist '
         + 'or is set to false.';
     }
-    @return $our-color;
+    @return #{$our-color};
   }
 
-  @debug $value;
-
-  @if map-has-key($project-color-shortcodes, $value) {
-    $our-color: (map-get($project-color-shortcodes, $value));
-    @if $our-color == false {
-      @error '`#{$value}` is a color that does not exist '
-        + 'or is set to false.';
+  // If we're using the theme flag, $project-color-shortcodes has not yet been set
+  @if not index($flags, set-theme) {
+    @if map-has-key($project-color-shortcodes, $value) {
+      $our-color: (map-get($project-color-shortcodes, $value));
+      @if $our-color == false {
+        @error '`#{$value}` is a color that does not exist '
+          + 'or is set to false.';
+      }
+      @return #{$our-color};
     }
-    @return $our-color;
   }
 
-  @error '`#{$value}` is not a valid USWDS color token. '
-      + 'See designsystem.digital.gov/design-tokens/color '
+  @error '`#{$value}` is not a valid FDS color token. '
+      + 'See designsystem.dk/design/farver/ '
       + 'for more information.';
 }
 
@@ -512,28 +501,18 @@ a family and a line-height scale unit
 ----------------------------------------
 */
 
-@function lh($props...) {
-  $props: unpack($props);
+@function lh($index) {
 
-  @if not(length($props) == 1) {
-    @error 'lh() needs parameter for line height token '
-      + 'in the format `lh(HEIGHT)`.';
+  @if not map-has-key($line-heights, $index) {
+    @error '#{$index} is not a valid line-height token. '
+      + 'Valid tokens: #{map-keys($line-heights)}';
   }
 
-  $scale: smart-quote(nth($props, 1));
-
-  @if not map-get($system-line-height, $scale) {
-    @error '`#{$scale}` is not a valid line-height token. '
-      + 'Valid tokens: #{map-keys($system-line-height)}';
-  }
-
-  $this-line-height: map-get($system-line-height, $scale);
-
-  @return $this-line-height;
+  @return map-get($line-heights, $index);
 }
 
-@function line-height($props...) {
-  @return lh($props...);
+@function line-height($index) {
+  @return lh($index);
 }
 /*
 ----------------------------------------
@@ -558,44 +537,26 @@ to a set target
 ----------------------------------------
 font-size()
 ----------------------------------------
-Get type scale value from a [family] and
-[scale]
+Get font-size from index
 ----------------------------------------
 */
 
-@function font-size($family, $scale, $force: false) {
-  $our-family: smart-quote($family);
-  $our-scale: smart-quote($scale);
+@function font-size($index) {
 
-  @if not map-has-key($project-cap-heights, $our-family) {
-    @error '#{$our-family} is not a valid font family token. '
-      + 'Valid tokens: #{map-keys($project-cap-heights)}';
-  }
-  @if not map-get($all-type-scale, $our-scale) {
-    @error '`#{$our-scale}` is not a valid font scale token. '
-      + 'Valid token: #{map-keys($all-type-scale)}';
+  @if not map-has-key($font-sizes, $index) {
+    @error '#{$index} is not a valid font size token. '
+      + 'Valid tokens: #{map-keys($font-sizes)}';
   }
 
-  $this-cap: map-get($project-cap-heights, $our-family);
-  $this-scale: map-get($all-type-scale, $our-scale);
-
-  @if not $force {
-    @if not($this-scale and $this-cap) {
-      @error 'The scale `#{$our-scale}` is disabled '
-        + 'in your project\'s theme settings. '
-        + 'Set its value to `true` to use this family.';
-    }
-  }
-
-  @return normalize-type-scale($this-cap, $this-scale);
+  @return map-get($font-sizes, $index);
 }
 
-@function fs($family, $scale) {
-  @return font-size($family, $scale);
+@function fs($index) {
+  @return font-size($index);
 }
 
-@function size($family, $scale) {
-  @return font-size($family, $scale);
+@function size($index) {
+  @return font-size($index);
 }
 
 /*
@@ -608,44 +569,4 @@ Derive a border value from number
 
 @function border($index) {
   @return map_get($system-borders, $index);
-}
-
-/*
-----------------------------------------
-font-size()
-----------------------------------------
-Get type scale value from a [family] and
-[scale]
-----------------------------------------
-*/
-
-@function font-size($family, $scale, $force: false) {
-  $our-family: smart-quote($family);
-  $our-scale: smart-quote($scale);
-
-  @if not map-has-key($project-cap-heights, $our-family) {
-    @error '#{$our-family} is not a valid font family token. '
-      + 'Valid tokens: #{map-keys($project-cap-heights)}';
-  }
-  @if not map-get($all-type-scale, $our-scale) {
-    @error '`#{$our-scale}` is not a valid font scale token. '
-      + 'Valid token: #{map-keys($all-type-scale)}';
-  }
-
-  $this-cap: map-get($project-cap-heights, $our-family);
-  $this-scale: map-get($all-type-scale, $our-scale);
-
-  @if not $force {
-    @if not($this-scale and $this-cap) {
-      @error 'The scale `#{$our-scale}` is disabled '
-        + 'in your project\'s theme settings. '
-        + 'Set its value to `true` to use this family.';
-    }
-  }
-
-  @return normalize-type-scale($this-cap, $this-scale);
-}
-
-@function fs($family, $scale) {
-  @return font-size($family, $scale);
 }

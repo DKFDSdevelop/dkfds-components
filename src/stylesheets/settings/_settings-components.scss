@@ -1,12 +1,12 @@
 // Accordion
-$accordion-border: 100;
-$accordion-button-border-bottom-color: 200;
 $accordion-button-default-background-color: "gray-10";
 $accordion-button-hover-background-color: "gray-20";
 $accordion-button-focus-background-color: "gray-10";
 $accordion-button-active-background-color: "gray-10";
 $accordion-panel-background-color: "white";
 $accordion-border-radius: 3px;
+$accordion-border-color: "gray-50";
+$accordion-border-width: 1px;
 $accordion-panel-text-color: "black";
 $accordion-button-default-text-color: "black";
 $accordion-button-hover-text-color: "black";
@@ -38,8 +38,7 @@ $sidenav-link-active-color: "black" !default;
 $sidenav-active-border-width: 4px !default;
 
 //Alert
-$alert-heading-fontsize: $h5-font-size !default;
-$alert-heading-lineheight: $h5-line-height !default;
+$alert-heading-font-size: 0 !default;
 $alert-heading-color: "black" !default;
 $alert-text-color: "black" !default;
 
@@ -128,3 +127,6 @@ $color-footer-background:     "gray-60" !default;
 $color-topmenu-background:    "gray-60"!default;
 $color-subnav-background:     "gray-60"!default;
 $color-page:                  "white" !default;
+
+// Modal
+$modal-overlay-background-color: "black-transparent-70";

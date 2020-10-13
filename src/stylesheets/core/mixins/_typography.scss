@@ -1,74 +1,14 @@
-
-
-//font-family, font-size and line-height for h1-h6, bodytext and smalltext
-@mixin h1{
-  font-size: $h1-font-size;
-  line-height: $h1-line-height;
-  font-weight: $font-weight-bold;
-  color: color("ink");
-  text-transform: none;
-  word-break: break-word;
-}
-@mixin h2 {
-  font-size: $h2-font-size;
-  line-height: $h2-line-height;
-  font-weight: $font-weight-semibold;
-  color: color("ink");
-  text-transform: none;
-}
-@mixin h3 {
-  font-size: $h3-font-size;
-  line-height: $h3-line-height;
-  font-weight: $font-weight-semibold;
-  color: color("ink");
-  text-transform: none;
-}
-@mixin h4{
-  font-size: $h4-font-size;
-  line-height: $h4-line-height;
-  font-weight: $font-weight-semibold;
-  color: color("ink");
-  text-transform: none;
-}
-@mixin h5 {
-  font-size: $h5-font-size;
-  line-height: $h5-line-height;
-  font-weight: $font-weight-semibold;
-  color: color("ink");
-  text-transform: none;
-}
-@mixin body-copy-text {
+@mixin body-text {
   font-size: $body-text;
   line-height: $body-text-line-height;
   font-weight: $font-weight-normal;
-  color: $color-text;
   text-transform: none;
 }
-@mixin form-label-text {
-  font-size: $form-label;
-  line-height: $form-label-line-height;
-  font-weight: $font-weight-semibold;
-  color: color("ink");
-  text-transform: none;
-}
-@mixin h6 {
-  font-size: $h6-font-size;
-  line-height: $h6-line-height;
-  font-weight: $font-weight-medium;
-  color: color("ink");
-  text-transform: uppercase;
-}
-@mixin small-text {
-  font-size: $small-text;
-  line-height: $small-text-line-height;
-  font-weight: $font-weight-medium;
-}
-
 
 @mixin color-text-positive {
-  color:$color-text-positive;
+  color: color('success');
 }
 
 @mixin color-text-negative {
-  color:$color-text-negative;
+  color: color('error');
 }

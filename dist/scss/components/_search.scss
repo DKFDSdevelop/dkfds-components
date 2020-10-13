@@ -13,11 +13,11 @@
   .button-search{
     background-color: #fff;
     border-width: 1px;
-    border-color: $color-gray-medium-dark;
+    border-color: color('gray-50');
     border-left: none;
     border-bottom-left-radius: 0;
     border-top-left-radius: 0;
-    color: $color-text;
+    color: color('ink');
     font-weight: 400;
     width: inherit; //not 100& width on mobile
     &:hover{

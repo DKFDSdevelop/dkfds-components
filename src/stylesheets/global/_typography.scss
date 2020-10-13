@@ -45,40 +45,166 @@ a {
 }
 
 
-h1, .h1 {
+h1, .h1{
+  font-weight: $font-weight-bold;
+  text-transform: none;
+  word-break: break-word;
 
-  @include media-breakpoint-down(sm) {
-    font-size: 3.2rem;
+  font-size: font-size($h1-xs-font-size);
+  line-height: line-height($h1-xs-font-size);
+
+  @if($h1-sm-font-size) {
+    @include media-breakpoint-up(sm) {
+      font-size: font-size($h1-sm-font-size);
+      line-height: line-height($h1-sm-font-size);
+    }
+  }
+  @if($h1-md-font-size) {
+    @include media-breakpoint-up(md) {
+      font-size: font-size($h1-md-font-size);
+      line-height: line-height($h1-md-font-size);
+    }
+  }
+  @if($h1-lg-font-size) {
+    @include media-breakpoint-up(lg) {
+      font-size: font-size($h1-lg-font-size);
+      line-height: line-height($h1-lg-font-size);
+    }
   }
 }
+
 h2, .h2{
-  @include h2;
-  @include media-breakpoint-down(sm) {
-    font-size: 2.8rem;
+  font-size: font-size($h2-xs-font-size);
+  line-height: line-height($h2-xs-font-size);
+  font-weight: $font-weight-bold;
+  text-transform: none;
+
+  @if($h2-sm-font-size) {
+    @include media-breakpoint-up(sm) {
+      font-size: font-size($h2-sm-font-size);
+      line-height: line-height($h2-sm-font-size);
+    }
+  }
+  @if($h2-md-font-size) {
+    @include media-breakpoint-up(md) {
+      font-size: font-size($h2-md-font-size);
+      line-height: line-height($h2-md-font-size);
+    }
+  }
+  @if($h2-lg-font-size) {
+    @include media-breakpoint-up(lg) {
+      font-size: font-size($h2-lg-font-size);
+      line-height: line-height($h2-lg-font-size);
+    }
   }
 }
 
 h3, .h3 {
-  @include h3;
-  @include media-breakpoint-down(sm) {
-    font-size: 2.4rem;
+  font-size: font-size($h3-xs-font-size);
+  line-height: line-height($h3-xs-font-size);
+  font-weight: $font-weight-bold;
+  text-transform: none;
+
+  @if($h3-sm-font-size) {
+    @include media-breakpoint-up(sm) {
+      font-size: font-size($h3-sm-font-size);
+      line-height: line-height($h3-sm-font-size);
+    }
+  }
+  @if($h3-md-font-size) {
+    @include media-breakpoint-up(md) {
+      font-size: font-size($h3-md-font-size);
+      line-height: line-height($h3-md-font-size);
+    }
+  }
+  @if($h3-lg-font-size) {
+    @include media-breakpoint-up(lg) {
+      font-size: font-size($h3-lg-font-size);
+      line-height: line-height($h3-lg-font-size);
+    }
   }
 }
 
 h4, .h4{
-  @include h4;
+  font-size: font-size($h4-xs-font-size);
+  line-height: line-height($h4-xs-font-size);
+  font-weight: $font-weight-bold;
+  text-transform: none;
+
+  @if($h4-sm-font-size) {
+    @include media-breakpoint-up(sm) {
+      font-size: font-size($h4-sm-font-size);
+      line-height: line-height($h4-sm-font-size);
+    }
+  }
+  @if($h4-md-font-size) {
+    @include media-breakpoint-up(md) {
+      font-size: font-size($h4-md-font-size);
+      line-height: line-height($h4-md-font-size);
+    }
+  }
+  @if($h4-lg-font-size) {
+    @include media-breakpoint-up(lg) {
+      font-size: font-size($h4-lg-font-size);
+      line-height: line-height($h4-lg-font-size);
+    }
+  }
 }
 
 h5, .h5{
-  @include h5;
+  font-size: font-size($h5-xs-font-size);
+  line-height: line-height($h5-xs-font-size);
+  font-weight: $font-weight-bold;
+  text-transform: none;
+
+  @if($h5-sm-font-size) {
+    @include media-breakpoint-up(sm) {
+      font-size: font-size($h5-sm-font-size);
+      line-height: line-height($h5-sm-font-size);
+    }
+  }
+  @if($h5-md-font-size) {
+    @include media-breakpoint-up(md) {
+      font-size: font-size($h5-md-font-size);
+      line-height: line-height($h5-md-font-size);
+    }
+  }
+  @if($h5-lg-font-size) {
+    @include media-breakpoint-up(lg) {
+      font-size: font-size($h5-lg-font-size);
+      line-height: line-height($h5-lg-font-size);
+    }
+  }
 }
 
 h6, .h6{
-  @include h6;
+  font-size: font-size($h6-xs-font-size);
+  line-height: line-height($h6-xs-font-size);
+  font-weight: $font-weight-bold;
+  text-transform: none;
+
+  @if($h6-sm-font-size) {
+    @include media-breakpoint-up(sm) {
+      font-size: font-size($h6-sm-font-size);
+      line-height: line-height($h6-sm-font-size);
+    }
+  }
+  @if($h6-md-font-size) {
+    @include media-breakpoint-up(md) {
+      font-size: font-size($h6-md-font-size);
+      line-height: line-height($h6-md-font-size);
+    }
+  }
+  @if($h6-lg-font-size) {
+    @include media-breakpoint-up(lg) {
+      font-size: font-size($h6-lg-font-size);
+      line-height: line-height($h6-lg-font-size);
+    }
+  }
 }
 
 p, .body-text, .body-copy-text{
-  @include body-copy-text;
+  @include body-text;
 }
 
 .font-lead {
@@ -86,7 +212,6 @@ p, .body-text, .body-copy-text{
   font-weight: $font-weight-normal;
   line-height: $lead-line-height;
   max-width: $text-max-width;
-  color: color('ink');
 }
 
 .weight-normal {
@@ -111,9 +236,6 @@ small, .small-text {
   font-weight: $font-weight-normal;
 }
 
-.form-label {
-  @include form-label-text;
-}
 
 //Margin top and bottom for text
 //Generel principle for spacing: margin-top same as lineheight of the text, margin-bottom is just standard lineheight for text.
@@ -132,7 +254,7 @@ p{
   }
 }*/
 
-h1:focus, .h1:focus, //Removed this styling, it make for a messy margin handling.
+h1:focus, .h1:focus,
 h2:focus, .h2:focus,
 h3:focus, .h3:focus,
 h4:focus, .h4:focus,
@@ -149,16 +271,10 @@ h1, .h1{
 h2, .h2 {
   margin-top: map-get($spacers, 6);
   margin-bottom: $body-text;
-  @include media-breakpoint-up(md) {
-    margin-top: $h1-font-size;
-  }
 }
 h3, .h3{
   margin-top: map-get($spacers, 6);
   margin-bottom: $body-text;
-  @include media-breakpoint-up(md) {
-    margin-top: $h1-font-size;
-  }
 }
 h4, .h4{
   margin-top: $body-text-line-height;
@@ -188,7 +304,8 @@ h5, .h5, h6, .h6{
 
 //a function link, does not look like a link
 .function-link{
-  @include body-copy-text;
+  @include body-text;
+  color: color('black');
   display: inline-block;
   &:hover, &:visited, &:focus{
     color: color('ink');
@@ -206,7 +323,7 @@ h5, .h5, h6, .h6{
 }
 
 .back-link{
-  border-bottom: border("100");
+  border-bottom: border(100);
   color: color("black");
   text-decoration: none;
   display: inline-block;
@@ -330,11 +447,11 @@ a:not(.button){
 }
 
 .text-positive {
-  color: color('positive');
+  color: color('success');
 }
 
 .text-negative {
-  color: color('negative');
+  color: color('error');
 }
 
 .background-dark {

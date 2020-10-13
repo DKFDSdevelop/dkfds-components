@@ -14,11 +14,11 @@
     cursor: pointer;
 }
 .tooltip{
-  @include body-copy-text;
+  @include body-text;
   font-size: 1.6rem;
   box-shadow: $box-shadow-moderately;
   background-color:#fff;
-  border: border("100");
+  border: border(100);
   border-radius: 4px;
   padding: .3rem .6rem;
 }
