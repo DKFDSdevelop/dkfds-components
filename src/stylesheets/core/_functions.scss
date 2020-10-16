@@ -133,7 +133,6 @@ map-deep-get()
 
 @function map-deep-get($map, $keys...) {
   @each $key in $keys {
-    @debug $map;
     $map: map-get($map, $key);
   }
 
@@ -473,6 +472,29 @@ Derive a color from a color shortcode
     @return #{$our-color};
   }
 
+  $theme-color-shortcodes: ();
+  @each $collection-key, $collection-value in $theme-colors {
+    @each $key, $value in $collection-value {
+      $new-color-key: $collection-key + "-" + $key;
+      $new-color-value: $value;
+      $new-color: (
+        $new-color-key: $new-color-value
+      );
+
+      $theme-color-shortcodes: map-merge($theme-color-shortcodes, $new-color);
+    }
+  }
+
+  @if map-has-key($theme-color-shortcodes, $value) {
+    $our-color: map-get($theme-color-shortcodes, $value);
+    @if $our-color == false {
+      @error '`#{$value}` is a color that does not exist '
+        + 'or is set to false.';
+    }
+    @return #{$our-color};
+  }
+
+
   // If we're using the theme flag, $project-color-shortcodes has not yet been set
   @if not index($flags, set-theme) {
     @if map-has-key($project-color-shortcodes, $value) {
@@ -508,7 +530,7 @@ a family and a line-height scale unit
       + 'Valid tokens: #{map-keys($line-heights)}';
   }
 
-  @return map-get($line-heights, $index);
+  @return #{map-get($line-heights, $index)}+rem;
 }
 
 @function line-height($index) {
@@ -548,7 +570,7 @@ Get font-size from index
       + 'Valid tokens: #{map-keys($font-sizes)}';
   }
 
-  @return map-get($font-sizes, $index);
+  @return map-get($font-sizes, $index) + rem;
 }
 
 @function fs($index) {
@@ -561,6 +583,21 @@ Get font-size from index
 
 /*
 ----------------------------------------
+font-weight()
+----------------------------------------
+Derive a font-weight value from number
+----------------------------------------
+*/
+
+@function font-weight($index) {
+  @return map_get($font-weights, $index);
+}
+
+
+
+
+/*
+----------------------------------------
 border()
 ----------------------------------------
 Derive a border value from number
@@ -568,5 +605,9 @@ Derive a border value from number
 */
 
 @function border($index) {
-  @return map_get($system-borders, $index);
+  $border: map_get($system-borders, $index);
+  $width: map_get($border, "width");
+  $style: map_get($border, "style");
+  $color: map_get($border, "color");
+  @return $width $style #{color($color)};
 }

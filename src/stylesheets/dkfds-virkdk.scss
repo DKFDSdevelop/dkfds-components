@@ -6,9 +6,10 @@
 
 // Required
 // -------------------------------------
-@import "packages/required";
 
 @import './themes/virkdk';  //import variable-overrides specific to this theme
+
+@import "packages/required";
 
 // Global
 // -------------------------------------

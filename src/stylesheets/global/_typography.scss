@@ -203,6 +203,11 @@ h6, .h6{
   }
 }
 
+
+.sub-heading {
+  @include sub-heading;
+}
+
 p, .body-text, .body-copy-text{
   @include body-text;
 }

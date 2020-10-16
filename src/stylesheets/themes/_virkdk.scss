@@ -1,9 +1,23 @@
 // These variables overwrite the default values, giving the style the virk.dk theme
 
 // Overwriting default values
-$color-primary:               #0059B3;
-$color-primary-medium:        #004993;
-$color-primary-dark:          #003972;
+
+
+
+$theme-colors: (
+  'virkdk': (
+    5: #0059B3,
+    10: #004993,
+    20: #003972
+  )
+);
+
+$theme-color-primary: "virkdk-5";
+$theme-color-primary-dark: "virkdk-10";
+$theme-color-primary-darker: "virkdk-20";
+$theme-color-primary-darkest: "virkdk-20";
+
+
 $image-path:                  '../img' !default;
 
 .header {

@@ -1,3 +1,40 @@
+
+/*
+----------------------------------------
+Root font size
+----------------------------------------
+Setting $theme-respect-user-font-size to
+true sets the root font size to 100% and
+uses ems for media queries
+----------------------------------------
+$theme-root-font-size only applies when
+$theme-respect-user-font-size is set to
+false.
+
+This will set the root font size
+as a specific px value and use px values
+for media queries.
+
+Accepts true or false
+----------------------------------------
+*/
+
+$theme-respect-user-font-size: true !default;
+
+// $theme-root-font-size only applies when
+// $theme-respect-user-font-size is set to
+// false.
+
+// This will set the root font size
+// as a specific px value and use px values
+// for media queries.
+
+// Accepts values in px
+
+$theme-root-font-size: 10px !default;
+
+
+
 $h1-xs-font-size:             4 !default;
 $h1-sm-font-size:             false !default;
 $h1-md-font-size:             5 !default;
@@ -33,6 +70,13 @@ $h6-sm-font-size:             false !default;
 $h6-md-font-size:             false !default;
 $h6-lg-font-size:             false !default;
 $h6-xl-font-size:             false !default;
+
+$sub-heading-font-size:          neg-2 !default;
+$sub-heading-color:              'ink' !default;
+$sub-heading-font-weight:        0 !default;
+$sub-heading-letter-spacing:     1px !default;
+$sub-heading-text-transform:      uppercase;
+
 ////////////////////////////////////////////////////////////////////77//////////////////////////////////////////////////////////////////////////////////////////
 // These variables drive almost every aspect of the Frontend Styleguide.
 // Every variable is declared as !default so that it can be overridden

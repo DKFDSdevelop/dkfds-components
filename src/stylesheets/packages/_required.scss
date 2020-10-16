@@ -15,11 +15,11 @@
 
 
 
-@import '../core/mixins/breakpoints';
-@import '../core/mixins/mixins';
+@import "../core/functions";
 @import "../core/system-tokens";
 @import "../core/variables";
-@import "../core/functions";
+@import '../core/mixins/breakpoints';
+@import '../core/mixins/mixins';
 //@import "../core/properties";
 
 @import '../core/mixins/typography';

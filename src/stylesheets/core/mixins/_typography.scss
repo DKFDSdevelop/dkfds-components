@@ -12,3 +12,11 @@
 @mixin color-text-negative {
   color: color('error');
 }
+
+@mixin sub-heading {
+  color: color('ink');
+  font-size: font-size($sub-heading-font-size);
+  font-weight: font-weight($sub-heading-font-weight);
+  letter-spacing: $sub-heading-letter-spacing;
+  text-transform: $sub-heading-text-transform;
+}

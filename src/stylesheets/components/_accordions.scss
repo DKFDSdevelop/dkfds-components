@@ -24,12 +24,12 @@ $v-padding: $spacing-md-small;
 // scss-lint:disable PropertyCount
 @mixin accordion-button-styles {
   @include button-unstyled;
-  background-color: $accordion-button-default-background-color;
+  background-color: color($accordion-button-default-background-color);
   background-image: url('#{$icons-folder-path}/minus.svg');
   background-position: left $h-padding center;
   background-repeat: no-repeat;
   background-size: $icon-size;
-  color: $accordion-button-default-text-color;
+  color: color($accordion-button-default-text-color);
   cursor: pointer;
   display: inline-block;
   margin: 0;
@@ -38,8 +38,8 @@ $v-padding: $spacing-md-small;
   width: 100%;
 
   &:hover {
-    background-color: $accordion-button-hover-background-color;
-    color: $accordion-button-hover-text-color;
+    background-color: color($accordion-button-hover-background-color);
+    color: color($accordion-button-hover-text-color);
   }
 
   h1, .h1,
@@ -77,7 +77,7 @@ $v-padding: $spacing-md-small;
   @include accordion-button-styles;
   position: relative;
   transition: none;
-  border-radius: $border-radius;
+  border-radius: $accordion-border-radius;
   .icon_text {
     font-weight: $font-weight-semibold;
     margin-right: map-get($spacers, 3);
@@ -129,15 +129,15 @@ $v-padding: $spacing-md-small;
 
 .accordion-bordered {
   .accordion-content {
-    border-bottom: $accordion-border-width solid $accordion-border-color;
-    border-left: $accordion-border-width solid $accordion-border-color;
-    border-right: $accordion-border-width solid $accordion-border-color;
+    border-bottom: $accordion-border-width solid color($accordion-border-color);
+    border-left: $accordion-border-width solid color($accordion-border-color);
+    border-right: $accordion-border-width solid color($accordion-border-color);
     border-radius: 0 0 $accordion-border-radius $accordion-border-radius;
   }
 }
 
 .accordion-content {
-  background-color: $accordion-panel-background-color;
+  background-color: color($accordion-panel-background-color);
   overflow: auto;
   padding: $spacing-md-small;
 
@@ -162,7 +162,7 @@ $v-padding: $spacing-md-small;
   border: 2px solid color('error');
 }
 .accordion-button[aria-expanded=true] {
-  background-color: $accordion-button-active-background-color;
+  background-color: color($accordion-button-active-background-color);
   .accordion-bordered &{
     border-bottom: border(200);
   }

@@ -24,3 +24,20 @@ $theme-focus-offset: 1 !default;
 $theme-focus-style: solid !default;
 $theme-focus-width: 4px !default;
 
+
+/*
+----------------------------------------
+Border levels
+----------------------------------------
+*/
+$theme-border-level-100-width: 1px !default;
+$theme-border-level-100-style: solid !default;
+$theme-border-level-100-color: "gray-50" !default;
+
+$theme-border-level-200-width: 1px !default;
+$theme-border-level-200-style: solid !default;
+$theme-border-level-200-color: "gray-30" !default;
+
+$theme-border-level-300-width: 1px !default;
+$theme-border-level-300-style: solid !default;
+$theme-border-level-300-color: "gray-20" !default;

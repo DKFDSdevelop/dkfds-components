@@ -1,10 +1,21 @@
 // These variables overwrite the default values, giving the style the borger.dk theme
 
 // Overwriting default values
-$color-primary:               #44831E;
-$color-primary-medium:        #3C5C22;
-$color-primary-dark:          #233614;
-$image-path:                  '../img' !default;
+
+$theme-colors: (
+  'borgerdk': (
+    5: #44831E,
+    10: #3C5C22,
+    20: #233614
+  )
+);
+
+
+$theme-color-primary: "borgerdk-5";
+$theme-color-primary-dark: "borgerdk-10";
+$theme-color-primary-darker: "borgerdk-20";
+$theme-color-primary-darkest: "borgerdk-20";
+$image-path:                      '../img' !default;
 
 .header {
     .portal-header{
