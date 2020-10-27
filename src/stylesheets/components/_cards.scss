@@ -4,7 +4,7 @@
   box-shadow: 0 2px 4px 0 color("gray-30");
   border: border(100);
   overflow: hidden;
-  background: color("white");
+  background: color($cards-background-color);
 
   //small card
   &-small {
@@ -65,34 +65,34 @@
 }
 //card-header
 .card-header {
-  background-color: color("white");
+  background-color: color($cards-background-color);
   padding: map-get($spacers, 4) map-get($spacers, 5);
   .header-title {
     @include body-text;
-    font-weight: $font-weight-semibold;
-    color: color("black");
+    font-weight: font-weight('semibold');
+    color: color($cards-heading-color);
     margin:map-get($spacers, 0);
 
     &.large-text {
       @extend h1;
-      color: color('gray-60');
+      color: color($cards-heading-large-text-color);
     }
   }
   .sub-header {
     @include body-text;
     margin-top:  map-get($spacers, 0);
     margin-bottom: map-get($spacers, 0);
-    color: color('gray-50');
+    color: color($cards-sub-header-text-color);
   }
 }
 
 .card-text {
-  background-color: color("white");
+  background-color: color($cards-background-color);
   padding: map-get($spacers, 4) map-get($spacers, 5);
   .text {
     @include body-text;
     margin-top: map-get($spacers, 4);
-    color: color('gray-60');
+    color: color($cards-text-color);
     margin-bottom: map-get($spacers, 0);
   }
 }
@@ -101,7 +101,7 @@
 .card-content {
   @include body-text;
   padding: map-get($spacers, 0);
-  color: color('gray-60');
+  color: color($cards-text-color);
   ul {
     margin-bottom:map-get($spacers, 0);
   }
@@ -122,7 +122,7 @@
 .card-action {
   @include body-text;
   padding: map-get($spacers, 4) map-get($spacers, 5);
-  color: color('gray-60');
+  color: color($cards-text-color);
   margin-bottom: map-get($spacers, 0);
 
   div:first-child {
@@ -260,144 +260,3 @@
 .card-center {
   text-align: center;
 }
-
-//Extra functionality for cards that can be implemented later on - from USPTO
-//
-// Inverse text within a card for use with dark backgrounds
-//
-/*
-.card-inverse {
-  .card-header,
-  .card-footer {
-      border-bottom: 1px solid rgba(255,255,255,.2);
-  }
-  .card-header,
-  .card-footer,
-  .card-title,
-  .card-blockquote {
-      color: white;
-  }
-  .card-link,
-  .card-text,
-  .card-blockquote > footer {
-      color: rgba(255,255,255,.65);
-  }
-  .card-link {
-      &:hover,
-      &:focus {
-          color: white;
-      }
-  }
-}
-*/
-//
-// Blockquote
-//
-/*
-.card-blockquote {
-  padding: 0;
-  margin-bottom: 0;
-  border-left: 0;
-}
-
-// Card image
-.card-img {
-  border-radius: 2px;
-}
-.card-img-overlay {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  padding: 5px;
-}
-
-
-
-// Card image caps
-.card-img {
-  &-top {
-    border-radius: 2px 2px 0 0;
-  }
-  &-bottom {
-    border-radius: 0 0 2px 2px;
-  }
-}
-
-//
-// Card set
-//
-
-.card-deck {
-  display: table;
-  table-layout: fixed;
-  border-spacing: 8px 0;
-
-  .card {
-      display: table-cell;
-      width: 1%;
-      vertical-align: top;
-  }
-}
-.card-deck-wrapper {
-  margin-right: -8px;
-  margin-left: -8px;
-}
-
-//
-// Card groups
-//
-
-.card-group {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
-
-  .card {
-      display: table-cell;
-      vertical-align: top;
-
-      + .card {
-          margin-left: 0;
-          border-left: 0;
-      }
-
-      // Handle rounded corners
-      &:first-child {
-          .card-img-top {
-              border-top-right-radius: 0;
-          }
-          .card-img-bottom {
-              border-bottom-right-radius: 0;
-          }
-      }
-      &:last-child {
-          .card-img-top {
-              border-top-left-radius: 0;
-          }
-          .card-img-bottom {
-              border-bottom-left-radius: 0;
-          }
-      }
-
-      &:not(:first-child):not(:last-child) {
-          border-radius: 0;
-
-          .card-img-top,
-          .card-img-bottom {
-              border-radius: 0;
-          }
-      }
-  }
-}
-
-.card-columns {
-  column-count: 3;
-  column-gap: 8px;
-  .card {
-      display: inline-block;
-      width: 100%; // Don't let them exceed the column width
-  }
-}
-*/

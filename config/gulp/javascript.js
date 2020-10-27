@@ -18,7 +18,8 @@ gulp.task(task, done => {
 
   const defaultStream = browserify({
     entries: "src/js/dkfds.js",
-    debug: true
+    debug: true, //adds sourcemaps at the end of file.
+    standalone: 'DKFDS'
   }).transform("babelify", {
     global: true,
     presets: ["@babel/preset-env"]
@@ -76,7 +77,7 @@ gulp.task("eslint", done => {
   }
 
   return gulp
-    .src(["src/js/**/*.js", "spec/**/*.js"])
+    .src(["src/js/**/*.js"])
     .pipe(
       eslint({
         fix: true

@@ -1,7 +1,7 @@
 @mixin body-text {
   font-size: $body-text;
   line-height: $body-text-line-height;
-  font-weight: $font-weight-normal;
+  font-weight: font-weight('normal');
   text-transform: none;
 }
 

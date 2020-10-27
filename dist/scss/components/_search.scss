@@ -18,7 +18,7 @@
     border-bottom-left-radius: 0;
     border-top-left-radius: 0;
     color: color('ink');
-    font-weight: 400;
+    font-weight: font-weight('normal');
     width: inherit; //not 100& width on mobile
     &:hover{
       background-color: color("gray-20");

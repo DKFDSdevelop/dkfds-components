@@ -2,30 +2,31 @@
 $custom-alerts: () !default;
 $custom-alerts-bar: () !default;
 
+
 $alerts: (
-  success: color('success-light'),
-  warning: color('warning-light'),
-  error: color('error-light'),
-  info: color('info-light')
+  success: color($alerts-success-background-color),
+  warning: color($alerts-warning-background-color),
+  error: color($alerts-error-background-color),
+  info: color($alerts-info-background-color)
 );
 
 $alerts-bar: (
-  success: color('success'),
-  warning: color('warning'),
-  error: color('error'),
-  info: color('info')
+  success: color($alerts-success-border-color),
+  warning: color($alerts-warning-border-color),
+  error: color($alerts-error-border-color),
+  info: color($alerts-info-border-color)
 );
 
 $alerts: map-merge($alerts, $custom-alerts);
 $alerts-bar: map-merge($alerts-bar, $custom-alerts-bar);
 
 $padding: map-get($spacers, 4);
-$bar-size:  map-get($spacers, 3);
+$bar-size:  map-get($spacers, $alerts-border-width);
 $left-padding: map-get($spacers, 9);
 $icon-size: 24px;
 
 .alert {
-  background-color: color('gray-10');
+  background-color: color($alerts-default-background-color);
   background-position: 16px 16px;
   background-repeat: no-repeat;
   background-size: 24px;
@@ -36,7 +37,7 @@ $icon-size: 24px;
   position: relative;
   margin-top: map-get($spacers, 4);
   margin-bottom: map-get($spacers, 4);
-  border-left: $bar-size solid color('gray-50');
+  border-left: $bar-size solid color($alerts-default-border-color);
 
   &:first-child {
     margin-top:0;
@@ -51,7 +52,7 @@ $icon-size: 24px;
     right: map-get($spacers, 4);
     font-size: $small-text;
     line-height: $small-text-line-height;
-    font-weight: $font-weight-medium;
+    font-weight: font-weight('medium');
     color: color("black");
     .icon-svg{
       margin-right: map-get($spacers, 2);
@@ -64,10 +65,10 @@ $icon-size: 24px;
   .alert-heading {
     margin-top: 0;
     margin-bottom: 0;
-    font-size: font-size($alert-heading-font-size);
+    font-size: font-size($alerts-heading-font-size);
     font-weight: 600;
-    line-height: line-height($alert-heading-font-size);
-    color: $alert-heading-color;
+    line-height: line-height($alerts-heading-font-size);
+    color: color($alerts-heading-color);
     -ms-word-wrap: break-word;
     word-wrap: break-word;
   }
@@ -75,7 +76,7 @@ $icon-size: 24px;
   .alert-text {
     margin-bottom: 0;
     margin-top: 0;
-    color: $alert-text-color;
+    color: color($alerts-text-color);
     max-width: $text-max-width;
   }
 }

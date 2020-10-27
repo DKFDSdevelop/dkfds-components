@@ -79,18 +79,18 @@
 
     &.current {
       > a {
-        font-weight: $font-weight-medium;
+        font-weight: font-weight('medium');
       }
 
       .sidenav-information {
         color: color('gray-60');
-        font-weight: normal;
+        font-weight: font-weight('normal');
       }
     }
     &.active{
       > a{
         color: $sidenav-link-active-color;
-        font-weight: $font-weight-medium;
+        font-weight: font-weight('medium');
       }
     }
   }

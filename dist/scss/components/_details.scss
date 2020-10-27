@@ -28,7 +28,7 @@
   .details-summary {
     display: inline-block;
     position: relative;
-    color: color("black");
+    color: color($details-text-color);
     cursor: pointer;
 
     &:before {
@@ -61,7 +61,7 @@
 
   .details-text {
     padding: map-get($spacers, 4);
-    border-left: 4px solid color("gray-30");
+    border-left: 4px solid color($details-border-color);
     &[aria-hidden=true]{
       display: none;
     }

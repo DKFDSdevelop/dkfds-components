@@ -46,7 +46,7 @@ a {
 
 
 h1, .h1{
-  font-weight: $font-weight-bold;
+  font-weight: font-weight('bold');
   text-transform: none;
   word-break: break-word;
 
@@ -76,7 +76,7 @@ h1, .h1{
 h2, .h2{
   font-size: font-size($h2-xs-font-size);
   line-height: line-height($h2-xs-font-size);
-  font-weight: $font-weight-bold;
+  font-weight: font-weight('bold');
   text-transform: none;
 
   @if($h2-sm-font-size) {
@@ -102,7 +102,7 @@ h2, .h2{
 h3, .h3 {
   font-size: font-size($h3-xs-font-size);
   line-height: line-height($h3-xs-font-size);
-  font-weight: $font-weight-bold;
+  font-weight: font-weight('bold');
   text-transform: none;
 
   @if($h3-sm-font-size) {
@@ -128,7 +128,7 @@ h3, .h3 {
 h4, .h4{
   font-size: font-size($h4-xs-font-size);
   line-height: line-height($h4-xs-font-size);
-  font-weight: $font-weight-bold;
+  font-weight: font-weight('bold');
   text-transform: none;
 
   @if($h4-sm-font-size) {
@@ -154,7 +154,7 @@ h4, .h4{
 h5, .h5{
   font-size: font-size($h5-xs-font-size);
   line-height: line-height($h5-xs-font-size);
-  font-weight: $font-weight-bold;
+  font-weight: font-weight('bold');
   text-transform: none;
 
   @if($h5-sm-font-size) {
@@ -180,7 +180,7 @@ h5, .h5{
 h6, .h6{
   font-size: font-size($h6-xs-font-size);
   line-height: line-height($h6-xs-font-size);
-  font-weight: $font-weight-bold;
+  font-weight: font-weight('bold');
   text-transform: none;
 
   @if($h6-sm-font-size) {
@@ -214,31 +214,31 @@ p, .body-text, .body-copy-text{
 
 .font-lead {
   font-size: $lead-font-size;
-  font-weight: $font-weight-normal;
+  font-weight: font-weight('normal');
   line-height: $lead-line-height;
   max-width: $text-max-width;
 }
 
 .weight-normal {
-  font-weight: $font-weight-normal;
+  font-weight: font-weight('normal');
 }
 
 .weight-semibold {
-  font-weight: $font-weight-semibold;
+  font-weight: font-weight('semibold');
 }
 
 strong, b, .bold {
-  font-weight: $font-weight-bold;
+  font-weight: font-weight('bold');
 }
 
 .italic, em {
-  font-style: $font-style-italic;
+  font-style: italic;
 }
 
 small, .small-text {
   font-size: $small-text; //1.3rem
   line-height: $small-text-line-height; //1.6rem
-  font-weight: $font-weight-normal;
+  font-weight: font-weight('normal');
 }
 
 
@@ -359,7 +359,7 @@ h5, .h5, h6, .h6{
 }
 
 a.bold-link{
-  font-weight: $font-weight-semibold;
+  font-weight: font-weight('semibold');
 }
 
 .icon-link{

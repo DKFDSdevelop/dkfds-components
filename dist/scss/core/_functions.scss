@@ -530,7 +530,7 @@ a family and a line-height scale unit
       + 'Valid tokens: #{map-keys($line-heights)}';
   }
 
-  @return #{map-get($line-heights, $index)}+rem;
+  @return #{map-get($line-heights, $index)}rem;
 }
 
 @function line-height($index) {
@@ -589,8 +589,14 @@ Derive a font-weight value from number
 ----------------------------------------
 */
 
-@function font-weight($index) {
-  @return map_get($font-weights, $index);
+@function font-weight($value) {
+  $our-weight: map-get($font-weight, $value);
+  @if $our-weight == false {
+    @error '`#{$value}` is a font weight that does not exist '
+        + 'or is set to false.';
+  }
+  @return #{$our-weight};
+
 }
 
 

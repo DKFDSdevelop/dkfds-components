@@ -882,7 +882,7 @@ $font-system: 'system' !default;
   local("Roboto-Light"), //Android - Ice Cream Sandwich (4.0)+
   local("DroidSans"), //Android - Cupcake (1.5) to Honeycomb (3.2.6)
   local("Tahoma"); //Windows - XP
-  font-style:   $font-style-normal;
-  font-weight:  $font-weight-normal;
+  font-style:   normal;
+  font-weight:  font-weight('normal');
   font-display: swap;
 }

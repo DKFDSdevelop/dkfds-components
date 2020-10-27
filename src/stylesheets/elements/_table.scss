@@ -46,14 +46,14 @@
             border-bottom: border(200);
         }
         th{
-            font-weight: $font-weight-semibold;
+            font-weight: font-weight('semibold');
             text-align: left;
             border-bottom: 1px solid #{color("gray-30")};
         }
     }
     tbody{
         th{
-            font-weight: $font-weight-semibold;
+            font-weight: font-weight('semibold');
         }
         tr {
           background-color: transparent;
@@ -213,7 +213,7 @@
               content: attr(data-title);
               text-align: left;
               display: block;
-              font-weight: $font-weight-semibold;
+              font-weight: font-weight('semibold');
             }
           }
 

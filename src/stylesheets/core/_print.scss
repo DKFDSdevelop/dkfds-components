@@ -144,7 +144,7 @@
           content: attr(data-title);
           text-align: left;
           display: block;
-          font-weight: $font-weight-semibold;
+          font-weight: font-weight('semibold');
         }
       }
 

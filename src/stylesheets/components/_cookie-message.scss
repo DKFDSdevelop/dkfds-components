@@ -1,6 +1,6 @@
 .cookie-container{
 
-  color: color("black");
+  color: color($cookie-message-text-color);
   position: fixed;
   bottom: 0px;
   right: 0px;
@@ -13,7 +13,7 @@
   .cookie-message{
     @include grid-container();
 
-    background-color:color("white");
+    background-color:color($cookie-message-background-color);
     border: border(100);
     box-shadow: $box-shadow-heavy;
     padding-top: calc(#{map-get($spacers, 6)} - 1px);

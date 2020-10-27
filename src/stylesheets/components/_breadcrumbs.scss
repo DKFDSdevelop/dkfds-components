@@ -6,7 +6,6 @@ $chevron-size: 7px;
 $chevron-border-width: 1px;
 
 // Colour of chevron
-$chevron-border-colour: color('gray-50');
 
 // Calculated altitude (△↕) of the right-angled isosceles chevron with sides
 // of length 8 (7px + 1px border):
@@ -15,7 +14,7 @@ $chevron-border-colour: color('gray-50');
 $chevron-altitude-calculated: 5.655px;
 
 .breadcrumbs {
-  color: color("black");
+  color: color($breadcrumbs-color);
   font-size: $small-text;
 }
 
@@ -67,7 +66,7 @@ $chevron-altitude-calculated: 5.655px;
 
     border: solid;
     border-width: $chevron-border-width $chevron-border-width 0 0;
-    border-color: $chevron-border-colour;
+    border-color: color($breadcrumbs-color);
 
 
   }
@@ -84,8 +83,8 @@ $chevron-altitude-calculated: 5.655px;
 }
 
 .breadcrumbs__link {
-  color: color("black");
+  color: color($breadcrumbs-color);
   &:visited, &:hover, &:active{
-    color: color("black");
+    color: color($breadcrumbs-color);
   }
 }

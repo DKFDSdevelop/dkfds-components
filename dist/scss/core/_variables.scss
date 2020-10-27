@@ -24,12 +24,16 @@ $font-sizes: (
 font-weights
 ----------------------------------------
 */
-$font-weights: (
-  0: 400,
-  2: 500,
-  3: 600,
-  4: 700
+$font-weight: (
+  "thin": $theme-font-weight-thin,
+  "light": $theme-font-weight-light,
+  "normal": $theme-font-weight-normal,
+  "medium": $theme-font-weight-medium,
+  "semibold": $theme-font-weight-semibold,
+  "bold": $theme-font-weight-bold,
+  "heavy": $theme-font-weight-heavy
 ) !default;
+
 
 $line-heights: (
   neg-2: 2,

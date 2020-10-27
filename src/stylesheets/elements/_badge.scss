@@ -5,7 +5,7 @@
   padding-left: map-get($spacers, 3);
   padding-right:map-get($spacers, 3);
   border: none;
-  font-weight: $font-weight-semibold;
+  font-weight: font-weight('semibold');
   color: color('white');
   background: color("black");
   @include font-smoothing;

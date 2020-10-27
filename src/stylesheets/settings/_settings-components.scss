@@ -1,31 +1,67 @@
 // Accordion
-$accordion-button-default-background-color: "gray-10";
-$accordion-button-hover-background-color: "gray-20";
-$accordion-button-focus-background-color: "gray-10";
-$accordion-button-active-background-color: "gray-20";
-$accordion-panel-background-color: "white";
-$accordion-border-radius: 3px;
-$accordion-border-color: "gray-50";
-$accordion-border-width: 1px;
-$accordion-panel-text-color: "black";
-$accordion-button-default-text-color: "black";
-$accordion-button-hover-text-color: "black";
-$accordion-button-focus-text-color: "black";
-$accordion-button-active-text-color: "primary";
+$accordion-button-default-background-color: "gray-10" !default;
+$accordion-button-hover-background-color: "gray-20" !default;
+$accordion-button-focus-background-color: "gray-10" !default;
+$accordion-button-active-background-color: "gray-20" !default;
+$accordion-panel-background-color: "white" !default;
+$accordion-border-radius: 3px !default;
+$accordion-panel-text-color: "black" !default;
+$accordion-button-default-text-color: "black" !default;
+$accordion-button-hover-text-color: "black" !default;
+$accordion-button-focus-text-color: "black" !default;
+$accordion-button-active-text-color: "black" !default;
+$accordion-button-icon-color: "ink" !default;
+$accordion-button-icon-collapsed: "minus.svg" !default;
+$accordion-button-icon-expanded: "plus.svg" !default;
+
+
+// Alerts
+$alerts-border-width: 3 !default;
+$alerts-heading-font-size: 0 !default;
+$alerts-heading-color: "ink" !default;
+$alerts-text-color: "ink" !default;
+$alerts-default-background-color: 'gray-10' !default;
+$alerts-default-border-color: 'gray-50' !default;
+$alerts-success-border-color: "success" !default;
+$alerts-success-background-color: "success-light" !default;
+$alerts-info-border-color: "info" !default;
+$alerts-info-background-color: "info-light" !default;
+$alerts-warning-border-color: "warning" !default;
+$alerts-warning-background-color: "warning-light" !default;
+$alerts-error-border-color: "error" !default;
+$alerts-error-background-color: "error-light" !default;
+
+// Breadcrumbs
+$breadcrumbs-color: 'ink' !default;
+
+// Cards
+$cards-background-color: 'white' !default;
+$cards-heading-color: 'ink' !default;
+$cards-text-color: 'gray-60' !default;
+$cards-heading-large-text-color: 'gray-60' !default;
+$cards-sub-header-text-color: 'gray-50' !default;
+
+// Cookie message
+$cookie-message-text-color: 'ink' !default;
+$cookie-message-background-color: 'white' !default;
+
+// Details
+$details-text-color: 'ink';
+$details-border-color: 'gray-30';
 
 //input
-$input-border-radius: 4px;
-$input-border-width: 1px;
-$input-top-bottom-padding: calc(8px - #{$input-border-width}); //7px
-$input-left-right-padding: calc(16px - #{$input-border-width}); //15px
-$input-font-size: $body-text;
-$input-line-height: $body-text-line-height;
-$input-standard-height: 4.0rem;
-$input-top-margin: 1;
+$input-border-radius: 4px !default;
+$input-border-width: 1px !default;
+$input-top-bottom-padding: calc(8px - #{$input-border-width}) !default; //7px
+$input-left-right-padding: calc(16px - #{$input-border-width}) !default; //15px
+$input-font-size: $body-text !default;
+$input-line-height: $body-text-line-height !default;
+$input-standard-height: 4.0rem !default;
+$input-top-margin: 1 !default;
 
-$input-border-width-feedback: 2px;
-$input-top-bottom-padding-feedback: calc(8px - #{$input-border-width-feedback});
-$input-left-right-padding-feedback: calc(16px - #{$input-border-width-feedback});
+$input-border-width-feedback: 2px !default;
+$input-top-bottom-padding-feedback: calc(8px - #{$input-border-width-feedback}) !default;
+$input-left-right-padding-feedback: calc(16px - #{$input-border-width-feedback}) !default;
 
 //Tabs
 $tabs-active-border-color: "primary" !default;
@@ -37,10 +73,6 @@ $sidenav-link-current-color: "black" !default;
 $sidenav-link-active-color: "black" !default;
 $sidenav-active-border-width: 4px !default;
 
-//Alert
-$alert-heading-font-size: 0 !default;
-$alert-heading-color: "black" !default;
-$alert-text-color: "black" !default;
 
 // Tag colors
 $tag-color: "white" !default;
