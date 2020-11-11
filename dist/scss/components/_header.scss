@@ -12,7 +12,7 @@ $z-index-nav:     9000;
 
   .logo{
     //background-image is set by the themes in the "themes"-scss-files.
-    background-image: url($image-path + '/logo-header-placeholder.png');
+    background-image: url($image-path + '' + $header-logo);
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -69,7 +69,9 @@ $z-index-nav:     9000;
   .portal-header{
     border-bottom: border(200);
     width: 100%;
+    background-color: color($header-portal-background-color);
     &.portal-header-compact{
+      background-color: color($header-portal-background-color);
 
       font-size: $small-text;
       line-height: $small-text-line-height;

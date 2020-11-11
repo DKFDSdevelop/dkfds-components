@@ -12,7 +12,7 @@
   a {
     display: block;
     border: none;
-    color: color('gray-60');
+    color: color($sidenav-default-link-color);
     line-height: $base-line-height;
     padding: $spacer;
     padding-top:$input-top-bottom-padding;
@@ -33,11 +33,11 @@
   }
   li {
     &:hover {
-      background-color: color('gray-10');
+      background-color: color($sidenav-hover-background-color);
     }
     a:hover {
       text-decoration: none;
-      color: $sidenav-link-active-color;
+      color: $sidenav-active-link-color;
     }
 
     a {
@@ -67,7 +67,7 @@
 
 
       .sidenav-information {
-        color: color('gray-50');
+        color: color($sidenav-information-color);
         margin: 0;
         display: block;
       }
@@ -83,13 +83,13 @@
       }
 
       .sidenav-information {
-        color: color('gray-60');
+        color: color($sidenav-current-information-color);
         font-weight: font-weight('normal');
       }
     }
     &.active{
       > a{
-        color: $sidenav-link-active-color;
+        color: $sidenav-active-link-color;
         font-weight: font-weight('medium');
       }
     }
@@ -134,8 +134,8 @@
     }
 
     &.current{
-      border-left: $sidenav-active-border-width solid color('primary');
-      background-color: color('gray-10');
+      border-left: $sidenav-active-border-width solid color($sidenav-current-border-color);
+      background-color: color($sidenav-current-background-color);
     }
     &:first-child {
       border-top: none;
@@ -171,7 +171,7 @@
 
   a {
     border: none;
-    color: $sidenav-link-color;
+    color: $sidenav-default-link-color;
     display: block;
     line-height: $base-line-height;
     padding: $spacer;
@@ -182,9 +182,9 @@
 
 
     &:hover {
-      background-color: color("white");
+      background-color: color($sidenav-locked-hover-background-color);
       text-decoration: none;
-      color: $sidenav-link-color-hover;
+      color: $sidenav-hover-link-color;
       cursor:default;
     }
 

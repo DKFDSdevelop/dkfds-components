@@ -30,7 +30,7 @@ footer {
     }
 
     .logo{
-      background-image: url($image-path + '/logo-placeholder.png');
+      background-image: url($image-path + 'logo-placeholder.png');
       background-size: contain;
       background-repeat: no-repeat;
       display: inline-block;

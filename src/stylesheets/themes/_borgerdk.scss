@@ -7,6 +7,9 @@ $theme-colors: (
     5: #44831E,
     10: #3C5C22,
     20: #233614
+  ),
+  'background': (
+    5: #f1f1f1
   )
 );
 
@@ -15,19 +18,20 @@ $theme-color-primary: "borgerdk-5";
 $theme-color-primary-dark: "borgerdk-10";
 $theme-color-primary-darker: "borgerdk-20";
 $theme-color-primary-darkest: "borgerdk-20";
-$image-path:                      '../img' !default;
+
+$header-portal-background-color: 'background-5';
+
+$image-path:                      '../img/' !default;
+$header-logo: 'logo-borgerdk.svg';
 
 .header {
     .portal-header{
-        background-color: #f1f1f1;
         .logo{
-            background-image: url($image-path + '/logo-borgerdk.svg');
             height: 4.8rem;
         }
 
         &.portal-header-compact{
           .logo{
-            background-image: url($image-path + '/logo-borgerdk.svg');
             width: 10rem;
           }
         }

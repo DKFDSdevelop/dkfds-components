@@ -9,14 +9,14 @@
 .form-hint {
   @include body-text;
   display: block;
-  color: color('gray-50');
+  color: color($form-hint-text-color);
 }
 .form-label {
   display: inline-block;
   font-size: $form-label;
   line-height: $form-label-line-height;
   font-weight: font-weight('semibold');
-  color: color("ink");
+  color: color($form-label-text-color);
   text-transform: none;
 }
 
@@ -26,9 +26,10 @@
 
 .form-input{
   appearance: none;
+  background-color: color($form-input-background-color);
   border: border(100);
   border-radius: $input-border-radius;
-  color: color("black"); // standardize on firefox
+  color: color($form-input-text-color); // standardize on firefox
   display: block;
   font-size: $input-font-size;
   line-height: $input-line-height;
@@ -64,7 +65,7 @@ textarea.form-input{
 .form-select {
   border: border(100);
   border-radius: $input-border-radius;
-  color: color("black"); // standardize on firefox
+  color: color($form-select-text-color); // standardize on firefox
   display: block;
   font-size: $input-font-size;
   line-height: $input-line-height;
@@ -98,8 +99,8 @@ textarea.form-input{
   }
 
   &:disabled {
-    background-color: color('gray-10');
-    color:color("gray-40");
+    background-color: color($form-select-disabled-background-color);
+    color:color($form-select-disabled-text-color);
     cursor: not-allowed;
   }
 
@@ -130,24 +131,23 @@ table {
   font-size: $form-label;
   line-height: $form-label-line-height;
   font-weight: font-weight('semibold');
-  color: color("ink");
   text-transform: none;
   display: block;
-  color: color('error');
+  color: color($form-errormessage-text-color);
   margin-top: map-get($spacers, 2);
 }
 
 .form-group.form-success {
   .form-input,
   .form-select {
-    border: $input-border-width-feedback solid color('success');
+    border: $input-border-width-feedback solid color($form-successmessage-text-color);
     padding: $input-top-bottom-padding-feedback $input-left-right-padding-feedback;
   }
 }
 
 input[type=text]:disabled, textarea:disabled{
-  background: color('gray-10');
-  color:color("gray-40");
+  background: color($form-input-disabled-background-color);
+  color:color($form-input-disabled-text-color);
   cursor: not-allowed;
 }
 input[readonly][type=text]{
@@ -157,8 +157,8 @@ input[readonly][type=text]{
   height: auto;
 }
 input[readonly][type=text], textarea[readonly]{
-  background-color: transparent;
-  color:color("black");
+  background-color: color($form-input-readonly-background-color);
+  color:color($form-input-readonly-text-color);
   border: none;
   cursor: default;
   padding: 0;

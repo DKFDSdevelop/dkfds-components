@@ -1,23 +1,14 @@
 // Header navigation ------------- //
-
-@mixin nav-border {
-  border-bottom: 0.4rem solid color('primary');
-  padding-bottom: 0.6rem;
-}
-
-@mixin nav-border-thick {
-  border-bottom: 0.7rem solid color('primary');
-  padding-bottom: 0.9rem;
-}
+$navigation-border-width: 7px;
 
 @mixin nav-active {
-  border-bottom: 7px solid color('primary');
+  border-bottom: $navigation-border-width solid color($navigation-active-border-color);
 }
 @mixin nav-hover {
-  border-bottom: 7px solid color('primary');
+  border-bottom: $navigation-border-width solid color($navigation-hover-border-color);
 }
 @mixin nav-focus {
-  border-bottom: 7px solid color('primary');
+  border-bottom: $navigation-border-width solid color($navigation-focus-border-color);
 }
 
 .navbar {
@@ -84,7 +75,7 @@
     }
     > a {
       text-decoration: none;
-      color: color('gray-60');
+      color: color($navigation-default-link-color);
       font-size: $base-font-size;
       line-height: $base-line-height;
       display: block;
@@ -97,11 +88,11 @@
       }
       &:hover {
         @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
-          background-color: transparent;
+          background-color: color('transparent');
         }
       }
       &:focus{
-        background-color: transparent;
+        background-color: color($navigation-focus-background-color);
       }
     }
     & > a, & > button, & .button-overflow-menu{
@@ -125,7 +116,7 @@
   .nav-link {
     &:hover {
       @media (max-width: $nav-responsive-breakpoint) {
-        background-color: color('gray-10');
+        background-color: color($navigation-hover-background-color);
       }
       span {
         @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
@@ -138,7 +129,7 @@
     span{
       @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
         display: block;
-        border-bottom: 7px solid transparent;
+        border-bottom: 7px solid color('transparent');
       }
       @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
         padding-bottom: 9px;
@@ -158,7 +149,7 @@
 
   .current > a{
     font-weight: font-weight('medium');
-    color: color("black");
+    color: color($navigation-active-link-color);
   }
   button.current{
     font-weight: font-weight('medium');
@@ -226,7 +217,7 @@
 .nav-primary{
   .overflow-menu{
     .button-overflow-menu{
-      color: color("black");
+      color: color($navigation-default-link-color);
       font-size: $base-font-size;
       line-height: $base-line-height;
       display: block;
@@ -286,12 +277,8 @@
         @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
           background-image: url('#{$icons-folder-path}/angle-arrow-down-white.svg');
           background-position: right 1rem center;
-          //create borders:
-          border-left: 1px solid color("gray-40");
-          border-right: 1px solid color("gray-40");
-          //box-shadow: 0px 2px 0px -1px #fff; //hide nav bottom border.
-          background-color: $color-subnav-background;
-          color: #fff;
+          background-color: color($navigation-desktop-overflow-menu-expanded-background-color);
+          color: color($navigation-desktop-overflow-menu-expanded-link-color);
           &:before, &:after{
             display: none;
           }
@@ -303,8 +290,8 @@
       @include unstyled-list;
       font-size: $body-text;
       line-height: $body-text-line-height;
-      color: color('ink');
-      background-color: #fff;
+      color: color($navigation-overflow-menu-expanded-link-color);
+      background-color: color($navigation-overflow-menu-expanded-background-color);
       padding-left: 16px;
       border-top: border(200);
       padding-top: 0;
@@ -319,7 +306,7 @@
         z-index: 1;
         padding-top: map-get($spacers, 3);
         padding-bottom: map-get($spacers, 3);
-        background-color: $color-subnav-background;
+        background-color: color($navigation-desktop-overflow-menu-expanded-background-color);
         top: 100%;
       }
 
@@ -356,27 +343,27 @@
       }
       a{
           @include body-text;
-          color: color('ink');
+          color: color($navigation-overflow-menu-expanded-link-color);
           display: block;
           text-decoration: none;
           &:hover, &:visited, &:focus{
-            color: color('ink');
+            color: color($navigation-overflow-menu-expanded-link-color);
             background-color: transparent;
             @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
-              color: #fff!important;
+              color: color($navigation-overflow-menu-expanded-background-color) !important;
               text-decoration: underline;
             }
           }
           @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
-            color: #fff!important;
+            color: color($navigation-overflow-menu-expanded-background-color) !important;
           }
       }
 
       .active > a{
         font-weight: font-weight('semibold');
-        color: color('primary');
+        color: color($navigation-overflow-menu-expanded-active-link-color);
         @include media-breakpoint-up(#{$nav-responsive-breakpoint}) {
-          color: #fff;
+          color: color($navigation-overflow-menu-expanded-background-color);
         }
       }
 
@@ -391,7 +378,7 @@
           border: none;
         }
         &:focus{
-          background-color: transparent;
+          background-color: color('transparent');
         }
       }
       li:first-child button, li:first-child a{

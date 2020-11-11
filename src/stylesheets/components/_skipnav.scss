@@ -1,5 +1,5 @@
 a.skipnav {
-  color: color("black");
+  color: color($skipnav-text-color);
   left: 0;
   padding: 1rem 1.5rem;
   position: absolute;
@@ -11,7 +11,7 @@ a.skipnav {
 
   &:focus {
     @include media-breakpoint-up(sm) {
-      background-color: color("white");
+      background-color: color($skipnav-background-color);
       left: 0;
       outline: $focus-outline;
       position: absolute;

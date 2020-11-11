@@ -41,3 +41,10 @@ $theme-border-level-200-color: "gray-30" !default;
 $theme-border-level-300-width: 1px !default;
 $theme-border-level-300-style: solid !default;
 $theme-border-level-300-color: "gray-20" !default;
+
+
+// Paths
+// Relative font and image file paths
+$font-path:                     '../fonts/IBMPlexSans/' !default;
+$image-path:                    '../img/' !default;
+$icons-folder-path:             "../img/svg-icons" !default;

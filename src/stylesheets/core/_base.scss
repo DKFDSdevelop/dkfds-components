@@ -10,7 +10,7 @@ html {
 }
 
 body {
-  background-color: color("white");
+  background-color: color($theme-background-color);
   color: color('ink');
   overflow-x: hidden;
 }

@@ -17,7 +17,7 @@
     margin-bottom: map-get($spacers, 3);
 
     &[aria-selected=true]{
-      background-color: color("gray-20");
+      background-color: color($tabnav-button-mobile-selected-default-background-color);
     }
 
     &[aria-selected=false]{
@@ -25,18 +25,18 @@
       border-radius: $border-radius $border-radius $border-radius $border-radius;
 
       &:focus{
-        background-color: color('gray-10');
+        background-color: color($tabnav-button-focus-background-color);
       }
     }
 
     @include media-breakpoint-up(md) {
       display: inline-block;
       width: auto;
-      color: color('ink');
+      color: color($tabnav-button-default-text-color);
       text-align: center;
       text-decoration: none;
       padding: 0px;
-      background-color: transparent;
+      background-color: color($tabnav-button-default-background-color);
       border-radius: 0px;
       line-height: normal;
       padding-top: map-get($spacers, 3);
@@ -45,16 +45,16 @@
       padding-right: map-get($spacers, 5);
       margin: 0 map-get($spacers, 2) map-get($spacers, 2) 0px;
       text-decoration: underline;
-      border-top: map-get($spacers, 2) solid color("white");
+      border-top: map-get($spacers, 2) solid color($theme-background-color);
 
       &[aria-selected=false]{
-        background-color: color('gray-10');
+        background-color: color($tabnav-button-default-background-color);
         background-image: none;
         border-radius: 0px;
       }
 
       &:hover {
-          background-color: color("gray-20");
+          background-color: color($tabnav-button-hover-background-color);
       }
 
       &:focus{
@@ -65,12 +65,12 @@
       }
 
       &[aria-selected=true] {
-        background-color: color("white");
+        background-color: color($tabnav-button-selected-default-background-color);
         background-image: none;
         border: border(100);
         padding-left: calc(#{map-get($spacers, 5)} - 1px);
         padding-right: calc(#{map-get($spacers, 5)} - 1px);
-        border-bottom: 1px solid color("white");
+        border-bottom: 1px solid color($tabnav-button-selected-default-background-color);
         border-radius: 0px;
         text-decoration: none;
         margin: 0 map-get($spacers, 2) -1px 0px;
@@ -98,7 +98,7 @@
       border: border(100);
       overflow: hidden;
       margin-bottom: calc(#{map-get($spacers, 4)});
-      background-color: transparent;
+      background-color: color('transparent');
       position: relative;
       z-index: 300;
 

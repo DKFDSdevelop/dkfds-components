@@ -8,14 +8,14 @@ $v-padding: $spacing-md-small;
 
 @mixin accordion-list-styles {
   @include unstyled-list;
-  color: color("black");
+  color: color($accordion-panel-text-color);
   margin: 0;
   padding: 0;
   width: 100%;
 }
 
 @mixin accordion-list-item-styles {
-  background-color: color('gray-10');
+  background-color: color($accordion-panel-background-color);
   list-style: none;
   margin-bottom: $spacing;
   width: 100%;

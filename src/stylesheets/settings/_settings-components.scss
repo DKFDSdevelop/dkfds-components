@@ -49,7 +49,15 @@ $cookie-message-background-color: 'white' !default;
 $details-text-color: 'ink';
 $details-border-color: 'gray-30';
 
-//input
+// Form
+$form-hint-text-color: 'gray-50' !default;
+$form-label-text-color: 'ink' !default;
+$form-input-text-color: 'ink' !default;
+$form-input-disabled-text-color: "gray-40" !default;
+$form-input-readonly-text-color: "ink" !default;
+$form-input-readonly-background-color: "transparent" !default;
+$form-input-background-color: $theme-background-color !default;
+$form-input-disabled-background-color: 'gray-10' !default;
 $input-border-radius: 4px !default;
 $input-border-width: 1px !default;
 $input-top-bottom-padding: calc(8px - #{$input-border-width}) !default; //7px
@@ -58,20 +66,44 @@ $input-font-size: $body-text !default;
 $input-line-height: $body-text-line-height !default;
 $input-standard-height: 4.0rem !default;
 $input-top-margin: 1 !default;
-
 $input-border-width-feedback: 2px !default;
 $input-top-bottom-padding-feedback: calc(8px - #{$input-border-width-feedback}) !default;
 $input-left-right-padding-feedback: calc(16px - #{$input-border-width-feedback}) !default;
 
+$form-select-text-color: 'ink' !default;
+$form-select-disabled-text-color: 'gray-40' !default;
+$form-select-disabled-background-color: 'gray-10' !default;
+
+$form-errormessage-text-color: 'error' !default;
+$form-successmessage-text-color: 'success' !default;
+
+// Header
+$header-logo: 'logo-header-placeholder.png' !default;
+$header-portal-background-color: $theme-background-color !default;
+
+// Navigation
+$navigation-active-border-color: 'primary' !default;
+$navigation-active-border-color: 'primary' !default;
+$navigation-hover-border-color: $navigation-active-border-color !default;
+$navigation-focus-border-color: $navigation-active-border-color !default;
+$navigation-default-link-color: 'gray-60' !default;
+$navigation-active-link-color: 'gray-60' !default;
+$navigation-hover-link-color: $navigation-default-link-color !default;
+$navigation-hover-background-color: 'gray-10' !default;
+$navigation-focus-background-color: 'transparent' !default;
+$navigation-desktop-overflow-menu-expanded-background-color: 'gray-60' !default;
+$navigation-overflow-menu-expanded-background-color: 'white' !default;
+$navigation-desktop-overflow-menu-expanded-link-color: 'white' !default;
+$navigation-overflow-menu-expanded-link-color: 'ink' !default;
+$navigation-overflow-menu-expanded-active-link-color: 'primary' !default;
+
+
+// Search
+$search-button-text-color: 'ink';
+$search-button-hover-background-color: 'gray-20';
+
 //Tabs
 $tabs-active-border-color: "primary" !default;
-
-//Sidenavigation
-$sidenav-link-color: "black" !default;
-$sidenav-link-color-hover: "primary" !default;
-$sidenav-link-current-color: "black" !default;
-$sidenav-link-active-color: "black" !default;
-$sidenav-active-border-width: 4px !default;
 
 
 // Tag colors
@@ -80,6 +112,46 @@ $tag-bg: "gray-60" !default;
 $tag-hover-bg: "gray-50" !default;
 $tag-active-bg: "black" !default;
 $tag-focus-bg: "gray-60" !default;
+
+// Overflow menu
+$overflow-menu-button-text-color: 'ink';
+$overflow-menu-button-background-color: 'white';
+$overflow-menu-button-hover-background-color: 'gray-10';
+$overflow-menu-list-background-color: 'white';
+$overflow-menu-list-hover-background-color: 'gray-10';
+$overflow-menu-list-text-color: 'ink';
+
+// Sidenavigation
+$sidenav-default-link-color: 'gray-60' !default;
+$sidenav-hover-background-color: 'gray-10' !default;
+$sidenav-hover-link-color: "primary" !default;
+$sidenav-current-link-color: "black" !default;
+$sidenav-current-background-color: 'gray-10' !default;
+$sidenav-active-link-color: "black" !default;
+$sidenav-active-border-width: 4px !default;
+$sidenav-information-color: 'gray-50' !default;
+$sidenav-current-information-color: 'gray-60' !default;
+$sidenav-current-border-color: 'primary' !default;
+$sidenav-locked-hover-background-color: 'white' !default;
+
+
+
+// Skipnav
+$skipnav-text-color: 'ink' !default;
+$skipnav-background-color: 'white' !default;
+
+// Tabnav
+$tabnav-button-mobile-selected-default-background-color: 'gray-20' !default;
+$tabnav-button-selected-default-background-color: 'white' !default;
+$tabnav-button-default-background-color: 'gray-10' !default;
+$tabnav-button-focus-background-color: 'gray-10' !default;
+$tabnav-button-hover-background-color: 'gray-20' !default;
+$tabnav-button-default-text-color: 'ink' !default;
+
+// Tooltip
+$tooltip-background-color: 'white' !default;
+$tooltip-text-color: 'ink' !default;
+
 
 /**
 Buttons
@@ -125,7 +197,6 @@ $button-disabled-background-color: "gray-10" !default;
 $button-disabled-border-color: "gray-30" !default;
 $button-disabled-color: "black" !default;
 
-
 $button-tertiary-default-color: "black" !default;
 $button-tertiary-hover-color: $button-tertiary-default-color !default;
 $button-tertiary-active-color: $button-tertiary-default-color !default;
@@ -161,4 +232,6 @@ $color-subnav-background:     "gray-60"!default;
 $color-page:                  "white" !default;
 
 // Modal
-$modal-overlay-background-color: "black-transparent-70";
+$modal-overlay-background-color: "black-transparent-70" !default;
+$modal-background-color: 'white' !default;
+$modal-text-color: 'ink' !default;

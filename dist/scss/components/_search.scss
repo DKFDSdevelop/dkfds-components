@@ -11,17 +11,17 @@
   }
 
   .button-search{
-    background-color: #fff;
+    background-color: color($form-input-background-color);
     border-width: 1px;
-    border-color: color('gray-50');
+    border-color: color($theme-border-level-100-color);
     border-left: none;
     border-bottom-left-radius: 0;
     border-top-left-radius: 0;
-    color: color('ink');
+    color: color($search-button-text-color);
     font-weight: font-weight('normal');
     width: inherit; //not 100& width on mobile
     &:hover{
-      background-color: color("gray-20");
+      background-color: color($search-button-hover-background-color);
     }
   }
 }

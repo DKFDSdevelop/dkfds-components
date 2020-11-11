@@ -17,7 +17,7 @@ $overflow-menu-dropdown-distance: 8px;
         padding: 8px 0;
         align-items: center;
         justify-content: center;
-        color: color("black");
+        color: color($overflow-menu-button-text-color);
 
         &:hover{
             text-decoration: underline;
@@ -38,12 +38,12 @@ $overflow-menu-dropdown-distance: 8px;
             bottom: calc(#{$overflow-menu-dropdown-distance} * -1 - 1px);
         }
         &:after {
-            border-bottom-color: #fff;
+            border-bottom-color: color($overflow-menu-button-background-color);
             border-width: calc(#{$overflow-menu-arrow-size} - 1px);
             margin-left: calc((#{$overflow-menu-arrow-size} - 1px)*-1);
         }
         &:before {
-            border-bottom-color: color("gray-40");
+            border-bottom-color: color($theme-border-level-100-color);
             border-width: $overflow-menu-arrow-size;
             margin-left: calc(#{$overflow-menu-arrow-size} *-1);
         }
@@ -60,7 +60,7 @@ $overflow-menu-dropdown-distance: 8px;
         .button-overflow-menu{
             padding: 0;
             &:hover{
-                background-color: color('gray-10');
+                background-color: color($overflow-menu-button-hover-background-color);
             }
         }
     }
@@ -72,7 +72,7 @@ $overflow-menu-dropdown-distance: 8px;
         width: auto;
         border: border(100);
         box-shadow: $box-shadow-moderately;
-        background: #fff;
+        background: color($overflow-menu-list-background-color);
         padding-top: map-get($spacers, 3);
         padding-bottom: map-get($spacers, 3);
         top: calc(100% + #{$overflow-menu-dropdown-distance});
@@ -87,18 +87,19 @@ $overflow-menu-dropdown-distance: 8px;
         @include unstyled-list;
         font-size: $body-text;
         line-height: $body-text-line-height;
-        color: color('ink');
+        color: color($overflow-menu-list-text-color);
+        background-color: transparent;
 
         button{
             @include button-unstyled;
         }
         a{
           @include body-text;
-          color: color('ink');
+          color: color($overflow-menu-list-text-color);
             display: block;
             text-decoration: none;
             &:hover, &:visited, &:focus{
-                color: color('ink');
+                color: color($overflow-menu-list-text-color);
             }
         }
 
@@ -106,7 +107,7 @@ $overflow-menu-dropdown-distance: 8px;
             padding: 8px 16px;
             width: 100%;
             &:hover{
-                background-color: color('gray-10');
+                background-color: color($overflow-menu-list-hover-background-color);
             }
         }
     }
