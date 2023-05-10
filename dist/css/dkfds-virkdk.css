@@ -8973,6 +8973,19 @@ button.accordion-bulk-button[data-accordion-bulk-expand=false]{
   margin-top:16px;
 }
 
+fds-alert{
+  margin-top:16px;
+  margin-bottom:16px;
+  display:block;
+}
+fds-alert .alert{
+  margin-top:0;
+  margin-bottom:0;
+}
+fds-alert:first-child{
+  margin-top:0;
+}
+
 .button.back-to-top-button{
   box-shadow:0 4px 8px 0 rgba(0, 0, 0, 0.3);
   width:auto;
