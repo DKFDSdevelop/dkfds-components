@@ -192,7 +192,7 @@ class FDSAlert extends HTMLElement {
                 if (isHeadingtypeValid(newValue)) {
                     let heading = document.createElement(newValue);
                     heading.textContent = this.heading;
-                    heading.classList.add('alert-heading');
+                    heading.classList = this.querySelector('.alert-heading').classList;
                     this.querySelector('.alert').replaceChild(heading, this.querySelector('.alert-heading'));
                 }
             }
@@ -205,17 +205,40 @@ class FDSAlert extends HTMLElement {
                     for (let i = 0; i < alertElements.length; i++) {
                         if (alertElements[i].classList.contains('alert-close')) {
                             alertElements[i].removeEventListener("click", this.#closeClickhandler);
+                            alertElements[i].remove();
+                        }
+                        else if (alertElements[i].classList.contains('alert-heading')) {
+                            alertElements[i].classList.remove('pr-8');
                         }
                     }
                 }
             }
             else {
-                /* In case there's an alert inside an alert, ensure that we find the correct close button */
+                let closeButtonExists = false;
+
                 if (this.children.length > 0) {
                     let alertElements = this.children[0].children;
                     for (let i = 0; i < alertElements.length; i++) {
                         if (alertElements[i].classList.contains('alert-close')) {
+                            closeButtonExists = true;
+                        }
+                    }
+                }
+
+                if (!closeButtonExists && this.children.length > 0) {
+                    let closeButton = document.createElement('button');
+                    closeButton.type = 'button';
+                    closeButton.classList.add('alert-close');
+                    closeButton.innerHTML = '<svg class="icon-svg" focusable="false" aria-hidden="true" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"></path><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path></svg>Luk';
+                    this.firstChild.appendChild(closeButton);
+
+                    let alertElements = this.children[0].children;
+                    for (let i = 0; i < alertElements.length; i++) {
+                        if (alertElements[i].classList.contains('alert-close')) {
                             alertElements[i].addEventListener("click", this.#closeClickhandler);
+                        }
+                        else if (alertElements[i].classList.contains('alert-heading')) {
+                            alertElements[i].classList.add('pr-8');
                         }
                     }
                 }
