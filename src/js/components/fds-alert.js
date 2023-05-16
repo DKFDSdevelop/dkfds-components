@@ -20,6 +20,72 @@ function isHeadingtypeValid(headingtype) {
     }
 }
 
+function isAlertSyntaxValid(alert) {
+    let alertSyntaxValid = false;
+    if (alert.firstChild?.classList?.contains('alert')) {
+        let children = alert.firstChild.children;
+        if (children.length == 2) {
+            if (children[0].classList?.contains('alert-heading') && children[1].classList?.contains('alert-body')) {
+                alertSyntaxValid = true;
+            }
+        }
+        else if (children.length == 3) {
+            if (children[0].classList?.contains('alert-heading') && children[1].classList?.contains('alert-body') && children[2].classList?.contains('alert-close')) {
+                alertSyntaxValid = true;
+            }
+        }
+    }
+    return alertSyntaxValid;
+}
+
+function getAlertContainer(alert) {
+    if (alert.nodeName === "FDS-ALERT") {
+        return alert.firstChild;
+    }
+    else if (alert.classList?.contains('alert')) {
+        return alert;
+    }
+    else {
+        return null;
+    }
+}
+
+function getAlertHeading(alert) {
+    if (alert.nodeName === "FDS-ALERT") {
+        return alert.firstChild.children[0];
+    }
+    else if (alert.classList?.contains('alert')) {
+        return alert.children[0];
+    }
+    else {
+        return null;
+    }
+}
+
+function getAlertBody(alert) {
+    if (alert.nodeName === "FDS-ALERT") {
+        return alert.firstChild.children[1];
+    }
+    else if (alert.classList?.contains('alert')) {
+        return alert.children[1];
+    }
+    else {
+        return null;
+    }
+}
+
+function getAlertCloseButton(alert) {
+    if (alert.nodeName === "FDS-ALERT") {
+        return alert.firstChild.children[2];
+    }
+    else if (alert.classList?.contains('alert')) {
+        return alert.children[2];
+    }
+    else {
+        return null;
+    }
+}
+
 class FDSAlert extends HTMLElement {
     #closeClickhandler;
 
@@ -98,149 +164,154 @@ class FDSAlert extends HTMLElement {
     }
 
     show() {
-        // To do
+        this.removeAttribute('hidden');
+        let eventShow = new Event('fdsalertshow');
+        this.dispatchEvent(eventShow);
+    }
+
+    getContent() {
+        if (isAlertSyntaxValid(this)) {
+            let body = getAlertBody(this);
+            if (body.children.length === 1) {
+                if (body.children[0].classList.contains('alert-text')) {
+                    return body.children[0].textContent;
+                }
+                else {
+                    return getAlertBody(this).innerHTML;
+                }
+            }
+            else {
+                return getAlertBody(this).innerHTML;
+            }
+        }
+        else {
+            throw new Error("Couldn't get content. Alert has invalid syntax.");
+        }
+    }
+
+    setContent(content) {
+        if (isAlertSyntaxValid(this)) {
+            let contentChecker = document.createElement('div');
+            contentChecker.innerHTML = content;
+            if (contentChecker.innerHTML === contentChecker.textContent) {
+                getAlertBody(this).innerHTML = "<p class='alert-text'>" + content + "</p>";
+            }
+            else {
+                getAlertBody(this).innerHTML = content;
+            }
+        }
+        else {
+            throw new Error("Couldn't set content. Alert has invalid syntax.");
+        }
     }
 
     connectedCallback() {
 
-        /* Create the base for the alert */
-        let constructedAlert = document.createElement('div');
-        constructedAlert.classList.add('alert');
+        /* If the alert already has a valid syntax, don't do anything. This check aims to minimize the impact of user errors.  */
+        if (!isAlertSyntaxValid(this)) {
 
-        /* Add variant */
-        if (isVariantValid(this.variant)) {
-            constructedAlert.classList.add("alert-" + this.variant);
-        }
+            /* Create the base for the alert */
+            let constructedContent = document.createElement('div');
+            constructedContent.classList.add('alert');
 
-        /* Add heading */
-        if (isHeadingtypeValid(this.headingtype)) {
-            let alertHeading = document.createElement(this.headingtype);
-            alertHeading.textContent = this.heading;
-            alertHeading.classList.add('alert-heading');
-            constructedAlert.appendChild(alertHeading);
-        }
-        else {
-            let alertHeading = document.createElement('div');
-            alertHeading.textContent = this.heading;
-            alertHeading.classList.add('alert-heading');
-            constructedAlert.appendChild(alertHeading);
-        }
-
-        /* Add content */
-        let alertBody = document.createElement('div');
-        alertBody.classList.add('alert-body');
-        if (this.innerHTML === this.textContent) {
-            alertBody.innerHTML = "<p class='mt-0 mb-0'>" + this.innerHTML + "</p>";
-        }
-        else {
-            alertBody.innerHTML = this.innerHTML;
-        }
-        constructedAlert.appendChild(alertBody);
-
-        /* Add close button */
-        if (this.closeable) {
-            let closeButton = document.createElement('button');
-            closeButton.type = 'button';
-            closeButton.classList.add('alert-close');
-            closeButton.innerHTML = '<svg class="icon-svg" focusable="false" aria-hidden="true" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"></path><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path></svg>Luk';
-            constructedAlert.appendChild(closeButton);
-            constructedAlert.querySelector('.alert-heading').classList.add('pr-8');
-        }
-
-        /* Finish the alert */
-        this.innerHTML = constructedAlert.outerHTML;
-
-        if (this.closeable) {
-            /* In case there's an alert inside an alert, ensure that we find the correct close button */
-            if (this.children.length > 0) {
-                let alertElements = this.children[0].children;
-                for (let i = 0; i < alertElements.length; i++) {
-                    if (alertElements[i].classList.contains('alert-close')) {
-                        alertElements[i].addEventListener("click", this.#closeClickhandler);
-                    }
-                }
+            /* Add variant */
+            if (isVariantValid(this.variant)) {
+                constructedContent.classList.add("alert-" + this.variant);
             }
+
+            /* Add heading */
+            let alertHeading = document.createElement('div');
+            if (isHeadingtypeValid(this.headingtype)) {
+                alertHeading = document.createElement(this.headingtype);
+            }
+            alertHeading.textContent = this.heading;
+            alertHeading.classList.add('alert-heading');
+            constructedContent.appendChild(alertHeading);
+
+            /* Add content */
+            let alertBody = document.createElement('div');
+            alertBody.classList.add('alert-body');
+            if (this.innerHTML === this.textContent) {
+                alertBody.innerHTML = "<p class='alert-text'>" + this.innerHTML + "</p>";
+            }
+            else {
+                alertBody.innerHTML = this.innerHTML;
+            }
+            constructedContent.appendChild(alertBody);
+
+            /* Add close button */
+            if (this.closeable) {
+                let closeButton = document.createElement('button');
+                closeButton.type = 'button';
+                closeButton.classList.add('alert-close');
+                closeButton.innerHTML = '<svg class="icon-svg" focusable="false" aria-hidden="true" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"></path><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path></svg>Luk';
+                constructedContent.appendChild(closeButton);
+                getAlertHeading(constructedContent).classList.add('pr-8');
+            }
+
+            /* Finish the alert */
+            this.innerHTML = constructedContent.outerHTML;
+
+        }
+
+        /* Add event listener to close button, if present */
+        if (this.closeable && isAlertSyntaxValid(this)) {
+            getAlertCloseButton(this).addEventListener("click", this.#closeClickhandler);
         }
 
     }
 
     disconnectedCallback() {
+        if (this.closeable && getAlertCloseButton(this) != null) {
+            getAlertCloseButton(this).removeEventListener("click", this.#closeClickhandler);
+        }
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-        if (name === "variant") {
-            if (this.querySelector('.alert')) {
-                let classes = this.querySelector('.alert').classList;
-                classes.remove('alert-info');
-                classes.remove('alert-success');
-                classes.remove('alert-warning');
-                classes.remove('alert-error');
+        if (isAlertSyntaxValid(this)) {
+            if (name === "variant") {
+                if (getAlertContainer(this) != null) {
+                    let classes = getAlertContainer(this).classList;
+                    classes.remove('alert-info');
+                    classes.remove('alert-success');
+                    classes.remove('alert-warning');
+                    classes.remove('alert-error');
 
-                if (isVariantValid(newValue)) {
-                    this.querySelector('.alert').classList.add("alert-" + newValue);
-                }
-            }
-        }
-        if (name === "heading") {
-            if (this.querySelector('.alert-heading')) {
-                let heading = this.querySelector('.alert-heading');
-                heading.textContent = newValue;
-            }
-        }
-        if (name === "headingtype") {
-            if (this.querySelector('.alert') && this.querySelector('.alert-heading')) {
-                if (isHeadingtypeValid(newValue)) {
-                    let heading = document.createElement(newValue);
-                    heading.textContent = this.heading;
-                    heading.classList = this.querySelector('.alert-heading').classList;
-                    this.querySelector('.alert').replaceChild(heading, this.querySelector('.alert-heading'));
-                }
-            }
-        }
-        if (name === "closeable") {
-            if (!this.closeable) {
-                /* In case there's an alert inside an alert, ensure that we find the correct close button */
-                if (this.children.length > 0) {
-                    let alertElements = this.children[0].children;
-                    for (let i = 0; i < alertElements.length; i++) {
-                        if (alertElements[i].classList.contains('alert-close')) {
-                            alertElements[i].removeEventListener("click", this.#closeClickhandler);
-                            alertElements[i].remove();
-                        }
-                        else if (alertElements[i].classList.contains('alert-heading')) {
-                            alertElements[i].classList.remove('pr-8');
-                        }
+                    if (isVariantValid(newValue)) {
+                        getAlertContainer(this).classList.add("alert-" + newValue);
                     }
                 }
             }
-            else {
-                let closeButtonExists = false;
-
-                if (this.children.length > 0) {
-                    let alertElements = this.children[0].children;
-                    for (let i = 0; i < alertElements.length; i++) {
-                        if (alertElements[i].classList.contains('alert-close')) {
-                            closeButtonExists = true;
-                        }
+            if (name === "heading") {
+                if (getAlertHeading(this) != null) {
+                    getAlertHeading(this).textContent = newValue;
+                }
+            }
+            if (name === "headingtype") {
+                if (getAlertHeading(this) != null) {
+                    if (isHeadingtypeValid(newValue)) {
+                        let heading = document.createElement(newValue);
+                        heading.textContent = this.heading;
+                        heading.classList = getAlertHeading(this).classList;
+                        getAlertContainer(this).replaceChild(heading, getAlertHeading(this));
                     }
                 }
-
-                if (!closeButtonExists && this.children.length > 0) {
+            }
+            if (name === "closeable") {
+                /* 'closeable' attribute was removed */
+                if (!this.closeable) {
+                    getAlertCloseButton(this).removeEventListener("click", this.#closeClickhandler);
+                    getAlertCloseButton(this).remove();
+                    getAlertHeading(this).classList.remove('pr-8');
+                }
+                /* 'closeable' attribute was added */
+                else if (this.closeable && getAlertCloseButton(this) == null) {
                     let closeButton = document.createElement('button');
                     closeButton.type = 'button';
                     closeButton.classList.add('alert-close');
                     closeButton.innerHTML = '<svg class="icon-svg" focusable="false" aria-hidden="true" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"></path><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path></svg>Luk';
                     this.firstChild.appendChild(closeButton);
-
-                    let alertElements = this.children[0].children;
-                    for (let i = 0; i < alertElements.length; i++) {
-                        if (alertElements[i].classList.contains('alert-close')) {
-                            alertElements[i].addEventListener("click", this.#closeClickhandler);
-                        }
-                        else if (alertElements[i].classList.contains('alert-heading')) {
-                            alertElements[i].classList.add('pr-8');
-                        }
-                    }
+                    getAlertCloseButton(this).addEventListener("click", this.#closeClickhandler);
                 }
             }
         }
