@@ -88,6 +88,7 @@ function getAlertCloseButton(alert) {
 
 class FDSAlert extends HTMLElement {
     #closeClickhandler;
+    #textClose;
 
     static get observedAttributes() {
         return ['variant', 'heading', 'headingtype', 'closeable'];
@@ -155,6 +156,7 @@ class FDSAlert extends HTMLElement {
     constructor() {
         super();
         this.#closeClickhandler = () => { this.hide() };
+        this.#textClose = "Luk";
     }
 
     hide() {
@@ -185,7 +187,7 @@ class FDSAlert extends HTMLElement {
             }
         }
         else {
-            throw new Error("Couldn't get content. Alert has invalid syntax.");
+            throw new Error("Could not get content. Alert has invalid syntax.");
         }
     }
 
@@ -201,7 +203,23 @@ class FDSAlert extends HTMLElement {
             }
         }
         else {
-            throw new Error("Couldn't set content. Alert has invalid syntax.");
+            throw new Error("Could not set content. Alert has invalid syntax.");
+        }
+    }
+
+    updateGlossary(glossary) {
+        try {
+            const words = JSON.parse(glossary);
+            if (words.close != null) {
+                this.#textClose = words.close;
+                if (isAlertSyntaxValid(this)) {
+                    if (this.closeable && getAlertCloseButton(this) != null) {
+                        getAlertCloseButton(this).innerHTML = '<svg class="icon-svg" focusable="false" aria-hidden="true" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"></path><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path></svg>' + this.#textClose;
+                    }
+                }
+            }
+        } catch (e) {
+            throw new Error("Could not update glossary. " + e);
         }
     }
 
@@ -244,7 +262,7 @@ class FDSAlert extends HTMLElement {
                 let closeButton = document.createElement('button');
                 closeButton.type = 'button';
                 closeButton.classList.add('alert-close');
-                closeButton.innerHTML = '<svg class="icon-svg" focusable="false" aria-hidden="true" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"></path><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path></svg>Luk';
+                closeButton.innerHTML = '<svg class="icon-svg" focusable="false" aria-hidden="true" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"></path><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path></svg>' + this.#textClose;
                 constructedContent.appendChild(closeButton);
                 getAlertHeading(constructedContent).classList.add('pr-8');
             }
@@ -309,7 +327,7 @@ class FDSAlert extends HTMLElement {
                     let closeButton = document.createElement('button');
                     closeButton.type = 'button';
                     closeButton.classList.add('alert-close');
-                    closeButton.innerHTML = '<svg class="icon-svg" focusable="false" aria-hidden="true" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"></path><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path></svg>Luk';
+                    closeButton.innerHTML = '<svg class="icon-svg" focusable="false" aria-hidden="true" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"></path><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path></svg>' + this.#textClose;
                     this.firstChild.appendChild(closeButton);
                     getAlertCloseButton(this).addEventListener("click", this.#closeClickhandler);
                 }
