@@ -91,7 +91,7 @@ class FDSAlert extends HTMLElement {
     #textClose;
 
     static get observedAttributes() {
-        return ['variant', 'heading', 'headingtype', 'closeable'];
+        return ['variant', 'heading', 'headingtype', 'closeable', 'hasicon', 'limitwidth'];
     }
 
     get variant() {
@@ -150,6 +150,26 @@ class FDSAlert extends HTMLElement {
     set closeable(val) {
         if (val) {
             this.setAttribute('closeable', '');
+        }
+    }
+
+    get hasicon() {
+        return this.hasAttribute('hasicon');
+    }
+
+    set hasicon(val) {
+        if (val) {
+            this.setAttribute('hasicon', '');
+        }
+    }
+
+    get limitwidth() {
+        return this.hasAttribute('limitwidth');
+    }
+
+    set limitwidth(val) {
+        if (val) {
+            this.setAttribute('limitwidth', '');
         }
     }
 
@@ -235,6 +255,16 @@ class FDSAlert extends HTMLElement {
             /* Add variant */
             if (isVariantValid(this.variant)) {
                 constructedContent.classList.add("alert-" + this.variant);
+            }
+
+            /* Add icon */
+            if (this.hasicon) {
+                constructedContent.classList.add("alert--show-icon");
+            }
+
+            /* Add width limitations */
+            if (this.limitwidth) {
+                constructedContent.classList.add("alert--paragraph");
             }
 
             /* Add heading */
@@ -330,6 +360,26 @@ class FDSAlert extends HTMLElement {
                     closeButton.innerHTML = '<svg class="icon-svg" focusable="false" aria-hidden="true" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0V0z" fill="none"></path><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path></svg>' + this.#textClose;
                     this.firstChild.appendChild(closeButton);
                     getAlertCloseButton(this).addEventListener("click", this.#closeClickhandler);
+                }
+            }
+            if (name === "hasicon") {
+                if (getAlertContainer(this) != null) {
+                    if (this.hasicon) {
+                        getAlertContainer(this).classList.add('alert--show-icon');
+                    }
+                    else {
+                        getAlertContainer(this).classList.remove('alert--show-icon');
+                    }
+                }
+            }
+            if (name === "limitwidth") {
+                if (getAlertContainer(this) != null) {
+                    if (this.limitwidth) {
+                        getAlertContainer(this).classList.add('alert--paragraph');
+                    }
+                    else {
+                        getAlertContainer(this).classList.remove('alert--paragraph');
+                    }
                 }
             }
         }
