@@ -17,6 +17,9 @@ import TableSelectableRows from './components/selectable-table';
 import Toast from './components/toast';
 import Tooltip from './components/tooltip';
 const datePicker = require('./components/date-picker').default;
+
+import FDSAlert from './custom-elements/fds-alert';
+
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
  * older browsers, so must be loaded first.
@@ -207,4 +210,10 @@ var init = function (options) {
   
 };
 
-export { init, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
+let initCustomElements = function () {
+  if (customElements.get('fds-alert') === undefined) {
+    window.customElements.define('fds-alert', FDSAlert);
+  }
+};
+
+export { init, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip, initCustomElements };

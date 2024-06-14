@@ -63,5 +63,8 @@
 @use 'components/tabs';
 @use 'components/tags';
 
+// Custom elements -------------- //
+@use 'custom-elements/fds-alert';
+
 // Print -------------- //
 @use 'core/print';

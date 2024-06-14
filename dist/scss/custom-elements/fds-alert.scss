@@ -1,0 +1,16 @@
+@use "../functions" as func;
+
+fds-alert {
+    margin-top: func.units(4);
+    margin-bottom: func.units(4);
+    display: block;
+  
+    .alert {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+  
+    &:first-child {
+      margin-top: 0;
+    }
+}
