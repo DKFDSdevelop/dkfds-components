@@ -12015,6 +12015,15 @@ textarea.no-resize{
   margin:2rem 0 1rem;
 }
 
+fds-icon svg{
+  height:2.4rem;
+  width:2.4rem;
+  vertical-align:middle;
+}
+fds-icon svg:focus{
+  outline:none;
+}
+
 fds-alert{
   margin-top:16px;
   margin-bottom:16px;

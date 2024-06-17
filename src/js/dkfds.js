@@ -19,6 +19,7 @@ import Tooltip from './components/tooltip';
 const datePicker = require('./components/date-picker').default;
 
 import FDSAlert from './custom-elements/fds-alert';
+import FDSIcon from './custom-elements/fds-icon';
 
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
@@ -211,6 +212,9 @@ var init = function (options) {
 };
 
 let initCustomElements = function () {
+  if (customElements.get('fds-icon') === undefined) {
+    window.customElements.define('fds-icon', FDSIcon);
+  }
   if (customElements.get('fds-alert') === undefined) {
     window.customElements.define('fds-alert', FDSAlert);
   }
