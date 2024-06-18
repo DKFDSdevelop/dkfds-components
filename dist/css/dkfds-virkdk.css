@@ -12037,6 +12037,16 @@ fds-alert:first-child{
   margin-top:0;
 }
 
+fds-input,
+.fds-input{
+  display:block;
+  margin-top:24px;
+}
+fds-input:first-child,
+.fds-input:first-child{
+  margin-top:0;
+}
+
 @media print{
   html{
     font-family:Georgia, "Times New Roman", serif;

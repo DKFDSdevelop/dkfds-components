@@ -65,7 +65,7 @@ const ICONS = {
 
 /* --- Functions for validating attributes --- */
 
-function IsValidIcon(icon) {
+function isValidIcon(icon) {
     if (icon === null) {
         return false;
     }
@@ -89,7 +89,7 @@ class FDSIcon extends HTMLElement {
     }
 
     set icon(val) {
-        if (IsValidIcon(val)) { 
+        if (isValidIcon(val)) { 
             this.setAttribute('icon', val); 
         }
         else { 
@@ -107,7 +107,7 @@ class FDSIcon extends HTMLElement {
 
     connectedCallback() {
         if (this.icon !== null) {
-            if (IsValidIcon(this.icon)) {
+            if (isValidIcon(this.icon)) {
                 this.innerHTML = '<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">' + ICONS[this.icon] + '</svg>';
 
                 let svg = this.querySelector('svg');
@@ -130,7 +130,7 @@ class FDSIcon extends HTMLElement {
         let attributeRemoved = (newValue === null);
         if (name === 'icon') {
             if (!attributeRemoved) {
-                if (IsValidIcon(newValue)) {
+                if (isValidIcon(newValue)) {
                     if (this.querySelector('svg') !== null) {
                         this.querySelector('svg').innerHTML = ICONS[newValue];
                     }
