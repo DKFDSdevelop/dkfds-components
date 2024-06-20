@@ -24,6 +24,16 @@ function isValidName(name) {
     }
 }
 
+function isValidInputId(inputid) {
+    let s = inputid.trim(); // Results in an empty string if label only contains whitespace
+    if (inputid === null || inputid === undefined || s === '' || !(typeof inputid === 'string' || inputid instanceof String)) {
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
 /*
 CUSTOM ELEMENT IMPLEMENTATION
 */
@@ -32,7 +42,7 @@ class FDSInput extends HTMLElement {
     #labelElement;
     #inputElement;
 
-    static observedAttributes = ['label', 'name', 'id', 'value'];
+    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'autocomplete'];
 
     /*
     ATTRIBUTE GETTERS AND SETTERS
@@ -43,6 +53,9 @@ class FDSInput extends HTMLElement {
 
     get name() { return this.getAttribute('name'); }
     set name(val) { this.setAttribute('name', val); }
+
+    get inputid() { return this.getAttribute('inputid'); }
+    set inputid(val) { this.setAttribute('inputid', val); }
 
     /*
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -77,6 +90,12 @@ class FDSInput extends HTMLElement {
             throw new Error(`Custom element 'fds-input' not created. Element must not contain content at element creation.`);
         }
         else {
+            if (this.inputid === null) {
+                let randomString = 'input-' + Date.now().toString().substring(7) + Math.floor(Math.random() * 1000).toString();
+                this.#labelElement.setAttribute('for', randomString);
+                this.#inputElement.setAttribute('id', randomString);
+            }
+
             this.appendChild(this.#labelElement);
             this.appendChild(this.#inputElement);
         }
@@ -97,13 +116,11 @@ class FDSInput extends HTMLElement {
         if (this.#labelElement === undefined && this.querySelector('label') === null) {
             this.#labelElement = document.createElement('label');
             this.#labelElement.classList.add('form-label');
-            this.#labelElement.setAttribute('for', 'input-text');
         }
 
         if (this.#inputElement === undefined && this.querySelector('input') === null) {
             this.#inputElement = document.createElement('input');
             this.#inputElement.type = 'text';
-            this.#inputElement.id = 'input-text';
             this.#inputElement.classList.add('form-input');
         }
 
@@ -128,6 +145,18 @@ class FDSInput extends HTMLElement {
                 }
                 else {
                     throw new Error(`Invalid name attribute value '${newValue}'.`);
+                }
+            }
+        }
+
+        if (attribute === 'inputid') {
+            if (newValue !== null && this.#labelElement !== undefined && this.#inputElement !== undefined) {
+                if (isValidInputId(newValue)) {
+                    this.#labelElement.setAttribute('for', newValue);
+                    this.#inputElement.setAttribute('id', newValue);
+                }
+                else {
+                    throw new Error(`Invalid inputid attribute value '${newValue}'.`);
                 }
             }
         }
