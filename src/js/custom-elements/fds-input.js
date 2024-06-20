@@ -1,37 +1,40 @@
 'use strict';
 
+import isNonEmptyString from '../utils/is-non-empty-string';
+
 /* 
 FUNCTIONS FOR VALIDATING ATTRIBUTES 
 */
 
 function isValidLabel(label) {
-    let s = label.trim(); // Results in an empty string if label only contains whitespace
-    if (label === null || label === undefined || s === '' || !(typeof label === 'string' || label instanceof String)) {
-        return false;
-    }
-    else {
-        return true;
-    }
+    if (isNonEmptyString(label)) { return true; }
+    else { return false; }
 }
 
 function isValidName(name) {
-    let s = name.trim(); // Results in an empty string if label only contains whitespace
-    if (name === null || name === undefined || s === '' || !(typeof name === 'string' || name instanceof String)) {
-        return false;
-    }
-    else {
-        return true;
-    }
+    if (isNonEmptyString(name)) { return true; }
+    else { return false; }
 }
 
 function isValidInputId(inputid) {
-    let s = inputid.trim(); // Results in an empty string if label only contains whitespace
-    if (inputid === null || inputid === undefined || s === '' || !(typeof inputid === 'string' || inputid instanceof String)) {
-        return false;
-    }
-    else {
-        return true;
-    }
+    if (isNonEmptyString(inputid)) { return true; }
+    else { return false; }
+}
+
+function isValidValue(value) {
+    if (isNonEmptyString(value)) { return true; }
+    else { return false; }
+}
+
+function isValidType(type) {
+    const TYPES = ['text', 'email', 'number', 'password', 'tel', 'url'];
+    if (TYPES.includes(type)) { return true; }
+    else { return false; }
+}
+
+function isValidAutocomplete(autocomplete) {
+    if (isNonEmptyString(autocomplete)) { return true; }
+    else { return false; }
 }
 
 /*
@@ -56,6 +59,15 @@ class FDSInput extends HTMLElement {
 
     get inputid() { return this.getAttribute('inputid'); }
     set inputid(val) { this.setAttribute('inputid', val); }
+
+    get value() { return this.getAttribute('value'); }
+    set value(val) { this.setAttribute('value', val); }
+
+    get type() { return this.getAttribute('type'); }
+    set type(val) { this.setAttribute('type', val); }
+
+    get autocomplete() { return this.getAttribute('autocomplete'); }
+    set autocomplete(val) { this.setAttribute('autocomplete', val); }
 
     /*
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -90,10 +102,13 @@ class FDSInput extends HTMLElement {
             throw new Error(`Custom element 'fds-input' not created. Element must not contain content at element creation.`);
         }
         else {
-            if (this.inputid === null) {
-                let randomString = 'input-' + Date.now().toString().substring(7) + Math.floor(Math.random() * 1000).toString();
+            if (!isValidInputId(this.inputid)) {
+                let randomString = 'input-' + Date.now().toString().slice(-3) + Math.floor(Math.random() * 1000000).toString();
                 this.#labelElement.setAttribute('for', randomString);
                 this.#inputElement.setAttribute('id', randomString);
+            }
+            if (!isValidType(this.type)) {
+                this.#inputElement.setAttribute('type', 'text');
             }
 
             this.appendChild(this.#labelElement);
@@ -120,7 +135,6 @@ class FDSInput extends HTMLElement {
 
         if (this.#inputElement === undefined && this.querySelector('input') === null) {
             this.#inputElement = document.createElement('input');
-            this.#inputElement.type = 'text';
             this.#inputElement.classList.add('form-input');
         }
 
@@ -133,7 +147,7 @@ class FDSInput extends HTMLElement {
                     this.#labelElement.textContent = newValue;
                 }
                 else {
-                    throw new Error(`Invalid label attribute value '${newValue}'.`);
+                    throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
                 }
             }
         }
@@ -144,7 +158,7 @@ class FDSInput extends HTMLElement {
                     this.#inputElement.setAttribute('name', newValue);
                 }
                 else {
-                    throw new Error(`Invalid name attribute value '${newValue}'.`);
+                    throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
                 }
             }
         }
@@ -156,7 +170,40 @@ class FDSInput extends HTMLElement {
                     this.#inputElement.setAttribute('id', newValue);
                 }
                 else {
-                    throw new Error(`Invalid inputid attribute value '${newValue}'.`);
+                    throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                }
+            }
+        }
+
+        if (attribute === 'value') {
+            if (newValue !== null && this.#inputElement !== undefined) {
+                if (isValidValue(newValue)) {
+                    this.#inputElement.setAttribute('value', newValue);
+                }
+                else {
+                    throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                }
+            }
+        }
+
+        if (attribute === 'type') {
+            if (newValue !== null && this.#inputElement !== undefined) {
+                if (isValidType(newValue)) {
+                    this.#inputElement.setAttribute('type', newValue);
+                }
+                else {
+                    throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                }
+            }
+        }
+
+        if (attribute === 'autocomplete') {
+            if (newValue !== null && this.#inputElement !== undefined) {
+                if (isValidAutocomplete(newValue)) {
+                    this.#inputElement.setAttribute('autocomplete', newValue);
+                }
+                else {
+                    throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
                 }
             }
         }
