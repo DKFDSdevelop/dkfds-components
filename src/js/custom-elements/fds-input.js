@@ -2,6 +2,16 @@
 
 import isNonEmptyString from '../utils/is-non-empty-string';
 
+function setDefaultInputId(labelElement, inputElement) {
+    let randomString = 'input-' + Date.now().toString().slice(-3) + Math.floor(Math.random() * 1000000).toString();
+    labelElement.setAttribute('for', randomString);
+    inputElement.setAttribute('id', randomString);
+}
+
+function setDefaultType(inputElement) {
+    inputElement.setAttribute('type', 'text');
+}
+
 /* 
 FUNCTIONS FOR VALIDATING ATTRIBUTES 
 */
@@ -42,6 +52,7 @@ CUSTOM ELEMENT IMPLEMENTATION
 */
 
 class FDSInput extends HTMLElement {
+    #wrapper;
     #labelElement;
     #inputElement;
 
@@ -102,17 +113,21 @@ class FDSInput extends HTMLElement {
             throw new Error(`Custom element 'fds-input' not created. Element must not contain content at element creation.`);
         }
         else {
+            /* Note: Error messsages caused by invalid attributes are 
+            handled by attributeChangedCallback() */
+
             if (!isValidInputId(this.inputid)) {
-                let randomString = 'input-' + Date.now().toString().slice(-3) + Math.floor(Math.random() * 1000000).toString();
-                this.#labelElement.setAttribute('for', randomString);
-                this.#inputElement.setAttribute('id', randomString);
+                setDefaultInputId(this.#labelElement, this.#inputElement);
             }
             if (!isValidType(this.type)) {
-                this.#inputElement.setAttribute('type', 'text');
+                setDefaultType(this.#inputElement);
             }
 
-            this.appendChild(this.#labelElement);
-            this.appendChild(this.#inputElement);
+            this.#wrapper = document.createElement('div');
+            this.#wrapper.classList.add('form-group');
+            this.#wrapper.appendChild(this.#labelElement);
+            this.#wrapper.appendChild(this.#inputElement);
+            this.appendChild(this.#wrapper);
         }
     }
 
@@ -138,72 +153,109 @@ class FDSInput extends HTMLElement {
             this.#inputElement.classList.add('form-input');
         }
 
-        /* Don't throw an error if newValue is null but don't modify the attribute either.
-        A null value may temporarily appear for some attribute changes. */
+        /* Note: Some attribute changes invoke attributeChangedCallback() twice;
+        first call removes the old value, second call sets a new value. */
 
         if (attribute === 'label') {
-            if (newValue !== null && this.#labelElement !== undefined) {
-                if (isValidLabel(newValue)) {
-                    this.#labelElement.textContent = newValue;
+            if (this.#labelElement !== undefined) {
+                // Attribute changed
+                if (newValue !== null) {
+                    if (isValidLabel(newValue)) {
+                        this.#labelElement.textContent = newValue;
+                    }
+                    else {
+                        throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                    }
                 }
-                else {
-                    throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-                }
+                // Do nothing on attribute removed
             }
+            
         }
 
         if (attribute === 'name') {
-            if (newValue !== null && this.#inputElement !== undefined) {
-                if (isValidName(newValue)) {
-                    this.#inputElement.setAttribute('name', newValue);
+            if (this.#inputElement !== undefined) {
+                // Attribute changed
+                if (newValue !== null) {
+                    if (isValidName(newValue)) {
+                        this.#inputElement.setAttribute('name', newValue);
+                    }
+                    else {
+                        throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                    }
                 }
-                else {
-                    throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-                }
+                // Do nothing on attribute removed
             }
         }
 
         if (attribute === 'inputid') {
-            if (newValue !== null && this.#labelElement !== undefined && this.#inputElement !== undefined) {
-                if (isValidInputId(newValue)) {
-                    this.#labelElement.setAttribute('for', newValue);
-                    this.#inputElement.setAttribute('id', newValue);
+            if (this.#labelElement !== undefined && this.#inputElement !== undefined) {
+                // Attribute changed
+                if (newValue !== null) {
+                    if (isValidInputId(newValue)) {
+                        this.#labelElement.setAttribute('for', newValue);
+                        this.#inputElement.setAttribute('id', newValue);
+                    }
+                    else {
+                        throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                    }
                 }
+                // Attribute removed
                 else {
-                    throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                    setDefaultInputId(this.#labelElement, this.#inputElement);
                 }
             }
         }
 
         if (attribute === 'value') {
-            if (newValue !== null && this.#inputElement !== undefined) {
-                if (isValidValue(newValue)) {
-                    this.#inputElement.setAttribute('value', newValue);
+            if (this.#inputElement !== undefined) {
+                // Attribute changed
+                if (newValue !== null) {
+                    if (isValidValue(newValue)) {
+                        this.#inputElement.setAttribute('value', newValue);
+                    }
+                    else {
+                        throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                    }
                 }
+                // Attribute removed
                 else {
-                    throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                    this.#inputElement.removeAttribute('value');
                 }
             }
         }
 
         if (attribute === 'type') {
-            if (newValue !== null && this.#inputElement !== undefined) {
-                if (isValidType(newValue)) {
-                    this.#inputElement.setAttribute('type', newValue);
+            if (this.#inputElement !== undefined) {
+                // Attribute changed
+                if (newValue !== null) {
+                    if (isValidType(newValue)) {
+                        this.#inputElement.setAttribute('type', newValue);
+                    }
+                    else {
+                        throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                    }
                 }
+                // Attribute removed
                 else {
-                    throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                    setDefaultType(this.#inputElement);
                 }
             }
         }
 
         if (attribute === 'autocomplete') {
-            if (newValue !== null && this.#inputElement !== undefined) {
-                if (isValidAutocomplete(newValue)) {
-                    this.#inputElement.setAttribute('autocomplete', newValue);
+            if (this.#inputElement !== undefined) {
+                // Attribute changed
+                if (newValue !== null) {
+                    if (isValidAutocomplete(newValue)) {
+                        this.#inputElement.setAttribute('autocomplete', newValue);
+                    }
+                    else {
+                        throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                    }
                 }
+                // Attribute removed
                 else {
-                    throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                    this.#inputElement.removeAttribute('autocomplete');
                 }
             }
         }

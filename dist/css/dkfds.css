@@ -12046,6 +12046,10 @@ fds-input:first-child,
 .fds-input:first-child{
   margin-top:0;
 }
+fds-input .form-group,
+.fds-input .form-group{
+  margin-top:0;
+}
 
 @media print{
   html{
