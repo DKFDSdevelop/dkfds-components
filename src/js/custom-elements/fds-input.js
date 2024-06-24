@@ -31,11 +31,6 @@ function isValidInputId(inputid) {
     else { return false; }
 }
 
-function isValidValue(value) {
-    if (isNonEmptyString(value)) { return true; }
-    else { return false; }
-}
-
 function isValidType(type) {
     const TYPES = ['text', 'email', 'number', 'password', 'tel', 'url'];
     if (TYPES.includes(type)) { return true; }
@@ -47,16 +42,49 @@ function isValidAutocomplete(autocomplete) {
     else { return false; }
 }
 
+function isValidError(error) {
+    if (isNonEmptyString(error)) { return true; }
+    else { return false; }
+}
+
 /*
 CUSTOM ELEMENT IMPLEMENTATION
 */
 
 class FDSInput extends HTMLElement {
-    #wrapper;
+    #rebuildElement() {
+        if (this.#wrapperElement !== undefined && this.#inputElement !== undefined) {
+            
+            // Reset HTML
+            this.#wrapperElement.innerHTML = '';
+            this.#inputElement.removeAttribute('aria-describedby');
+            let ariaDescribedBy = '';
+
+            this.#wrapperElement.appendChild(this.#labelElement);
+            if (this.error) {
+                if (ariaDescribedBy === '') {
+                    ariaDescribedBy = this.#errorElement.id;
+                }
+                else {
+                    ariaDescribedBy = ariaDescribedBy + ' ' + this.#errorElement.id;
+                }
+                this.#wrapperElement.appendChild(this.#errorElement);
+            }
+            if (ariaDescribedBy !== '') {
+                this.#inputElement.setAttribute('aria-describedby', ariaDescribedBy);
+            }
+            this.#wrapperElement.appendChild(this.#inputElement);
+        }
+    }
+
+    // Private instance fields
+    #wrapperElement;
     #labelElement;
     #inputElement;
+    #errorElement;
+    #glossary;
 
-    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'autocomplete'];
+    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'autocomplete', 'error'];
 
     /*
     ATTRIBUTE GETTERS AND SETTERS
@@ -71,8 +99,8 @@ class FDSInput extends HTMLElement {
     get inputid() { return this.getAttribute('inputid'); }
     set inputid(val) { this.setAttribute('inputid', val); }
 
-    get value() { return this.getAttribute('value'); }
-    set value(val) { this.setAttribute('value', val); }
+    get value() { return this.#inputElement.value; }
+    set value(val) { this.#inputElement.value = val; }
 
     get type() { return this.getAttribute('type'); }
     set type(val) { this.setAttribute('type', val); }
@@ -80,12 +108,18 @@ class FDSInput extends HTMLElement {
     get autocomplete() { return this.getAttribute('autocomplete'); }
     set autocomplete(val) { this.setAttribute('autocomplete', val); }
 
+    get error() { return this.getAttribute('error'); }
+    set error(val) { this.setAttribute('error', val); }
+
     /*
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
     */
 
     constructor() {
         super();
+        this.#glossary = {
+            'errorText': 'Fejl'
+        };
     }
 
     /*
@@ -98,6 +132,15 @@ class FDSInput extends HTMLElement {
 
     getInputElement() {
         return this.#inputElement;
+    }
+
+    updateGlossary(glossary) {
+        if (glossary['errorText'] !== undefined) {
+            this.#glossary['errorText'] = glossary['errorText'];
+            if (this.error) {
+                this.#errorElement.innerHTML = '<span class="sr-only">' + this.#glossary['errorText'] + ': </span>' + this.error;
+            }
+        }
     }
 
     /*
@@ -113,21 +156,19 @@ class FDSInput extends HTMLElement {
             throw new Error(`Custom element 'fds-input' not created. Element must not contain content at element creation.`);
         }
         else {
-            /* Note: Error messsages caused by invalid attributes are 
-            handled by attributeChangedCallback() */
-
+            /* Ensure input always has an ID */
             if (!isValidInputId(this.inputid)) {
                 setDefaultInputId(this.#labelElement, this.#inputElement);
             }
+
+            /* Ensure input always has a type */
             if (!isValidType(this.type)) {
                 setDefaultType(this.#inputElement);
             }
 
-            this.#wrapper = document.createElement('div');
-            this.#wrapper.classList.add('form-group');
-            this.#wrapper.appendChild(this.#labelElement);
-            this.#wrapper.appendChild(this.#inputElement);
-            this.appendChild(this.#wrapper);
+            this.#errorElement.id = this.#inputElement.id + '-error';
+
+            this.appendChild(this.#wrapperElement);
         }
     }
 
@@ -143,6 +184,13 @@ class FDSInput extends HTMLElement {
 
     attributeChangedCallback(attribute, oldValue, newValue) {
 
+        /* Element setup. Applied once on the initial call before connectedCallback(). */
+
+        if (this.#wrapperElement === undefined && this.querySelector('.form-group') === null) {
+            this.#wrapperElement = document.createElement('div');
+            this.#wrapperElement.classList.add('form-group');
+        }
+
         if (this.#labelElement === undefined && this.querySelector('label') === null) {
             this.#labelElement = document.createElement('label');
             this.#labelElement.classList.add('form-label');
@@ -153,8 +201,12 @@ class FDSInput extends HTMLElement {
             this.#inputElement.classList.add('form-input');
         }
 
-        /* Note: Some attribute changes invoke attributeChangedCallback() twice;
-        first call removes the old value, second call sets a new value. */
+        if (this.#errorElement === undefined && this.querySelector('.form-error-message') === null) {
+            this.#errorElement = document.createElement('span');
+            this.#errorElement.classList.add('form-error-message');
+        }
+
+        /* Attribute changes */
 
         if (attribute === 'label') {
             if (this.#labelElement !== undefined) {
@@ -169,7 +221,6 @@ class FDSInput extends HTMLElement {
                 }
                 // Do nothing on attribute removed
             }
-            
         }
 
         if (attribute === 'name') {
@@ -210,12 +261,7 @@ class FDSInput extends HTMLElement {
             if (this.#inputElement !== undefined) {
                 // Attribute changed
                 if (newValue !== null) {
-                    if (isValidValue(newValue)) {
-                        this.#inputElement.setAttribute('value', newValue);
-                    }
-                    else {
-                        throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-                    }
+                    this.#inputElement.setAttribute('value', newValue);
                 }
                 // Attribute removed
                 else {
@@ -259,6 +305,32 @@ class FDSInput extends HTMLElement {
                 }
             }
         }
+
+        if (attribute === 'error') {
+            if (this.#wrapperElement !== undefined && this.#errorElement !== undefined && this.#inputElement !== undefined) {
+                // Attribute changed
+                if (newValue !== null) {
+                    if (isValidError(newValue)) {
+                        this.#wrapperElement.classList.add('form-error');
+                        this.#errorElement.id = this.#inputElement.id + '-error';
+                        this.#errorElement.innerHTML = '<span class="sr-only">' + this.#glossary['errorText'] + ': </span>' + newValue;
+                        this.#inputElement.setAttribute('aria-invalid', 'true');
+                    }
+                    else {
+                        throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                    }
+                }
+                // Attribute removed
+                else {
+                    this.#wrapperElement.classList.remove('form-error');
+                    this.#inputElement.removeAttribute('aria-invalid');
+                }
+            }
+        }
+
+        /* Update HTML */
+
+        this.#rebuildElement();
     }
 }
 
