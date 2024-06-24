@@ -42,6 +42,11 @@ function isValidAutocomplete(autocomplete) {
     else { return false; }
 }
 
+function isValidHelptext(helptext) {
+    if (isNonEmptyString(helptext)) { return true; }
+    else { return false; }
+}
+
 function isValidError(error) {
     if (isNonEmptyString(error)) { return true; }
     else { return false; }
@@ -52,6 +57,18 @@ CUSTOM ELEMENT IMPLEMENTATION
 */
 
 class FDSInput extends HTMLElement {
+    
+    /* Private instance fields */
+
+    #wrapperElement;
+    #labelElement;
+    #inputElement;
+    #helptextElement;
+    #errorElement;
+    #glossary;
+
+    /* Private methods */
+
     #rebuildElement() {
         if (this.#wrapperElement !== undefined && this.#inputElement !== undefined) {
             
@@ -60,7 +77,19 @@ class FDSInput extends HTMLElement {
             this.#inputElement.removeAttribute('aria-describedby');
             let ariaDescribedBy = '';
 
+            // Label
             this.#wrapperElement.appendChild(this.#labelElement);
+            // Helptext
+            if (this.helptext) {
+                if (ariaDescribedBy === '') {
+                    ariaDescribedBy = this.#helptextElement.id;
+                }
+                else {
+                    ariaDescribedBy = ariaDescribedBy + ' ' + this.#helptextElement.id;
+                }
+                this.#wrapperElement.appendChild(this.#helptextElement);
+            }
+            // Error message
             if (this.error) {
                 if (ariaDescribedBy === '') {
                     ariaDescribedBy = this.#errorElement.id;
@@ -70,21 +99,18 @@ class FDSInput extends HTMLElement {
                 }
                 this.#wrapperElement.appendChild(this.#errorElement);
             }
+            // Input
             if (ariaDescribedBy !== '') {
                 this.#inputElement.setAttribute('aria-describedby', ariaDescribedBy);
             }
             this.#wrapperElement.appendChild(this.#inputElement);
+
         }
     }
 
-    // Private instance fields
-    #wrapperElement;
-    #labelElement;
-    #inputElement;
-    #errorElement;
-    #glossary;
+    /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'autocomplete', 'error'];
+    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'autocomplete', 'helptext', 'error'];
 
     /*
     ATTRIBUTE GETTERS AND SETTERS
@@ -107,6 +133,9 @@ class FDSInput extends HTMLElement {
 
     get autocomplete() { return this.getAttribute('autocomplete'); }
     set autocomplete(val) { this.setAttribute('autocomplete', val); }
+
+    get helptext() { return this.getAttribute('helptext'); }
+    set helptext(val) { this.setAttribute('helptext', val); }
 
     get error() { return this.getAttribute('error'); }
     set error(val) { this.setAttribute('error', val); }
@@ -166,8 +195,11 @@ class FDSInput extends HTMLElement {
                 setDefaultType(this.#inputElement);
             }
 
+            this.#helptextElement.id = this.#inputElement.id + '-helptext';
             this.#errorElement.id = this.#inputElement.id + '-error';
 
+            this.#rebuildElement();
+            
             this.appendChild(this.#wrapperElement);
         }
     }
@@ -199,6 +231,11 @@ class FDSInput extends HTMLElement {
         if (this.#inputElement === undefined && this.querySelector('input') === null) {
             this.#inputElement = document.createElement('input');
             this.#inputElement.classList.add('form-input');
+        }
+
+        if (this.#helptextElement === undefined && this.querySelector('.form-hint') === null) {
+            this.#helptextElement = document.createElement('span');
+            this.#helptextElement.classList.add('form-hint');
         }
 
         if (this.#errorElement === undefined && this.querySelector('.form-error-message') === null) {
@@ -303,6 +340,22 @@ class FDSInput extends HTMLElement {
                 else {
                     this.#inputElement.removeAttribute('autocomplete');
                 }
+            }
+        }
+
+        if (attribute === 'helptext') {
+            if (this.#helptextElement !== undefined && this.#inputElement !== undefined) {
+                // Attribute changed
+                if (newValue !== null) {
+                    if (isValidHelptext(newValue)) {
+                        this.#helptextElement.id = this.#inputElement.id + '-helptext';
+                        this.#helptextElement.textContent = newValue;
+                    }
+                    else {
+                        throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                    }
+                }
+                // Do nothing on attribute removed. HTML is removed at rebuild step.
             }
         }
 
