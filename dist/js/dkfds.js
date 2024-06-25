@@ -5967,9 +5967,14 @@ function isNonEmptyString(s) {
     return false;
   }
 }
-;// CONCATENATED MODULE: ./src/js/custom-elements/fds-input.js
+;// CONCATENATED MODULE: ./src/js/custom-elements/fds-input-helpers.js
 
 
+
+
+/* 
+FUNCTIONS FOR DEFAULT SETTINGS
+*/
 
 function setDefaultInputId(labelElement, inputElement) {
   let randomString = 'input-' + Date.now().toString().slice(-3) + Math.floor(Math.random() * 1000000).toString();
@@ -6034,10 +6039,34 @@ function isValidError(error) {
     return false;
   }
 }
+function isValidPrefix(prefix) {
+  if (isNonEmptyString(prefix)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+function isValidSuffix(suffix) {
+  if (isNonEmptyString(suffix)) {
+    return true;
+  } else {
+    return false;
+  }
+}
 
-/*
-CUSTOM ELEMENT IMPLEMENTATION
+/* 
+REMAINING HELPERS
 */
+
+function setHelptextId(helptextElement, inputElement) {
+  helptextElement.id = inputElement.id + '-helptext';
+}
+function setErrorId(errorElement, inputElement) {
+  errorElement.id = inputElement.id + '-error';
+}
+;// CONCATENATED MODULE: ./src/js/custom-elements/fds-input.js
+
+
 
 class FDSInput extends HTMLElement {
   /* Private instance fields */
@@ -6045,8 +6074,11 @@ class FDSInput extends HTMLElement {
   #wrapperElement;
   #labelElement;
   #inputElement;
+  #inputWrapperElement;
   #helptextElement;
   #errorElement;
+  #prefixElement;
+  #suffixElement;
   #glossary;
 
   /* Private methods */
@@ -6055,40 +6087,46 @@ class FDSInput extends HTMLElement {
     if (this.#wrapperElement !== undefined && this.#inputElement !== undefined) {
       // Reset HTML
       this.#wrapperElement.innerHTML = '';
+      this.#inputWrapperElement.innerHTML = '';
       this.#inputElement.removeAttribute('aria-describedby');
-      let ariaDescribedBy = '';
 
-      // Label
-      this.#wrapperElement.appendChild(this.#labelElement);
-      // Helptext
-      if (this.helptext) {
-        if (ariaDescribedBy === '') {
-          ariaDescribedBy = this.#helptextElement.id;
-        } else {
-          ariaDescribedBy = ariaDescribedBy + ' ' + this.#helptextElement.id;
-        }
-        this.#wrapperElement.appendChild(this.#helptextElement);
-      }
-      // Error message
-      if (this.error) {
-        if (ariaDescribedBy === '') {
-          ariaDescribedBy = this.#errorElement.id;
-        } else {
-          ariaDescribedBy = ariaDescribedBy + ' ' + this.#errorElement.id;
-        }
-        this.#wrapperElement.appendChild(this.#errorElement);
-      }
-      // Input
-      if (ariaDescribedBy !== '') {
+      // Set up aria-describedby attribute
+      if (this.helptext && this.error) {
+        let ariaDescribedBy = this.#helptextElement.id + ' ' + this.#errorElement.id;
         this.#inputElement.setAttribute('aria-describedby', ariaDescribedBy);
+      } else if (this.helptext) {
+        this.#inputElement.setAttribute('aria-describedby', this.#helptextElement.id);
+      } else if (this.error) {
+        this.#inputElement.setAttribute('aria-describedby', this.#errorElement.id);
       }
-      this.#wrapperElement.appendChild(this.#inputElement);
+
+      // Build element
+      this.#wrapperElement.appendChild(this.#labelElement); // Label
+      if (this.helptext) {
+        this.#wrapperElement.appendChild(this.#helptextElement);
+      } // Helptext
+      if (this.error) {
+        this.#wrapperElement.appendChild(this.#errorElement);
+      } // Error message
+      if (this.prefix || this.suffix) {
+        this.#wrapperElement.appendChild(this.#inputWrapperElement); // If prefix or suffix:
+        if (this.prefix) {
+          this.#inputWrapperElement.appendChild(this.#prefixElement);
+        } // Prefix
+        this.#inputWrapperElement.appendChild(this.#inputElement); // Input
+        if (this.suffix) {
+          this.#inputWrapperElement.appendChild(this.#suffixElement);
+        } // Suffix
+      } else {
+        // No prefix or suffix:
+        this.#wrapperElement.appendChild(this.#inputElement); // Input
+      }
     }
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'disabled', 'autocomplete', 'helptext', 'error'];
+  static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'disabled', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix'];
 
   /*
   ATTRIBUTE GETTERS AND SETTERS
@@ -6148,6 +6186,18 @@ class FDSInput extends HTMLElement {
   set error(val) {
     this.setAttribute('error', val);
   }
+  get prefix() {
+    return this.getAttribute('prefix');
+  }
+  set prefix(val) {
+    this.setAttribute('prefix', val);
+  }
+  get suffix() {
+    return this.getAttribute('suffix');
+  }
+  set suffix(val) {
+    this.setAttribute('suffix', val);
+  }
 
   /*
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -6198,8 +6248,8 @@ class FDSInput extends HTMLElement {
       if (!isValidType(this.type)) {
         setDefaultType(this.#inputElement);
       }
-      this.#helptextElement.id = this.#inputElement.id + '-helptext';
-      this.#errorElement.id = this.#inputElement.id + '-error';
+      setHelptextId(this.#helptextElement, this.#inputElement);
+      setErrorId(this.#errorElement, this.#inputElement);
       this.#rebuildElement();
       this.appendChild(this.#wrapperElement);
     }
@@ -6230,6 +6280,10 @@ class FDSInput extends HTMLElement {
       this.#inputElement = document.createElement('input');
       this.#inputElement.classList.add('form-input');
     }
+    if (this.#inputWrapperElement === undefined && this.querySelector('.form-input-wrapper') === null) {
+      this.#inputWrapperElement = document.createElement('div');
+      this.#inputWrapperElement.classList.add('form-input-wrapper');
+    }
     if (this.#helptextElement === undefined && this.querySelector('.form-hint') === null) {
       this.#helptextElement = document.createElement('span');
       this.#helptextElement.classList.add('form-hint');
@@ -6237,6 +6291,16 @@ class FDSInput extends HTMLElement {
     if (this.#errorElement === undefined && this.querySelector('.form-error-message') === null) {
       this.#errorElement = document.createElement('span');
       this.#errorElement.classList.add('form-error-message');
+    }
+    if (this.#prefixElement === undefined && this.querySelector('.form-input-prefix') === null) {
+      this.#prefixElement = document.createElement('div');
+      this.#prefixElement.classList.add('form-input-prefix');
+      this.#prefixElement.setAttribute('aria-hidden', 'true');
+    }
+    if (this.#suffixElement === undefined && this.querySelector('.form-input-suffix') === null) {
+      this.#suffixElement = document.createElement('div');
+      this.#suffixElement.classList.add('form-input-suffix');
+      this.#suffixElement.setAttribute('aria-hidden', 'true');
     }
 
     /* Attribute changes */
@@ -6350,7 +6414,7 @@ class FDSInput extends HTMLElement {
         // Attribute changed
         if (newValue !== null) {
           if (isValidHelptext(newValue)) {
-            this.#helptextElement.id = this.#inputElement.id + '-helptext';
+            setHelptextId(this.#helptextElement, this.#inputElement);
             this.#helptextElement.textContent = newValue;
           } else {
             throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
@@ -6365,7 +6429,7 @@ class FDSInput extends HTMLElement {
         if (newValue !== null) {
           if (isValidError(newValue)) {
             this.#wrapperElement.classList.add('form-error');
-            this.#errorElement.id = this.#inputElement.id + '-error';
+            setErrorId(this.#errorElement, this.#inputElement);
             this.#errorElement.innerHTML = '<span class="sr-only">' + this.#glossary['errorText'] + ': </span>' + newValue;
             this.#inputElement.setAttribute('aria-invalid', 'true');
             if (this.hasAttribute('disabled')) {
@@ -6379,6 +6443,40 @@ class FDSInput extends HTMLElement {
         else {
           this.#wrapperElement.classList.remove('form-error');
           this.#inputElement.removeAttribute('aria-invalid');
+        }
+      }
+    }
+    if (attribute === 'prefix') {
+      if (this.#prefixElement !== undefined && this.#inputWrapperElement !== undefined) {
+        // Attribute changed
+        if (newValue !== null) {
+          if (isValidPrefix(newValue)) {
+            this.#inputWrapperElement.classList.add('form-input-wrapper--prefix');
+            this.#prefixElement.textContent = newValue;
+          } else {
+            throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+          }
+        }
+        // Attribute removed
+        else {
+          this.#inputWrapperElement.classList.remove('form-input-wrapper--prefix');
+        }
+      }
+    }
+    if (attribute === 'suffix') {
+      if (this.#suffixElement !== undefined) {
+        // Attribute changed
+        if (newValue !== null) {
+          if (isValidSuffix(newValue)) {
+            this.#inputWrapperElement.classList.add('form-input-wrapper--suffix');
+            this.#suffixElement.textContent = newValue;
+          } else {
+            throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+          }
+        }
+        // Attribute removed
+        else {
+          this.#inputWrapperElement.classList.remove('form-input-wrapper--suffix');
         }
       }
     }

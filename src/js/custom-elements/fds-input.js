@@ -1,60 +1,6 @@
 'use strict';
 
-import isNonEmptyString from '../utils/is-non-empty-string';
-
-function setDefaultInputId(labelElement, inputElement) {
-    let randomString = 'input-' + Date.now().toString().slice(-3) + Math.floor(Math.random() * 1000000).toString();
-    labelElement.setAttribute('for', randomString);
-    inputElement.setAttribute('id', randomString);
-}
-
-function setDefaultType(inputElement) {
-    inputElement.setAttribute('type', 'text');
-}
-
-/* 
-FUNCTIONS FOR VALIDATING ATTRIBUTES 
-*/
-
-function isValidLabel(label) {
-    if (isNonEmptyString(label)) { return true; }
-    else { return false; }
-}
-
-function isValidName(name) {
-    if (isNonEmptyString(name)) { return true; }
-    else { return false; }
-}
-
-function isValidInputId(inputid) {
-    if (isNonEmptyString(inputid)) { return true; }
-    else { return false; }
-}
-
-function isValidType(type) {
-    const TYPES = ['text', 'email', 'number', 'password', 'tel', 'url'];
-    if (TYPES.includes(type)) { return true; }
-    else { return false; }
-}
-
-function isValidAutocomplete(autocomplete) {
-    if (isNonEmptyString(autocomplete)) { return true; }
-    else { return false; }
-}
-
-function isValidHelptext(helptext) {
-    if (isNonEmptyString(helptext)) { return true; }
-    else { return false; }
-}
-
-function isValidError(error) {
-    if (isNonEmptyString(error)) { return true; }
-    else { return false; }
-}
-
-/*
-CUSTOM ELEMENT IMPLEMENTATION
-*/
+import * as Helpers from './fds-input-helpers';
 
 class FDSInput extends HTMLElement {
     
@@ -63,8 +9,11 @@ class FDSInput extends HTMLElement {
     #wrapperElement;
     #labelElement;
     #inputElement;
+    #inputWrapperElement;
     #helptextElement;
     #errorElement;
+    #prefixElement;
+    #suffixElement;
     #glossary;
 
     /* Private methods */
@@ -74,43 +23,40 @@ class FDSInput extends HTMLElement {
             
             // Reset HTML
             this.#wrapperElement.innerHTML = '';
+            this.#inputWrapperElement.innerHTML = '';
             this.#inputElement.removeAttribute('aria-describedby');
-            let ariaDescribedBy = '';
 
-            // Label
-            this.#wrapperElement.appendChild(this.#labelElement);
-            // Helptext
-            if (this.helptext) {
-                if (ariaDescribedBy === '') {
-                    ariaDescribedBy = this.#helptextElement.id;
-                }
-                else {
-                    ariaDescribedBy = ariaDescribedBy + ' ' + this.#helptextElement.id;
-                }
-                this.#wrapperElement.appendChild(this.#helptextElement);
-            }
-            // Error message
-            if (this.error) {
-                if (ariaDescribedBy === '') {
-                    ariaDescribedBy = this.#errorElement.id;
-                }
-                else {
-                    ariaDescribedBy = ariaDescribedBy + ' ' + this.#errorElement.id;
-                }
-                this.#wrapperElement.appendChild(this.#errorElement);
-            }
-            // Input
-            if (ariaDescribedBy !== '') {
+            // Set up aria-describedby attribute
+            if (this.helptext && this.error) {
+                let ariaDescribedBy = this.#helptextElement.id + ' ' + this.#errorElement.id;
                 this.#inputElement.setAttribute('aria-describedby', ariaDescribedBy);
             }
-            this.#wrapperElement.appendChild(this.#inputElement);
+            else if (this.helptext) {
+                this.#inputElement.setAttribute('aria-describedby', this.#helptextElement.id);
+            }
+            else if (this.error) {
+                this.#inputElement.setAttribute('aria-describedby', this.#errorElement.id);
+            }
 
+            // Build element
+            this.#wrapperElement.appendChild(this.#labelElement);                                   // Label
+            if (this.helptext) { this.#wrapperElement.appendChild(this.#helptextElement); }         // Helptext
+            if (this.error) { this.#wrapperElement.appendChild(this.#errorElement); }               // Error message
+            if (this.prefix || this.suffix) {
+                this.#wrapperElement.appendChild(this.#inputWrapperElement);                        // If prefix or suffix:
+                if (this.prefix) { this.#inputWrapperElement.appendChild(this.#prefixElement); }    // Prefix
+                this.#inputWrapperElement.appendChild(this.#inputElement);                          // Input
+                if (this.suffix) { this.#inputWrapperElement.appendChild(this.#suffixElement); }    // Suffix
+            }
+            else {                                                                                  // No prefix or suffix:
+                this.#wrapperElement.appendChild(this.#inputElement);                               // Input
+            }
         }
     }
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'disabled', 'autocomplete', 'helptext', 'error'];
+    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'disabled', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix'];
 
     /*
     ATTRIBUTE GETTERS AND SETTERS
@@ -142,6 +88,12 @@ class FDSInput extends HTMLElement {
 
     get error() { return this.getAttribute('error'); }
     set error(val) { this.setAttribute('error', val); }
+
+    get prefix() { return this.getAttribute('prefix'); }
+    set prefix(val) { this.setAttribute('prefix', val); }
+
+    get suffix() { return this.getAttribute('suffix'); }
+    set suffix(val) { this.setAttribute('suffix', val); }
 
     /*
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -189,17 +141,17 @@ class FDSInput extends HTMLElement {
         }
         else {
             /* Ensure input always has an ID */
-            if (!isValidInputId(this.inputid)) {
-                setDefaultInputId(this.#labelElement, this.#inputElement);
+            if (!Helpers.isValidInputId(this.inputid)) {
+                Helpers.setDefaultInputId(this.#labelElement, this.#inputElement);
             }
 
             /* Ensure input always has a type */
-            if (!isValidType(this.type)) {
-                setDefaultType(this.#inputElement);
+            if (!Helpers.isValidType(this.type)) {
+                Helpers.setDefaultType(this.#inputElement);
             }
 
-            this.#helptextElement.id = this.#inputElement.id + '-helptext';
-            this.#errorElement.id = this.#inputElement.id + '-error';
+            Helpers.setHelptextId(this.#helptextElement, this.#inputElement);
+            Helpers.setErrorId(this.#errorElement, this.#inputElement);
 
             this.#rebuildElement();
             
@@ -236,6 +188,11 @@ class FDSInput extends HTMLElement {
             this.#inputElement.classList.add('form-input');
         }
 
+        if (this.#inputWrapperElement === undefined && this.querySelector('.form-input-wrapper') === null) {
+            this.#inputWrapperElement = document.createElement('div');
+            this.#inputWrapperElement.classList.add('form-input-wrapper');
+        }
+
         if (this.#helptextElement === undefined && this.querySelector('.form-hint') === null) {
             this.#helptextElement = document.createElement('span');
             this.#helptextElement.classList.add('form-hint');
@@ -246,13 +203,25 @@ class FDSInput extends HTMLElement {
             this.#errorElement.classList.add('form-error-message');
         }
 
+        if (this.#prefixElement === undefined && this.querySelector('.form-input-prefix') === null) {
+            this.#prefixElement = document.createElement('div');
+            this.#prefixElement.classList.add('form-input-prefix');
+            this.#prefixElement.setAttribute('aria-hidden', 'true');
+        }
+
+        if (this.#suffixElement === undefined && this.querySelector('.form-input-suffix') === null) {
+            this.#suffixElement = document.createElement('div');
+            this.#suffixElement.classList.add('form-input-suffix');
+            this.#suffixElement.setAttribute('aria-hidden', 'true');
+        }
+
         /* Attribute changes */
 
         if (attribute === 'label') {
             if (this.#labelElement !== undefined) {
                 // Attribute changed
                 if (newValue !== null) {
-                    if (isValidLabel(newValue)) {
+                    if (Helpers.isValidLabel(newValue)) {
                         this.#labelElement.textContent = newValue;
                     }
                     else {
@@ -267,7 +236,7 @@ class FDSInput extends HTMLElement {
             if (this.#inputElement !== undefined) {
                 // Attribute changed
                 if (newValue !== null) {
-                    if (isValidName(newValue)) {
+                    if (Helpers.isValidName(newValue)) {
                         this.#inputElement.setAttribute('name', newValue);
                     }
                     else {
@@ -282,7 +251,7 @@ class FDSInput extends HTMLElement {
             if (this.#labelElement !== undefined && this.#inputElement !== undefined) {
                 // Attribute changed
                 if (newValue !== null) {
-                    if (isValidInputId(newValue)) {
+                    if (Helpers.isValidInputId(newValue)) {
                         this.#labelElement.setAttribute('for', newValue);
                         this.#inputElement.setAttribute('id', newValue);
                     }
@@ -292,7 +261,7 @@ class FDSInput extends HTMLElement {
                 }
                 // Attribute removed
                 else {
-                    setDefaultInputId(this.#labelElement, this.#inputElement);
+                    Helpers.setDefaultInputId(this.#labelElement, this.#inputElement);
                 }
             }
         }
@@ -314,7 +283,7 @@ class FDSInput extends HTMLElement {
             if (this.#inputElement !== undefined) {
                 // Attribute changed
                 if (newValue !== null) {
-                    if (isValidType(newValue)) {
+                    if (Helpers.isValidType(newValue)) {
                         this.#inputElement.setAttribute('type', newValue);
                     }
                     else {
@@ -323,7 +292,7 @@ class FDSInput extends HTMLElement {
                 }
                 // Attribute removed
                 else {
-                    setDefaultType(this.#inputElement);
+                    Helpers.setDefaultType(this.#inputElement);
                 }
             }
         }
@@ -350,7 +319,7 @@ class FDSInput extends HTMLElement {
             if (this.#inputElement !== undefined) {
                 // Attribute changed
                 if (newValue !== null) {
-                    if (isValidAutocomplete(newValue)) {
+                    if (Helpers.isValidAutocomplete(newValue)) {
                         this.#inputElement.setAttribute('autocomplete', newValue);
                     }
                     else {
@@ -368,8 +337,8 @@ class FDSInput extends HTMLElement {
             if (this.#helptextElement !== undefined && this.#inputElement !== undefined) {
                 // Attribute changed
                 if (newValue !== null) {
-                    if (isValidHelptext(newValue)) {
-                        this.#helptextElement.id = this.#inputElement.id + '-helptext';
+                    if (Helpers.isValidHelptext(newValue)) {
+                        Helpers.setHelptextId(this.#helptextElement, this.#inputElement);
                         this.#helptextElement.textContent = newValue;
                     }
                     else {
@@ -384,9 +353,9 @@ class FDSInput extends HTMLElement {
             if (this.#wrapperElement !== undefined && this.#errorElement !== undefined && this.#inputElement !== undefined) {
                 // Attribute changed
                 if (newValue !== null) {
-                    if (isValidError(newValue)) {
+                    if (Helpers.isValidError(newValue)) {
                         this.#wrapperElement.classList.add('form-error');
-                        this.#errorElement.id = this.#inputElement.id + '-error';
+                        Helpers.setErrorId(this.#errorElement, this.#inputElement);
                         this.#errorElement.innerHTML = '<span class="sr-only">' + this.#glossary['errorText'] + ': </span>' + newValue;
                         this.#inputElement.setAttribute('aria-invalid', 'true');
                         if (this.hasAttribute('disabled')) {
@@ -401,6 +370,44 @@ class FDSInput extends HTMLElement {
                 else {
                     this.#wrapperElement.classList.remove('form-error');
                     this.#inputElement.removeAttribute('aria-invalid');
+                }
+            }
+        }
+
+        if (attribute === 'prefix') {
+            if (this.#prefixElement !== undefined && this.#inputWrapperElement !== undefined) {
+                // Attribute changed
+                if (newValue !== null) {
+                    if (Helpers.isValidPrefix(newValue)) {
+                        this.#inputWrapperElement.classList.add('form-input-wrapper--prefix');
+                        this.#prefixElement.textContent = newValue;
+                    }
+                    else {
+                        throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                    }
+                }
+                // Attribute removed
+                else {
+                    this.#inputWrapperElement.classList.remove('form-input-wrapper--prefix');
+                }
+            }
+        }
+
+        if (attribute === 'suffix') {
+            if (this.#suffixElement !== undefined) {
+                // Attribute changed
+                if (newValue !== null) {
+                    if (Helpers.isValidSuffix(newValue)) {
+                        this.#inputWrapperElement.classList.add('form-input-wrapper--suffix');
+                        this.#suffixElement.textContent = newValue;
+                    }
+                    else {
+                        throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                    }
+                }
+                // Attribute removed
+                else {
+                    this.#inputWrapperElement.classList.remove('form-input-wrapper--suffix');
                 }
             }
         }
