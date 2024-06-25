@@ -110,7 +110,7 @@ class FDSInput extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'autocomplete', 'helptext', 'error'];
+    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'disabled', 'autocomplete', 'helptext', 'error'];
 
     /*
     ATTRIBUTE GETTERS AND SETTERS
@@ -130,6 +130,9 @@ class FDSInput extends HTMLElement {
 
     get type() { return this.getAttribute('type'); }
     set type(val) { this.setAttribute('type', val); }
+
+    get disabled() { return this.getAttribute('disabled'); }
+    set disabled(val) { this.setAttribute('disabled', val); }
 
     get autocomplete() { return this.getAttribute('autocomplete'); }
     set autocomplete(val) { this.setAttribute('autocomplete', val); }
@@ -325,6 +328,24 @@ class FDSInput extends HTMLElement {
             }
         }
 
+        if (attribute === 'disabled') {
+            if (this.#labelElement !== undefined && this.#inputElement !== undefined) {
+                // Attribute changed
+                if (newValue !== null) {
+                    this.#labelElement.classList.add('disabled');
+                    this.#inputElement.setAttribute('disabled', '');
+                    if (this.hasAttribute('error')) {
+                        throw new Error(`${attribute} attribute not allowed on elements with errors.`);
+                    }
+                }
+                // Attribute removed
+                else {
+                    this.#labelElement.classList.remove('disabled');
+                    this.#inputElement.removeAttribute('disabled');
+                }
+            }
+        }
+
         if (attribute === 'autocomplete') {
             if (this.#inputElement !== undefined) {
                 // Attribute changed
@@ -368,6 +389,9 @@ class FDSInput extends HTMLElement {
                         this.#errorElement.id = this.#inputElement.id + '-error';
                         this.#errorElement.innerHTML = '<span class="sr-only">' + this.#glossary['errorText'] + ': </span>' + newValue;
                         this.#inputElement.setAttribute('aria-invalid', 'true');
+                        if (this.hasAttribute('disabled')) {
+                            throw new Error(`${attribute} attribute not allowed on disabled input.`);
+                        }
                     }
                     else {
                         throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
