@@ -6055,6 +6055,19 @@ function isValidSuffix(suffix) {
 }
 
 /* 
+ATTRIBUTE HELPERS
+*/
+
+function disabledUpdated(labelElement, inputElement) {
+  labelElement.classList.add('disabled');
+  inputElement.setAttribute('disabled', '');
+}
+function disabledRemoved(labelElement, inputElement) {
+  labelElement.classList.remove('disabled');
+  inputElement.removeAttribute('disabled');
+}
+
+/* 
 REMAINING HELPERS
 */
 
@@ -6080,6 +6093,7 @@ class FDSInput extends HTMLElement {
   #prefixElement;
   #suffixElement;
   #glossary;
+  #initialised;
 
   /* Private methods */
 
@@ -6205,6 +6219,7 @@ class FDSInput extends HTMLElement {
 
   constructor() {
     super();
+    this.#initialised = false;
     this.#glossary = {
       'errorText': 'Fejl'
     };
@@ -6268,216 +6283,179 @@ class FDSInput extends HTMLElement {
   attributeChangedCallback(attribute, oldValue, newValue) {
     /* Element setup. Applied once on the initial call before connectedCallback(). */
 
-    if (this.#wrapperElement === undefined && this.querySelector('.form-group') === null) {
+    if (!this.#initialised) {
       this.#wrapperElement = document.createElement('div');
       this.#wrapperElement.classList.add('form-group');
-    }
-    if (this.#labelElement === undefined && this.querySelector('label') === null) {
       this.#labelElement = document.createElement('label');
       this.#labelElement.classList.add('form-label');
-    }
-    if (this.#inputElement === undefined && this.querySelector('input') === null) {
       this.#inputElement = document.createElement('input');
       this.#inputElement.classList.add('form-input');
-    }
-    if (this.#inputWrapperElement === undefined && this.querySelector('.form-input-wrapper') === null) {
       this.#inputWrapperElement = document.createElement('div');
       this.#inputWrapperElement.classList.add('form-input-wrapper');
-    }
-    if (this.#helptextElement === undefined && this.querySelector('.form-hint') === null) {
       this.#helptextElement = document.createElement('span');
       this.#helptextElement.classList.add('form-hint');
-    }
-    if (this.#errorElement === undefined && this.querySelector('.form-error-message') === null) {
       this.#errorElement = document.createElement('span');
       this.#errorElement.classList.add('form-error-message');
-    }
-    if (this.#prefixElement === undefined && this.querySelector('.form-input-prefix') === null) {
       this.#prefixElement = document.createElement('div');
       this.#prefixElement.classList.add('form-input-prefix');
       this.#prefixElement.setAttribute('aria-hidden', 'true');
-    }
-    if (this.#suffixElement === undefined && this.querySelector('.form-input-suffix') === null) {
       this.#suffixElement = document.createElement('div');
       this.#suffixElement.classList.add('form-input-suffix');
       this.#suffixElement.setAttribute('aria-hidden', 'true');
+      this.#initialised = true;
     }
 
     /* Attribute changes */
 
     if (attribute === 'label') {
-      if (this.#labelElement !== undefined) {
-        // Attribute changed
-        if (newValue !== null) {
-          if (isValidLabel(newValue)) {
-            this.#labelElement.textContent = newValue;
-          } else {
-            throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-          }
+      // Attribute changed
+      if (newValue !== null) {
+        if (isValidLabel(newValue)) {
+          this.#labelElement.textContent = newValue;
+        } else {
+          throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
         }
-        // Do nothing on attribute removed
       }
+      // Do nothing on attribute removed
     }
     if (attribute === 'name') {
-      if (this.#inputElement !== undefined) {
-        // Attribute changed
-        if (newValue !== null) {
-          if (isValidName(newValue)) {
-            this.#inputElement.setAttribute('name', newValue);
-          } else {
-            throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-          }
+      // Attribute changed
+      if (newValue !== null) {
+        if (isValidName(newValue)) {
+          this.#inputElement.setAttribute('name', newValue);
+        } else {
+          throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
         }
-        // Do nothing on attribute removed
       }
+      // Do nothing on attribute removed
     }
     if (attribute === 'inputid') {
-      if (this.#labelElement !== undefined && this.#inputElement !== undefined) {
-        // Attribute changed
-        if (newValue !== null) {
-          if (isValidInputId(newValue)) {
-            this.#labelElement.setAttribute('for', newValue);
-            this.#inputElement.setAttribute('id', newValue);
-          } else {
-            throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-          }
+      // Attribute changed
+      if (newValue !== null) {
+        if (isValidInputId(newValue)) {
+          this.#labelElement.setAttribute('for', newValue);
+          this.#inputElement.setAttribute('id', newValue);
+        } else {
+          throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
         }
-        // Attribute removed
-        else {
-          setDefaultInputId(this.#labelElement, this.#inputElement);
-        }
+      }
+      // Attribute removed
+      else {
+        setDefaultInputId(this.#labelElement, this.#inputElement);
       }
     }
     if (attribute === 'value') {
-      if (this.#inputElement !== undefined) {
-        // Attribute changed
-        if (newValue !== null) {
-          this.#inputElement.setAttribute('value', newValue);
-        }
-        // Attribute removed
-        else {
-          this.#inputElement.removeAttribute('value');
-        }
+      // Attribute changed
+      if (newValue !== null) {
+        this.#inputElement.setAttribute('value', newValue);
+      }
+      // Attribute removed
+      else {
+        this.#inputElement.removeAttribute('value');
       }
     }
     if (attribute === 'type') {
-      if (this.#inputElement !== undefined) {
-        // Attribute changed
-        if (newValue !== null) {
-          if (isValidType(newValue)) {
-            this.#inputElement.setAttribute('type', newValue);
-          } else {
-            throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-          }
+      // Attribute changed
+      if (newValue !== null) {
+        if (isValidType(newValue)) {
+          this.#inputElement.setAttribute('type', newValue);
+        } else {
+          throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
         }
-        // Attribute removed
-        else {
-          setDefaultType(this.#inputElement);
-        }
+      }
+      // Attribute removed
+      else {
+        setDefaultType(this.#inputElement);
       }
     }
     if (attribute === 'disabled') {
-      if (this.#labelElement !== undefined && this.#inputElement !== undefined) {
-        // Attribute changed
-        if (newValue !== null) {
-          this.#labelElement.classList.add('disabled');
-          this.#inputElement.setAttribute('disabled', '');
-          if (this.hasAttribute('error')) {
-            throw new Error(`${attribute} attribute not allowed on elements with errors.`);
-          }
+      // Attribute changed
+      if (newValue !== null) {
+        disabledUpdated(this.#labelElement, this.#inputElement);
+        if (this.hasAttribute('error')) {
+          throw new Error(`${attribute} attribute not allowed on elements with errors.`);
         }
-        // Attribute removed
-        else {
-          this.#labelElement.classList.remove('disabled');
-          this.#inputElement.removeAttribute('disabled');
-        }
+      }
+      // Attribute removed
+      else {
+        disabledRemoved(this.#labelElement, this.#inputElement);
       }
     }
     if (attribute === 'autocomplete') {
-      if (this.#inputElement !== undefined) {
-        // Attribute changed
-        if (newValue !== null) {
-          if (isValidAutocomplete(newValue)) {
-            this.#inputElement.setAttribute('autocomplete', newValue);
-          } else {
-            throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-          }
+      // Attribute changed
+      if (newValue !== null) {
+        if (isValidAutocomplete(newValue)) {
+          this.#inputElement.setAttribute('autocomplete', newValue);
+        } else {
+          throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
         }
-        // Attribute removed
-        else {
-          this.#inputElement.removeAttribute('autocomplete');
-        }
+      }
+      // Attribute removed
+      else {
+        this.#inputElement.removeAttribute('autocomplete');
       }
     }
     if (attribute === 'helptext') {
-      if (this.#helptextElement !== undefined && this.#inputElement !== undefined) {
-        // Attribute changed
-        if (newValue !== null) {
-          if (isValidHelptext(newValue)) {
-            setHelptextId(this.#helptextElement, this.#inputElement);
-            this.#helptextElement.textContent = newValue;
-          } else {
-            throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-          }
+      // Attribute changed
+      if (newValue !== null) {
+        if (isValidHelptext(newValue)) {
+          setHelptextId(this.#helptextElement, this.#inputElement);
+          this.#helptextElement.textContent = newValue;
+        } else {
+          throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
         }
-        // Do nothing on attribute removed. HTML is removed at rebuild step.
       }
+      // Do nothing on attribute removed. HTML is removed at rebuild step.
     }
     if (attribute === 'error') {
-      if (this.#wrapperElement !== undefined && this.#errorElement !== undefined && this.#inputElement !== undefined) {
-        // Attribute changed
-        if (newValue !== null) {
-          if (isValidError(newValue)) {
-            this.#wrapperElement.classList.add('form-error');
-            setErrorId(this.#errorElement, this.#inputElement);
-            this.#errorElement.innerHTML = '<span class="sr-only">' + this.#glossary['errorText'] + ': </span>' + newValue;
-            this.#inputElement.setAttribute('aria-invalid', 'true');
-            if (this.hasAttribute('disabled')) {
-              throw new Error(`${attribute} attribute not allowed on disabled input.`);
-            }
-          } else {
-            throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+      // Attribute changed
+      if (newValue !== null) {
+        if (isValidError(newValue)) {
+          this.#wrapperElement.classList.add('form-error');
+          setErrorId(this.#errorElement, this.#inputElement);
+          this.#errorElement.innerHTML = '<span class="sr-only">' + this.#glossary['errorText'] + ': </span>' + newValue;
+          this.#inputElement.setAttribute('aria-invalid', 'true');
+          if (this.hasAttribute('disabled')) {
+            throw new Error(`${attribute} attribute not allowed on disabled input.`);
           }
+        } else {
+          throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
         }
-        // Attribute removed
-        else {
-          this.#wrapperElement.classList.remove('form-error');
-          this.#inputElement.removeAttribute('aria-invalid');
-        }
+      }
+      // Attribute removed
+      else {
+        this.#wrapperElement.classList.remove('form-error');
+        this.#inputElement.removeAttribute('aria-invalid');
       }
     }
     if (attribute === 'prefix') {
-      if (this.#prefixElement !== undefined && this.#inputWrapperElement !== undefined) {
-        // Attribute changed
-        if (newValue !== null) {
-          if (isValidPrefix(newValue)) {
-            this.#inputWrapperElement.classList.add('form-input-wrapper--prefix');
-            this.#prefixElement.textContent = newValue;
-          } else {
-            throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-          }
+      // Attribute changed
+      if (newValue !== null) {
+        if (isValidPrefix(newValue)) {
+          this.#inputWrapperElement.classList.add('form-input-wrapper--prefix');
+          this.#prefixElement.textContent = newValue;
+        } else {
+          throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
         }
-        // Attribute removed
-        else {
-          this.#inputWrapperElement.classList.remove('form-input-wrapper--prefix');
-        }
+      }
+      // Attribute removed
+      else {
+        this.#inputWrapperElement.classList.remove('form-input-wrapper--prefix');
       }
     }
     if (attribute === 'suffix') {
-      if (this.#suffixElement !== undefined) {
-        // Attribute changed
-        if (newValue !== null) {
-          if (isValidSuffix(newValue)) {
-            this.#inputWrapperElement.classList.add('form-input-wrapper--suffix');
-            this.#suffixElement.textContent = newValue;
-          } else {
-            throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-          }
+      // Attribute changed
+      if (newValue !== null) {
+        if (isValidSuffix(newValue)) {
+          this.#inputWrapperElement.classList.add('form-input-wrapper--suffix');
+          this.#suffixElement.textContent = newValue;
+        } else {
+          throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
         }
-        // Attribute removed
-        else {
-          this.#inputWrapperElement.classList.remove('form-input-wrapper--suffix');
-        }
+      }
+      // Attribute removed
+      else {
+        this.#inputWrapperElement.classList.remove('form-input-wrapper--suffix');
       }
     }
 

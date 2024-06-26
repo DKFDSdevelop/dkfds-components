@@ -67,6 +67,20 @@ export function isValidSuffix(suffix) {
 }
 
 /* 
+ATTRIBUTE HELPERS
+*/
+
+export function disabledUpdated(labelElement, inputElement) {
+    labelElement.classList.add('disabled');
+    inputElement.setAttribute('disabled', '');
+}
+
+export function disabledRemoved(labelElement, inputElement) {
+    labelElement.classList.remove('disabled');
+    inputElement.removeAttribute('disabled');
+}
+
+/* 
 REMAINING HELPERS
 */
 
