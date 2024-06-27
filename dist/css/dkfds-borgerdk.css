@@ -12050,6 +12050,47 @@ fds-input .form-group,
 .fds-input .form-group{
   margin-top:0;
 }
+fds-input .edit-wrapper,
+.fds-input .edit-wrapper{
+  display:block;
+}
+@media (min-width: 576px){
+  fds-input .edit-wrapper,
+  .fds-input .edit-wrapper{
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+  }
+}
+fds-input .edit-wrapper .form-input,
+.fds-input .edit-wrapper .form-input{
+  margin-right:0;
+}
+@media (min-width: 576px){
+  fds-input .edit-wrapper .form-input,
+  .fds-input .edit-wrapper .form-input{
+    margin-right:8px;
+  }
+}
+fds-input .edit-wrapper .form-input-wrapper,
+.fds-input .edit-wrapper .form-input-wrapper{
+  margin-right:0;
+}
+@media (min-width: 576px){
+  fds-input .edit-wrapper .form-input-wrapper,
+  .fds-input .edit-wrapper .form-input-wrapper{
+    margin-right:8px;
+  }
+}
+fds-input .edit-wrapper .form-input-wrapper .form-input,
+.fds-input .edit-wrapper .form-input-wrapper .form-input{
+  margin-right:0;
+}
+fds-input .edit-wrapper .edit-button,
+.fds-input .edit-wrapper .edit-button{
+  white-space:nowrap;
+  margin-top:8px;
+}
 
 @media print{
   html{

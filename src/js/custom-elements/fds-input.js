@@ -1,5 +1,6 @@
 'use strict';
 
+import isNonEmptyString from '../utils/is-non-empty-string';
 import * as Helpers from './fds-input-helpers';
 
 class FDSInput extends HTMLElement {
@@ -10,10 +11,15 @@ class FDSInput extends HTMLElement {
     #labelElement;
     #inputElement;
     #inputWrapperElement;
+    #editWrapperElement;
     #helptextElement;
     #errorElement;
     #prefixElement;
     #suffixElement;
+    #editButtonElement;
+
+    #handleEditClicked;
+
     #glossary;
     #initialised;
 
@@ -28,36 +34,66 @@ class FDSInput extends HTMLElement {
             this.#inputElement.removeAttribute('aria-describedby');
 
             // Set up aria-describedby attribute
-            if (this.helptext && this.error) {
+            if (isNonEmptyString(this.helptext) && isNonEmptyString(this.error)) {
                 let ariaDescribedBy = this.#helptextElement.id + ' ' + this.#errorElement.id;
                 this.#inputElement.setAttribute('aria-describedby', ariaDescribedBy);
             }
-            else if (this.helptext) {
+            else if (isNonEmptyString(this.helptext)) {
                 this.#inputElement.setAttribute('aria-describedby', this.#helptextElement.id);
             }
-            else if (this.error) {
+            else if (isNonEmptyString(this.error)) {
                 this.#inputElement.setAttribute('aria-describedby', this.#errorElement.id);
             }
 
+            // Set up edit button
+            if (this.hasAttribute('editbutton') && isNonEmptyString(this.label)) {
+                this.#editButtonElement.innerHTML = '<svg class="icon-svg" focusable="false" aria-hidden="true"><use xlink:href="#mode"></use></svg>Rediger<span class="sr-only"> ' + this.label + '</span>';
+            }
+
             // Build element
-            this.#wrapperElement.appendChild(this.#labelElement);                                   // Label
-            if (this.helptext) { this.#wrapperElement.appendChild(this.#helptextElement); }         // Helptext
-            if (this.error) { this.#wrapperElement.appendChild(this.#errorElement); }               // Error message
+            this.#wrapperElement.appendChild(this.#labelElement);                                               // Label
+            if (isNonEmptyString(this.helptext)) { this.#wrapperElement.appendChild(this.#helptextElement); }   // Helptext
+            if (isNonEmptyString(this.error)) { this.#wrapperElement.appendChild(this.#errorElement); }         // Error message
+            if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
+                this.#wrapperElement.appendChild(this.#editWrapperElement);                                     // Wrapper for edit button
+            }
             if (this.prefix || this.suffix) {
-                this.#wrapperElement.appendChild(this.#inputWrapperElement);                        // If prefix or suffix:
-                if (this.prefix) { this.#inputWrapperElement.appendChild(this.#prefixElement); }    // Prefix
-                this.#inputWrapperElement.appendChild(this.#inputElement);                          // Input
-                if (this.suffix) { this.#inputWrapperElement.appendChild(this.#suffixElement); }    // Suffix
+                if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
+                    this.#editWrapperElement.appendChild(this.#inputWrapperElement);
+                }
+                else {
+                    this.#wrapperElement.appendChild(this.#inputWrapperElement);
+                }
+                if (this.prefix) { this.#inputWrapperElement.appendChild(this.#prefixElement); }                // Prefix
+                this.#inputWrapperElement.appendChild(this.#inputElement);                                      // Input
+                if (this.suffix) { this.#inputWrapperElement.appendChild(this.#suffixElement); }                // Suffix
             }
-            else {                                                                                  // No prefix or suffix:
-                this.#wrapperElement.appendChild(this.#inputElement);                               // Input
+            else {                                                                                              // Input with no prefix or suffix:
+                if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
+                    this.#editWrapperElement.appendChild(this.#inputElement);
+                }
+                else {
+                    this.#wrapperElement.appendChild(this.#inputElement);
+                }
             }
+            if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
+                this.#editWrapperElement.appendChild(this.#editButtonElement);                      // Edit button
+            }
+        }
+    }
+
+    #removeReadOnly() {
+        if (this.hasAttribute('readonly')) {
+            this.removeAttribute('readonly');
+            this.#inputElement.focus();
+            let eventEditClicked = new Event('fds-edit-clicked');
+            this.dispatchEvent(eventEditClicked);
         }
     }
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'disabled', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix'];
+    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton'];
 
     /*
     ATTRIBUTE GETTERS AND SETTERS
@@ -81,6 +117,9 @@ class FDSInput extends HTMLElement {
     get disabled() { return this.getAttribute('disabled'); }
     set disabled(val) { this.setAttribute('disabled', val); }
 
+    get readonly() { return this.getAttribute('readonly'); }
+    set readonly(val) { this.setAttribute('readonly', val); }
+
     get autocomplete() { return this.getAttribute('autocomplete'); }
     set autocomplete(val) { this.setAttribute('autocomplete', val); }
 
@@ -96,6 +135,9 @@ class FDSInput extends HTMLElement {
     get suffix() { return this.getAttribute('suffix'); }
     set suffix(val) { this.setAttribute('suffix', val); }
 
+    get editbutton() { return this.getAttribute('editbutton'); }
+    set editbutton(val) { this.setAttribute('editbutton', val); }
+
     /*
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
     */
@@ -106,6 +148,7 @@ class FDSInput extends HTMLElement {
         this.#glossary = {
             'errorText': 'Fejl'
         };
+        this.#handleEditClicked = () => { this.#removeReadOnly() };
     }
 
     /*
@@ -188,6 +231,9 @@ class FDSInput extends HTMLElement {
             this.#inputWrapperElement = document.createElement('div');
             this.#inputWrapperElement.classList.add('form-input-wrapper');
 
+            this.#editWrapperElement = document.createElement('div');
+            this.#editWrapperElement.classList.add('edit-wrapper');
+
             this.#helptextElement = document.createElement('span');
             this.#helptextElement.classList.add('form-hint');
 
@@ -201,6 +247,11 @@ class FDSInput extends HTMLElement {
             this.#suffixElement = document.createElement('div');
             this.#suffixElement.classList.add('form-input-suffix');
             this.#suffixElement.setAttribute('aria-hidden', 'true');
+
+            this.#editButtonElement = document.createElement('button');
+            this.#editButtonElement.setAttribute('type', 'button');
+            this.#editButtonElement.classList.add('function-link', 'edit-button');
+            this.#editButtonElement.addEventListener('click', this.#handleEditClicked, false);
 
             this.#initialised = true;
         }
@@ -291,6 +342,20 @@ class FDSInput extends HTMLElement {
             }
         }
 
+        if (attribute === 'readonly') {
+            // Attribute changed
+            if (newValue !== null) {
+                this.#inputElement.setAttribute('readonly', '');
+                if (this.hasAttribute('error')) {
+                    throw new Error(`${attribute} attribute not allowed on elements with errors.`);
+                }
+            }
+            // Attribute removed
+            else {
+                this.#inputElement.removeAttribute('readonly');
+            }
+        }
+
         if (attribute === 'autocomplete') {
             // Attribute changed
             if (newValue !== null) {
@@ -315,7 +380,7 @@ class FDSInput extends HTMLElement {
                     this.#helptextElement.textContent = newValue;
                 }
                 else {
-                    throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+                    this.#helptextElement.textContent = '';
                 }
             }
             // Do nothing on attribute removed. HTML is removed at rebuild step.
