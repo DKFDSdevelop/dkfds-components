@@ -20,64 +20,15 @@ export function setDefaultType(inputElement) {
 FUNCTIONS FOR VALIDATING ATTRIBUTES 
 */
 
-export function isValidLabel(label) {
-    if (isNonEmptyString(label)) { return true; }
-    else { return false; }
-}
-
-export function isValidName(name) {
-    if (isNonEmptyString(name)) { return true; }
-    else { return false; }
-}
-
-export function isValidInputId(inputid) {
-    if (isNonEmptyString(inputid)) { return true; }
-    else { return false; }
-}
-
 export function isValidType(type) {
     const TYPES = ['text', 'email', 'number', 'password', 'tel', 'url'];
-    if (TYPES.includes(type)) { return true; }
-    else { return false; }
-}
 
-export function isValidAutocomplete(autocomplete) {
-    if (isNonEmptyString(autocomplete)) { return true; }
-    else { return false; }
-}
-
-export function isValidHelptext(helptext) {
-    if (isNonEmptyString(helptext)) { return true; }
-    else { return false; }
-}
-
-export function isValidError(error) {
-    if (isNonEmptyString(error)) { return true; }
-    else { return false; }
-}
-
-export function isValidPrefix(prefix) {
-    if (isNonEmptyString(prefix)) { return true; }
-    else { return false; }
-}
-
-export function isValidSuffix(suffix) {
-    if (isNonEmptyString(suffix)) { return true; }
-    else { return false; }
-}
-
-/* 
-ATTRIBUTE HELPERS
-*/
-
-export function disabledUpdated(labelElement, inputElement) {
-    labelElement.classList.add('disabled');
-    inputElement.setAttribute('disabled', '');
-}
-
-export function disabledRemoved(labelElement, inputElement) {
-    labelElement.classList.remove('disabled');
-    inputElement.removeAttribute('disabled');
+    if (TYPES.includes(type)) { 
+        return true; 
+    }
+    else { 
+        return false; 
+    }
 }
 
 /* 

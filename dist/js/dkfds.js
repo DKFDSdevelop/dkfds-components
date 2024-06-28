@@ -5989,27 +5989,6 @@ function setDefaultType(inputElement) {
 FUNCTIONS FOR VALIDATING ATTRIBUTES 
 */
 
-function isValidLabel(label) {
-  if (isNonEmptyString(label)) {
-    return true;
-  } else {
-    return false;
-  }
-}
-function isValidName(name) {
-  if (isNonEmptyString(name)) {
-    return true;
-  } else {
-    return false;
-  }
-}
-function isValidInputId(inputid) {
-  if (isNonEmptyString(inputid)) {
-    return true;
-  } else {
-    return false;
-  }
-}
 function isValidType(type) {
   const TYPES = ['text', 'email', 'number', 'password', 'tel', 'url'];
   if (TYPES.includes(type)) {
@@ -6017,54 +5996,6 @@ function isValidType(type) {
   } else {
     return false;
   }
-}
-function isValidAutocomplete(autocomplete) {
-  if (isNonEmptyString(autocomplete)) {
-    return true;
-  } else {
-    return false;
-  }
-}
-function isValidHelptext(helptext) {
-  if (isNonEmptyString(helptext)) {
-    return true;
-  } else {
-    return false;
-  }
-}
-function isValidError(error) {
-  if (isNonEmptyString(error)) {
-    return true;
-  } else {
-    return false;
-  }
-}
-function isValidPrefix(prefix) {
-  if (isNonEmptyString(prefix)) {
-    return true;
-  } else {
-    return false;
-  }
-}
-function isValidSuffix(suffix) {
-  if (isNonEmptyString(suffix)) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
-/* 
-ATTRIBUTE HELPERS
-*/
-
-function disabledUpdated(labelElement, inputElement) {
-  labelElement.classList.add('disabled');
-  inputElement.setAttribute('disabled', '');
-}
-function disabledRemoved(labelElement, inputElement) {
-  labelElement.classList.remove('disabled');
-  inputElement.removeAttribute('disabled');
 }
 
 /* 
@@ -6097,67 +6028,91 @@ class FDSInput extends HTMLElement {
   #editButtonElement;
   #handleEditClicked;
   #glossary;
+  #connected;
   #initialised;
+  #triggerRebuild;
 
   /* Private methods */
 
   #rebuildElement() {
-    if (this.#wrapperElement !== undefined && this.#inputElement !== undefined) {
-      // Reset HTML
-      this.#wrapperElement.innerHTML = '';
-      this.#inputWrapperElement.innerHTML = '';
-      this.#inputElement.removeAttribute('aria-describedby');
+    // Reset HTML
+    this.#wrapperElement.innerHTML = '';
+    this.#inputWrapperElement.innerHTML = '';
+    this.#inputElement.removeAttribute('aria-describedby');
 
-      // Set up aria-describedby attribute
-      if (isNonEmptyString(this.helptext) && isNonEmptyString(this.error)) {
-        let ariaDescribedBy = this.#helptextElement.id + ' ' + this.#errorElement.id;
-        this.#inputElement.setAttribute('aria-describedby', ariaDescribedBy);
-      } else if (isNonEmptyString(this.helptext)) {
-        this.#inputElement.setAttribute('aria-describedby', this.#helptextElement.id);
-      } else if (isNonEmptyString(this.error)) {
-        this.#inputElement.setAttribute('aria-describedby', this.#errorElement.id);
-      }
+    // Update IDs
+    setHelptextId(this.#helptextElement, this.#inputElement);
+    setErrorId(this.#errorElement, this.#inputElement);
 
-      // Set up edit button
-      if (this.hasAttribute('editbutton') && isNonEmptyString(this.label)) {
-        this.#editButtonElement.innerHTML = '<svg class="icon-svg" focusable="false" aria-hidden="true"><use xlink:href="#mode"></use></svg>Rediger<span class="sr-only"> ' + this.label + '</span>';
-      }
+    // Set up aria-describedby attribute
+    if (isNonEmptyString(this.helptext) && isNonEmptyString(this.error)) {
+      let ariaDescribedBy = this.#helptextElement.id + ' ' + this.#errorElement.id;
+      this.#inputElement.setAttribute('aria-describedby', ariaDescribedBy);
+    } else if (isNonEmptyString(this.helptext)) {
+      this.#inputElement.setAttribute('aria-describedby', this.#helptextElement.id);
+    } else if (isNonEmptyString(this.error)) {
+      this.#inputElement.setAttribute('aria-describedby', this.#errorElement.id);
+    }
 
-      // Build element
-      this.#wrapperElement.appendChild(this.#labelElement); // Label
-      if (isNonEmptyString(this.helptext)) {
-        this.#wrapperElement.appendChild(this.#helptextElement);
-      } // Helptext
-      if (isNonEmptyString(this.error)) {
-        this.#wrapperElement.appendChild(this.#errorElement);
-      } // Error message
+    // Set up edit button
+    if (this.hasAttribute('editbutton') && isNonEmptyString(this.label)) {
+      this.#editButtonElement.innerHTML = '<svg class="icon-svg" focusable="false" aria-hidden="true"><use xlink:href="#mode"></use></svg>Rediger<span class="sr-only"> ' + this.label + '</span>';
+    }
+
+    // Update error message
+    if (isNonEmptyString(this.error)) {
+      this.#errorElement.innerHTML = '<span class="sr-only">' + this.#glossary['errorText'] + ': </span>' + this.error;
+    }
+
+    // Add label
+    this.#wrapperElement.appendChild(this.#labelElement);
+
+    // Add helptext
+    if (isNonEmptyString(this.helptext)) {
+      this.#wrapperElement.appendChild(this.#helptextElement);
+    }
+
+    // Add error message
+    if (isNonEmptyString(this.error)) {
+      this.#wrapperElement.appendChild(this.#errorElement);
+    }
+
+    // Add wrapper for edit button
+    if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
+      this.#wrapperElement.appendChild(this.#editWrapperElement);
+    }
+
+    // Add wrapper for prefix and suffix
+    if (isNonEmptyString(this.prefix) || isNonEmptyString(this.suffix)) {
       if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
-        this.#wrapperElement.appendChild(this.#editWrapperElement); // Wrapper for edit button
-      }
-      if (this.prefix || this.suffix) {
-        if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
-          this.#editWrapperElement.appendChild(this.#inputWrapperElement);
-        } else {
-          this.#wrapperElement.appendChild(this.#inputWrapperElement);
-        }
-        if (this.prefix) {
-          this.#inputWrapperElement.appendChild(this.#prefixElement);
-        } // Prefix
-        this.#inputWrapperElement.appendChild(this.#inputElement); // Input
-        if (this.suffix) {
-          this.#inputWrapperElement.appendChild(this.#suffixElement);
-        } // Suffix
+        this.#editWrapperElement.appendChild(this.#inputWrapperElement);
       } else {
-        // Input with no prefix or suffix:
-        if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
-          this.#editWrapperElement.appendChild(this.#inputElement);
-        } else {
-          this.#wrapperElement.appendChild(this.#inputElement);
-        }
+        this.#wrapperElement.appendChild(this.#inputWrapperElement);
       }
-      if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
-        this.#editWrapperElement.appendChild(this.#editButtonElement); // Edit button
-      }
+    }
+
+    // Add prefix
+    if (isNonEmptyString(this.prefix)) {
+      this.#inputWrapperElement.appendChild(this.#prefixElement);
+    }
+
+    // Add input
+    if (isNonEmptyString(this.prefix) || isNonEmptyString(this.suffix)) {
+      this.#inputWrapperElement.appendChild(this.#inputElement);
+    } else if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
+      this.#editWrapperElement.appendChild(this.#inputElement);
+    } else {
+      this.#wrapperElement.appendChild(this.#inputElement);
+    }
+
+    // Add suffix
+    if (isNonEmptyString(this.suffix)) {
+      this.#inputWrapperElement.appendChild(this.#suffixElement);
+    }
+
+    // Add edit button
+    if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
+      this.#editWrapperElement.appendChild(this.#editButtonElement);
     }
   }
   #removeReadOnly() {
@@ -6263,12 +6218,14 @@ class FDSInput extends HTMLElement {
   constructor() {
     super();
     this.#initialised = false;
+    this.#connected = false;
     this.#glossary = {
       'errorText': 'Fejl'
     };
     this.#handleEditClicked = () => {
       this.#removeReadOnly();
     };
+    this.#triggerRebuild = ['label', 'inputid', 'disabled', 'readonly', 'helptext', 'error', 'prefix', 'suffix', 'editbutton'];
   }
 
   /*
@@ -6301,7 +6258,7 @@ class FDSInput extends HTMLElement {
       throw new Error(`Custom element 'fds-input' not created. Element must not contain content at element creation.`);
     } else {
       /* Ensure input always has an ID */
-      if (!isValidInputId(this.inputid)) {
+      if (!isNonEmptyString(this.inputid)) {
         setDefaultInputId(this.#labelElement, this.#inputElement);
       }
 
@@ -6309,10 +6266,9 @@ class FDSInput extends HTMLElement {
       if (!isValidType(this.type)) {
         setDefaultType(this.#inputElement);
       }
-      setHelptextId(this.#helptextElement, this.#inputElement);
-      setErrorId(this.#errorElement, this.#inputElement);
       this.#rebuildElement();
       this.appendChild(this.#wrapperElement);
+      this.#connected = true;
     }
   }
 
@@ -6327,7 +6283,8 @@ class FDSInput extends HTMLElement {
   */
 
   attributeChangedCallback(attribute, oldValue, newValue) {
-    /* Element setup. Applied once on the initial call before connectedCallback(). */
+    /* Element setup. Applied once on the first call to 
+       attributeChangedCallback() before connectedCallback(). */
 
     if (!this.#initialised) {
       this.#wrapperElement = document.createElement('div');
@@ -6362,36 +6319,34 @@ class FDSInput extends HTMLElement {
     if (attribute === 'label') {
       // Attribute changed
       if (newValue !== null) {
-        if (isValidLabel(newValue)) {
+        if (isNonEmptyString(newValue)) {
           this.#labelElement.textContent = newValue;
         } else {
           throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
         }
       }
-      // Do nothing on attribute removed
+      // Do nothing on attribute removed to avoid throwing an error in those  
+      // rare cases where two calls are made to attributeChangedCallback()
     }
     if (attribute === 'name') {
       // Attribute changed
       if (newValue !== null) {
-        if (isValidName(newValue)) {
+        if (isNonEmptyString(newValue)) {
           this.#inputElement.setAttribute('name', newValue);
         } else {
           throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
         }
       }
-      // Do nothing on attribute removed
+      // Do nothing on attribute removed to avoid throwing an error in those  
+      // rare cases where two calls are made to attributeChangedCallback()
     }
     if (attribute === 'inputid') {
-      // Attribute changed
-      if (newValue !== null) {
-        if (isValidInputId(newValue)) {
-          this.#labelElement.setAttribute('for', newValue);
-          this.#inputElement.setAttribute('id', newValue);
-        } else {
-          throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-        }
+      // Attribute changed to valid value
+      if (isNonEmptyString(newValue)) {
+        this.#labelElement.setAttribute('for', newValue);
+        this.#inputElement.setAttribute('id', newValue);
       }
-      // Attribute removed
+      // Attribute removed or invalid value
       else {
         setDefaultInputId(this.#labelElement, this.#inputElement);
       }
@@ -6407,15 +6362,15 @@ class FDSInput extends HTMLElement {
       }
     }
     if (attribute === 'type') {
-      // Attribute changed
-      if (newValue !== null) {
+      // Attribute changed to text
+      if (isNonEmptyString(newValue)) {
         if (isValidType(newValue)) {
           this.#inputElement.setAttribute('type', newValue);
         } else {
           throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
         }
       }
-      // Attribute removed
+      // Attribute removed or changed to non-text
       else {
         setDefaultType(this.#inputElement);
       }
@@ -6423,14 +6378,16 @@ class FDSInput extends HTMLElement {
     if (attribute === 'disabled') {
       // Attribute changed
       if (newValue !== null) {
-        disabledUpdated(this.#labelElement, this.#inputElement);
+        this.#labelElement.classList.add('disabled');
+        this.#inputElement.setAttribute('disabled', '');
         if (this.hasAttribute('error')) {
           throw new Error(`${attribute} attribute not allowed on elements with errors.`);
         }
       }
       // Attribute removed
       else {
-        disabledRemoved(this.#labelElement, this.#inputElement);
+        this.#labelElement.classList.remove('disabled');
+        this.#inputElement.removeAttribute('disabled');
       }
     }
     if (attribute === 'readonly') {
@@ -6447,44 +6404,32 @@ class FDSInput extends HTMLElement {
       }
     }
     if (attribute === 'autocomplete') {
-      // Attribute changed
-      if (newValue !== null) {
-        if (isValidAutocomplete(newValue)) {
-          this.#inputElement.setAttribute('autocomplete', newValue);
-        } else {
-          throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-        }
+      // Attribute changed to valid value
+      if (isNonEmptyString(newValue)) {
+        this.#inputElement.setAttribute('autocomplete', newValue);
       }
-      // Attribute removed
+      // Attribute removed or invalid value
       else {
         this.#inputElement.removeAttribute('autocomplete');
       }
     }
     if (attribute === 'helptext') {
-      // Attribute changed
-      if (newValue !== null) {
-        if (isValidHelptext(newValue)) {
-          setHelptextId(this.#helptextElement, this.#inputElement);
-          this.#helptextElement.textContent = newValue;
-        } else {
-          this.#helptextElement.textContent = '';
-        }
+      // Attribute changed to valid value
+      if (isNonEmptyString(newValue)) {
+        this.#helptextElement.textContent = newValue;
       }
-      // Do nothing on attribute removed. HTML is removed at rebuild step.
+      // Attribute removed or invalid value
+      else {
+        this.#helptextElement.textContent = '';
+      }
     }
     if (attribute === 'error') {
       // Attribute changed
-      if (newValue !== null) {
-        if (isValidError(newValue)) {
-          this.#wrapperElement.classList.add('form-error');
-          setErrorId(this.#errorElement, this.#inputElement);
-          this.#errorElement.innerHTML = '<span class="sr-only">' + this.#glossary['errorText'] + ': </span>' + newValue;
-          this.#inputElement.setAttribute('aria-invalid', 'true');
-          if (this.hasAttribute('disabled')) {
-            throw new Error(`${attribute} attribute not allowed on disabled input.`);
-          }
-        } else {
-          throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
+      if (isNonEmptyString(newValue)) {
+        this.#wrapperElement.classList.add('form-error');
+        this.#inputElement.setAttribute('aria-invalid', 'true');
+        if (this.hasAttribute('disabled')) {
+          throw new Error(`${attribute} attribute not allowed on disabled input.`);
         }
       }
       // Attribute removed
@@ -6494,29 +6439,21 @@ class FDSInput extends HTMLElement {
       }
     }
     if (attribute === 'prefix') {
-      // Attribute changed
-      if (newValue !== null) {
-        if (isValidPrefix(newValue)) {
-          this.#inputWrapperElement.classList.add('form-input-wrapper--prefix');
-          this.#prefixElement.textContent = newValue;
-        } else {
-          throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-        }
+      // Attribute changed to valid value
+      if (isNonEmptyString(newValue)) {
+        this.#inputWrapperElement.classList.add('form-input-wrapper--prefix');
+        this.#prefixElement.textContent = newValue;
       }
-      // Attribute removed
+      // Attribute removed or invalid value
       else {
         this.#inputWrapperElement.classList.remove('form-input-wrapper--prefix');
       }
     }
     if (attribute === 'suffix') {
       // Attribute changed
-      if (newValue !== null) {
-        if (isValidSuffix(newValue)) {
-          this.#inputWrapperElement.classList.add('form-input-wrapper--suffix');
-          this.#suffixElement.textContent = newValue;
-        } else {
-          throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-        }
+      if (isNonEmptyString(newValue)) {
+        this.#inputWrapperElement.classList.add('form-input-wrapper--suffix');
+        this.#suffixElement.textContent = newValue;
       }
       // Attribute removed
       else {
@@ -6526,7 +6463,9 @@ class FDSInput extends HTMLElement {
 
     /* Update HTML */
 
-    this.#rebuildElement();
+    if (this.#triggerRebuild.includes(attribute) && this.#initialised && this.#connected) {
+      this.#rebuildElement();
+    }
   }
 }
 /* harmony default export */ const fds_input = (FDSInput);
