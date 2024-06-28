@@ -6008,6 +6008,26 @@ function setHelptextId(helptextElement, inputElement) {
 function setErrorId(errorElement, inputElement) {
   errorElement.id = inputElement.id + '-error';
 }
+function updateErrorMessage(errorElement, srText, errorText) {
+  errorElement.innerHTML = '<span class="sr-only">' + srText + ': </span>' + errorText;
+}
+function updateEditButton(editButtonElement, editText, labelText) {
+  editButtonElement.innerHTML = '<svg class="icon-svg" focusable="false" aria-hidden="true"><use xlink:href="#mode"></use></svg>' + editText + '<span class="sr-only"> ' + labelText + '</span>';
+}
+function checkDisallowedCombinations(hasError, isRequired, isReadonly, isDisabled) {
+  if (hasError && isDisabled) {
+    throw new Error(`'error' and 'disabled' attributes both present on fds-input.`);
+  }
+  if (hasError && isReadonly) {
+    throw new Error(`'error' and 'readonly' attributes both present on fds-input.`);
+  }
+  if (isRequired && isDisabled) {
+    throw new Error(`'required' and 'disabled' attributes both present on fds-input.`);
+  }
+  if (isRequired && isReadonly) {
+    throw new Error(`'required' and 'readonly' attributes both present on fds-input.`);
+  }
+}
 ;// CONCATENATED MODULE: ./src/js/custom-elements/fds-input.js
 
 
@@ -6056,12 +6076,12 @@ class FDSInput extends HTMLElement {
 
     // Set up edit button
     if (this.hasAttribute('editbutton') && isNonEmptyString(this.label)) {
-      this.#editButtonElement.innerHTML = '<svg class="icon-svg" focusable="false" aria-hidden="true"><use xlink:href="#mode"></use></svg>Rediger<span class="sr-only"> ' + this.label + '</span>';
+      updateEditButton(this.#editButtonElement, this.#glossary['editText'], this.label);
     }
 
     // Update error message
     if (isNonEmptyString(this.error)) {
-      this.#errorElement.innerHTML = '<span class="sr-only">' + this.#glossary['errorText'] + ': </span>' + this.error;
+      updateErrorMessage(this.#errorElement, this.#glossary['errorText'], this.error);
     }
 
     // Add label
@@ -6126,7 +6146,7 @@ class FDSInput extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton'];
+  static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'required', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton'];
 
   /*
   ATTRIBUTE GETTERS AND SETTERS
@@ -6161,6 +6181,12 @@ class FDSInput extends HTMLElement {
   }
   set type(val) {
     this.setAttribute('type', val);
+  }
+  get required() {
+    return this.getAttribute('required');
+  }
+  set required(val) {
+    this.setAttribute('required', val);
   }
   get disabled() {
     return this.getAttribute('disabled');
@@ -6220,7 +6246,8 @@ class FDSInput extends HTMLElement {
     this.#initialised = false;
     this.#connected = false;
     this.#glossary = {
-      'errorText': 'Fejl'
+      'errorText': 'Fejl',
+      'editText': 'Rediger'
     };
     this.#handleEditClicked = () => {
       this.#removeReadOnly();
@@ -6241,8 +6268,14 @@ class FDSInput extends HTMLElement {
   updateGlossary(glossary) {
     if (glossary['errorText'] !== undefined) {
       this.#glossary['errorText'] = glossary['errorText'];
-      if (this.error) {
-        this.#errorElement.innerHTML = '<span class="sr-only">' + this.#glossary['errorText'] + ': </span>' + this.error;
+      if (isNonEmptyString(this.error)) {
+        updateErrorMessage(this.#errorElement, this.#glossary['errorText'], this.error);
+      }
+    }
+    if (glossary['editText'] !== undefined) {
+      this.#glossary['editText'] = glossary['editText'];
+      if (isNonEmptyString(this.label)) {
+        updateEditButton(this.#editButtonElement, this.#glossary['editText'], this.label);
       }
     }
   }
@@ -6375,14 +6408,21 @@ class FDSInput extends HTMLElement {
         setDefaultType(this.#inputElement);
       }
     }
+    if (attribute === 'required') {
+      // Attribute changed
+      if (newValue !== null) {
+        this.#inputElement.setAttribute('required', '');
+      }
+      // Attribute removed
+      else {
+        this.#inputElement.removeAttribute('required');
+      }
+    }
     if (attribute === 'disabled') {
       // Attribute changed
       if (newValue !== null) {
         this.#labelElement.classList.add('disabled');
         this.#inputElement.setAttribute('disabled', '');
-        if (this.hasAttribute('error')) {
-          throw new Error(`${attribute} attribute not allowed on elements with errors.`);
-        }
       }
       // Attribute removed
       else {
@@ -6394,9 +6434,6 @@ class FDSInput extends HTMLElement {
       // Attribute changed
       if (newValue !== null) {
         this.#inputElement.setAttribute('readonly', '');
-        if (this.hasAttribute('error')) {
-          throw new Error(`${attribute} attribute not allowed on elements with errors.`);
-        }
       }
       // Attribute removed
       else {
@@ -6428,9 +6465,6 @@ class FDSInput extends HTMLElement {
       if (isNonEmptyString(newValue)) {
         this.#wrapperElement.classList.add('form-error');
         this.#inputElement.setAttribute('aria-invalid', 'true');
-        if (this.hasAttribute('disabled')) {
-          throw new Error(`${attribute} attribute not allowed on disabled input.`);
-        }
       }
       // Attribute removed
       else {
@@ -6460,6 +6494,7 @@ class FDSInput extends HTMLElement {
         this.#inputWrapperElement.classList.remove('form-input-wrapper--suffix');
       }
     }
+    checkDisallowedCombinations(isNonEmptyString(this.error), this.hasAttribute('required'), this.hasAttribute('readonly'), this.hasAttribute('disabled'));
 
     /* Update HTML */
 
