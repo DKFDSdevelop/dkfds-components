@@ -6008,13 +6008,20 @@ function setHelptextId(helptextElement, inputElement) {
 function setErrorId(errorElement, inputElement) {
   errorElement.id = inputElement.id + '-error';
 }
-function updateErrorMessage(errorElement, srText, errorText) {
+function updateErrorMessage(errorElement, errorText, srText) {
   errorElement.innerHTML = '<span class="sr-only">' + srText + ': </span>' + errorText;
 }
-function updateEditButton(editButtonElement, editText, labelText) {
+function updateEditButton(editButtonElement, labelText, editText) {
   editButtonElement.innerHTML = '<svg class="icon-svg" focusable="false" aria-hidden="true"><use xlink:href="#mode"></use></svg>' + editText + '<span class="sr-only"> ' + labelText + '</span>';
 }
-function checkDisallowedCombinations(hasError, isRequired, isReadonly, isDisabled) {
+function updateRequiredLabel(labelElement, labelText, requiredText) {
+  labelElement.innerHTML = labelText + '<span class="weight-normal"> (*' + requiredText + ')</span>';
+}
+function updateOptionalLabel(labelElement, labelText, optionalText) {
+  labelElement.innerHTML = labelText + '<span class="weight-normal"> (' + optionalText + ')</span>';
+}
+function checkDisallowedCombinations(hasError, isRequired, isReadonly, isDisabled, showRequired, showOptional) {
+  let isOptional = !isRequired;
   if (hasError && isDisabled) {
     throw new Error(`'error' and 'disabled' attributes both present on fds-input.`);
   }
@@ -6026,6 +6033,15 @@ function checkDisallowedCombinations(hasError, isRequired, isReadonly, isDisable
   }
   if (isRequired && isReadonly) {
     throw new Error(`'required' and 'readonly' attributes both present on fds-input.`);
+  }
+  if (isOptional && showRequired) {
+    throw new Error(`'required' label displayed on optional fds-input.`);
+  }
+  if (isRequired && showOptional) {
+    throw new Error(`'optional' label displayed on required fds-input.`);
+  }
+  if (showRequired && showOptional) {
+    throw new Error(`Both 'optional' and 'required' labels displayed on fds-input.`);
   }
 }
 ;// CONCATENATED MODULE: ./src/js/custom-elements/fds-input.js
@@ -6059,6 +6075,9 @@ class FDSInput extends HTMLElement {
     this.#wrapperElement.innerHTML = '';
     this.#inputWrapperElement.innerHTML = '';
     this.#inputElement.removeAttribute('aria-describedby');
+    if (isNonEmptyString(this.label)) {
+      this.#labelElement.textContent = this.label;
+    }
 
     // Update IDs
     setHelptextId(this.#helptextElement, this.#inputElement);
@@ -6076,16 +6095,26 @@ class FDSInput extends HTMLElement {
 
     // Set up edit button
     if (this.hasAttribute('editbutton') && isNonEmptyString(this.label)) {
-      updateEditButton(this.#editButtonElement, this.#glossary['editText'], this.label);
+      updateEditButton(this.#editButtonElement, this.label, this.#glossary['editText']);
     }
 
     // Update error message
     if (isNonEmptyString(this.error)) {
-      updateErrorMessage(this.#errorElement, this.#glossary['errorText'], this.error);
+      updateErrorMessage(this.#errorElement, this.error, this.#glossary['errorText']);
     }
 
     // Add label
     this.#wrapperElement.appendChild(this.#labelElement);
+
+    // Add required label
+    if (this.hasAttribute('showrequired') && isNonEmptyString(this.label)) {
+      updateRequiredLabel(this.#labelElement, this.label, this.#glossary['requiredText']);
+    }
+
+    // Add optional label
+    if (this.hasAttribute('showoptional') && isNonEmptyString(this.label)) {
+      updateOptionalLabel(this.#labelElement, this.label, this.#glossary['optionalText']);
+    }
 
     // Add helptext
     if (isNonEmptyString(this.helptext)) {
@@ -6146,7 +6175,7 @@ class FDSInput extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'required', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton'];
+  static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'required', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional'];
 
   /*
   ATTRIBUTE GETTERS AND SETTERS
@@ -6236,6 +6265,18 @@ class FDSInput extends HTMLElement {
   set editbutton(val) {
     this.setAttribute('editbutton', val);
   }
+  get showrequired() {
+    return this.getAttribute('showrequired');
+  }
+  set showrequired(val) {
+    this.setAttribute('showrequired', val);
+  }
+  get showoptional() {
+    return this.getAttribute('showoptional');
+  }
+  set showoptional(val) {
+    this.setAttribute('showoptional', val);
+  }
 
   /*
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -6247,12 +6288,14 @@ class FDSInput extends HTMLElement {
     this.#connected = false;
     this.#glossary = {
       'errorText': 'Fejl',
-      'editText': 'Rediger'
+      'editText': 'Rediger',
+      'requiredText': 'skal udfyldes',
+      'optionalText': 'frivilligt'
     };
     this.#handleEditClicked = () => {
       this.#removeReadOnly();
     };
-    this.#triggerRebuild = ['label', 'inputid', 'disabled', 'readonly', 'helptext', 'error', 'prefix', 'suffix', 'editbutton'];
+    this.#triggerRebuild = ['label', 'inputid', 'required', 'disabled', 'readonly', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional'];
   }
 
   /*
@@ -6269,13 +6312,25 @@ class FDSInput extends HTMLElement {
     if (glossary['errorText'] !== undefined) {
       this.#glossary['errorText'] = glossary['errorText'];
       if (isNonEmptyString(this.error)) {
-        updateErrorMessage(this.#errorElement, this.#glossary['errorText'], this.error);
+        updateErrorMessage(this.#errorElement, this.error, this.#glossary['errorText']);
       }
     }
     if (glossary['editText'] !== undefined) {
       this.#glossary['editText'] = glossary['editText'];
       if (isNonEmptyString(this.label)) {
-        updateEditButton(this.#editButtonElement, this.#glossary['editText'], this.label);
+        updateEditButton(this.#editButtonElement, this.label, this.#glossary['editText']);
+      }
+    }
+    if (glossary['requiredText'] !== undefined) {
+      this.#glossary['requiredText'] = glossary['requiredText'];
+      if (isNonEmptyString(this.label)) {
+        updateRequiredLabel(this.#labelElement, this.label, this.#glossary['requiredText']);
+      }
+    }
+    if (glossary['optionalText'] !== undefined) {
+      this.#glossary['optionalText'] = glossary['optionalText'];
+      if (isNonEmptyString(this.label)) {
+        updateOptionalLabel(this.#labelElement, this.label, this.#glossary['optionalText']);
       }
     }
   }
@@ -6494,7 +6549,7 @@ class FDSInput extends HTMLElement {
         this.#inputWrapperElement.classList.remove('form-input-wrapper--suffix');
       }
     }
-    checkDisallowedCombinations(isNonEmptyString(this.error), this.hasAttribute('required'), this.hasAttribute('readonly'), this.hasAttribute('disabled'));
+    checkDisallowedCombinations(isNonEmptyString(this.error), this.hasAttribute('required'), this.hasAttribute('readonly'), this.hasAttribute('disabled'), this.hasAttribute('showrequired'), this.hasAttribute('showoptional'));
 
     /* Update HTML */
 

@@ -32,6 +32,9 @@ class FDSInput extends HTMLElement {
         this.#wrapperElement.innerHTML = '';
         this.#inputWrapperElement.innerHTML = '';
         this.#inputElement.removeAttribute('aria-describedby');
+        if (isNonEmptyString(this.label)) {
+            this.#labelElement.textContent = this.label;
+        }
 
         // Update IDs
         Helpers.setHelptextId(this.#helptextElement, this.#inputElement);
@@ -51,16 +54,26 @@ class FDSInput extends HTMLElement {
 
         // Set up edit button
         if (this.hasAttribute('editbutton') && isNonEmptyString(this.label)) {
-            Helpers.updateEditButton(this.#editButtonElement, this.#glossary['editText'], this.label);
+            Helpers.updateEditButton(this.#editButtonElement, this.label, this.#glossary['editText']);
         }
 
         // Update error message
         if (isNonEmptyString(this.error)) {
-            Helpers.updateErrorMessage(this.#errorElement, this.#glossary['errorText'], this.error);
+            Helpers.updateErrorMessage(this.#errorElement, this.error, this.#glossary['errorText']);
         }
         
         // Add label
         this.#wrapperElement.appendChild(this.#labelElement);
+
+        // Add required label
+        if (this.hasAttribute('showrequired') && isNonEmptyString(this.label)) {
+            Helpers.updateRequiredLabel(this.#labelElement, this.label, this.#glossary['requiredText']);
+        }
+
+        // Add optional label
+        if (this.hasAttribute('showoptional') && isNonEmptyString(this.label)) {
+            Helpers.updateOptionalLabel(this.#labelElement, this.label, this.#glossary['optionalText']);
+        }
 
         // Add helptext
         if (isNonEmptyString(this.helptext)) { 
@@ -125,7 +138,7 @@ class FDSInput extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'required', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton'];
+    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'required', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional'];
 
     /*
     ATTRIBUTE GETTERS AND SETTERS
@@ -173,6 +186,12 @@ class FDSInput extends HTMLElement {
     get editbutton() { return this.getAttribute('editbutton'); }
     set editbutton(val) { this.setAttribute('editbutton', val); }
 
+    get showrequired() { return this.getAttribute('showrequired'); }
+    set showrequired(val) { this.setAttribute('showrequired', val); }
+
+    get showoptional() { return this.getAttribute('showoptional'); }
+    set showoptional(val) { this.setAttribute('showoptional', val); }
+
     /*
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
     */
@@ -183,10 +202,12 @@ class FDSInput extends HTMLElement {
         this.#connected = false;
         this.#glossary = {
             'errorText': 'Fejl',
-            'editText': 'Rediger'
+            'editText': 'Rediger',
+            'requiredText': 'skal udfyldes',
+            'optionalText': 'frivilligt'
         };
         this.#handleEditClicked = () => { this.#removeReadOnly() };
-        this.#triggerRebuild = ['label', 'inputid', 'disabled', 'readonly', 'helptext', 'error', 'prefix', 'suffix', 'editbutton'];
+        this.#triggerRebuild = ['label', 'inputid', 'required', 'disabled', 'readonly', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional'];
     }
 
     /*
@@ -205,13 +226,25 @@ class FDSInput extends HTMLElement {
         if (glossary['errorText'] !== undefined) {
             this.#glossary['errorText'] = glossary['errorText'];
             if (isNonEmptyString(this.error)) {
-                Helpers.updateErrorMessage(this.#errorElement, this.#glossary['errorText'], this.error);
+                Helpers.updateErrorMessage(this.#errorElement, this.error, this.#glossary['errorText']);
             }
         }
         if (glossary['editText'] !== undefined) {
             this.#glossary['editText'] = glossary['editText'];
             if (isNonEmptyString(this.label)) {
-                Helpers.updateEditButton(this.#editButtonElement, this.#glossary['editText'], this.label);
+                Helpers.updateEditButton(this.#editButtonElement, this.label, this.#glossary['editText']);
+            }
+        }
+        if (glossary['requiredText'] !== undefined) {
+            this.#glossary['requiredText'] = glossary['requiredText'];
+            if (isNonEmptyString(this.label)) {
+                Helpers.updateRequiredLabel(this.#labelElement, this.label, this.#glossary['requiredText']);
+            }
+        }
+        if (glossary['optionalText'] !== undefined) {
+            this.#glossary['optionalText'] = glossary['optionalText'];
+            if (isNonEmptyString(this.label)) {
+                Helpers.updateOptionalLabel(this.#labelElement, this.label, this.#glossary['optionalText']);
             }
         }
     }
@@ -465,7 +498,9 @@ class FDSInput extends HTMLElement {
             isNonEmptyString(this.error), 
             this.hasAttribute('required'), 
             this.hasAttribute('readonly'), 
-            this.hasAttribute('disabled')
+            this.hasAttribute('disabled'),
+            this.hasAttribute('showrequired'),
+            this.hasAttribute('showoptional')
         );
 
         /* Update HTML */
