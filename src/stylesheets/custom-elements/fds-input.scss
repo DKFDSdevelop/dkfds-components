@@ -1,3 +1,4 @@
+@use "../variables" as vars;
 @use "../functions" as func;
 @use "../mixins" as mixins;
 
@@ -12,6 +13,11 @@ fds-input,
 
     .form-group{
         margin-top: 0;
+
+        .form-input.form-limit-error {
+            border: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
+            padding: calc(8px - #{vars.$input-border-width-feedback}) calc(16px - #{vars.$input-border-width-feedback});
+        }
     }
 
     .edit-wrapper {
@@ -46,6 +52,20 @@ fds-input,
         .edit-button {
             white-space: nowrap;
             margin-top: func.units(3);
+        }
+    }
+
+    .character-limit-wrapper {
+        .max-limit, .sr-message {
+            @include mixins.sr-only;
+        }
+
+        .visible-message {
+            margin-top: func.units(2);
+
+            &.limit-exceeded {
+                color: func.color(vars.$input-text-character-limit-exceeded-color);
+            }
         }
     }
 }

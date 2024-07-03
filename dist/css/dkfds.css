@@ -12050,6 +12050,11 @@ fds-input .form-group,
 .fds-input .form-group{
   margin-top:0;
 }
+fds-input .form-group .form-input.form-limit-error,
+.fds-input .form-group .form-input.form-limit-error{
+  border:2px solid #CC0000;
+  padding:calc(8px - 2px) calc(16px - 2px);
+}
 fds-input .edit-wrapper,
 .fds-input .edit-wrapper{
   display:block;
@@ -12090,6 +12095,27 @@ fds-input .edit-wrapper .edit-button,
 .fds-input .edit-wrapper .edit-button{
   white-space:nowrap;
   margin-top:8px;
+}
+fds-input .character-limit-wrapper .max-limit, fds-input .character-limit-wrapper .sr-message,
+.fds-input .character-limit-wrapper .max-limit,
+.fds-input .character-limit-wrapper .sr-message{
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0, 0, 0, 0);
+  border:0;
+  left:-999em;
+}
+fds-input .character-limit-wrapper .visible-message,
+.fds-input .character-limit-wrapper .visible-message{
+  margin-top:4px;
+}
+fds-input .character-limit-wrapper .visible-message.limit-exceeded,
+.fds-input .character-limit-wrapper .visible-message.limit-exceeded{
+  color:#CC0000;
 }
 
 @media print{

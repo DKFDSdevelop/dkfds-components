@@ -5997,6 +5997,47 @@ function isValidType(type) {
     return false;
   }
 }
+function isValidMaxChar(maxchar) {
+  let number = parseInt(maxchar);
+  return Number.isInteger(number);
+}
+
+/* 
+CHARACTER LIMIT
+*/
+
+function fds_input_helpers_characterLimitMessage(glossary, charactersLeft) {
+  let message = "";
+  if (charactersLeft === -1) {
+    let exceeded = Math.abs(charactersLeft);
+    message = glossary['oneCharacterExceededText'].replace(/{value}/, exceeded);
+  } else if (charactersLeft === 1) {
+    message = glossary['oneCharacterLeftText'].replace(/{value}/, charactersLeft);
+  } else if (charactersLeft >= 0) {
+    message = glossary['manyCharactersLeftText'].replace(/{value}/, charactersLeft);
+  } else {
+    let exceeded = Math.abs(charactersLeft);
+    message = glossary['manyCharactersExceededText'].replace(/{value}/, exceeded);
+  }
+  return message;
+}
+function fds_input_helpers_updateVisibleMessage(glossary, charactersLeft, inputElement, characterLimitElement) {
+  let newMessage = fds_input_helpers_characterLimitMessage(glossary, charactersLeft);
+  let visibleMessage = characterLimitElement.querySelector('.visible-message');
+  if (charactersLeft < 0) {
+    visibleMessage.classList.add('limit-exceeded');
+    inputElement.classList.add('form-limit-error');
+  } else {
+    visibleMessage.classList.remove('limit-exceeded');
+    inputElement.classList.remove('form-limit-error');
+  }
+  visibleMessage.innerHTML = newMessage;
+}
+function updateSRMessage(glossary, charactersLeft, characterLimitElement) {
+  let newMessage = fds_input_helpers_characterLimitMessage(glossary, charactersLeft);
+  let srMessage = characterLimitElement.querySelector('.sr-message');
+  srMessage.innerHTML = newMessage;
+}
 
 /* 
 REMAINING HELPERS
@@ -6007,6 +6048,9 @@ function setHelptextId(helptextElement, inputElement) {
 }
 function setErrorId(errorElement, inputElement) {
   errorElement.id = inputElement.id + '-error';
+}
+function setCharacterLimitId(characterLimitElement, inputElement) {
+  characterLimitElement.querySelector('.max-limit').id = inputElement.id + '-limit';
 }
 function updateErrorMessage(errorElement, errorText, srText) {
   errorElement.innerHTML = '<span class="sr-only">' + srText + ': </span>' + errorText;
@@ -6020,28 +6064,34 @@ function updateRequiredLabel(labelElement, labelText, requiredText) {
 function updateOptionalLabel(labelElement, labelText, optionalText) {
   labelElement.innerHTML = labelText + '<span class="weight-normal"> (' + optionalText + ')</span>';
 }
-function checkDisallowedCombinations(hasError, isRequired, isReadonly, isDisabled, showRequired, showOptional) {
+function checkDisallowedCombinations(hasError, isRequired, isReadonly, isDisabled, showRequired, showOptional, hasMaxChar) {
   let isOptional = !isRequired;
   if (hasError && isDisabled) {
-    throw new Error(`'error' and 'disabled' attributes both present on fds-input.`);
+    throw new Error(`'error' and 'disabled' attributes must not both present on fds-input.`);
   }
   if (hasError && isReadonly) {
-    throw new Error(`'error' and 'readonly' attributes both present on fds-input.`);
+    throw new Error(`'error' and 'readonly' attributes must not both present on fds-input.`);
   }
   if (isRequired && isDisabled) {
-    throw new Error(`'required' and 'disabled' attributes both present on fds-input.`);
+    throw new Error(`'required' and 'disabled' attributes must not both present on fds-input.`);
   }
   if (isRequired && isReadonly) {
-    throw new Error(`'required' and 'readonly' attributes both present on fds-input.`);
+    throw new Error(`'required' and 'readonly' attributes must not both present on fds-input.`);
   }
   if (isOptional && showRequired) {
-    throw new Error(`'required' label displayed on optional fds-input.`);
+    throw new Error(`'required' label must not be displayed on optional fds-input.`);
   }
   if (isRequired && showOptional) {
-    throw new Error(`'optional' label displayed on required fds-input.`);
+    throw new Error(`'optional' label must not be displayed on required fds-input.`);
   }
   if (showRequired && showOptional) {
-    throw new Error(`Both 'optional' and 'required' labels displayed on fds-input.`);
+    throw new Error(`Show only 'optional' or 'required' label on fds-input.`);
+  }
+  if (hasMaxChar && isDisabled) {
+    throw new Error(`'maxchar' and 'disabled' attributes must not both present on fds-input.`);
+  }
+  if (hasMaxChar && isReadonly) {
+    throw new Error(`'maxchar' and 'readonly' attributes must not both present on fds-input.`);
   }
 }
 ;// CONCATENATED MODULE: ./src/js/custom-elements/fds-input.js
@@ -6062,11 +6112,19 @@ class FDSInput extends HTMLElement {
   #prefixElement;
   #suffixElement;
   #editButtonElement;
+  #characterLimitElement;
   #handleEditClicked;
+  #handleKeyUp;
+  #handleBlur;
+  #handleFocus;
+  #handlePageShow;
   #glossary;
   #connected;
   #initialised;
   #triggerRebuild;
+  #lastKeyUpTimestamp;
+  #oldValue;
+  #intervalID;
 
   /* Private methods */
 
@@ -6082,15 +6140,21 @@ class FDSInput extends HTMLElement {
     // Update IDs
     setHelptextId(this.#helptextElement, this.#inputElement);
     setErrorId(this.#errorElement, this.#inputElement);
+    setCharacterLimitId(this.#characterLimitElement, this.#inputElement);
 
     // Set up aria-describedby attribute
-    if (isNonEmptyString(this.helptext) && isNonEmptyString(this.error)) {
-      let ariaDescribedBy = this.#helptextElement.id + ' ' + this.#errorElement.id;
-      this.#inputElement.setAttribute('aria-describedby', ariaDescribedBy);
-    } else if (isNonEmptyString(this.helptext)) {
-      this.#inputElement.setAttribute('aria-describedby', this.#helptextElement.id);
-    } else if (isNonEmptyString(this.error)) {
-      this.#inputElement.setAttribute('aria-describedby', this.#errorElement.id);
+    let ariaDescribedBy = '';
+    if (isNonEmptyString(this.error)) {
+      ariaDescribedBy = ariaDescribedBy + this.#errorElement.id + ' ';
+    }
+    if (isNonEmptyString(this.helptext)) {
+      ariaDescribedBy = ariaDescribedBy + this.#helptextElement.id + ' ';
+    }
+    if (isValidMaxChar(this.maxchar)) {
+      ariaDescribedBy = ariaDescribedBy + this.#characterLimitElement.querySelector('.max-limit').id + ' ';
+    }
+    if (ariaDescribedBy.trim() !== '') {
+      this.#inputElement.setAttribute('aria-describedby', ariaDescribedBy.trim());
     }
 
     // Set up edit button
@@ -6163,6 +6227,11 @@ class FDSInput extends HTMLElement {
     if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
       this.#editWrapperElement.appendChild(this.#editButtonElement);
     }
+
+    // Add character limit
+    if (isValidMaxChar(this.maxchar)) {
+      this.#wrapperElement.appendChild(this.#characterLimitElement);
+    }
   }
   #removeReadOnly() {
     if (this.hasAttribute('readonly')) {
@@ -6175,7 +6244,7 @@ class FDSInput extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'required', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional'];
+  static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'required', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxchar'];
 
   /*
   ATTRIBUTE GETTERS AND SETTERS
@@ -6277,6 +6346,12 @@ class FDSInput extends HTMLElement {
   set showoptional(val) {
     this.setAttribute('showoptional', val);
   }
+  get maxchar() {
+    return this.getAttribute('maxchar');
+  }
+  set maxchar(val) {
+    this.setAttribute('maxchar', val);
+  }
 
   /*
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -6290,12 +6365,61 @@ class FDSInput extends HTMLElement {
       'errorText': 'Fejl',
       'editText': 'Rediger',
       'requiredText': 'skal udfyldes',
-      'optionalText': 'frivilligt'
+      'optionalText': 'frivilligt',
+      'oneCharacterLeftText': 'Du har {value} tegn tilbage',
+      'manyCharactersLeftText': 'Du har {value} tegn tilbage',
+      'oneCharacterExceededText': 'Du har {value} tegn for meget',
+      'manyCharactersExceededText': 'Du har {value} tegn for meget',
+      'maxCharactersText': 'Du kan indtaste op til {value} tegn'
     };
+    this.#triggerRebuild = ['label', 'inputid', 'required', 'disabled', 'readonly', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxchar'];
+    this.#lastKeyUpTimestamp = null;
+    this.#oldValue = '';
+    this.#intervalID = null;
     this.#handleEditClicked = () => {
       this.#removeReadOnly();
     };
-    this.#triggerRebuild = ['label', 'inputid', 'required', 'disabled', 'readonly', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional'];
+    this.#handleKeyUp = () => {
+      let chars = this.charactersLeft();
+      fds_input_helpers_updateVisibleMessage(this.#glossary, chars, this.#inputElement, this.#characterLimitElement);
+      this.#lastKeyUpTimestamp = Date.now();
+    };
+    this.#handleFocus = () => {
+      /* Reset the screen reader message on focus to force an update of the message.
+      This ensures that a screen reader informs the user of how many characters there is left
+      on focus and not just what the character limit is. */
+      if (this.#inputElement.value !== "") {
+        let srMessage = this.#characterLimitElement.querySelector('.sr-message');
+        srMessage.innerHTML = '';
+      }
+      this.#intervalID = setInterval(function () {
+        /* Don't update the Screen Reader message unless it's been awhile
+        since the last key up event. Otherwise, the user will be spammed
+        with audio notifications while typing. */
+        if (!this.#lastKeyUpTimestamp || Date.now() - 500 >= this.#lastKeyUpTimestamp) {
+          let srMessage = this.#characterLimitElement.querySelector('.sr-message').innerHTML;
+          let visibleMessage = this.#characterLimitElement.querySelector('.visible-message').innerHTML;
+
+          /* Don't update the messages unless the input has changed or if there
+          is a mismatch between the visible message and the screen reader message. */
+          if (this.#oldValue !== this.#inputElement.value || srMessage !== visibleMessage) {
+            this.#oldValue = this.#inputElement.value;
+            this.updateMessages();
+          }
+        }
+      }.bind(this), 1000);
+    };
+    this.#handleBlur = () => {
+      clearInterval(this.#intervalID);
+      // Don't update the messages on blur unless the value of the textarea/text input has changed
+      if (this.#oldValue !== this.#inputElement.value) {
+        this.#oldValue = this.#inputElement.value;
+        this.updateMessages();
+      }
+    };
+    this.#handlePageShow = () => {
+      this.updateMessages();
+    };
   }
 
   /*
@@ -6317,21 +6441,61 @@ class FDSInput extends HTMLElement {
     }
     if (glossary['editText'] !== undefined) {
       this.#glossary['editText'] = glossary['editText'];
-      if (isNonEmptyString(this.label)) {
+      if (isNonEmptyString(this.label) && this.hasAttribute('editbutton')) {
         updateEditButton(this.#editButtonElement, this.label, this.#glossary['editText']);
       }
     }
     if (glossary['requiredText'] !== undefined) {
       this.#glossary['requiredText'] = glossary['requiredText'];
-      if (isNonEmptyString(this.label)) {
+      if (isNonEmptyString(this.label) && this.hasAttribute('showrequired')) {
         updateRequiredLabel(this.#labelElement, this.label, this.#glossary['requiredText']);
       }
     }
     if (glossary['optionalText'] !== undefined) {
       this.#glossary['optionalText'] = glossary['optionalText'];
-      if (isNonEmptyString(this.label)) {
+      if (isNonEmptyString(this.label) && this.hasAttribute('showoptional')) {
         updateOptionalLabel(this.#labelElement, this.label, this.#glossary['optionalText']);
       }
+    }
+    if (glossary['oneCharacterLeftText'] !== undefined) {
+      this.#glossary['oneCharacterLeftText'] = glossary['oneCharacterLeftText'];
+    }
+    if (glossary['manyCharactersLeftText'] !== undefined) {
+      this.#glossary['manyCharactersLeftText'] = glossary['manyCharactersLeftText'];
+    }
+    if (glossary['oneCharacterExceededText'] !== undefined) {
+      this.#glossary['oneCharacterExceededText'] = glossary['oneCharacterExceededText'];
+    }
+    if (glossary['manyCharactersExceededText'] !== undefined) {
+      this.#glossary['manyCharactersExceededText'] = glossary['manyCharactersExceededText'];
+    }
+    if (glossary['oneCharacterLeftText'] || glossary['manyCharactersLeftText'] || glossary['oneCharacterExceededText'] || glossary['manyCharactersExceededText']) {
+      /* Prevent screen readers from announcing the glossary change in the aria-live region */
+      let maxLimitText = this.#characterLimitElement.querySelector('.max-limit').innerHTML;
+      this.#characterLimitElement.innerHTML = '<span class="max-limit">' + maxLimitText + '</span>' + '<span class="visible-message form-hint" aria-hidden="true"></span>' + '<span class="sr-message"></span>';
+      this.updateMessages();
+      this.#characterLimitElement.querySelector('.sr-message').setAttribute('aria-live', 'polite');
+    }
+    if (glossary['maxCharactersText'] !== undefined) {
+      this.#glossary['maxCharactersText'] = glossary['maxCharactersText'];
+      if (isValidMaxChar(this.maxchar)) {
+        this.#characterLimitElement.querySelector('.max-limit').innerHTML = this.#glossary['maxCharactersText'].replace(/{value}/, this.maxchar);
+      }
+    }
+  }
+  charactersLeft() {
+    if (isValidMaxChar(this.maxchar)) {
+      let currentLength = this.#inputElement.value.length;
+      return parseInt(this.maxchar) - currentLength;
+    } else {
+      return undefined;
+    }
+  }
+  updateMessages() {
+    if (isValidMaxChar(this.maxchar)) {
+      let chars = this.charactersLeft();
+      fds_input_helpers_updateVisibleMessage(this.#glossary, chars, this.#inputElement, this.#characterLimitElement);
+      updateSRMessage(this.#glossary, chars, this.#characterLimitElement);
     }
   }
 
@@ -6356,6 +6520,12 @@ class FDSInput extends HTMLElement {
       }
       this.#rebuildElement();
       this.appendChild(this.#wrapperElement);
+      if (isValidMaxChar(this.maxchar)) {
+        this.#inputElement.addEventListener('keyup', this.#handleKeyUp, false);
+        this.#inputElement.addEventListener('focus', this.#handleFocus, false);
+        this.#inputElement.addEventListener('blur', this.#handleBlur, false);
+        window.addEventListener('pageshow', this.#handlePageShow, false);
+      }
       this.#connected = true;
     }
   }
@@ -6399,6 +6569,9 @@ class FDSInput extends HTMLElement {
       this.#editButtonElement.setAttribute('type', 'button');
       this.#editButtonElement.classList.add('function-link', 'edit-button');
       this.#editButtonElement.addEventListener('click', this.#handleEditClicked, false);
+      this.#characterLimitElement = document.createElement('div');
+      this.#characterLimitElement.innerHTML = '<span class="max-limit"></span>' + '<span class="visible-message form-hint" aria-hidden="true"></span>' + '<span class="sr-message" aria-live="polite"></span>';
+      this.#characterLimitElement.classList.add('character-limit-wrapper');
       this.#initialised = true;
     }
 
@@ -6447,6 +6620,12 @@ class FDSInput extends HTMLElement {
       // Attribute removed
       else {
         this.#inputElement.removeAttribute('value');
+      }
+      // Ensure character limit shows the correct number of remaining characters at element creation
+      if (!this.#connected && isValidMaxChar(this.maxchar)) {
+        let chars = parseInt(this.maxchar) - newValue.length;
+        fds_input_helpers_updateVisibleMessage(this.#glossary, chars, this.#inputElement, this.#characterLimitElement);
+        updateSRMessage(this.#glossary, chars, this.#characterLimitElement);
       }
     }
     if (attribute === 'type') {
@@ -6549,7 +6728,34 @@ class FDSInput extends HTMLElement {
         this.#inputWrapperElement.classList.remove('form-input-wrapper--suffix');
       }
     }
-    checkDisallowedCombinations(isNonEmptyString(this.error), this.hasAttribute('required'), this.hasAttribute('readonly'), this.hasAttribute('disabled'), this.hasAttribute('showrequired'), this.hasAttribute('showoptional'));
+    if (attribute === 'maxchar') {
+      // Attribute changed
+      if (isValidMaxChar(newValue)) {
+        this.#characterLimitElement.querySelector('.max-limit').innerHTML = this.#glossary['maxCharactersText'].replace(/{value}/, newValue);
+        let charactersRemaining = newValue;
+        if (this.value) {
+          charactersRemaining = parseInt(newValue) - this.value.length;
+        }
+        fds_input_helpers_updateVisibleMessage(this.#glossary, charactersRemaining, this.#inputElement, this.#characterLimitElement);
+        updateSRMessage(this.#glossary, charactersRemaining, this.#characterLimitElement);
+      }
+
+      // Attribute added
+      if (this.#connected && !this.contains(this.#characterLimitElement) && isValidMaxChar(newValue)) {
+        this.#inputElement.addEventListener('keyup', this.#handleKeyUp, false);
+        this.#inputElement.addEventListener('focus', this.#handleFocus, false);
+        this.#inputElement.addEventListener('blur', this.#handleBlur, false);
+        window.addEventListener('pageshow', this.#handlePageShow, false);
+      }
+      // Attribute removed or invalid
+      else if (this.#connected && this.contains(this.#characterLimitElement) && !isValidMaxChar(newValue)) {
+        this.#inputElement.removeEventListener('keyup', this.#handleKeyUp, false);
+        this.#inputElement.removeEventListener('focus', this.#handleFocus, false);
+        this.#inputElement.removeEventListener('blur', this.#handleBlur, false);
+        window.removeEventListener('pageshow', this.#handlePageShow, false);
+      }
+    }
+    checkDisallowedCombinations(isNonEmptyString(this.error), this.hasAttribute('required'), this.hasAttribute('readonly'), this.hasAttribute('disabled'), this.hasAttribute('showrequired'), this.hasAttribute('showoptional'), this.hasAttribute('maxchar'));
 
     /* Update HTML */
 

@@ -17,13 +17,22 @@ class FDSInput extends HTMLElement {
     #prefixElement;
     #suffixElement;
     #editButtonElement;
+    #characterLimitElement;
 
     #handleEditClicked;
+    #handleKeyUp;
+    #handleBlur;
+    #handleFocus;
+    #handlePageShow;
 
     #glossary;
     #connected
     #initialised;
     #triggerRebuild;
+
+    #lastKeyUpTimestamp;
+    #oldValue;
+    #intervalID;
 
     /* Private methods */
 
@@ -39,17 +48,21 @@ class FDSInput extends HTMLElement {
         // Update IDs
         Helpers.setHelptextId(this.#helptextElement, this.#inputElement);
         Helpers.setErrorId(this.#errorElement, this.#inputElement);
+        Helpers.setCharacterLimitId(this.#characterLimitElement, this.#inputElement)
 
         // Set up aria-describedby attribute
-        if (isNonEmptyString(this.helptext) && isNonEmptyString(this.error)) {
-            let ariaDescribedBy = this.#helptextElement.id + ' ' + this.#errorElement.id;
-            this.#inputElement.setAttribute('aria-describedby', ariaDescribedBy);
+        let ariaDescribedBy = '';
+        if (isNonEmptyString(this.error)) {
+            ariaDescribedBy = ariaDescribedBy + this.#errorElement.id + ' ';
         }
-        else if (isNonEmptyString(this.helptext)) {
-            this.#inputElement.setAttribute('aria-describedby', this.#helptextElement.id);
+        if (isNonEmptyString(this.helptext)) {
+            ariaDescribedBy = ariaDescribedBy + this.#helptextElement.id + ' ';
         }
-        else if (isNonEmptyString(this.error)) {
-            this.#inputElement.setAttribute('aria-describedby', this.#errorElement.id);
+        if (Helpers.isValidMaxChar(this.maxchar)) {
+            ariaDescribedBy = ariaDescribedBy + this.#characterLimitElement.querySelector('.max-limit').id + ' ';
+        }
+        if (ariaDescribedBy.trim() !== '') {
+            this.#inputElement.setAttribute('aria-describedby', ariaDescribedBy.trim());
         }
 
         // Set up edit button
@@ -125,6 +138,11 @@ class FDSInput extends HTMLElement {
         if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
             this.#editWrapperElement.appendChild(this.#editButtonElement);
         }
+
+        // Add character limit
+        if (Helpers.isValidMaxChar(this.maxchar)) {
+            this.#wrapperElement.appendChild(this.#characterLimitElement);
+        }
     }
 
     #removeReadOnly() {
@@ -138,7 +156,7 @@ class FDSInput extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'required', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional'];
+    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'required', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxchar'];
 
     /*
     ATTRIBUTE GETTERS AND SETTERS
@@ -192,22 +210,78 @@ class FDSInput extends HTMLElement {
     get showoptional() { return this.getAttribute('showoptional'); }
     set showoptional(val) { this.setAttribute('showoptional', val); }
 
+    get maxchar() { return this.getAttribute('maxchar'); }
+    set maxchar(val) { this.setAttribute('maxchar', val); }
+
     /*
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
     */
 
     constructor() {
         super();
+
         this.#initialised = false;
         this.#connected = false;
         this.#glossary = {
             'errorText': 'Fejl',
             'editText': 'Rediger',
             'requiredText': 'skal udfyldes',
-            'optionalText': 'frivilligt'
+            'optionalText': 'frivilligt',
+            'oneCharacterLeftText': 'Du har {value} tegn tilbage',
+            'manyCharactersLeftText': 'Du har {value} tegn tilbage',
+            'oneCharacterExceededText': 'Du har {value} tegn for meget',
+            'manyCharactersExceededText': 'Du har {value} tegn for meget',
+            'maxCharactersText': 'Du kan indtaste op til {value} tegn'
         };
+        this.#triggerRebuild = ['label', 'inputid', 'required', 'disabled', 'readonly', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxchar'];
+
+        this.#lastKeyUpTimestamp = null;
+        this.#oldValue = '';
+        this.#intervalID = null;
+
         this.#handleEditClicked = () => { this.#removeReadOnly() };
-        this.#triggerRebuild = ['label', 'inputid', 'required', 'disabled', 'readonly', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional'];
+        this.#handleKeyUp = () => {
+            let chars = this.charactersLeft();
+            Helpers.updateVisibleMessage(this.#glossary, chars, this.#inputElement, this.#characterLimitElement);
+            this.#lastKeyUpTimestamp = Date.now();
+        };
+        this.#handleFocus = () => {
+            /* Reset the screen reader message on focus to force an update of the message.
+            This ensures that a screen reader informs the user of how many characters there is left
+            on focus and not just what the character limit is. */
+            if (this.#inputElement.value !== "") {
+                let srMessage = this.#characterLimitElement.querySelector('.sr-message');
+                srMessage.innerHTML = '';
+            }
+        
+            this.#intervalID = setInterval(function () {
+                /* Don't update the Screen Reader message unless it's been awhile
+                since the last key up event. Otherwise, the user will be spammed
+                with audio notifications while typing. */
+                if (!this.#lastKeyUpTimestamp || (Date.now() - 500) >= this.#lastKeyUpTimestamp) {
+                    let srMessage = this.#characterLimitElement.querySelector('.sr-message').innerHTML;
+                    let visibleMessage = this.#characterLimitElement.querySelector('.visible-message').innerHTML;     
+        
+                    /* Don't update the messages unless the input has changed or if there
+                    is a mismatch between the visible message and the screen reader message. */
+                    if (this.#oldValue !== this.#inputElement.value || srMessage !== visibleMessage) {
+                        this.#oldValue = this.#inputElement.value;
+                        this.updateMessages();
+                    }
+                }
+            }.bind(this), 1000);
+        };
+        this.#handleBlur = () => {
+            clearInterval(this.#intervalID);
+            // Don't update the messages on blur unless the value of the textarea/text input has changed
+            if (this.#oldValue !== this.#inputElement.value) {
+                this.#oldValue = this.#inputElement.value;
+                this.updateMessages();
+            }
+        };
+        this.#handlePageShow = () => {
+            this.updateMessages();
+        };
     }
 
     /*
@@ -231,21 +305,67 @@ class FDSInput extends HTMLElement {
         }
         if (glossary['editText'] !== undefined) {
             this.#glossary['editText'] = glossary['editText'];
-            if (isNonEmptyString(this.label)) {
+            if (isNonEmptyString(this.label) && this.hasAttribute('editbutton')) {
                 Helpers.updateEditButton(this.#editButtonElement, this.label, this.#glossary['editText']);
             }
         }
         if (glossary['requiredText'] !== undefined) {
             this.#glossary['requiredText'] = glossary['requiredText'];
-            if (isNonEmptyString(this.label)) {
+            if (isNonEmptyString(this.label) && this.hasAttribute('showrequired')) {
                 Helpers.updateRequiredLabel(this.#labelElement, this.label, this.#glossary['requiredText']);
             }
         }
         if (glossary['optionalText'] !== undefined) {
             this.#glossary['optionalText'] = glossary['optionalText'];
-            if (isNonEmptyString(this.label)) {
+            if (isNonEmptyString(this.label) && this.hasAttribute('showoptional')) {
                 Helpers.updateOptionalLabel(this.#labelElement, this.label, this.#glossary['optionalText']);
             }
+        }
+        if (glossary['oneCharacterLeftText'] !== undefined) {
+            this.#glossary['oneCharacterLeftText'] = glossary['oneCharacterLeftText'];
+        }
+        if (glossary['manyCharactersLeftText'] !== undefined) {
+            this.#glossary['manyCharactersLeftText'] = glossary['manyCharactersLeftText'];
+        }
+        if (glossary['oneCharacterExceededText'] !== undefined) {
+            this.#glossary['oneCharacterExceededText'] = glossary['oneCharacterExceededText'];
+        }
+        if (glossary['manyCharactersExceededText'] !== undefined) {
+            this.#glossary['manyCharactersExceededText'] = glossary['manyCharactersExceededText'];
+        }
+        if (glossary['oneCharacterLeftText'] || glossary['manyCharactersLeftText'] || glossary['oneCharacterExceededText'] || glossary['manyCharactersExceededText']) {
+            /* Prevent screen readers from announcing the glossary change in the aria-live region */
+            let maxLimitText = this.#characterLimitElement.querySelector('.max-limit').innerHTML;
+            this.#characterLimitElement.innerHTML = 
+                '<span class="max-limit">' + maxLimitText + '</span>' + 
+                '<span class="visible-message form-hint" aria-hidden="true"></span>' + 
+                '<span class="sr-message"></span>';
+            this.updateMessages();
+            this.#characterLimitElement.querySelector('.sr-message').setAttribute('aria-live', 'polite');
+        }
+        if (glossary['maxCharactersText'] !== undefined) {
+            this.#glossary['maxCharactersText'] = glossary['maxCharactersText'];
+            if (Helpers.isValidMaxChar(this.maxchar)) {
+                this.#characterLimitElement.querySelector('.max-limit').innerHTML = this.#glossary['maxCharactersText'].replace(/{value}/, this.maxchar);
+            }
+        }
+    }
+
+    charactersLeft() {
+        if (Helpers.isValidMaxChar(this.maxchar)) {
+            let currentLength = this.#inputElement.value.length;
+            return parseInt(this.maxchar) - currentLength;
+        }
+        else {
+            return undefined;
+        }
+    }
+
+    updateMessages() {
+        if (Helpers.isValidMaxChar(this.maxchar)) {
+            let chars = this.charactersLeft();
+            Helpers.updateVisibleMessage(this.#glossary, chars, this.#inputElement, this.#characterLimitElement);
+            Helpers.updateSRMessage(this.#glossary, chars, this.#characterLimitElement);
         }
     }
 
@@ -274,6 +394,14 @@ class FDSInput extends HTMLElement {
 
             this.#rebuildElement();
             this.appendChild(this.#wrapperElement);
+
+            if (Helpers.isValidMaxChar(this.maxchar)) {
+                this.#inputElement.addEventListener('keyup', this.#handleKeyUp, false);
+                this.#inputElement.addEventListener('focus', this.#handleFocus, false);
+                this.#inputElement.addEventListener('blur', this.#handleBlur, false);
+                window.addEventListener('pageshow', this.#handlePageShow, false);
+            }
+            
             this.#connected = true;
         }
     }
@@ -328,6 +456,13 @@ class FDSInput extends HTMLElement {
             this.#editButtonElement.classList.add('function-link', 'edit-button');
             this.#editButtonElement.addEventListener('click', this.#handleEditClicked, false);
 
+            this.#characterLimitElement = document.createElement('div');
+            this.#characterLimitElement.innerHTML = 
+                '<span class="max-limit"></span>' + 
+                '<span class="visible-message form-hint" aria-hidden="true"></span>' + 
+                '<span class="sr-message" aria-live="polite"></span>';
+            this.#characterLimitElement.classList.add('character-limit-wrapper');
+            
             this.#initialised = true;
         }
 
@@ -381,6 +516,12 @@ class FDSInput extends HTMLElement {
             // Attribute removed
             else {
                 this.#inputElement.removeAttribute('value');
+            }
+            // Ensure character limit shows the correct number of remaining characters at element creation
+            if (!this.#connected && Helpers.isValidMaxChar(this.maxchar)) {
+                let chars = parseInt(this.maxchar) - newValue.length;
+                Helpers.updateVisibleMessage(this.#glossary, chars, this.#inputElement, this.#characterLimitElement);
+                Helpers.updateSRMessage(this.#glossary, chars, this.#characterLimitElement);
             }
         }
 
@@ -494,13 +635,43 @@ class FDSInput extends HTMLElement {
             }
         }
 
+        if (attribute === 'maxchar') {
+            // Attribute changed
+            if (Helpers.isValidMaxChar(newValue)) {
+                this.#characterLimitElement.querySelector('.max-limit').innerHTML = this.#glossary['maxCharactersText'].replace(/{value}/, newValue);
+
+                let charactersRemaining = newValue;
+                if (this.value) {
+                    charactersRemaining = parseInt(newValue) - this.value.length;
+                }
+                Helpers.updateVisibleMessage(this.#glossary, charactersRemaining, this.#inputElement, this.#characterLimitElement);
+                Helpers.updateSRMessage(this.#glossary, charactersRemaining, this.#characterLimitElement);
+            }
+
+            // Attribute added
+            if (this.#connected && !this.contains(this.#characterLimitElement) && Helpers.isValidMaxChar(newValue)) {
+                this.#inputElement.addEventListener('keyup', this.#handleKeyUp, false);
+                this.#inputElement.addEventListener('focus', this.#handleFocus, false);
+                this.#inputElement.addEventListener('blur', this.#handleBlur, false);
+                window.addEventListener('pageshow', this.#handlePageShow, false);
+            }
+            // Attribute removed or invalid
+            else if (this.#connected && this.contains(this.#characterLimitElement) && !Helpers.isValidMaxChar(newValue)) {
+                this.#inputElement.removeEventListener('keyup', this.#handleKeyUp, false);
+                this.#inputElement.removeEventListener('focus', this.#handleFocus, false);
+                this.#inputElement.removeEventListener('blur', this.#handleBlur, false);
+                window.removeEventListener('pageshow', this.#handlePageShow, false);
+            }
+        }
+
         Helpers.checkDisallowedCombinations(
             isNonEmptyString(this.error), 
             this.hasAttribute('required'), 
             this.hasAttribute('readonly'), 
             this.hasAttribute('disabled'),
             this.hasAttribute('showrequired'),
-            this.hasAttribute('showoptional')
+            this.hasAttribute('showoptional'),
+            this.hasAttribute('maxchar')
         );
 
         /* Update HTML */
