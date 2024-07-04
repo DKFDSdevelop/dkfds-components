@@ -48,7 +48,7 @@ class FDSInput extends HTMLElement {
         // Update IDs
         Helpers.setHelptextId(this.#helptextElement, this.#inputElement);
         Helpers.setErrorId(this.#errorElement, this.#inputElement);
-        Helpers.setCharacterLimitId(this.#characterLimitElement, this.#inputElement)
+        Helpers.setCharacterLimitId(this.#characterLimitElement, this.#inputElement);
 
         // Set up aria-describedby attribute
         let ariaDescribedBy = '';
@@ -58,7 +58,7 @@ class FDSInput extends HTMLElement {
         if (isNonEmptyString(this.helptext)) {
             ariaDescribedBy = ariaDescribedBy + this.#helptextElement.id + ' ';
         }
-        if (Helpers.isValidMaxChar(this.maxchar)) {
+        if (Helpers.isValidInteger(this.maxchar)) {
             ariaDescribedBy = ariaDescribedBy + this.#characterLimitElement.querySelector('.max-limit').id + ' ';
         }
         if (ariaDescribedBy.trim() !== '') {
@@ -140,7 +140,7 @@ class FDSInput extends HTMLElement {
         }
 
         // Add character limit
-        if (Helpers.isValidMaxChar(this.maxchar)) {
+        if (Helpers.isValidInteger(this.maxchar)) {
             this.#wrapperElement.appendChild(this.#characterLimitElement);
         }
     }
@@ -156,7 +156,7 @@ class FDSInput extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'required', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxchar'];
+    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'required', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxwidth', 'maxchar'];
 
     /*
     ATTRIBUTE GETTERS AND SETTERS
@@ -209,6 +209,9 @@ class FDSInput extends HTMLElement {
 
     get showoptional() { return this.getAttribute('showoptional'); }
     set showoptional(val) { this.setAttribute('showoptional', val); }
+
+    get maxwidth() { return this.getAttribute('maxwidth'); }
+    set maxwidth(val) { this.setAttribute('maxwidth', val); }
 
     get maxchar() { return this.getAttribute('maxchar'); }
     set maxchar(val) { this.setAttribute('maxchar', val); }
@@ -345,14 +348,14 @@ class FDSInput extends HTMLElement {
         }
         if (glossary['maxCharactersText'] !== undefined) {
             this.#glossary['maxCharactersText'] = glossary['maxCharactersText'];
-            if (Helpers.isValidMaxChar(this.maxchar)) {
+            if (Helpers.isValidInteger(this.maxchar)) {
                 this.#characterLimitElement.querySelector('.max-limit').innerHTML = this.#glossary['maxCharactersText'].replace(/{value}/, this.maxchar);
             }
         }
     }
 
     charactersLeft() {
-        if (Helpers.isValidMaxChar(this.maxchar)) {
+        if (Helpers.isValidInteger(this.maxchar)) {
             let currentLength = this.#inputElement.value.length;
             return parseInt(this.maxchar) - currentLength;
         }
@@ -362,7 +365,7 @@ class FDSInput extends HTMLElement {
     }
 
     updateMessages() {
-        if (Helpers.isValidMaxChar(this.maxchar)) {
+        if (Helpers.isValidInteger(this.maxchar)) {
             let chars = this.charactersLeft();
             Helpers.updateVisibleMessage(this.#glossary, chars, this.#inputElement, this.#characterLimitElement);
             Helpers.updateSRMessage(this.#glossary, chars, this.#characterLimitElement);
@@ -395,7 +398,7 @@ class FDSInput extends HTMLElement {
             this.#rebuildElement();
             this.appendChild(this.#wrapperElement);
 
-            if (Helpers.isValidMaxChar(this.maxchar)) {
+            if (Helpers.isValidInteger(this.maxchar)) {
                 this.#inputElement.addEventListener('keyup', this.#handleKeyUp, false);
                 this.#inputElement.addEventListener('focus', this.#handleFocus, false);
                 this.#inputElement.addEventListener('blur', this.#handleBlur, false);
@@ -518,7 +521,7 @@ class FDSInput extends HTMLElement {
                 this.#inputElement.removeAttribute('value');
             }
             // Ensure character limit shows the correct number of remaining characters at element creation
-            if (!this.#connected && Helpers.isValidMaxChar(this.maxchar)) {
+            if (!this.#connected && Helpers.isValidInteger(this.maxchar)) {
                 let chars = parseInt(this.maxchar) - newValue.length;
                 Helpers.updateVisibleMessage(this.#glossary, chars, this.#inputElement, this.#characterLimitElement);
                 Helpers.updateSRMessage(this.#glossary, chars, this.#characterLimitElement);
@@ -635,9 +638,24 @@ class FDSInput extends HTMLElement {
             }
         }
 
+        if (attribute === 'maxwidth') {
+            // Attribute changed
+            if (Helpers.isValidInteger(newValue)) {
+                let paddingPixels = 30; // Input padding-left and padding-right are 15px
+                let borderPixels = 4; // Input border-left and border-right are 2px (worst case)
+                this.#inputElement.style.maxWidth = 'calc(' + parseInt(newValue) + 'ch + ' + (paddingPixels + borderPixels) + 'px)';  
+                this.#inputElement.style.width = '100%';
+            }
+            // Attribute removed
+            else {
+                this.#inputElement.style.maxWidth = '';
+                this.#inputElement.style.width = '';
+            }
+        }
+
         if (attribute === 'maxchar') {
             // Attribute changed
-            if (Helpers.isValidMaxChar(newValue)) {
+            if (Helpers.isValidInteger(newValue)) {
                 this.#characterLimitElement.querySelector('.max-limit').innerHTML = this.#glossary['maxCharactersText'].replace(/{value}/, newValue);
 
                 let charactersRemaining = newValue;
@@ -649,14 +667,14 @@ class FDSInput extends HTMLElement {
             }
 
             // Attribute added
-            if (this.#connected && !this.contains(this.#characterLimitElement) && Helpers.isValidMaxChar(newValue)) {
+            if (this.#connected && !this.contains(this.#characterLimitElement) && Helpers.isValidInteger(newValue)) {
                 this.#inputElement.addEventListener('keyup', this.#handleKeyUp, false);
                 this.#inputElement.addEventListener('focus', this.#handleFocus, false);
                 this.#inputElement.addEventListener('blur', this.#handleBlur, false);
                 window.addEventListener('pageshow', this.#handlePageShow, false);
             }
             // Attribute removed or invalid
-            else if (this.#connected && this.contains(this.#characterLimitElement) && !Helpers.isValidMaxChar(newValue)) {
+            else if (this.#connected && this.contains(this.#characterLimitElement) && !Helpers.isValidInteger(newValue)) {
                 this.#inputElement.removeEventListener('keyup', this.#handleKeyUp, false);
                 this.#inputElement.removeEventListener('focus', this.#handleFocus, false);
                 this.#inputElement.removeEventListener('blur', this.#handleBlur, false);

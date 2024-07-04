@@ -12117,6 +12117,76 @@ fds-input .character-limit-wrapper .visible-message.limit-exceeded,
 .fds-input .character-limit-wrapper .visible-message.limit-exceeded{
   color:#CC0000;
 }
+fds-input .form-input,
+.fds-input .form-input{
+  max-width:32rem;
+  width:100%;
+}
+fds-input .form-input-wrapper,
+.fds-input .form-input-wrapper{
+  max-width:32rem;
+  width:100%;
+}
+fds-input[maxwidth=xxs] .form-input,
+.fds-input[maxwidth=xxs] .form-input{
+  max-width:8rem !important;
+  width:100%;
+}
+fds-input[maxwidth=xxs] .form-input-wrapper,
+.fds-input[maxwidth=xxs] .form-input-wrapper{
+  max-width:8rem !important;
+  width:100%;
+}
+fds-input[maxwidth=xs] .form-input,
+.fds-input[maxwidth=xs] .form-input{
+  max-width:16rem !important;
+  width:100%;
+}
+fds-input[maxwidth=xs] .form-input-wrapper,
+.fds-input[maxwidth=xs] .form-input-wrapper{
+  max-width:16rem !important;
+  width:100%;
+}
+fds-input[maxwidth=s] .form-input,
+.fds-input[maxwidth=s] .form-input{
+  max-width:24rem !important;
+  width:100%;
+}
+fds-input[maxwidth=s] .form-input-wrapper,
+.fds-input[maxwidth=s] .form-input-wrapper{
+  max-width:24rem !important;
+  width:100%;
+}
+fds-input[maxwidth=m] .form-input,
+.fds-input[maxwidth=m] .form-input{
+  max-width:32rem !important;
+  width:100%;
+}
+fds-input[maxwidth=m] .form-input-wrapper,
+.fds-input[maxwidth=m] .form-input-wrapper{
+  max-width:32rem !important;
+  width:100%;
+}
+fds-input[maxwidth=l] .form-input,
+.fds-input[maxwidth=l] .form-input{
+  max-width:40rem !important;
+  width:100%;
+}
+fds-input[maxwidth=l] .form-input-wrapper,
+.fds-input[maxwidth=l] .form-input-wrapper{
+  max-width:40rem !important;
+  width:100%;
+}
+fds-input[maxwidth=xl] .form-input,
+.fds-input[maxwidth=xl] .form-input{
+  max-width:48rem !important;
+  width:100%;
+}
+fds-input[maxwidth=xl] .form-input-wrapper,
+.fds-input[maxwidth=xl] .form-input-wrapper{
+  max-width:48rem !important;
+  width:100%;
+}
 
 @media print{
   html{

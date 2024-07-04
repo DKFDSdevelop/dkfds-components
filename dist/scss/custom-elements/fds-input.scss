@@ -68,4 +68,35 @@ fds-input,
             }
         }
     }
+
+    $input-maxwidths: (
+        xxs:  8rem,
+        xs:  16rem,
+        s:   24rem,
+        m:   32rem,
+        l:   40rem,
+        xl:  48rem
+    );
+
+    .form-input {
+        max-width: 32rem;
+        width: 100%;
+    }
+    .form-input-wrapper {
+        max-width: 32rem;
+        width: 100%;
+    }
+
+    @each $size, $width in $input-maxwidths {
+        &[maxwidth='#{$size}'] {
+            .form-input {
+                max-width: $width !important;
+                width: 100%;
+            }
+            .form-input-wrapper {
+                max-width: $width !important;
+                width: 100%;
+            }
+        }
+    }
 }

@@ -31,7 +31,7 @@ export function isValidType(type) {
     }
 }
 
-export function isValidMaxChar(maxchar) {
+export function isValidInteger(maxchar) {
     let number = parseInt(maxchar);
     return Number.isInteger(number);
 }
