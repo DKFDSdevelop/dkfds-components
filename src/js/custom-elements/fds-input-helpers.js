@@ -99,6 +99,10 @@ export function setCharacterLimitId(characterLimitElement, inputElement) {
     characterLimitElement.querySelector('.max-limit').id = inputElement.id + '-limit';
 }
 
+export function setTooltipId(tooltipElement, inputElement) {
+    tooltipElement.dataset.tooltipId = inputElement.id + '-tooltip';;
+}
+
 export function updateErrorMessage(errorElement, errorText, srText) {
     errorElement.innerHTML = '<span class="sr-only">' + srText + ': </span>' + errorText;
 }

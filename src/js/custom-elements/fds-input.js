@@ -2,6 +2,7 @@
 
 import isNonEmptyString from '../utils/is-non-empty-string';
 import * as Helpers from './fds-input-helpers';
+import Tooltip from '../components/tooltip';
 
 class FDSInput extends HTMLElement {
     
@@ -9,11 +10,12 @@ class FDSInput extends HTMLElement {
 
     #wrapperElement;
     #labelElement;
+    #tooltipElement;
+    #helptextElement;
+    #errorElement;
     #inputElement;
     #inputWrapperElement;
     #editWrapperElement;
-    #helptextElement;
-    #errorElement;
     #prefixElement;
     #suffixElement;
     #editButtonElement;
@@ -49,6 +51,7 @@ class FDSInput extends HTMLElement {
         Helpers.setHelptextId(this.#helptextElement, this.#inputElement);
         Helpers.setErrorId(this.#errorElement, this.#inputElement);
         Helpers.setCharacterLimitId(this.#characterLimitElement, this.#inputElement);
+        Helpers.setTooltipId(this.#tooltipElement, this.#inputElement);
 
         // Set up aria-describedby attribute
         let ariaDescribedBy = '';
@@ -86,6 +89,14 @@ class FDSInput extends HTMLElement {
         // Add optional label
         if (this.hasAttribute('showoptional') && isNonEmptyString(this.label)) {
             Helpers.updateOptionalLabel(this.#labelElement, this.label, this.#glossary['optionalText']);
+        }
+
+        // Add tooltip
+        if (isNonEmptyString(this.tooltip)) { 
+            this.#wrapperElement.appendChild(this.#tooltipElement);
+            if (this.#tooltipElement.querySelector('.tooltip-arrow') === null) {
+                new Tooltip(this.#tooltipElement).init();
+            }
         }
 
         // Add helptext
@@ -156,7 +167,7 @@ class FDSInput extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'required', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxwidth', 'maxchar'];
+    static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'required', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxwidth', 'maxchar', 'tooltip'];
 
     /*
     ATTRIBUTE GETTERS AND SETTERS
@@ -216,6 +227,9 @@ class FDSInput extends HTMLElement {
     get maxchar() { return this.getAttribute('maxchar'); }
     set maxchar(val) { this.setAttribute('maxchar', val); }
 
+    get tooltip() { return this.getAttribute('tooltip'); }
+    set tooltip(val) { this.setAttribute('tooltip', val); }
+
     /*
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
     */
@@ -234,9 +248,10 @@ class FDSInput extends HTMLElement {
             'manyCharactersLeftText': 'Du har {value} tegn tilbage',
             'oneCharacterExceededText': 'Du har {value} tegn for meget',
             'manyCharactersExceededText': 'Du har {value} tegn for meget',
-            'maxCharactersText': 'Du kan indtaste op til {value} tegn'
+            'maxCharactersText': 'Du kan indtaste op til {value} tegn',
+            'tooltipIconText': 'Læs mere'
         };
-        this.#triggerRebuild = ['label', 'inputid', 'required', 'disabled', 'readonly', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxchar'];
+        this.#triggerRebuild = ['label', 'inputid', 'required', 'disabled', 'readonly', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxchar', 'tooltip'];
 
         this.#lastKeyUpTimestamp = null;
         this.#oldValue = '';
@@ -337,7 +352,7 @@ class FDSInput extends HTMLElement {
             this.#glossary['manyCharactersExceededText'] = glossary['manyCharactersExceededText'];
         }
         if (glossary['oneCharacterLeftText'] || glossary['manyCharactersLeftText'] || glossary['oneCharacterExceededText'] || glossary['manyCharactersExceededText']) {
-            /* Prevent screen readers from announcing the glossary change in the aria-live region */
+            /* Prevent screen readers from announcing the glossary change */
             let maxLimitText = this.#characterLimitElement.querySelector('.max-limit').innerHTML;
             this.#characterLimitElement.innerHTML = 
                 '<span class="max-limit">' + maxLimitText + '</span>' + 
@@ -351,6 +366,10 @@ class FDSInput extends HTMLElement {
             if (Helpers.isValidInteger(this.maxchar)) {
                 this.#characterLimitElement.querySelector('.max-limit').innerHTML = this.#glossary['maxCharactersText'].replace(/{value}/, this.maxchar);
             }
+        }
+        if (glossary['tooltipIconText'] !== undefined) {
+            this.#glossary['tooltipIconText'] = glossary['tooltipIconText'];
+            this.#tooltipElement.querySelector('button').setAttribute('aria-label', this.#glossary['tooltipIconText']);
         }
     }
 
@@ -465,6 +484,17 @@ class FDSInput extends HTMLElement {
                 '<span class="visible-message form-hint" aria-hidden="true"></span>' + 
                 '<span class="sr-message" aria-live="polite"></span>';
             this.#characterLimitElement.classList.add('character-limit-wrapper');
+
+            this.#tooltipElement = document.createElement('span');
+            this.#tooltipElement.classList.add('tooltip-wrapper', 'custom-element-tooltip', 'ml-2');
+            this.#tooltipElement.dataset.tooltip = '';
+            this.#tooltipElement.dataset.tooltipId = '';
+            this.#tooltipElement.dataset.position = 'above';
+            this.#tooltipElement.dataset.trigger = 'click';
+            this.#tooltipElement.innerHTML = 
+                '<button class="button button-unstyled tooltip-target" type="button" aria-label="' + this.#glossary['tooltipIconText'] + '">' + 
+                    '<svg class="icon-svg mr-0 mt-0" focusable="false" aria-hidden="true"><use xlink:href="#help"></use></svg>' + 
+                '</button>';
             
             this.#initialised = true;
         }
@@ -679,6 +709,13 @@ class FDSInput extends HTMLElement {
                 this.#inputElement.removeEventListener('focus', this.#handleFocus, false);
                 this.#inputElement.removeEventListener('blur', this.#handleBlur, false);
                 window.removeEventListener('pageshow', this.#handlePageShow, false);
+            }
+        }
+
+        if (attribute === 'tooltip') {
+            // Attribute changed
+            if (isNonEmptyString(newValue)) {
+                this.#tooltipElement.dataset.tooltip = newValue;
             }
         }
 

@@ -207,7 +207,9 @@ var init = function (options) {
   */
   const jsSelectorTooltip = scope.getElementsByClassName('tooltip-wrapper');
   for(let c = 0; c < jsSelectorTooltip.length; c++){
-    new Tooltip(jsSelectorTooltip[ c ]).init();
+    if (!jsSelectorTooltip[ c ].classList.contains('custom-element-tooltip')) {
+      new Tooltip(jsSelectorTooltip[ c ]).init();
+    }
   }
   
 };

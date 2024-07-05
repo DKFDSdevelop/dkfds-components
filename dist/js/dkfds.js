@@ -6052,6 +6052,10 @@ function setErrorId(errorElement, inputElement) {
 function setCharacterLimitId(characterLimitElement, inputElement) {
   characterLimitElement.querySelector('.max-limit').id = inputElement.id + '-limit';
 }
+function setTooltipId(tooltipElement, inputElement) {
+  tooltipElement.dataset.tooltipId = inputElement.id + '-tooltip';
+  ;
+}
 function updateErrorMessage(errorElement, errorText, srText) {
   errorElement.innerHTML = '<span class="sr-only">' + srText + ': </span>' + errorText;
 }
@@ -6099,16 +6103,18 @@ function checkDisallowedCombinations(hasError, isRequired, isReadonly, isDisable
 
 
 
+
 class FDSInput extends HTMLElement {
   /* Private instance fields */
 
   #wrapperElement;
   #labelElement;
+  #tooltipElement;
+  #helptextElement;
+  #errorElement;
   #inputElement;
   #inputWrapperElement;
   #editWrapperElement;
-  #helptextElement;
-  #errorElement;
   #prefixElement;
   #suffixElement;
   #editButtonElement;
@@ -6141,6 +6147,7 @@ class FDSInput extends HTMLElement {
     setHelptextId(this.#helptextElement, this.#inputElement);
     setErrorId(this.#errorElement, this.#inputElement);
     setCharacterLimitId(this.#characterLimitElement, this.#inputElement);
+    setTooltipId(this.#tooltipElement, this.#inputElement);
 
     // Set up aria-describedby attribute
     let ariaDescribedBy = '';
@@ -6178,6 +6185,14 @@ class FDSInput extends HTMLElement {
     // Add optional label
     if (this.hasAttribute('showoptional') && isNonEmptyString(this.label)) {
       updateOptionalLabel(this.#labelElement, this.label, this.#glossary['optionalText']);
+    }
+
+    // Add tooltip
+    if (isNonEmptyString(this.tooltip)) {
+      this.#wrapperElement.appendChild(this.#tooltipElement);
+      if (this.#tooltipElement.querySelector('.tooltip-arrow') === null) {
+        new tooltip(this.#tooltipElement).init();
+      }
     }
 
     // Add helptext
@@ -6244,7 +6259,7 @@ class FDSInput extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'required', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxwidth', 'maxchar'];
+  static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'required', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxwidth', 'maxchar', 'tooltip'];
 
   /*
   ATTRIBUTE GETTERS AND SETTERS
@@ -6358,6 +6373,12 @@ class FDSInput extends HTMLElement {
   set maxchar(val) {
     this.setAttribute('maxchar', val);
   }
+  get tooltip() {
+    return this.getAttribute('tooltip');
+  }
+  set tooltip(val) {
+    this.setAttribute('tooltip', val);
+  }
 
   /*
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -6376,9 +6397,10 @@ class FDSInput extends HTMLElement {
       'manyCharactersLeftText': 'Du har {value} tegn tilbage',
       'oneCharacterExceededText': 'Du har {value} tegn for meget',
       'manyCharactersExceededText': 'Du har {value} tegn for meget',
-      'maxCharactersText': 'Du kan indtaste op til {value} tegn'
+      'maxCharactersText': 'Du kan indtaste op til {value} tegn',
+      'tooltipIconText': 'Læs mere'
     };
-    this.#triggerRebuild = ['label', 'inputid', 'required', 'disabled', 'readonly', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxchar'];
+    this.#triggerRebuild = ['label', 'inputid', 'required', 'disabled', 'readonly', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxchar', 'tooltip'];
     this.#lastKeyUpTimestamp = null;
     this.#oldValue = '';
     this.#intervalID = null;
@@ -6476,7 +6498,7 @@ class FDSInput extends HTMLElement {
       this.#glossary['manyCharactersExceededText'] = glossary['manyCharactersExceededText'];
     }
     if (glossary['oneCharacterLeftText'] || glossary['manyCharactersLeftText'] || glossary['oneCharacterExceededText'] || glossary['manyCharactersExceededText']) {
-      /* Prevent screen readers from announcing the glossary change in the aria-live region */
+      /* Prevent screen readers from announcing the glossary change */
       let maxLimitText = this.#characterLimitElement.querySelector('.max-limit').innerHTML;
       this.#characterLimitElement.innerHTML = '<span class="max-limit">' + maxLimitText + '</span>' + '<span class="visible-message form-hint" aria-hidden="true"></span>' + '<span class="sr-message"></span>';
       this.updateMessages();
@@ -6487,6 +6509,10 @@ class FDSInput extends HTMLElement {
       if (isValidInteger(this.maxchar)) {
         this.#characterLimitElement.querySelector('.max-limit').innerHTML = this.#glossary['maxCharactersText'].replace(/{value}/, this.maxchar);
       }
+    }
+    if (glossary['tooltipIconText'] !== undefined) {
+      this.#glossary['tooltipIconText'] = glossary['tooltipIconText'];
+      this.#tooltipElement.querySelector('button').setAttribute('aria-label', this.#glossary['tooltipIconText']);
     }
   }
   charactersLeft() {
@@ -6578,6 +6604,13 @@ class FDSInput extends HTMLElement {
       this.#characterLimitElement = document.createElement('div');
       this.#characterLimitElement.innerHTML = '<span class="max-limit"></span>' + '<span class="visible-message form-hint" aria-hidden="true"></span>' + '<span class="sr-message" aria-live="polite"></span>';
       this.#characterLimitElement.classList.add('character-limit-wrapper');
+      this.#tooltipElement = document.createElement('span');
+      this.#tooltipElement.classList.add('tooltip-wrapper', 'custom-element-tooltip', 'ml-2');
+      this.#tooltipElement.dataset.tooltip = '';
+      this.#tooltipElement.dataset.tooltipId = '';
+      this.#tooltipElement.dataset.position = 'above';
+      this.#tooltipElement.dataset.trigger = 'click';
+      this.#tooltipElement.innerHTML = '<button class="button button-unstyled tooltip-target" type="button" aria-label="' + this.#glossary['tooltipIconText'] + '">' + '<svg class="icon-svg mr-0 mt-0" focusable="false" aria-hidden="true"><use xlink:href="#help"></use></svg>' + '</button>';
       this.#initialised = true;
     }
 
@@ -6773,6 +6806,12 @@ class FDSInput extends HTMLElement {
         this.#inputElement.removeEventListener('focus', this.#handleFocus, false);
         this.#inputElement.removeEventListener('blur', this.#handleBlur, false);
         window.removeEventListener('pageshow', this.#handlePageShow, false);
+      }
+    }
+    if (attribute === 'tooltip') {
+      // Attribute changed
+      if (isNonEmptyString(newValue)) {
+        this.#tooltipElement.dataset.tooltip = newValue;
       }
     }
     checkDisallowedCombinations(isNonEmptyString(this.error), this.hasAttribute('required'), this.hasAttribute('readonly'), this.hasAttribute('disabled'), this.hasAttribute('showrequired'), this.hasAttribute('showoptional'), this.hasAttribute('maxchar'));
@@ -6993,7 +7032,9 @@ var init = function (options) {
   */
   const jsSelectorTooltip = scope.getElementsByClassName('tooltip-wrapper');
   for (let c = 0; c < jsSelectorTooltip.length; c++) {
-    new tooltip(jsSelectorTooltip[c]).init();
+    if (!jsSelectorTooltip[c].classList.contains('custom-element-tooltip')) {
+      new tooltip(jsSelectorTooltip[c]).init();
+    }
   }
 };
 let initCustomElements = function () {
