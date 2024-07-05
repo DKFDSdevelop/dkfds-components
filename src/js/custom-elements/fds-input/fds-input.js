@@ -3,6 +3,7 @@
 import isNonEmptyString from '../../utils/is-non-empty-string';
 import * as Helpers from './fds-input-helpers';
 import * as HandleAttributeChange from './fds-input-attribute-changes';
+import * as Build from './fds-input-build-element';
 import Tooltip from '../../components/tooltip';
 
 class FDSInput extends HTMLElement {
@@ -14,10 +15,10 @@ class FDSInput extends HTMLElement {
     #tooltipElement;
     #helptextElement;
     #errorElement;
-    #inputElement;
-    #inputWrapperElement;
     #editWrapperElement;
+    #inputWrapperElement;
     #prefixElement;
+    #inputElement;
     #suffixElement;
     #editButtonElement;
     #characterLimitElement;
@@ -55,19 +56,11 @@ class FDSInput extends HTMLElement {
         Helpers.setTooltipId(this.#tooltipElement, this.#inputElement);
 
         // Set up aria-describedby attribute
-        let ariaDescribedBy = '';
-        if (isNonEmptyString(this.error)) {
-            ariaDescribedBy = ariaDescribedBy + this.#errorElement.id + ' ';
-        }
-        if (isNonEmptyString(this.helptext)) {
-            ariaDescribedBy = ariaDescribedBy + this.#helptextElement.id + ' ';
-        }
-        if (Helpers.isValidInteger(this.maxchar)) {
-            ariaDescribedBy = ariaDescribedBy + this.#characterLimitElement.querySelector('.max-limit').id + ' ';
-        }
-        if (ariaDescribedBy.trim() !== '') {
-            this.#inputElement.setAttribute('aria-describedby', ariaDescribedBy.trim());
-        }
+        Build.setInputAriaDescribedBy(
+            this.error, this.helptext, this.maxchar, 
+            this.#errorElement, this.#helptextElement, this.#characterLimitElement, 
+            this.#inputElement
+        );
 
         // Set up edit button
         if (this.hasAttribute('editbutton') && isNonEmptyString(this.label)) {
@@ -171,7 +164,9 @@ class FDSInput extends HTMLElement {
     static observedAttributes = ['autocomplete', 'disabled', 'editbutton', 'error', 'helptext', 'inputid', 'label', 'maxchar', 'maxwidth', 'name', 'prefix', 'readonly', 'required', 'showoptional', 'showrequired', 'suffix', 'tooltip', 'type', 'value'];
 
     /*
+    --------------------------------------------------
     ATTRIBUTE GETTERS AND SETTERS
+    --------------------------------------------------
     */
 
     get autocomplete() { return this.getAttribute('autocomplete'); }
@@ -232,7 +227,9 @@ class FDSInput extends HTMLElement {
     set value(val) { this.#inputElement.value = val; }
 
     /*
+    --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+    --------------------------------------------------
     */
 
     constructor() {
@@ -304,7 +301,9 @@ class FDSInput extends HTMLElement {
     }
 
     /*
+    --------------------------------------------------
     CUSTOM ELEMENT FUNCTIONS
+    --------------------------------------------------
     */
 
     getLabelElement() {
@@ -393,7 +392,9 @@ class FDSInput extends HTMLElement {
     }
 
     /*
+    --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
+    --------------------------------------------------
     */
 
     connectedCallback() {
@@ -429,14 +430,18 @@ class FDSInput extends HTMLElement {
         }
     }
 
-    /*
+    /* 
+    --------------------------------------------------
     CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    */
+    --------------------------------------------------
+    */ 
 
     disconnectedCallback() { }
 
     /*
+    --------------------------------------------------
     CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+    --------------------------------------------------
     */
 
     attributeChangedCallback(attribute, oldValue, newValue) {
@@ -445,58 +450,19 @@ class FDSInput extends HTMLElement {
            attributeChangedCallback() before connectedCallback(). */
 
         if (!this.#initialised) {
-            this.#wrapperElement = document.createElement('div');
-            this.#wrapperElement.classList.add('form-group');
+            this.#wrapperElement        = Build.createWrapperElement();
+            this.#labelElement          = Build.createLabelElement();
+            this.#tooltipElement        = Build.createTooltipElement(this.#glossary);
+            this.#helptextElement       = Build.createHelptextElement();
+            this.#errorElement          = Build.createErrorElement();
+            this.#editWrapperElement    = Build.createEditWrapperElement();
+            this.#inputWrapperElement   = Build.createInputWrapperElement();
+            this.#prefixElement         = Build.createPrefixElement();
+            this.#inputElement          = Build.createInputElement();
+            this.#suffixElement         = Build.createSuffixElement();
+            this.#editButtonElement     = Build.createEditButtonElement(this.#handleEditClicked);
+            this.#characterLimitElement = Build.createCharacterLimitElement();
 
-            this.#labelElement = document.createElement('label');
-            this.#labelElement.classList.add('form-label');
-
-            this.#inputElement = document.createElement('input');
-            this.#inputElement.classList.add('form-input');
-
-            this.#inputWrapperElement = document.createElement('div');
-            this.#inputWrapperElement.classList.add('form-input-wrapper');
-
-            this.#editWrapperElement = document.createElement('div');
-            this.#editWrapperElement.classList.add('edit-wrapper');
-
-            this.#helptextElement = document.createElement('span');
-            this.#helptextElement.classList.add('form-hint');
-
-            this.#errorElement = document.createElement('span');
-            this.#errorElement.classList.add('form-error-message');
-
-            this.#prefixElement = document.createElement('div');
-            this.#prefixElement.classList.add('form-input-prefix');
-            this.#prefixElement.setAttribute('aria-hidden', 'true');
-
-            this.#suffixElement = document.createElement('div');
-            this.#suffixElement.classList.add('form-input-suffix');
-            this.#suffixElement.setAttribute('aria-hidden', 'true');
-
-            this.#editButtonElement = document.createElement('button');
-            this.#editButtonElement.setAttribute('type', 'button');
-            this.#editButtonElement.classList.add('function-link', 'edit-button');
-            this.#editButtonElement.addEventListener('click', this.#handleEditClicked, false);
-
-            this.#characterLimitElement = document.createElement('div');
-            this.#characterLimitElement.innerHTML = 
-                '<span class="max-limit"></span>' + 
-                '<span class="visible-message form-hint" aria-hidden="true"></span>' + 
-                '<span class="sr-message" aria-live="polite"></span>';
-            this.#characterLimitElement.classList.add('character-limit-wrapper');
-
-            this.#tooltipElement = document.createElement('span');
-            this.#tooltipElement.classList.add('tooltip-wrapper', 'custom-element-tooltip', 'ml-2');
-            this.#tooltipElement.dataset.tooltip = '';
-            this.#tooltipElement.dataset.tooltipId = '';
-            this.#tooltipElement.dataset.position = 'above';
-            this.#tooltipElement.dataset.trigger = 'click';
-            this.#tooltipElement.innerHTML = 
-                '<button class="button button-unstyled tooltip-target" type="button" aria-label="' + this.#glossary['tooltipIconText'] + '">' + 
-                    '<svg class="icon-svg mr-0 mt-0" focusable="false" aria-hidden="true"><use xlink:href="#help"></use></svg>' + 
-                '</button>';
-            
             this.#initialised = true;
         }
 

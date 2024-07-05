@@ -6301,7 +6301,104 @@ function value(newValue, inputElement, characterLimitElement, connected, glossar
     updateSRMessage(glossary, chars, characterLimitElement);
   }
 }
+;// CONCATENATED MODULE: ./src/js/custom-elements/fds-input/fds-input-build-element.js
+
+
+
+
+
+/* Functions for initial creation of fds-input elements */
+
+function createWrapperElement() {
+  let wrapperElement = document.createElement('div');
+  wrapperElement.classList.add('form-group');
+  return wrapperElement;
+}
+function createLabelElement() {
+  let labelElement = document.createElement('label');
+  labelElement.classList.add('form-label');
+  return labelElement;
+}
+function createTooltipElement(glossary) {
+  let tooltipElement = document.createElement('span');
+  tooltipElement.classList.add('tooltip-wrapper', 'custom-element-tooltip', 'ml-2');
+  tooltipElement.dataset.tooltip = '';
+  tooltipElement.dataset.tooltipId = '';
+  tooltipElement.dataset.position = 'above';
+  tooltipElement.dataset.trigger = 'click';
+  tooltipElement.innerHTML = '<button class="button button-unstyled tooltip-target" type="button" aria-label="' + glossary['tooltipIconText'] + '">' + '<svg class="icon-svg mr-0 mt-0" focusable="false" aria-hidden="true"><use xlink:href="#help"></use></svg>' + '</button>';
+  return tooltipElement;
+}
+function createHelptextElement() {
+  let helptextElement = document.createElement('span');
+  helptextElement.classList.add('form-hint');
+  return helptextElement;
+}
+function createErrorElement() {
+  let errorElement = document.createElement('span');
+  errorElement.classList.add('form-error-message');
+  return errorElement;
+}
+function createEditWrapperElement() {
+  let editWrapperElement = document.createElement('div');
+  editWrapperElement.classList.add('edit-wrapper');
+  return editWrapperElement;
+}
+function createInputWrapperElement() {
+  let inputWrapperElement = document.createElement('div');
+  inputWrapperElement.classList.add('form-input-wrapper');
+  return inputWrapperElement;
+}
+function createPrefixElement() {
+  let prefixElement = document.createElement('div');
+  prefixElement.classList.add('form-input-prefix');
+  prefixElement.setAttribute('aria-hidden', 'true');
+  return prefixElement;
+}
+function createInputElement() {
+  let inputElement = document.createElement('input');
+  inputElement.classList.add('form-input');
+  return inputElement;
+}
+function createSuffixElement() {
+  let suffixElement = document.createElement('div');
+  suffixElement.classList.add('form-input-suffix');
+  suffixElement.setAttribute('aria-hidden', 'true');
+  return suffixElement;
+}
+function createEditButtonElement(handleEditClicked) {
+  let editButtonElement = document.createElement('button');
+  editButtonElement.setAttribute('type', 'button');
+  editButtonElement.classList.add('function-link', 'edit-button');
+  editButtonElement.addEventListener('click', handleEditClicked, false);
+  return editButtonElement;
+}
+function createCharacterLimitElement() {
+  let characterLimitElement = document.createElement('div');
+  characterLimitElement.classList.add('character-limit-wrapper');
+  characterLimitElement.innerHTML = '<span class="max-limit"></span>' + '<span class="visible-message form-hint" aria-hidden="true"></span>' + '<span class="sr-message" aria-live="polite"></span>';
+  return characterLimitElement;
+}
+
+/* Functions for rebuilding fds-input */
+
+function setInputAriaDescribedBy(error, helptext, maxchar, errorElement, helptextElement, characterLimitElement, inputElement) {
+  let ariaDescribedBy = '';
+  if (isNonEmptyString(error)) {
+    ariaDescribedBy = ariaDescribedBy + errorElement.id + ' ';
+  }
+  if (isNonEmptyString(helptext)) {
+    ariaDescribedBy = ariaDescribedBy + helptextElement.id + ' ';
+  }
+  if (isValidInteger(maxchar)) {
+    ariaDescribedBy = ariaDescribedBy + characterLimitElement.querySelector('.max-limit').id + ' ';
+  }
+  if (ariaDescribedBy.trim() !== '') {
+    inputElement.setAttribute('aria-describedby', ariaDescribedBy.trim());
+  }
+}
 ;// CONCATENATED MODULE: ./src/js/custom-elements/fds-input/fds-input.js
+
 
 
 
@@ -6316,10 +6413,10 @@ class FDSInput extends HTMLElement {
   #tooltipElement;
   #helptextElement;
   #errorElement;
-  #inputElement;
-  #inputWrapperElement;
   #editWrapperElement;
+  #inputWrapperElement;
   #prefixElement;
+  #inputElement;
   #suffixElement;
   #editButtonElement;
   #characterLimitElement;
@@ -6354,19 +6451,7 @@ class FDSInput extends HTMLElement {
     setTooltipId(this.#tooltipElement, this.#inputElement);
 
     // Set up aria-describedby attribute
-    let ariaDescribedBy = '';
-    if (isNonEmptyString(this.error)) {
-      ariaDescribedBy = ariaDescribedBy + this.#errorElement.id + ' ';
-    }
-    if (isNonEmptyString(this.helptext)) {
-      ariaDescribedBy = ariaDescribedBy + this.#helptextElement.id + ' ';
-    }
-    if (isValidInteger(this.maxchar)) {
-      ariaDescribedBy = ariaDescribedBy + this.#characterLimitElement.querySelector('.max-limit').id + ' ';
-    }
-    if (ariaDescribedBy.trim() !== '') {
-      this.#inputElement.setAttribute('aria-describedby', ariaDescribedBy.trim());
-    }
+    setInputAriaDescribedBy(this.error, this.helptext, this.maxchar, this.#errorElement, this.#helptextElement, this.#characterLimitElement, this.#inputElement);
 
     // Set up edit button
     if (this.hasAttribute('editbutton') && isNonEmptyString(this.label)) {
@@ -6466,7 +6551,9 @@ class FDSInput extends HTMLElement {
   static observedAttributes = ['autocomplete', 'disabled', 'editbutton', 'error', 'helptext', 'inputid', 'label', 'maxchar', 'maxwidth', 'name', 'prefix', 'readonly', 'required', 'showoptional', 'showrequired', 'suffix', 'tooltip', 'type', 'value'];
 
   /*
+  --------------------------------------------------
   ATTRIBUTE GETTERS AND SETTERS
+  --------------------------------------------------
   */
 
   get autocomplete() {
@@ -6585,7 +6672,9 @@ class FDSInput extends HTMLElement {
   }
 
   /*
+  --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  --------------------------------------------------
   */
 
   constructor() {
@@ -6655,7 +6744,9 @@ class FDSInput extends HTMLElement {
   }
 
   /*
+  --------------------------------------------------
   CUSTOM ELEMENT FUNCTIONS
+  --------------------------------------------------
   */
 
   getLabelElement() {
@@ -6736,7 +6827,9 @@ class FDSInput extends HTMLElement {
   }
 
   /*
+  --------------------------------------------------
   CUSTOM ELEMENT ADDED TO DOCUMENT
+  --------------------------------------------------
   */
 
   connectedCallback() {
@@ -6766,14 +6859,18 @@ class FDSInput extends HTMLElement {
     }
   }
 
-  /*
+  /* 
+  --------------------------------------------------
   CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  --------------------------------------------------
   */
 
   disconnectedCallback() {}
 
   /*
+  --------------------------------------------------
   CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  --------------------------------------------------
   */
 
   attributeChangedCallback(attribute, oldValue, newValue) {
@@ -6781,40 +6878,18 @@ class FDSInput extends HTMLElement {
        attributeChangedCallback() before connectedCallback(). */
 
     if (!this.#initialised) {
-      this.#wrapperElement = document.createElement('div');
-      this.#wrapperElement.classList.add('form-group');
-      this.#labelElement = document.createElement('label');
-      this.#labelElement.classList.add('form-label');
-      this.#inputElement = document.createElement('input');
-      this.#inputElement.classList.add('form-input');
-      this.#inputWrapperElement = document.createElement('div');
-      this.#inputWrapperElement.classList.add('form-input-wrapper');
-      this.#editWrapperElement = document.createElement('div');
-      this.#editWrapperElement.classList.add('edit-wrapper');
-      this.#helptextElement = document.createElement('span');
-      this.#helptextElement.classList.add('form-hint');
-      this.#errorElement = document.createElement('span');
-      this.#errorElement.classList.add('form-error-message');
-      this.#prefixElement = document.createElement('div');
-      this.#prefixElement.classList.add('form-input-prefix');
-      this.#prefixElement.setAttribute('aria-hidden', 'true');
-      this.#suffixElement = document.createElement('div');
-      this.#suffixElement.classList.add('form-input-suffix');
-      this.#suffixElement.setAttribute('aria-hidden', 'true');
-      this.#editButtonElement = document.createElement('button');
-      this.#editButtonElement.setAttribute('type', 'button');
-      this.#editButtonElement.classList.add('function-link', 'edit-button');
-      this.#editButtonElement.addEventListener('click', this.#handleEditClicked, false);
-      this.#characterLimitElement = document.createElement('div');
-      this.#characterLimitElement.innerHTML = '<span class="max-limit"></span>' + '<span class="visible-message form-hint" aria-hidden="true"></span>' + '<span class="sr-message" aria-live="polite"></span>';
-      this.#characterLimitElement.classList.add('character-limit-wrapper');
-      this.#tooltipElement = document.createElement('span');
-      this.#tooltipElement.classList.add('tooltip-wrapper', 'custom-element-tooltip', 'ml-2');
-      this.#tooltipElement.dataset.tooltip = '';
-      this.#tooltipElement.dataset.tooltipId = '';
-      this.#tooltipElement.dataset.position = 'above';
-      this.#tooltipElement.dataset.trigger = 'click';
-      this.#tooltipElement.innerHTML = '<button class="button button-unstyled tooltip-target" type="button" aria-label="' + this.#glossary['tooltipIconText'] + '">' + '<svg class="icon-svg mr-0 mt-0" focusable="false" aria-hidden="true"><use xlink:href="#help"></use></svg>' + '</button>';
+      this.#wrapperElement = createWrapperElement();
+      this.#labelElement = createLabelElement();
+      this.#tooltipElement = createTooltipElement(this.#glossary);
+      this.#helptextElement = createHelptextElement();
+      this.#errorElement = createErrorElement();
+      this.#editWrapperElement = createEditWrapperElement();
+      this.#inputWrapperElement = createInputWrapperElement();
+      this.#prefixElement = createPrefixElement();
+      this.#inputElement = createInputElement();
+      this.#suffixElement = createSuffixElement();
+      this.#editButtonElement = createEditButtonElement(this.#handleEditClicked);
+      this.#characterLimitElement = createCharacterLimitElement();
       this.#initialised = true;
     }
 
