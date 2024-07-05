@@ -20,7 +20,7 @@ const datePicker = require('./components/date-picker').default;
 
 import FDSIcon from './custom-elements/fds-icon';
 import FDSAlert from './custom-elements/fds-alert';
-import FDSInput from './custom-elements/fds-input';
+import FDSInput from './custom-elements/fds-input/fds-input';
 
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from

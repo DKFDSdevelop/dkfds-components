@@ -1,7 +1,5 @@
 'use strict';
 
-import isNonEmptyString from '../utils/is-non-empty-string';
-
 /* 
 FUNCTIONS FOR DEFAULT SETTINGS
 */

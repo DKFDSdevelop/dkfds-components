@@ -5967,15 +5967,12 @@ function isNonEmptyString(s) {
     return false;
   }
 }
-;// CONCATENATED MODULE: ./src/js/custom-elements/fds-input-helpers.js
-
-
+;// CONCATENATED MODULE: ./src/js/custom-elements/fds-input/fds-input-helpers.js
 
 
 /* 
 FUNCTIONS FOR DEFAULT SETTINGS
 */
-
 function setDefaultInputId(labelElement, inputElement) {
   let randomString = 'input-' + Date.now().toString().slice(-3) + Math.floor(Math.random() * 1000000).toString();
   labelElement.setAttribute('for', randomString);
@@ -6098,7 +6095,214 @@ function checkDisallowedCombinations(hasError, isRequired, isReadonly, isDisable
     throw new Error(`'maxchar' and 'readonly' attributes must not both present on fds-input.`);
   }
 }
-;// CONCATENATED MODULE: ./src/js/custom-elements/fds-input.js
+;// CONCATENATED MODULE: ./src/js/custom-elements/fds-input/fds-input-attribute-changes.js
+
+
+
+
+function autocomplete(newValue, inputElement) {
+  // Attribute changed to valid value
+  if (isNonEmptyString(newValue)) {
+    inputElement.setAttribute('autocomplete', newValue);
+  }
+  // Attribute removed or invalid value
+  else {
+    inputElement.removeAttribute('autocomplete');
+  }
+}
+function disabled(newValue, labelElement, inputElement) {
+  // Attribute changed
+  if (newValue !== null) {
+    labelElement.classList.add('disabled');
+    inputElement.setAttribute('disabled', '');
+  }
+  // Attribute removed
+  else {
+    labelElement.classList.remove('disabled');
+    inputElement.removeAttribute('disabled');
+  }
+}
+function editbutton() {}
+function error(newValue, wrapperElement, inputElement) {
+  // Attribute changed
+  if (isNonEmptyString(newValue)) {
+    wrapperElement.classList.add('form-error');
+    inputElement.setAttribute('aria-invalid', 'true');
+  }
+  // Attribute removed
+  else {
+    wrapperElement.classList.remove('form-error');
+    inputElement.removeAttribute('aria-invalid');
+  }
+}
+function helptext(newValue, helptextElement) {
+  // Attribute changed to valid value
+  if (isNonEmptyString(newValue)) {
+    helptextElement.textContent = newValue;
+  }
+  // Attribute removed or invalid value
+  else {
+    helptextElement.textContent = '';
+  }
+}
+function inputid(newValue, labelElement, inputElement) {
+  // Attribute changed to valid value
+  if (isNonEmptyString(newValue)) {
+    labelElement.setAttribute('for', newValue);
+    inputElement.setAttribute('id', newValue);
+  }
+  // Attribute removed or invalid value
+  else {
+    setDefaultInputId(labelElement, inputElement);
+  }
+}
+function label(newValue, labelElement) {
+  // Attribute changed
+  if (newValue !== null) {
+    if (isNonEmptyString(newValue)) {
+      labelElement.textContent = newValue;
+    } else {
+      throw new Error(`Invalid label attribute '${newValue}'.`);
+    }
+  }
+  // Do nothing on attribute removed to avoid throwing an error in those  
+  // rare cases where two calls are made to attributeChangedCallback()
+}
+function maxchar(newValue, inputElement, characterLimitElement, connected, glossary, handleKeyUp, handleFocus, handleBlur, handlePageShow, value, containsCharacterLimit) {
+  // Attribute changed
+  if (isValidInteger(newValue)) {
+    characterLimitElement.querySelector('.max-limit').innerHTML = glossary['maxCharactersText'].replace(/{value}/, newValue);
+    let charactersRemaining = newValue;
+    if (value) {
+      charactersRemaining = parseInt(newValue) - value.length;
+    }
+    fds_input_helpers_updateVisibleMessage(glossary, charactersRemaining, inputElement, characterLimitElement);
+    updateSRMessage(glossary, charactersRemaining, characterLimitElement);
+  }
+
+  // Attribute added
+  if (connected && !containsCharacterLimit && isValidInteger(newValue)) {
+    inputElement.addEventListener('keyup', handleKeyUp, false);
+    inputElement.addEventListener('focus', handleFocus, false);
+    inputElement.addEventListener('blur', handleBlur, false);
+    window.addEventListener('pageshow', handlePageShow, false);
+  }
+  // Attribute removed or invalid
+  else if (connected && containsCharacterLimit && !isValidInteger(newValue)) {
+    inputElement.removeEventListener('keyup', handleKeyUp, false);
+    inputElement.removeEventListener('focus', handleFocus, false);
+    inputElement.removeEventListener('blur', handleBlur, false);
+    window.removeEventListener('pageshow', handlePageShow, false);
+  }
+}
+function maxwidth(newValue, inputElement) {
+  // Attribute changed
+  if (isValidInteger(newValue)) {
+    let paddingPixels = 30; // Input padding-left and padding-right are 15px
+    let borderPixels = 4; // Input border-left and border-right are 2px (worst case)
+    inputElement.style.maxWidth = 'calc(' + parseInt(newValue) + 'ch + ' + (paddingPixels + borderPixels) + 'px)';
+    inputElement.style.width = '100%';
+  }
+  // Attribute removed
+  else {
+    inputElement.style.maxWidth = '';
+    inputElement.style.width = '';
+  }
+}
+function fds_input_attribute_changes_name(newValue, inputElement) {
+  // Attribute changed
+  if (newValue !== null) {
+    if (isNonEmptyString(newValue)) {
+      inputElement.setAttribute('name', newValue);
+    } else {
+      throw new Error(`Invalid name attribute '${newValue}'.`);
+    }
+  }
+  // Do nothing on attribute removed to avoid throwing an error in those  
+  // rare cases where two calls are made to attributeChangedCallback()
+}
+function prefix(newValue, inputWrapperElement, prefixElement) {
+  // Attribute changed to valid value
+  if (isNonEmptyString(newValue)) {
+    inputWrapperElement.classList.add('form-input-wrapper--prefix');
+    prefixElement.textContent = newValue;
+  }
+  // Attribute removed or invalid value
+  else {
+    inputWrapperElement.classList.remove('form-input-wrapper--prefix');
+  }
+}
+function readonly(newValue, inputElement) {
+  // Attribute changed
+  if (newValue !== null) {
+    inputElement.setAttribute('readonly', '');
+  }
+  // Attribute removed
+  else {
+    inputElement.removeAttribute('readonly');
+  }
+}
+function required(newValue, inputElement) {
+  // Attribute changed
+  if (newValue !== null) {
+    inputElement.setAttribute('required', '');
+  }
+  // Attribute removed
+  else {
+    inputElement.removeAttribute('required');
+  }
+}
+function showoptional() {}
+function showrequired() {}
+function suffix(newValue, inputWrapperElement, suffixElement) {
+  // Attribute changed
+  if (isNonEmptyString(newValue)) {
+    inputWrapperElement.classList.add('form-input-wrapper--suffix');
+    suffixElement.textContent = newValue;
+  }
+  // Attribute removed
+  else {
+    inputWrapperElement.classList.remove('form-input-wrapper--suffix');
+  }
+}
+function fds_input_attribute_changes_tooltip(newValue, tooltipElement) {
+  // Attribute changed
+  if (isNonEmptyString(newValue)) {
+    tooltipElement.dataset.tooltip = newValue;
+  }
+}
+function type(newValue, inputElement) {
+  // Attribute changed to text
+  if (isNonEmptyString(newValue)) {
+    if (isValidType(newValue)) {
+      inputElement.setAttribute('type', newValue);
+    } else {
+      throw new Error(`Invalid type attribute '${newValue}'.`);
+    }
+  }
+  // Attribute removed or changed to non-text
+  else {
+    setDefaultType(inputElement);
+  }
+}
+function value(newValue, inputElement, characterLimitElement, connected, glossary, maxchar) {
+  // Attribute changed
+  if (newValue !== null) {
+    inputElement.setAttribute('value', newValue);
+  }
+  // Attribute removed
+  else {
+    inputElement.removeAttribute('value');
+  }
+  // Ensure character limit shows the correct number of remaining characters at element creation
+  if (!connected && isValidInteger(maxchar)) {
+    let chars = parseInt(maxchar) - newValue.length;
+    fds_input_helpers_updateVisibleMessage(glossary, chars, inputElement, characterLimitElement);
+    updateSRMessage(glossary, chars, characterLimitElement);
+  }
+}
+;// CONCATENATED MODULE: ./src/js/custom-elements/fds-input/fds-input.js
+
 
 
 
@@ -6259,47 +6463,17 @@ class FDSInput extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['label', 'name', 'inputid', 'value', 'type', 'required', 'disabled', 'readonly', 'autocomplete', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxwidth', 'maxchar', 'tooltip'];
+  static observedAttributes = ['autocomplete', 'disabled', 'editbutton', 'error', 'helptext', 'inputid', 'label', 'maxchar', 'maxwidth', 'name', 'prefix', 'readonly', 'required', 'showoptional', 'showrequired', 'suffix', 'tooltip', 'type', 'value'];
 
   /*
   ATTRIBUTE GETTERS AND SETTERS
   */
 
-  get label() {
-    return this.getAttribute('label');
+  get autocomplete() {
+    return this.getAttribute('autocomplete');
   }
-  set label(val) {
-    this.setAttribute('label', val);
-  }
-  get name() {
-    return this.getAttribute('name');
-  }
-  set name(val) {
-    this.setAttribute('name', val);
-  }
-  get inputid() {
-    return this.getAttribute('inputid');
-  }
-  set inputid(val) {
-    this.setAttribute('inputid', val);
-  }
-  get value() {
-    return this.#inputElement.value;
-  }
-  set value(val) {
-    this.#inputElement.value = val;
-  }
-  get type() {
-    return this.getAttribute('type');
-  }
-  set type(val) {
-    this.setAttribute('type', val);
-  }
-  get required() {
-    return this.getAttribute('required');
-  }
-  set required(val) {
-    this.setAttribute('required', val);
+  set autocomplete(val) {
+    this.setAttribute('autocomplete', val);
   }
   get disabled() {
     return this.getAttribute('disabled');
@@ -6307,23 +6481,11 @@ class FDSInput extends HTMLElement {
   set disabled(val) {
     this.setAttribute('disabled', val);
   }
-  get readonly() {
-    return this.getAttribute('readonly');
+  get editbutton() {
+    return this.getAttribute('editbutton');
   }
-  set readonly(val) {
-    this.setAttribute('readonly', val);
-  }
-  get autocomplete() {
-    return this.getAttribute('autocomplete');
-  }
-  set autocomplete(val) {
-    this.setAttribute('autocomplete', val);
-  }
-  get helptext() {
-    return this.getAttribute('helptext');
-  }
-  set helptext(val) {
-    this.setAttribute('helptext', val);
+  set editbutton(val) {
+    this.setAttribute('editbutton', val);
   }
   get error() {
     return this.getAttribute('error');
@@ -6331,41 +6493,23 @@ class FDSInput extends HTMLElement {
   set error(val) {
     this.setAttribute('error', val);
   }
-  get prefix() {
-    return this.getAttribute('prefix');
+  get helptext() {
+    return this.getAttribute('helptext');
   }
-  set prefix(val) {
-    this.setAttribute('prefix', val);
+  set helptext(val) {
+    this.setAttribute('helptext', val);
   }
-  get suffix() {
-    return this.getAttribute('suffix');
+  get inputid() {
+    return this.getAttribute('inputid');
   }
-  set suffix(val) {
-    this.setAttribute('suffix', val);
+  set inputid(val) {
+    this.setAttribute('inputid', val);
   }
-  get editbutton() {
-    return this.getAttribute('editbutton');
+  get label() {
+    return this.getAttribute('label');
   }
-  set editbutton(val) {
-    this.setAttribute('editbutton', val);
-  }
-  get showrequired() {
-    return this.getAttribute('showrequired');
-  }
-  set showrequired(val) {
-    this.setAttribute('showrequired', val);
-  }
-  get showoptional() {
-    return this.getAttribute('showoptional');
-  }
-  set showoptional(val) {
-    this.setAttribute('showoptional', val);
-  }
-  get maxwidth() {
-    return this.getAttribute('maxwidth');
-  }
-  set maxwidth(val) {
-    this.setAttribute('maxwidth', val);
+  set label(val) {
+    this.setAttribute('label', val);
   }
   get maxchar() {
     return this.getAttribute('maxchar');
@@ -6373,11 +6517,71 @@ class FDSInput extends HTMLElement {
   set maxchar(val) {
     this.setAttribute('maxchar', val);
   }
+  get maxwidth() {
+    return this.getAttribute('maxwidth');
+  }
+  set maxwidth(val) {
+    this.setAttribute('maxwidth', val);
+  }
+  get name() {
+    return this.getAttribute('name');
+  }
+  set name(val) {
+    this.setAttribute('name', val);
+  }
+  get prefix() {
+    return this.getAttribute('prefix');
+  }
+  set prefix(val) {
+    this.setAttribute('prefix', val);
+  }
+  get readonly() {
+    return this.getAttribute('readonly');
+  }
+  set readonly(val) {
+    this.setAttribute('readonly', val);
+  }
+  get required() {
+    return this.getAttribute('required');
+  }
+  set required(val) {
+    this.setAttribute('required', val);
+  }
+  get showoptional() {
+    return this.getAttribute('showoptional');
+  }
+  set showoptional(val) {
+    this.setAttribute('showoptional', val);
+  }
+  get showrequired() {
+    return this.getAttribute('showrequired');
+  }
+  set showrequired(val) {
+    this.setAttribute('showrequired', val);
+  }
+  get suffix() {
+    return this.getAttribute('suffix');
+  }
+  set suffix(val) {
+    this.setAttribute('suffix', val);
+  }
   get tooltip() {
     return this.getAttribute('tooltip');
   }
   set tooltip(val) {
     this.setAttribute('tooltip', val);
+  }
+  get type() {
+    return this.getAttribute('type');
+  }
+  set type(val) {
+    this.setAttribute('type', val);
+  }
+  get value() {
+    return this.#inputElement.value;
+  }
+  set value(val) {
+    this.#inputElement.value = val;
   }
 
   /*
@@ -6616,205 +6820,63 @@ class FDSInput extends HTMLElement {
 
     /* Attribute changes */
 
-    if (attribute === 'label') {
-      // Attribute changed
-      if (newValue !== null) {
-        if (isNonEmptyString(newValue)) {
-          this.#labelElement.textContent = newValue;
-        } else {
-          throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-        }
-      }
-      // Do nothing on attribute removed to avoid throwing an error in those  
-      // rare cases where two calls are made to attributeChangedCallback()
-    }
-    if (attribute === 'name') {
-      // Attribute changed
-      if (newValue !== null) {
-        if (isNonEmptyString(newValue)) {
-          this.#inputElement.setAttribute('name', newValue);
-        } else {
-          throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-        }
-      }
-      // Do nothing on attribute removed to avoid throwing an error in those  
-      // rare cases where two calls are made to attributeChangedCallback()
-    }
-    if (attribute === 'inputid') {
-      // Attribute changed to valid value
-      if (isNonEmptyString(newValue)) {
-        this.#labelElement.setAttribute('for', newValue);
-        this.#inputElement.setAttribute('id', newValue);
-      }
-      // Attribute removed or invalid value
-      else {
-        setDefaultInputId(this.#labelElement, this.#inputElement);
-      }
-    }
-    if (attribute === 'value') {
-      // Attribute changed
-      if (newValue !== null) {
-        this.#inputElement.setAttribute('value', newValue);
-      }
-      // Attribute removed
-      else {
-        this.#inputElement.removeAttribute('value');
-      }
-      // Ensure character limit shows the correct number of remaining characters at element creation
-      if (!this.#connected && isValidInteger(this.maxchar)) {
-        let chars = parseInt(this.maxchar) - newValue.length;
-        fds_input_helpers_updateVisibleMessage(this.#glossary, chars, this.#inputElement, this.#characterLimitElement);
-        updateSRMessage(this.#glossary, chars, this.#characterLimitElement);
-      }
-    }
-    if (attribute === 'type') {
-      // Attribute changed to text
-      if (isNonEmptyString(newValue)) {
-        if (isValidType(newValue)) {
-          this.#inputElement.setAttribute('type', newValue);
-        } else {
-          throw new Error(`Invalid ${attribute} attribute '${newValue}'.`);
-        }
-      }
-      // Attribute removed or changed to non-text
-      else {
-        setDefaultType(this.#inputElement);
-      }
-    }
-    if (attribute === 'required') {
-      // Attribute changed
-      if (newValue !== null) {
-        this.#inputElement.setAttribute('required', '');
-      }
-      // Attribute removed
-      else {
-        this.#inputElement.removeAttribute('required');
-      }
+    if (attribute === 'autocomplete') {
+      autocomplete(newValue, this.#inputElement);
     }
     if (attribute === 'disabled') {
-      // Attribute changed
-      if (newValue !== null) {
-        this.#labelElement.classList.add('disabled');
-        this.#inputElement.setAttribute('disabled', '');
-      }
-      // Attribute removed
-      else {
-        this.#labelElement.classList.remove('disabled');
-        this.#inputElement.removeAttribute('disabled');
-      }
+      disabled(newValue, this.#labelElement, this.#inputElement);
     }
-    if (attribute === 'readonly') {
-      // Attribute changed
-      if (newValue !== null) {
-        this.#inputElement.setAttribute('readonly', '');
-      }
-      // Attribute removed
-      else {
-        this.#inputElement.removeAttribute('readonly');
-      }
-    }
-    if (attribute === 'autocomplete') {
-      // Attribute changed to valid value
-      if (isNonEmptyString(newValue)) {
-        this.#inputElement.setAttribute('autocomplete', newValue);
-      }
-      // Attribute removed or invalid value
-      else {
-        this.#inputElement.removeAttribute('autocomplete');
-      }
+
+    // editbutton handled in rebuild step
+
+    if (attribute === 'error') {
+      error(newValue, this.#wrapperElement, this.#inputElement);
     }
     if (attribute === 'helptext') {
-      // Attribute changed to valid value
-      if (isNonEmptyString(newValue)) {
-        this.#helptextElement.textContent = newValue;
-      }
-      // Attribute removed or invalid value
-      else {
-        this.#helptextElement.textContent = '';
-      }
+      helptext(newValue, this.#helptextElement);
     }
-    if (attribute === 'error') {
-      // Attribute changed
-      if (isNonEmptyString(newValue)) {
-        this.#wrapperElement.classList.add('form-error');
-        this.#inputElement.setAttribute('aria-invalid', 'true');
-      }
-      // Attribute removed
-      else {
-        this.#wrapperElement.classList.remove('form-error');
-        this.#inputElement.removeAttribute('aria-invalid');
-      }
+    if (attribute === 'inputid') {
+      inputid(newValue, this.#labelElement, this.#inputElement);
     }
-    if (attribute === 'prefix') {
-      // Attribute changed to valid value
-      if (isNonEmptyString(newValue)) {
-        this.#inputWrapperElement.classList.add('form-input-wrapper--prefix');
-        this.#prefixElement.textContent = newValue;
-      }
-      // Attribute removed or invalid value
-      else {
-        this.#inputWrapperElement.classList.remove('form-input-wrapper--prefix');
-      }
-    }
-    if (attribute === 'suffix') {
-      // Attribute changed
-      if (isNonEmptyString(newValue)) {
-        this.#inputWrapperElement.classList.add('form-input-wrapper--suffix');
-        this.#suffixElement.textContent = newValue;
-      }
-      // Attribute removed
-      else {
-        this.#inputWrapperElement.classList.remove('form-input-wrapper--suffix');
-      }
-    }
-    if (attribute === 'maxwidth') {
-      // Attribute changed
-      if (isValidInteger(newValue)) {
-        let paddingPixels = 30; // Input padding-left and padding-right are 15px
-        let borderPixels = 4; // Input border-left and border-right are 2px (worst case)
-        this.#inputElement.style.maxWidth = 'calc(' + parseInt(newValue) + 'ch + ' + (paddingPixels + borderPixels) + 'px)';
-        this.#inputElement.style.width = '100%';
-      }
-      // Attribute removed
-      else {
-        this.#inputElement.style.maxWidth = '';
-        this.#inputElement.style.width = '';
-      }
+    if (attribute === 'label') {
+      label(newValue, this.#labelElement);
     }
     if (attribute === 'maxchar') {
-      // Attribute changed
-      if (isValidInteger(newValue)) {
-        this.#characterLimitElement.querySelector('.max-limit').innerHTML = this.#glossary['maxCharactersText'].replace(/{value}/, newValue);
-        let charactersRemaining = newValue;
-        if (this.value) {
-          charactersRemaining = parseInt(newValue) - this.value.length;
-        }
-        fds_input_helpers_updateVisibleMessage(this.#glossary, charactersRemaining, this.#inputElement, this.#characterLimitElement);
-        updateSRMessage(this.#glossary, charactersRemaining, this.#characterLimitElement);
-      }
+      maxchar(newValue, this.#inputElement, this.#characterLimitElement, this.#connected, this.#glossary, this.#handleKeyUp, this.#handleFocus, this.#handleBlur, this.#handlePageShow, this.value, this.contains(this.#characterLimitElement));
+    }
+    if (attribute === 'maxwidth') {
+      maxwidth(newValue, this.#inputElement);
+    }
+    if (attribute === 'name') {
+      fds_input_attribute_changes_name(newValue, this.#inputElement);
+    }
+    if (attribute === 'prefix') {
+      prefix(newValue, this.#inputWrapperElement, this.#prefixElement);
+    }
+    if (attribute === 'readonly') {
+      readonly(newValue, this.#inputElement);
+    }
+    if (attribute === 'required') {
+      required(newValue, this.#inputElement);
+    }
 
-      // Attribute added
-      if (this.#connected && !this.contains(this.#characterLimitElement) && isValidInteger(newValue)) {
-        this.#inputElement.addEventListener('keyup', this.#handleKeyUp, false);
-        this.#inputElement.addEventListener('focus', this.#handleFocus, false);
-        this.#inputElement.addEventListener('blur', this.#handleBlur, false);
-        window.addEventListener('pageshow', this.#handlePageShow, false);
-      }
-      // Attribute removed or invalid
-      else if (this.#connected && this.contains(this.#characterLimitElement) && !isValidInteger(newValue)) {
-        this.#inputElement.removeEventListener('keyup', this.#handleKeyUp, false);
-        this.#inputElement.removeEventListener('focus', this.#handleFocus, false);
-        this.#inputElement.removeEventListener('blur', this.#handleBlur, false);
-        window.removeEventListener('pageshow', this.#handlePageShow, false);
-      }
+    // showoptional handled in rebuild step
+
+    // showrequired handled in rebuild step
+
+    if (attribute === 'suffix') {
+      suffix(newValue, this.#inputWrapperElement, this.#suffixElement);
     }
     if (attribute === 'tooltip') {
-      // Attribute changed
-      if (isNonEmptyString(newValue)) {
-        this.#tooltipElement.dataset.tooltip = newValue;
-      }
+      fds_input_attribute_changes_tooltip(newValue, this.#tooltipElement);
     }
-    checkDisallowedCombinations(isNonEmptyString(this.error), this.hasAttribute('required'), this.hasAttribute('readonly'), this.hasAttribute('disabled'), this.hasAttribute('showrequired'), this.hasAttribute('showoptional'), this.hasAttribute('maxchar'));
+    if (attribute === 'type') {
+      type(newValue, this.#inputElement);
+    }
+    if (attribute === 'value') {
+      value(newValue, this.#inputElement, this.#characterLimitElement, this.#connected, this.#glossary, this.maxchar);
+    }
+    checkDisallowedCombinations(isNonEmptyString(this.error), this.hasAttribute('required'), this.hasAttribute('readonly'), this.hasAttribute('disabled'), this.hasAttribute('showrequired'), this.hasAttribute('showoptional'), isValidInteger(this.maxchar));
 
     /* Update HTML */
 
