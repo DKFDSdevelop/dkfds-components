@@ -19,7 +19,6 @@ import Tooltip from './components/tooltip';
 const datePicker = require('./components/date-picker').default;
 
 import FDSIcon from './custom-elements/fds-icon';
-import FDSAlert from './custom-elements/fds-alert';
 import FDSInput from './custom-elements/fds-input/fds-input';
 
 /**
@@ -217,9 +216,6 @@ var init = function (options) {
 let initCustomElements = function () {
   if (customElements.get('fds-icon') === undefined) {
     window.customElements.define('fds-icon', FDSIcon);
-  }
-  if (customElements.get('fds-alert') === undefined) {
-    window.customElements.define('fds-alert', FDSAlert);
   }
   if (customElements.get('fds-input') === undefined) {
     window.customElements.define('fds-input', FDSInput);

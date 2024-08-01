@@ -1,7 +1,6 @@
 'use strict';
 
-import isNonEmptyString from '../../utils/is-non-empty-string';
-import * as Helpers from './fds-input-helpers';
+import {isNonEmptyString, isValidInteger} from './fds-input-attribute-validators';
 
 /* Functions for initial creation of fds-input elements */
 
@@ -103,7 +102,7 @@ export function setInputAriaDescribedBy(error, helptext, maxchar, errorElement, 
     if (isNonEmptyString(helptext)) {
         ariaDescribedBy = ariaDescribedBy + helptextElement.id + ' ';
     }
-    if (Helpers.isValidInteger(maxchar)) {
+    if (isValidInteger(maxchar)) {
         ariaDescribedBy = ariaDescribedBy + characterLimitElement.querySelector('.max-limit').id + ' ';
     }
     if (ariaDescribedBy.trim() !== '') {

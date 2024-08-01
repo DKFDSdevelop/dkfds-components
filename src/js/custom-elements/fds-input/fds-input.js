@@ -1,6 +1,7 @@
 'use strict';
 
-import isNonEmptyString from '../../utils/is-non-empty-string';
+import * as Glossary from './fds-input-glossary';
+import {isNonEmptyString, isValidInteger, isValidType} from './fds-input-attribute-validators';
 import * as Helpers from './fds-input-helpers';
 import * as HandleAttributeChange from './fds-input-attribute-changes';
 import * as Build from './fds-input-build-element';
@@ -75,12 +76,12 @@ class FDSInput extends HTMLElement {
         // Add label
         this.#wrapperElement.appendChild(this.#labelElement);
 
-        // Add required label
+        // Add 'required' label
         if (this.hasAttribute('showrequired') && isNonEmptyString(this.label)) {
             Helpers.updateRequiredLabel(this.#labelElement, this.label, this.#glossary['requiredText']);
         }
 
-        // Add optional label
+        // Add 'optional' label
         if (this.hasAttribute('showoptional') && isNonEmptyString(this.label)) {
             Helpers.updateOptionalLabel(this.#labelElement, this.label, this.#glossary['optionalText']);
         }
@@ -145,7 +146,7 @@ class FDSInput extends HTMLElement {
         }
 
         // Add character limit
-        if (Helpers.isValidInteger(this.maxchar)) {
+        if (isValidInteger(this.maxchar)) {
             this.#wrapperElement.appendChild(this.#characterLimitElement);
         }
     }
@@ -237,18 +238,8 @@ class FDSInput extends HTMLElement {
 
         this.#initialised = false;
         this.#connected = false;
-        this.#glossary = {
-            'errorText': 'Fejl',
-            'editText': 'Rediger',
-            'requiredText': 'skal udfyldes',
-            'optionalText': 'frivilligt',
-            'oneCharacterLeftText': 'Du har {value} tegn tilbage',
-            'manyCharactersLeftText': 'Du har {value} tegn tilbage',
-            'oneCharacterExceededText': 'Du har {value} tegn for meget',
-            'manyCharactersExceededText': 'Du har {value} tegn for meget',
-            'maxCharactersText': 'Du kan indtaste op til {value} tegn',
-            'tooltipIconText': 'Læs mere'
-        };
+        this.#glossary = Glossary.glossary;
+
         this.#triggerRebuild = ['label', 'inputid', 'required', 'disabled', 'readonly', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxchar', 'tooltip'];
 
         this.#lastKeyUpTimestamp = null;
@@ -314,44 +305,33 @@ class FDSInput extends HTMLElement {
         return this.#inputElement;
     }
 
-    updateGlossary(glossary) {
-        if (glossary['errorText'] !== undefined) {
-            this.#glossary['errorText'] = glossary['errorText'];
-            if (isNonEmptyString(this.error)) {
-                Helpers.updateErrorMessage(this.#errorElement, this.error, this.#glossary['errorText']);
-            }
+    updateGlossary(newGlossary) {
+        Glossary.updateGlossary(this.#glossary, newGlossary);
+
+        /* Check if the old text is (potentially) visible to the user */
+        let updateErrorTextNow = newGlossary['errorText'] !== undefined && isNonEmptyString(this.error);
+        let updateEditTextNow = newGlossary['editText'] !== undefined && isNonEmptyString(this.label) && this.hasAttribute('editbutton');
+        let updateRequiredTextNow = newGlossary['requiredText'] !== undefined && isNonEmptyString(this.label) && this.hasAttribute('showrequired');
+        let updateOptionalTextNow = newGlossary['optionalText'] !== undefined && isNonEmptyString(this.label) && this.hasAttribute('showoptional');
+        let updateCharactersTextNow = newGlossary['oneCharacterLeftText'] || newGlossary['manyCharactersLeftText'] || 
+                                      newGlossary['oneCharacterExceededText'] || newGlossary['manyCharactersExceededText'];
+        let updateMaxCharactersTextNow = newGlossary['maxCharactersText'] !== undefined && isValidInteger(this.maxchar);
+        let updateTooltipIconText = newGlossary['tooltipIconText'] !== undefined;
+
+        /* If the old text is visible to the user, update it immediately */
+        if (updateErrorTextNow) {
+            Helpers.updateErrorMessage(this.#errorElement, this.error, this.#glossary['errorText']);
         }
-        if (glossary['editText'] !== undefined) {
-            this.#glossary['editText'] = glossary['editText'];
-            if (isNonEmptyString(this.label) && this.hasAttribute('editbutton')) {
-                Helpers.updateEditButton(this.#editButtonElement, this.label, this.#glossary['editText']);
-            }
+        if (updateEditTextNow) {
+            Helpers.updateEditButton(this.#editButtonElement, this.label, this.#glossary['editText']);
         }
-        if (glossary['requiredText'] !== undefined) {
-            this.#glossary['requiredText'] = glossary['requiredText'];
-            if (isNonEmptyString(this.label) && this.hasAttribute('showrequired')) {
-                Helpers.updateRequiredLabel(this.#labelElement, this.label, this.#glossary['requiredText']);
-            }
+        if (updateRequiredTextNow) {
+            Helpers.updateRequiredLabel(this.#labelElement, this.label, this.#glossary['requiredText']);
         }
-        if (glossary['optionalText'] !== undefined) {
-            this.#glossary['optionalText'] = glossary['optionalText'];
-            if (isNonEmptyString(this.label) && this.hasAttribute('showoptional')) {
-                Helpers.updateOptionalLabel(this.#labelElement, this.label, this.#glossary['optionalText']);
-            }
+        if (updateOptionalTextNow) {
+            Helpers.updateOptionalLabel(this.#labelElement, this.label, this.#glossary['optionalText']);
         }
-        if (glossary['oneCharacterLeftText'] !== undefined) {
-            this.#glossary['oneCharacterLeftText'] = glossary['oneCharacterLeftText'];
-        }
-        if (glossary['manyCharactersLeftText'] !== undefined) {
-            this.#glossary['manyCharactersLeftText'] = glossary['manyCharactersLeftText'];
-        }
-        if (glossary['oneCharacterExceededText'] !== undefined) {
-            this.#glossary['oneCharacterExceededText'] = glossary['oneCharacterExceededText'];
-        }
-        if (glossary['manyCharactersExceededText'] !== undefined) {
-            this.#glossary['manyCharactersExceededText'] = glossary['manyCharactersExceededText'];
-        }
-        if (glossary['oneCharacterLeftText'] || glossary['manyCharactersLeftText'] || glossary['oneCharacterExceededText'] || glossary['manyCharactersExceededText']) {
+        if (updateCharactersTextNow) {
             /* Prevent screen readers from announcing the glossary change */
             let maxLimitText = this.#characterLimitElement.querySelector('.max-limit').innerHTML;
             this.#characterLimitElement.innerHTML = 
@@ -361,20 +341,16 @@ class FDSInput extends HTMLElement {
             this.updateMessages();
             this.#characterLimitElement.querySelector('.sr-message').setAttribute('aria-live', 'polite');
         }
-        if (glossary['maxCharactersText'] !== undefined) {
-            this.#glossary['maxCharactersText'] = glossary['maxCharactersText'];
-            if (Helpers.isValidInteger(this.maxchar)) {
-                this.#characterLimitElement.querySelector('.max-limit').innerHTML = this.#glossary['maxCharactersText'].replace(/{value}/, this.maxchar);
-            }
+        if (updateMaxCharactersTextNow) {
+            this.#characterLimitElement.querySelector('.max-limit').innerHTML = this.#glossary['maxCharactersText'].replace(/{value}/, this.maxchar);
         }
-        if (glossary['tooltipIconText'] !== undefined) {
-            this.#glossary['tooltipIconText'] = glossary['tooltipIconText'];
+        if (updateTooltipIconText) {
             this.#tooltipElement.querySelector('button').setAttribute('aria-label', this.#glossary['tooltipIconText']);
         }
     }
 
     charactersLeft() {
-        if (Helpers.isValidInteger(this.maxchar)) {
+        if (isValidInteger(this.maxchar)) {
             let currentLength = this.#inputElement.value.length;
             return parseInt(this.maxchar) - currentLength;
         }
@@ -384,7 +360,7 @@ class FDSInput extends HTMLElement {
     }
 
     updateMessages() {
-        if (Helpers.isValidInteger(this.maxchar)) {
+        if (isValidInteger(this.maxchar)) {
             let chars = this.charactersLeft();
             Helpers.updateVisibleMessage(this.#glossary, chars, this.#inputElement, this.#characterLimitElement);
             Helpers.updateSRMessage(this.#glossary, chars, this.#characterLimitElement);
@@ -412,14 +388,14 @@ class FDSInput extends HTMLElement {
             }
 
             /* Ensure input always has a type */
-            if (!Helpers.isValidType(this.type)) {
+            if (!isValidType(this.type)) {
                 Helpers.setDefaultType(this.#inputElement);
             }
 
             this.#rebuildElement();
             this.appendChild(this.#wrapperElement);
 
-            if (Helpers.isValidInteger(this.maxchar)) {
+            if (isValidInteger(this.maxchar)) {
                 this.#inputElement.addEventListener('keyup', this.#handleKeyUp, false);
                 this.#inputElement.addEventListener('focus', this.#handleFocus, false);
                 this.#inputElement.addEventListener('blur', this.#handleBlur, false);
@@ -545,7 +521,7 @@ class FDSInput extends HTMLElement {
             this.hasAttribute('disabled'),
             this.hasAttribute('showrequired'),
             this.hasAttribute('showoptional'),
-            Helpers.isValidInteger(this.maxchar)
+            isValidInteger(this.maxchar)
         );
 
         /* Update HTML */

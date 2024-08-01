@@ -12032,19 +12032,6 @@ fds-icon svg:focus{
   outline:none;
 }
 
-fds-alert{
-  margin-top:16px;
-  margin-bottom:16px;
-  display:block;
-}
-fds-alert .alert{
-  margin-top:0;
-  margin-bottom:0;
-}
-fds-alert:first-child{
-  margin-top:0;
-}
-
 fds-input,
 .fds-input{
   display:block;

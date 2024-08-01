@@ -15,26 +15,6 @@ export function setDefaultType(inputElement) {
 }
 
 /* 
-FUNCTIONS FOR VALIDATING ATTRIBUTES 
-*/
-
-export function isValidType(type) {
-    const TYPES = ['text', 'email', 'number', 'password', 'tel', 'url'];
-
-    if (TYPES.includes(type)) { 
-        return true; 
-    }
-    else { 
-        return false; 
-    }
-}
-
-export function isValidInteger(maxchar) {
-    let number = parseInt(maxchar);
-    return Number.isInteger(number);
-}
-
-/* 
 CHARACTER LIMIT
 */
 

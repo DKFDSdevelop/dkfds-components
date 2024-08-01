@@ -1,6 +1,6 @@
 'use strict';
 
-import isNonEmptyString from '../../utils/is-non-empty-string';
+import {isNonEmptyString, isValidInteger, isValidType} from './fds-input-attribute-validators';
 import * as Helpers from './fds-input-helpers';
 
 export function autocomplete(newValue, inputElement) {
@@ -81,7 +81,7 @@ export function label(newValue, labelElement) {
 
 export function maxchar(newValue, inputElement, characterLimitElement, connected, glossary, handleKeyUp, handleFocus, handleBlur, handlePageShow, value, containsCharacterLimit) {
     // Attribute changed
-    if (Helpers.isValidInteger(newValue)) {
+    if (isValidInteger(newValue)) {
         characterLimitElement.querySelector('.max-limit').innerHTML = glossary['maxCharactersText'].replace(/{value}/, newValue);
 
         let charactersRemaining = newValue;
@@ -93,14 +93,14 @@ export function maxchar(newValue, inputElement, characterLimitElement, connected
     }
 
     // Attribute added
-    if (connected && !containsCharacterLimit && Helpers.isValidInteger(newValue)) {
+    if (connected && !containsCharacterLimit && isValidInteger(newValue)) {
         inputElement.addEventListener('keyup', handleKeyUp, false);
         inputElement.addEventListener('focus', handleFocus, false);
         inputElement.addEventListener('blur', handleBlur, false);
         window.addEventListener('pageshow', handlePageShow, false);
     }
     // Attribute removed or invalid
-    else if (connected && containsCharacterLimit && !Helpers.isValidInteger(newValue)) {
+    else if (connected && containsCharacterLimit && !isValidInteger(newValue)) {
         inputElement.removeEventListener('keyup', handleKeyUp, false);
         inputElement.removeEventListener('focus', handleFocus, false);
         inputElement.removeEventListener('blur', handleBlur, false);
@@ -110,7 +110,7 @@ export function maxchar(newValue, inputElement, characterLimitElement, connected
 
 export function maxwidth(newValue, inputElement) {
     // Attribute changed
-    if (Helpers.isValidInteger(newValue)) {
+    if (isValidInteger(newValue)) {
         let paddingPixels = 30; // Input padding-left and padding-right are 15px
         let borderPixels =   4; // Input border-left and border-right are 2px (worst case)
         inputElement.style.maxWidth = 'calc(' + parseInt(newValue) + 'ch + ' + (paddingPixels + borderPixels) + 'px)';  
@@ -197,7 +197,7 @@ export function tooltip(newValue, tooltipElement) {
 export function type(newValue, inputElement) {
     // Attribute changed to text
     if (isNonEmptyString(newValue)) {
-        if (Helpers.isValidType(newValue)) {
+        if (isValidType(newValue)) {
             inputElement.setAttribute('type', newValue);
         }
         else {
@@ -220,7 +220,7 @@ export function value(newValue, inputElement, characterLimitElement, connected, 
         inputElement.removeAttribute('value');
     }
     // Ensure character limit shows the correct number of remaining characters at element creation
-    if (!connected && Helpers.isValidInteger(maxchar)) {
+    if (!connected && isValidInteger(maxchar)) {
         let chars = parseInt(maxchar) - newValue.length;
         Helpers.updateVisibleMessage(glossary, chars, inputElement, characterLimitElement);
         Helpers.updateSRMessage(glossary, chars, characterLimitElement);
