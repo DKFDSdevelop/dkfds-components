@@ -1,11 +1,11 @@
 'use strict';
 
-import {isNonEmptyString, isValidInteger, isValidType} from './fds-input-attribute-validators';
+import {isValidText, isValidInteger, isValidType} from './fds-input-attribute-validators';
 import * as Helpers from './fds-input-helpers';
 
 export function autocomplete(newValue, inputElement) {
     // Attribute changed to valid value
-    if (isNonEmptyString(newValue)) {
+    if (isValidText(newValue)) {
         inputElement.setAttribute('autocomplete', newValue);
     }
     // Attribute removed or invalid value
@@ -27,11 +27,9 @@ export function disabled(newValue, labelElement, inputElement) {
     }
 }
 
-export function editbutton() { }
-
 export function error(newValue, wrapperElement, inputElement) {
     // Attribute changed
-    if (isNonEmptyString(newValue)) {
+    if (isValidText(newValue)) {
         wrapperElement.classList.add('form-error');
         inputElement.setAttribute('aria-invalid', 'true');
     }
@@ -44,7 +42,7 @@ export function error(newValue, wrapperElement, inputElement) {
 
 export function helptext(newValue, helptextElement) {
     // Attribute changed to valid value
-    if (isNonEmptyString(newValue)) {
+    if (isValidText(newValue)) {
         helptextElement.textContent = newValue;
     }
     // Attribute removed or invalid value
@@ -55,7 +53,7 @@ export function helptext(newValue, helptextElement) {
 
 export function inputid(newValue, labelElement, inputElement) {
     // Attribute changed to valid value
-    if (isNonEmptyString(newValue)) {
+    if (isValidText(newValue)) {
         labelElement.setAttribute('for', newValue);
         inputElement.setAttribute('id', newValue);
     }
@@ -68,7 +66,7 @@ export function inputid(newValue, labelElement, inputElement) {
 export function label(newValue, labelElement) {
     // Attribute changed
     if (newValue !== null) {
-        if (isNonEmptyString(newValue)) {
+        if (isValidText(newValue)) {
             labelElement.textContent = newValue;
         }
         else {
@@ -126,7 +124,7 @@ export function maxwidth(newValue, inputElement) {
 export function name(newValue, inputElement) {
     // Attribute changed
     if (newValue !== null) {
-        if (isNonEmptyString(newValue)) {
+        if (isValidText(newValue)) {
             inputElement.setAttribute('name', newValue);
         }
         else {
@@ -139,7 +137,7 @@ export function name(newValue, inputElement) {
 
 export function prefix(newValue, inputWrapperElement, prefixElement) {
     // Attribute changed to valid value
-    if (isNonEmptyString(newValue)) {
+    if (isValidText(newValue)) {
         inputWrapperElement.classList.add('form-input-wrapper--prefix');
         prefixElement.textContent = newValue;
     }
@@ -171,13 +169,9 @@ export function required(newValue, inputElement) {
     }
 }
 
-export function showoptional() { }
-
-export function showrequired() { }
-
 export function suffix(newValue, inputWrapperElement, suffixElement) {
     // Attribute changed
-    if (isNonEmptyString(newValue)) {
+    if (isValidText(newValue)) {
         inputWrapperElement.classList.add('form-input-wrapper--suffix');
         suffixElement.textContent = newValue;
     }
@@ -189,14 +183,14 @@ export function suffix(newValue, inputWrapperElement, suffixElement) {
 
 export function tooltip(newValue, tooltipElement) {
     // Attribute changed
-    if (isNonEmptyString(newValue)) {
+    if (isValidText(newValue)) {
         tooltipElement.dataset.tooltip = newValue;
     }
 }
 
 export function type(newValue, inputElement) {
     // Attribute changed to text
-    if (isNonEmptyString(newValue)) {
+    if (isValidText(newValue)) {
         if (isValidType(newValue)) {
             inputElement.setAttribute('type', newValue);
         }

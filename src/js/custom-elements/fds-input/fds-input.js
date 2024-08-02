@@ -1,7 +1,7 @@
 'use strict';
 
 import * as Glossary from './fds-input-glossary';
-import {isNonEmptyString, isValidInteger, isValidType} from './fds-input-attribute-validators';
+import {isValidText, isValidInteger, isValidType} from './fds-input-attribute-validators';
 import * as Helpers from './fds-input-helpers';
 import * as HandleAttributeChange from './fds-input-attribute-changes';
 import * as Build from './fds-input-build-element';
@@ -46,7 +46,7 @@ class FDSInput extends HTMLElement {
         this.#wrapperElement.innerHTML = '';
         this.#inputWrapperElement.innerHTML = '';
         this.#inputElement.removeAttribute('aria-describedby');
-        if (isNonEmptyString(this.label)) {
+        if (isValidText(this.label)) {
             this.#labelElement.textContent = this.label;
         }
 
@@ -64,12 +64,12 @@ class FDSInput extends HTMLElement {
         );
 
         // Set up edit button
-        if (this.hasAttribute('editbutton') && isNonEmptyString(this.label)) {
+        if (this.hasAttribute('editbutton') && isValidText(this.label)) {
             Helpers.updateEditButton(this.#editButtonElement, this.label, this.#glossary['editText']);
         }
 
         // Update error message
-        if (isNonEmptyString(this.error)) {
+        if (isValidText(this.error)) {
             Helpers.updateErrorMessage(this.#errorElement, this.error, this.#glossary['errorText']);
         }
         
@@ -77,17 +77,17 @@ class FDSInput extends HTMLElement {
         this.#wrapperElement.appendChild(this.#labelElement);
 
         // Add 'required' label
-        if (this.hasAttribute('showrequired') && isNonEmptyString(this.label)) {
+        if (this.hasAttribute('showrequired') && isValidText(this.label)) {
             Helpers.updateRequiredLabel(this.#labelElement, this.label, this.#glossary['requiredText']);
         }
 
         // Add 'optional' label
-        if (this.hasAttribute('showoptional') && isNonEmptyString(this.label)) {
+        if (this.hasAttribute('showoptional') && isValidText(this.label)) {
             Helpers.updateOptionalLabel(this.#labelElement, this.label, this.#glossary['optionalText']);
         }
 
         // Add tooltip
-        if (isNonEmptyString(this.tooltip)) { 
+        if (isValidText(this.tooltip)) { 
             this.#wrapperElement.appendChild(this.#tooltipElement);
             if (this.#tooltipElement.querySelector('.tooltip-arrow') === null) {
                 new Tooltip(this.#tooltipElement).init();
@@ -95,12 +95,12 @@ class FDSInput extends HTMLElement {
         }
 
         // Add helptext
-        if (isNonEmptyString(this.helptext)) { 
+        if (isValidText(this.helptext)) { 
             this.#wrapperElement.appendChild(this.#helptextElement); 
         }
 
         // Add error message
-        if (isNonEmptyString(this.error)) { 
+        if (isValidText(this.error)) { 
             this.#wrapperElement.appendChild(this.#errorElement); 
         }
 
@@ -110,7 +110,7 @@ class FDSInput extends HTMLElement {
         }
 
         // Add wrapper for prefix and suffix
-        if (isNonEmptyString(this.prefix) || isNonEmptyString(this.suffix)) {
+        if (isValidText(this.prefix) || isValidText(this.suffix)) {
             if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
                 this.#editWrapperElement.appendChild(this.#inputWrapperElement);
             }
@@ -120,12 +120,12 @@ class FDSInput extends HTMLElement {
         }
 
         // Add prefix
-        if (isNonEmptyString(this.prefix)) { 
+        if (isValidText(this.prefix)) { 
             this.#inputWrapperElement.appendChild(this.#prefixElement); 
         }
 
         // Add input
-        if (isNonEmptyString(this.prefix) || isNonEmptyString(this.suffix)) {
+        if (isValidText(this.prefix) || isValidText(this.suffix)) {
             this.#inputWrapperElement.appendChild(this.#inputElement);
         }
         else if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
@@ -136,7 +136,7 @@ class FDSInput extends HTMLElement {
         }
 
         // Add suffix
-        if (isNonEmptyString(this.suffix)) { 
+        if (isValidText(this.suffix)) { 
             this.#inputWrapperElement.appendChild(this.#suffixElement); 
         }
 
@@ -309,10 +309,10 @@ class FDSInput extends HTMLElement {
         Glossary.updateGlossary(this.#glossary, newGlossary);
 
         /* Check if the old text is (potentially) visible to the user */
-        let updateErrorTextNow = newGlossary['errorText'] !== undefined && isNonEmptyString(this.error);
-        let updateEditTextNow = newGlossary['editText'] !== undefined && isNonEmptyString(this.label) && this.hasAttribute('editbutton');
-        let updateRequiredTextNow = newGlossary['requiredText'] !== undefined && isNonEmptyString(this.label) && this.hasAttribute('showrequired');
-        let updateOptionalTextNow = newGlossary['optionalText'] !== undefined && isNonEmptyString(this.label) && this.hasAttribute('showoptional');
+        let updateErrorTextNow = newGlossary['errorText'] !== undefined && isValidText(this.error);
+        let updateEditTextNow = newGlossary['editText'] !== undefined && isValidText(this.label) && this.hasAttribute('editbutton');
+        let updateRequiredTextNow = newGlossary['requiredText'] !== undefined && isValidText(this.label) && this.hasAttribute('showrequired');
+        let updateOptionalTextNow = newGlossary['optionalText'] !== undefined && isValidText(this.label) && this.hasAttribute('showoptional');
         let updateCharactersTextNow = newGlossary['oneCharacterLeftText'] || newGlossary['manyCharactersLeftText'] || 
                                       newGlossary['oneCharacterExceededText'] || newGlossary['manyCharactersExceededText'];
         let updateMaxCharactersTextNow = newGlossary['maxCharactersText'] !== undefined && isValidInteger(this.maxchar);
@@ -383,7 +383,7 @@ class FDSInput extends HTMLElement {
         }
         else {
             /* Ensure input always has an ID */
-            if (!isNonEmptyString(this.inputid)) {
+            if (!isValidText(this.inputid)) {
                 Helpers.setDefaultInputId(this.#labelElement, this.#inputElement);
             }
 
@@ -515,7 +515,7 @@ class FDSInput extends HTMLElement {
         }
 
         Helpers.checkDisallowedCombinations(
-            isNonEmptyString(this.error), 
+            isValidText(this.error), 
             this.hasAttribute('required'), 
             this.hasAttribute('readonly'), 
             this.hasAttribute('disabled'),

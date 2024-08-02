@@ -1,6 +1,6 @@
 'use strict';
 
-import {isNonEmptyString, isValidInteger} from './fds-input-attribute-validators';
+import {isValidText, isValidInteger} from './fds-input-attribute-validators';
 
 /* Functions for initial creation of fds-input elements */
 
@@ -96,10 +96,10 @@ export function createCharacterLimitElement() {
 
 export function setInputAriaDescribedBy(error, helptext, maxchar, errorElement, helptextElement, characterLimitElement, inputElement) {
     let ariaDescribedBy = '';
-    if (isNonEmptyString(error)) {
+    if (isValidText(error)) {
         ariaDescribedBy = ariaDescribedBy + errorElement.id + ' ';
     }
-    if (isNonEmptyString(helptext)) {
+    if (isValidText(helptext)) {
         ariaDescribedBy = ariaDescribedBy + helptextElement.id + ' ';
     }
     if (isValidInteger(maxchar)) {

@@ -16,7 +16,7 @@ export function isValidInteger(integer) {
     return Number.isInteger(number);
 }
 
-export function isNonEmptyString (s) {
+export function isValidText(s) {
     // If s is falsy, it is not a non-empty string
     if (!s) {
         return false;
