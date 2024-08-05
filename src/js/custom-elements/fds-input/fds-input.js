@@ -449,7 +449,7 @@ class FDSInput extends HTMLElement {
         }
 
         if (attribute === 'disabled') {
-            HandleAttributeChange.disabled(newValue, this.#labelElement, this.#inputElement);
+            HandleAttributeChange.disabled(newValue, this.#labelElement, this.#inputElement, this.#inputWrapperElement);
         }
 
         // editbutton handled in rebuild step
@@ -487,7 +487,7 @@ class FDSInput extends HTMLElement {
         }
 
         if (attribute === 'readonly') {
-            HandleAttributeChange.readonly(newValue, this.#inputElement);
+            HandleAttributeChange.readonly(newValue, this.#inputElement, this.#inputWrapperElement);
         }
 
         if (attribute === 'required') {

@@ -5797,16 +5797,18 @@ function autocomplete(newValue, inputElement) {
     inputElement.removeAttribute('autocomplete');
   }
 }
-function disabled(newValue, labelElement, inputElement) {
+function disabled(newValue, labelElement, inputElement, inputWrapperElement) {
   // Attribute changed
   if (newValue !== null) {
     labelElement.classList.add('disabled');
     inputElement.setAttribute('disabled', '');
+    inputWrapperElement.classList.add('disabled');
   }
   // Attribute removed
   else {
     labelElement.classList.remove('disabled');
     inputElement.removeAttribute('disabled');
+    inputWrapperElement.classList.remove('disabled');
   }
 }
 function error(newValue, wrapperElement, inputElement) {
@@ -5918,14 +5920,16 @@ function prefix(newValue, inputWrapperElement, prefixElement) {
     inputWrapperElement.classList.remove('form-input-wrapper--prefix');
   }
 }
-function readonly(newValue, inputElement) {
+function readonly(newValue, inputElement, inputWrapperElement) {
   // Attribute changed
   if (newValue !== null) {
     inputElement.setAttribute('readonly', '');
+    inputWrapperElement.classList.add('readonly');
   }
   // Attribute removed
   else {
     inputElement.removeAttribute('readonly');
+    inputWrapperElement.classList.remove('readonly');
   }
 }
 function required(newValue, inputElement) {
@@ -6556,7 +6560,7 @@ class FDSInput extends HTMLElement {
       autocomplete(newValue, this.#inputElement);
     }
     if (attribute === 'disabled') {
-      disabled(newValue, this.#labelElement, this.#inputElement);
+      disabled(newValue, this.#labelElement, this.#inputElement, this.#inputWrapperElement);
     }
 
     // editbutton handled in rebuild step
@@ -6586,7 +6590,7 @@ class FDSInput extends HTMLElement {
       prefix(newValue, this.#inputWrapperElement, this.#prefixElement);
     }
     if (attribute === 'readonly') {
-      readonly(newValue, this.#inputElement);
+      readonly(newValue, this.#inputElement, this.#inputWrapperElement);
     }
     if (attribute === 'required') {
       required(newValue, this.#inputElement);

@@ -14,16 +14,18 @@ export function autocomplete(newValue, inputElement) {
     }
 }
 
-export function disabled(newValue, labelElement, inputElement) {
+export function disabled(newValue, labelElement, inputElement, inputWrapperElement) {
     // Attribute changed
     if (newValue !== null) {
         labelElement.classList.add('disabled');
         inputElement.setAttribute('disabled', '');
+        inputWrapperElement.classList.add('disabled');
     }
     // Attribute removed
     else {
         labelElement.classList.remove('disabled');
         inputElement.removeAttribute('disabled');
+        inputWrapperElement.classList.remove('disabled');
     }
 }
 
@@ -147,14 +149,16 @@ export function prefix(newValue, inputWrapperElement, prefixElement) {
     }
 }
 
-export function readonly(newValue, inputElement) {
+export function readonly(newValue, inputElement, inputWrapperElement) {
     // Attribute changed
     if (newValue !== null) {
         inputElement.setAttribute('readonly', '');
+        inputWrapperElement.classList.add('readonly');
     }
     // Attribute removed
     else {
         inputElement.removeAttribute('readonly');
+        inputWrapperElement.classList.remove('readonly');
     }
 }
 
