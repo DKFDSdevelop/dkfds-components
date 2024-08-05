@@ -49,6 +49,7 @@ const CSS_ENTRY = {
     "dkfds-borgerdk": './src/stylesheets/dkfds-borgerdk.scss',
     "dkfds-virkdk": './src/stylesheets/dkfds-virkdk.scss',
     "dkfds": './src/stylesheets/dkfds.scss',
+    "dkfds-custom-input": './src/stylesheets/custom-elements/fds-input.scss',
 };
 
 const CSS_REMOVE_EMPTY_SCRIPTS = 
