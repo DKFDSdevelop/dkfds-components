@@ -364,7 +364,30 @@ const createDEPRECATEDCSS = {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+// CUSTOM ELEMENT
+////////////////////////////////////////////////////////////////////////////////
+
+const createCustomElementJavaScript = {
+    name: 'createCustomElementJavaScript',
+    dependencies: ['copyFilesAndCreateJavaScript'],
+    mode: 'production',
+    module: JS_BABEL,
+    optimization: {
+        minimize: false
+    },
+    devtool: "source-map",
+    entry: {
+        "dkfds-custom-elements": './src/js/dkfds-custom-elements.js',
+    },
+    output: {
+        path: JS_OUTPUT_PATH,
+        filename: 'js/[name].js',
+    },
+    stats: 'minimal',
+};
+
+////////////////////////////////////////////////////////////////////////////////
 // module.exports
 ////////////////////////////////////////////////////////////////////////////////
 
-module.exports = [copyFilesAndCreateJavaScript, createMinifiedJavaScript, createCSS, createMinifiedCSS, createDEPRECATEDJavaScript, createDEPRECATEDCSS];
+module.exports = [copyFilesAndCreateJavaScript, createMinifiedJavaScript, createCSS, createMinifiedCSS, createDEPRECATEDJavaScript, createDEPRECATEDCSS, createCustomElementJavaScript];
