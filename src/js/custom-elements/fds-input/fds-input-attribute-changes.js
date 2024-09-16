@@ -1,6 +1,6 @@
 'use strict';
 
-import {isValidText, isValidInteger, isValidType} from './fds-input-attribute-validators';
+import {isValidText, isValidInteger, isValidType, isTrue} from './fds-input-attribute-validators';
 import * as Helpers from './fds-input-helpers';
 
 export function autocomplete(newValue, inputElement) {
@@ -16,7 +16,7 @@ export function autocomplete(newValue, inputElement) {
 
 export function disabled(newValue, labelElement, inputElement, inputWrapperElement) {
     // Attribute changed
-    if (newValue !== null) {
+    if (isTrue(newValue)) {
         labelElement.classList.add('disabled');
         inputElement.setAttribute('disabled', '');
         inputWrapperElement.classList.add('disabled');
@@ -135,7 +135,7 @@ export function prefix(newValue, inputWrapperElement, prefixElement) {
 
 export function readonly(newValue, inputElement, inputWrapperElement) {
     // Attribute changed
-    if (newValue !== null) {
+    if (isTrue(newValue)) {
         inputElement.setAttribute('readonly', '');
         inputWrapperElement.classList.add('readonly');
     }
@@ -148,7 +148,7 @@ export function readonly(newValue, inputElement, inputWrapperElement) {
 
 export function required(newValue, inputElement) {
     // Attribute changed
-    if (newValue !== null) {
+    if (isTrue(newValue)) {
         inputElement.setAttribute('required', '');
     }
     // Attribute removed

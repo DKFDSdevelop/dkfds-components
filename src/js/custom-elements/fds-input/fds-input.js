@@ -1,7 +1,7 @@
 'use strict';
 
 import * as Glossary from './fds-input-glossary';
-import {isValidText, isValidInteger, isValidType} from './fds-input-attribute-validators';
+import {isValidText, isValidInteger, isValidType, isTrue} from './fds-input-attribute-validators';
 import * as Helpers from './fds-input-helpers';
 import * as HandleAttributeChange from './fds-input-attribute-changes';
 import * as Build from './fds-input-build-element';
@@ -83,7 +83,7 @@ class FDSInput extends HTMLElement {
         );
 
         // Set up edit button
-        if (this.hasAttribute('editbutton') && isValidText(this.label)) {
+        if (isTrue(this.editbutton) && isValidText(this.label)) {
             Helpers.updateEditButton(this.#editButtonElement, this.label, this.#glossary['editText']);
         }
 
@@ -98,12 +98,12 @@ class FDSInput extends HTMLElement {
         }
         
         // Add 'required' label
-        if (this.hasAttribute('showrequired') && isValidText(this.label)) {
+        if (isTrue(this.showrequired) && isValidText(this.label)) {
             Helpers.updateRequiredLabel(this.#labelElement, this.label, this.#glossary['requiredText']);
         }
 
         // Add 'optional' label
-        if (this.hasAttribute('showoptional') && isValidText(this.label)) {
+        if (isTrue(this.showoptional) && isValidText(this.label)) {
             Helpers.updateOptionalLabel(this.#labelElement, this.label, this.#glossary['optionalText']);
         }
 
@@ -126,13 +126,13 @@ class FDSInput extends HTMLElement {
         }
 
         // Add wrapper for edit button
-        if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
+        if (isTrue(this.editbutton) && isTrue(this.readonly)) {
             this.#wrapperElement.appendChild(this.#editWrapperElement);
         }
 
         // Add wrapper for prefix and suffix
         if (isValidText(this.prefix) || isValidText(this.suffix)) {
-            if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
+            if (isTrue(this.editbutton) && isTrue(this.readonly)) {
                 this.#editWrapperElement.appendChild(this.#inputWrapperElement);
             }
             else {
@@ -150,7 +150,7 @@ class FDSInput extends HTMLElement {
             if (isValidText(this.prefix) || isValidText(this.suffix)) {
                 this.#inputWrapperElement.appendChild(this.#inputElement);
             }
-            else if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
+            else if (isTrue(this.editbutton) && isTrue(this.readonly)) {
                 this.#editWrapperElement.appendChild(this.#inputElement);
             }
             else {
@@ -164,7 +164,7 @@ class FDSInput extends HTMLElement {
         }
 
         // Add edit button
-        if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
+        if (isTrue(this.editbutton) && isTrue(this.readonly)) {
             this.#editWrapperElement.appendChild(this.#editButtonElement);
         }
 
@@ -263,7 +263,7 @@ class FDSInput extends HTMLElement {
         this.#connected = false;
         this.#glossary = Glossary.glossary;
 
-        this.#triggerRebuild = ['label', 'inputid', 'required', 'disabled', 'readonly', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxchar', 'tooltip'];
+        this.#triggerRebuild = ['label', 'inputid', 'readonly', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxchar', 'tooltip'];
 
         this.#lastKeyUpTimestamp = null;
         this.#oldValue = '';
@@ -333,9 +333,9 @@ class FDSInput extends HTMLElement {
 
         /* Check if the old text is (potentially) visible to the user */
         let updateErrorTextNow = newGlossary['errorText'] !== undefined && isValidText(this.error);
-        let updateEditTextNow = newGlossary['editText'] !== undefined && isValidText(this.label) && this.hasAttribute('editbutton');
-        let updateRequiredTextNow = newGlossary['requiredText'] !== undefined && isValidText(this.label) && this.hasAttribute('showrequired');
-        let updateOptionalTextNow = newGlossary['optionalText'] !== undefined && isValidText(this.label) && this.hasAttribute('showoptional');
+        let updateEditTextNow = newGlossary['editText'] !== undefined && isValidText(this.label) && isTrue(this.editbutton);
+        let updateRequiredTextNow = newGlossary['requiredText'] !== undefined && isValidText(this.label) && isTrue(this.showrequired);
+        let updateOptionalTextNow = newGlossary['optionalText'] !== undefined && isValidText(this.label) && isTrue(this.showoptional);
         let updateCharactersTextNow = newGlossary['oneCharacterLeftText'] || newGlossary['manyCharactersLeftText'] || 
                                       newGlossary['oneCharacterExceededText'] || newGlossary['manyCharactersExceededText'];
         let updateMaxCharactersTextNow = newGlossary['maxCharactersText'] !== undefined && isValidInteger(this.maxchar);

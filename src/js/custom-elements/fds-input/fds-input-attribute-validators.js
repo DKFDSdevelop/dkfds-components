@@ -35,3 +35,12 @@ export function isValidText(s) {
         return false;
     }
 }
+
+export function isTrue(b) {
+    if (b !== null && b !== 'false' && b !== false) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
