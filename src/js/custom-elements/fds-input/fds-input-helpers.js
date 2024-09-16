@@ -96,34 +96,3 @@ export function updateRequiredLabel(labelElement, labelText, requiredText) {
 export function updateOptionalLabel(labelElement, labelText, optionalText) {
     labelElement.innerHTML = labelText + '<span class="weight-normal"> (' + optionalText + ')</span>';
 }
-
-export function checkDisallowedCombinations(hasError, isRequired, isReadonly, isDisabled, showRequired, showOptional, hasMaxChar) {
-    let isOptional = !isRequired;
-    if (hasError && isDisabled) {
-        throw new Error(`'error' and 'disabled' attributes must not both present on fds-input.`);
-    }
-    if (hasError && isReadonly) {
-        throw new Error(`'error' and 'readonly' attributes must not both present on fds-input.`);
-    }
-    if (isRequired && isDisabled) {
-        throw new Error(`'required' and 'disabled' attributes must not both present on fds-input.`);
-    }
-    if (isRequired && isReadonly) {
-        throw new Error(`'required' and 'readonly' attributes must not both present on fds-input.`);
-    }
-    if (isOptional && showRequired) {
-        throw new Error(`'required' label must not be displayed on optional fds-input.`);
-    }
-    if (isRequired && showOptional) {
-        throw new Error(`'optional' label must not be displayed on required fds-input.`);
-    }
-    if (showRequired && showOptional) {
-        throw new Error(`Show only 'optional' or 'required' label on fds-input.`);
-    }
-    if (hasMaxChar && isDisabled) {
-        throw new Error(`'maxchar' and 'disabled' attributes must not both present on fds-input.`);
-    }
-    if (hasMaxChar && isReadonly) {
-        throw new Error(`'maxchar' and 'readonly' attributes must not both present on fds-input.`);
-    }
-}

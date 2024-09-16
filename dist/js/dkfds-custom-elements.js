@@ -138,36 +138,6 @@ function updateRequiredLabel(labelElement, labelText, requiredText) {
 function updateOptionalLabel(labelElement, labelText, optionalText) {
   labelElement.innerHTML = labelText + '<span class="weight-normal"> (' + optionalText + ')</span>';
 }
-function checkDisallowedCombinations(hasError, isRequired, isReadonly, isDisabled, showRequired, showOptional, hasMaxChar) {
-  let isOptional = !isRequired;
-  if (hasError && isDisabled) {
-    throw new Error(`'error' and 'disabled' attributes must not both present on fds-input.`);
-  }
-  if (hasError && isReadonly) {
-    throw new Error(`'error' and 'readonly' attributes must not both present on fds-input.`);
-  }
-  if (isRequired && isDisabled) {
-    throw new Error(`'required' and 'disabled' attributes must not both present on fds-input.`);
-  }
-  if (isRequired && isReadonly) {
-    throw new Error(`'required' and 'readonly' attributes must not both present on fds-input.`);
-  }
-  if (isOptional && showRequired) {
-    throw new Error(`'required' label must not be displayed on optional fds-input.`);
-  }
-  if (isRequired && showOptional) {
-    throw new Error(`'optional' label must not be displayed on required fds-input.`);
-  }
-  if (showRequired && showOptional) {
-    throw new Error(`Show only 'optional' or 'required' label on fds-input.`);
-  }
-  if (hasMaxChar && isDisabled) {
-    throw new Error(`'maxchar' and 'disabled' attributes must not both present on fds-input.`);
-  }
-  if (hasMaxChar && isReadonly) {
-    throw new Error(`'maxchar' and 'readonly' attributes must not both present on fds-input.`);
-  }
-}
 ;// CONCATENATED MODULE: ./src/js/custom-elements/fds-input/fds-input-attribute-changes.js
 
 
@@ -231,16 +201,9 @@ function inputid(newValue, labelElement, inputElement) {
   }
 }
 function label(newValue, labelElement) {
-  // Attribute changed
-  if (newValue !== null) {
-    if (isValidText(newValue)) {
-      labelElement.textContent = newValue;
-    } else {
-      throw new Error(`Invalid label attribute '${newValue}'.`);
-    }
+  if (isValidText(newValue)) {
+    labelElement.textContent = newValue;
   }
-  // Do nothing on attribute removed to avoid throwing an error in those  
-  // rare cases where two calls are made to attributeChangedCallback()
 }
 function maxchar(newValue, inputElement, characterLimitElement, connected, glossary, handleKeyUp, handleFocus, handleBlur, handlePageShow, value, containsCharacterLimit) {
   // Attribute changed
@@ -284,16 +247,9 @@ function maxwidth(newValue, inputElement) {
   }
 }
 function fds_input_attribute_changes_name(newValue, inputElement) {
-  // Attribute changed
-  if (newValue !== null) {
-    if (isValidText(newValue)) {
-      inputElement.setAttribute('name', newValue);
-    } else {
-      throw new Error(`Invalid name attribute '${newValue}'.`);
-    }
+  if (isValidText(newValue)) {
+    inputElement.setAttribute('name', newValue);
   }
-  // Do nothing on attribute removed to avoid throwing an error in those  
-  // rare cases where two calls are made to attributeChangedCallback()
 }
 function prefix(newValue, inputWrapperElement, prefixElement) {
   // Attribute changed to valid value
@@ -346,16 +302,9 @@ function tooltip(newValue, tooltipElement) {
   }
 }
 function type(newValue, inputElement) {
-  // Attribute changed to text
-  if (isValidText(newValue)) {
-    if (isValidType(newValue)) {
-      inputElement.setAttribute('type', newValue);
-    } else {
-      throw new Error(`Invalid type attribute '${newValue}'.`);
-    }
-  }
-  // Attribute removed or changed to non-text
-  else {
+  if (isValidType(newValue)) {
+    inputElement.setAttribute('type', newValue);
+  } else {
     setDefaultType(inputElement);
   }
 }
@@ -765,7 +714,7 @@ class FDSInput extends HTMLElement {
   #handlePageShow;
   #glossary;
   #connected;
-  #initialised;
+  #initialized;
   #triggerRebuild;
   #lastKeyUpTimestamp;
   #oldValue;
@@ -773,6 +722,23 @@ class FDSInput extends HTMLElement {
 
   /* Private methods */
 
+  #init() {
+    if (!this.#initialized) {
+      this.#wrapperElement = createWrapperElement();
+      this.#labelElement = createLabelElement();
+      this.#tooltipElement = createTooltipElement(this.#glossary);
+      this.#helptextElement = createHelptextElement();
+      this.#errorElement = createErrorElement();
+      this.#editWrapperElement = createEditWrapperElement();
+      this.#inputWrapperElement = createInputWrapperElement();
+      this.#prefixElement = createPrefixElement();
+      this.#inputElement = createInputElement();
+      this.#suffixElement = createSuffixElement();
+      this.#editButtonElement = createEditButtonElement(this.#handleEditClicked);
+      this.#characterLimitElement = createCharacterLimitElement();
+      this.#initialized = true;
+    }
+  }
   #rebuildElement() {
     // Reset HTML
     this.#wrapperElement.innerHTML = '';
@@ -802,7 +768,9 @@ class FDSInput extends HTMLElement {
     }
 
     // Add label
-    this.#wrapperElement.appendChild(this.#labelElement);
+    if (isValidText(this.label)) {
+      this.#wrapperElement.appendChild(this.#labelElement);
+    }
 
     // Add 'required' label
     if (this.hasAttribute('showrequired') && isValidText(this.label)) {
@@ -852,12 +820,14 @@ class FDSInput extends HTMLElement {
     }
 
     // Add input
-    if (isValidText(this.prefix) || isValidText(this.suffix)) {
-      this.#inputWrapperElement.appendChild(this.#inputElement);
-    } else if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
-      this.#editWrapperElement.appendChild(this.#inputElement);
-    } else {
-      this.#wrapperElement.appendChild(this.#inputElement);
+    if (isValidText(this.label)) {
+      if (isValidText(this.prefix) || isValidText(this.suffix)) {
+        this.#inputWrapperElement.appendChild(this.#inputElement);
+      } else if (this.hasAttribute('editbutton') && this.hasAttribute('readonly')) {
+        this.#editWrapperElement.appendChild(this.#inputElement);
+      } else {
+        this.#wrapperElement.appendChild(this.#inputElement);
+      }
     }
 
     // Add suffix
@@ -1017,7 +987,7 @@ class FDSInput extends HTMLElement {
 
   constructor() {
     super();
-    this.#initialised = false;
+    this.#initialized = false;
     this.#connected = false;
     this.#glossary = glossary;
     this.#triggerRebuild = ['label', 'inputid', 'required', 'disabled', 'readonly', 'helptext', 'error', 'prefix', 'suffix', 'editbutton', 'showrequired', 'showoptional', 'maxchar', 'tooltip'];
@@ -1144,30 +1114,28 @@ class FDSInput extends HTMLElement {
   */
 
   connectedCallback() {
-    if (this.label === null || this.name === null) {
-      throw new Error(`Custom element 'fds-input' not created. Element must always have the attributes 'label' and 'name'.`);
-    } else if (this.innerHTML !== '') {
-      throw new Error(`Custom element 'fds-input' not created. Element must not contain content at element creation.`);
-    } else {
-      /* Ensure input always has an ID */
-      if (!isValidText(this.inputid)) {
-        setDefaultInputId(this.#labelElement, this.#inputElement);
-      }
+    /* Element setup. Only called at this point if the element was created without attributes. */
+    this.#init();
 
-      /* Ensure input always has a type */
-      if (!isValidType(this.type)) {
-        setDefaultType(this.#inputElement);
-      }
-      this.#rebuildElement();
-      this.appendChild(this.#wrapperElement);
-      if (isValidInteger(this.maxchar)) {
-        this.#inputElement.addEventListener('keyup', this.#handleKeyUp, false);
-        this.#inputElement.addEventListener('focus', this.#handleFocus, false);
-        this.#inputElement.addEventListener('blur', this.#handleBlur, false);
-        window.addEventListener('pageshow', this.#handlePageShow, false);
-      }
-      this.#connected = true;
+    /* Remove any initial content from the custom element */
+    this.innerHTML = '';
+
+    /* Ensure input always has an ID and type */
+    if (!isValidText(this.inputid)) {
+      setDefaultInputId(this.#labelElement, this.#inputElement);
     }
+    if (!isValidType(this.type)) {
+      setDefaultType(this.#inputElement);
+    }
+    this.#rebuildElement();
+    this.appendChild(this.#wrapperElement);
+    if (isValidInteger(this.maxchar)) {
+      this.#inputElement.addEventListener('keyup', this.#handleKeyUp, false);
+      this.#inputElement.addEventListener('focus', this.#handleFocus, false);
+      this.#inputElement.addEventListener('blur', this.#handleBlur, false);
+      window.addEventListener('pageshow', this.#handlePageShow, false);
+    }
+    this.#connected = true;
   }
 
   /* 
@@ -1185,26 +1153,11 @@ class FDSInput extends HTMLElement {
   */
 
   attributeChangedCallback(attribute, oldValue, newValue) {
-    /* Element setup. Applied once on the first call to 
-       attributeChangedCallback() before connectedCallback(). */
+    /* Element setup. Applied once on the first call to attributeChangedCallback() before connectedCallback(). */
 
-    if (!this.#initialised) {
-      this.#wrapperElement = createWrapperElement();
-      this.#labelElement = createLabelElement();
-      this.#tooltipElement = createTooltipElement(this.#glossary);
-      this.#helptextElement = createHelptextElement();
-      this.#errorElement = createErrorElement();
-      this.#editWrapperElement = createEditWrapperElement();
-      this.#inputWrapperElement = createInputWrapperElement();
-      this.#prefixElement = createPrefixElement();
-      this.#inputElement = createInputElement();
-      this.#suffixElement = createSuffixElement();
-      this.#editButtonElement = createEditButtonElement(this.#handleEditClicked);
-      this.#characterLimitElement = createCharacterLimitElement();
-      this.#initialised = true;
-    }
+    this.#init();
 
-    /* Attribute changes */
+    /* Attribute changes (editbutton, showoptional, and showrequired handled in rebuild step) */
 
     if (attribute === 'autocomplete') {
       autocomplete(newValue, this.#inputElement);
@@ -1212,9 +1165,6 @@ class FDSInput extends HTMLElement {
     if (attribute === 'disabled') {
       disabled(newValue, this.#labelElement, this.#inputElement, this.#inputWrapperElement);
     }
-
-    // editbutton handled in rebuild step
-
     if (attribute === 'error') {
       error(newValue, this.#wrapperElement, this.#inputElement);
     }
@@ -1245,11 +1195,6 @@ class FDSInput extends HTMLElement {
     if (attribute === 'required') {
       required(newValue, this.#inputElement);
     }
-
-    // showoptional handled in rebuild step
-
-    // showrequired handled in rebuild step
-
     if (attribute === 'suffix') {
       suffix(newValue, this.#inputWrapperElement, this.#suffixElement);
     }
@@ -1262,11 +1207,10 @@ class FDSInput extends HTMLElement {
     if (attribute === 'value') {
       value(newValue, this.#inputElement, this.#characterLimitElement, this.#connected, this.#glossary, this.maxchar);
     }
-    checkDisallowedCombinations(isValidText(this.error), this.hasAttribute('required'), this.hasAttribute('readonly'), this.hasAttribute('disabled'), this.hasAttribute('showrequired'), this.hasAttribute('showoptional'), isValidInteger(this.maxchar));
 
     /* Update HTML */
 
-    if (this.#triggerRebuild.includes(attribute) && this.#initialised && this.#connected) {
+    if (this.#triggerRebuild.includes(attribute) && this.#initialized && this.#connected) {
       this.#rebuildElement();
     }
   }

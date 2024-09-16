@@ -66,17 +66,9 @@ export function inputid(newValue, labelElement, inputElement) {
 }
 
 export function label(newValue, labelElement) {
-    // Attribute changed
-    if (newValue !== null) {
-        if (isValidText(newValue)) {
-            labelElement.textContent = newValue;
-        }
-        else {
-            throw new Error(`Invalid label attribute '${newValue}'.`);
-        }
+    if (isValidText(newValue)) {
+        labelElement.textContent = newValue;
     }
-    // Do nothing on attribute removed to avoid throwing an error in those  
-    // rare cases where two calls are made to attributeChangedCallback()
 }
 
 export function maxchar(newValue, inputElement, characterLimitElement, connected, glossary, handleKeyUp, handleFocus, handleBlur, handlePageShow, value, containsCharacterLimit) {
@@ -124,17 +116,9 @@ export function maxwidth(newValue, inputElement) {
 }
 
 export function name(newValue, inputElement) {
-    // Attribute changed
-    if (newValue !== null) {
-        if (isValidText(newValue)) {
-            inputElement.setAttribute('name', newValue);
-        }
-        else {
-            throw new Error(`Invalid name attribute '${newValue}'.`);
-        }
+    if (isValidText(newValue)) {
+        inputElement.setAttribute('name', newValue);
     }
-    // Do nothing on attribute removed to avoid throwing an error in those  
-    // rare cases where two calls are made to attributeChangedCallback()
 }
 
 export function prefix(newValue, inputWrapperElement, prefixElement) {
@@ -193,16 +177,9 @@ export function tooltip(newValue, tooltipElement) {
 }
 
 export function type(newValue, inputElement) {
-    // Attribute changed to text
-    if (isValidText(newValue)) {
-        if (isValidType(newValue)) {
-            inputElement.setAttribute('type', newValue);
-        }
-        else {
-            throw new Error(`Invalid type attribute '${newValue}'.`);
-        }
+    if (isValidType(newValue)) {
+        inputElement.setAttribute('type', newValue);
     }
-    // Attribute removed or changed to non-text
     else {
         Helpers.setDefaultType(inputElement);
     }
