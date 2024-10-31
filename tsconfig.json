@@ -1,5 +1,5 @@
 {
-  // Change this to match your project
+  // Only compile and check JS that can be reached through the primary entrypoints
   "files": ["src/js/dkfds-custom-elements.js", "./src/js/dkfds.js"],
   "compilerOptions": {
     "target": "ES2015",
@@ -13,12 +13,7 @@
     // This compiler run should
     // only output d.ts files
     "emitDeclarationOnly": true,
-    // Types should go into this directory.
-    // Removing this would place the .d.ts files
-    // next to the .js files
     "outDir": "dist/js",
-    // go to js file when using IDE functions like
-    // "Go to Definition" in VSCode
     "declarationMap": true
   }
 }
