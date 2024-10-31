@@ -3207,6 +3207,10 @@ __webpack_require__.d(__webpack_exports__, {
   initCustomElements: () => (/* binding */ initCustomElements)
 });
 
+// NAMESPACE OBJECT: ./src/js/custom-elements/fds-input/fds-input.js
+var fds_input_namespaceObject = {};
+__webpack_require__.r(fds_input_namespaceObject);
+
 ;// CONCATENATED MODULE: ./src/js/components/accordion.js
 
 
@@ -5938,6 +5942,20 @@ function setInputAriaDescribedBy(error, helptext, maxchar, errorElement, helptex
 
 
 
+
+/**
+ * fds-input attributes
+ *
+ * @typedef {Object} FdsInputAttributes
+ * @property {string} label
+ * @property {string} [value]
+ * @property {string} [error]
+ * @property {boolean} [editbutton]
+ * @property {boolean} [readonly]
+ * @property {(event: { target: FDSInput }) => void} [onfds-edit-clicked]
+ * @property {(event: { target: FDSInput }) => void} [onchange]
+ */
+
 class FDSInput extends HTMLElement {
   /* Private instance fields */
 
@@ -6298,6 +6316,14 @@ class FDSInput extends HTMLElement {
   getInputElement() {
     return this.#inputElement;
   }
+
+  /**
+   * @param {object} newGlossary
+   * @param {string} newGlossary.errorText
+   * @param {string} newGlossary.editText
+   * @param {string} newGlossary.requiredText
+   * @param {string} [newGlossary.osv] And a whole lot of other stuf... @todo
+   */
   updateGlossary(newGlossary) {
     updateGlossary(this.#glossary, newGlossary);
 
@@ -6461,7 +6487,6 @@ class FDSInput extends HTMLElement {
     }
   }
 }
-/* harmony default export */ const fds_input = (FDSInput);
 ;// CONCATENATED MODULE: ./src/js/dkfds.js
 
 
@@ -6675,7 +6700,7 @@ var init = function (options) {
 };
 let initCustomElements = function () {
   if (customElements.get('fds-input') === undefined) {
-    window.customElements.define('fds-input', fds_input);
+    window.customElements.define('fds-input', fds_input_namespaceObject["default"]);
   }
 };
 

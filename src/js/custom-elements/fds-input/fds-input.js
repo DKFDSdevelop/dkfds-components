@@ -7,7 +7,20 @@ import * as HandleAttributeChange from './fds-input-attribute-changes';
 import * as Build from './fds-input-build-element';
 import Tooltip from '../../components/tooltip';
 
-class FDSInput extends HTMLElement {
+/**
+ * fds-input attributes
+ *
+ * @typedef {Object} FdsInputAttributes
+ * @property {string} label
+ * @property {string} [value]
+ * @property {string} [error]
+ * @property {boolean} [editbutton]
+ * @property {boolean} [readonly]
+ * @property {(event: { target: FDSInput }) => void} [onfds-edit-clicked]
+ * @property {(event: { target: FDSInput }) => void} [onchange]
+ */
+
+export class FDSInput extends HTMLElement {
     
     /* Private instance fields */
 
@@ -328,8 +341,15 @@ class FDSInput extends HTMLElement {
         return this.#inputElement;
     }
 
-    updateGlossary(newGlossary) {
-        Glossary.updateGlossary(this.#glossary, newGlossary);
+  /**
+   * @param {object} newGlossary
+   * @param {string} newGlossary.errorText
+   * @param {string} newGlossary.editText
+   * @param {string} newGlossary.requiredText
+   * @param {string} [newGlossary.osv] And a whole lot of other stuf... @todo
+   */
+  updateGlossary(newGlossary) {
+    Glossary.updateGlossary(this.#glossary, newGlossary);
 
         /* Check if the old text is (potentially) visible to the user */
         let updateErrorTextNow = newGlossary['errorText'] !== undefined && isValidText(this.error);
@@ -519,4 +539,3 @@ class FDSInput extends HTMLElement {
     }
 }
 
-export default FDSInput;
