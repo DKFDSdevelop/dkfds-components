@@ -8,10 +8,17 @@
   "main": "dist/js/dkfds.min.js",
   "exports": {
     ".": "./dist/js/dkfds.min.js",
-    "./dkfds-DEPRECATED": "./dist/DEPRECATED/dkfds-DEPRECATED.min.js"
+    "./dkfds-DEPRECATED": "./dist/DEPRECATED/dkfds-DEPRECATED.min.js",
+    "./web-components": {
+      "types": "./dist/js/dkfds-custom-elements.d.ts",
+      "default": "./dist/js/dkfds-custom-elements.js"
+    },
+    "./dist/css/*": "./dist/css/*",
+    "./dist/scss/dkfds.scss": "./dist/scss/dkfds.scss",
+    "./dist/fonts/*": "./dist/fonts/*"
   },
   "scripts": {
-    "build": "webpack"
+    "build": "webpack && tsc"
   },
   "author": "Erhvervsstyrelsen og Digitaliseringsstyrelsen",
   "license": "(MIT AND OFL-1.1 AND Apache-2.0)",
@@ -37,6 +44,7 @@
     "stylelint": "~16.9.0",
     "stylelint-config-standard-scss": "~13.1.0",
     "terser-webpack-plugin": "~5.3.10",
+    "typescript": "^5.6.3",
     "webpack": "~5.94.0",
     "webpack-cli": "~5.1.4",
     "webpack-remove-empty-scripts": "~1.0.4"
