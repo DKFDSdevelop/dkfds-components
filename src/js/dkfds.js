@@ -17,6 +17,7 @@ import TableSelectableRows from './components/selectable-table';
 import Toast from './components/toast';
 import Tooltip from './components/tooltip';
 const datePicker = require('./components/date-picker').default;
+import NewDatePicker from './components/new-datepicker';
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
  * older browsers, so must be loaded first.
@@ -119,6 +120,10 @@ var init = function (options) {
   ---------------------
   */
   datePicker.on(scope);
+  const datePickers = scope.querySelectorAll('.new-datepicker-wrapper');
+  for(let d = 0; d < datePickers.length; d++) {
+    new NewDatePicker(datePickers[d]).init();
+  }
   
   /*
   ---------------------
@@ -207,4 +212,4 @@ var init = function (options) {
   
 };
 
-export { init, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
+export { init, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, NewDatePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };

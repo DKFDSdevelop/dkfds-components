@@ -12127,6 +12127,11 @@ textarea.no-resize{
   margin:2rem 0 1rem;
 }
 
+td[role=gridcell]:focus{
+  outline:3px solid #454545;
+  outline-offset:1px;
+}
+
 @media print{
   html{
     font-family:Georgia, "Times New Roman", serif;

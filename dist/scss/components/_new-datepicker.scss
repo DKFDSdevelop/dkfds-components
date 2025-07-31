@@ -1,0 +1,7 @@
+@use "../variables" as vars;
+@use "../functions" as func;
+@use "../mixins" as mixins;
+
+td[role="gridcell"]:focus {
+    @include mixins.focus;
+}
