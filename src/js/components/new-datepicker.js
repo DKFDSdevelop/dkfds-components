@@ -13,26 +13,72 @@ NewDatePicker.prototype.init = function () {
     this.createCalendarGrid();
     this.redrawCalendarGrid(new Date());
 
+    this.datepicker.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (e.target.getAttribute('data-date')) {
+            let clickedDate = new Date(e.target.getAttribute('data-date'));
+            this.placeFocusOnDate(clickedDate);
+        }
+    });
+
     this.datepicker.addEventListener('keydown', (e) => {
         let key = e.key;
-        if (key === 'ArrowLeft') {
-            e.preventDefault();
-            let focusedDay = this.datepicker.querySelector('td[data-date][tabindex="0"]');
-            let yesterday = getYesterday(new Date(focusedDay.getAttribute('data-date')));
-            if (!isDateVisible(yesterday, this.datepicker)) {
-                this.redrawCalendarGrid(yesterday);
-            }
-            this.placeFocusOnDate(yesterday);
+        let focusedDay = this.datepicker.querySelector('td[data-date][tabindex="0"]');
+
+        switch (key) {
+            case 'ArrowLeft':
+                e.preventDefault();
+                let yesterday = getYesterday(new Date(focusedDay.getAttribute('data-date')));
+                if (!isDateVisible(yesterday, this.datepicker)) {
+                    this.redrawCalendarGrid(yesterday);
+                }
+                this.placeFocusOnDate(yesterday);
+                break;
+            case 'ArrowRight':
+                e.preventDefault();
+                let tomorrow = getTomorrow(new Date(focusedDay.getAttribute('data-date')));
+                if (!isDateVisible(tomorrow, this.datepicker)) {
+                    this.redrawCalendarGrid(tomorrow);
+                }
+                this.placeFocusOnDate(tomorrow);
+                break;
         }
     });
 }
 
-// TODO: Create complete grid, not just the gridcells
 NewDatePicker.prototype.createCalendarGrid = function () {
-    let rows = this.datepicker.querySelectorAll('tbody tr');
-    for (let i = 0; i < rows.length; i++) {
-        rows[i].innerHTML = '<td role="gridcell"></td><td role="gridcell"></td><td role="gridcell"></td><td role="gridcell"></td><td role="gridcell"></td><td role="gridcell"></td><td role="gridcell"></td>';
+    let datePickerHeader = `<div class="datepicker-header"><button class="previous-month">Forrige</button><strong class="current-year"></strong><strong class="current-month"></strong><button class="next-month">Næste</button></div>`;
+
+    this.datepicker.innerHTML = datePickerHeader;
+
+    let grid = document.createElement('table');
+    grid.setAttribute('role', 'grid');
+    grid.classList.add('new-datepicker-grid');
+
+    let gridHead = document.createElement('thead');
+    let gridHeadRow = document.createElement('tr');
+    for (let i = 0; i < DAYS.length; i++) {
+        let gridHeader = document.createElement('th');
+        gridHeader.setAttribute('scope', 'col');
+        gridHeader.innerHTML = `<span aria-hidden="true">${DAYS[i].slice(0, 2)}</span><span class="sr-only">${DAYS[i]}</span>`;
+        gridHeadRow.appendChild(gridHeader);
     }
+    gridHead.appendChild(gridHeadRow);
+    grid.appendChild(gridHead);
+
+    let gridBody = document.createElement('tbody');
+    for (let i = 0; i < GRID_ROWS; i++) {
+        let gridBodyRow = document.createElement('tr');
+        for (let j = 0; j < DAYS.length; j++) {
+            let gridCell = document.createElement('td');
+            gridCell.setAttribute('role', 'gridcell');
+            gridBodyRow.appendChild(gridCell);
+        }
+        gridBody.appendChild(gridBodyRow);
+    }
+    grid.appendChild(gridBody);
+
+    this.datepicker.appendChild(grid);
 };
 
 NewDatePicker.prototype.redrawCalendarGrid = function (date) {
@@ -99,6 +145,12 @@ function getYesterday(date) {
     let yesterday = new Date(date);
     yesterday.setDate(yesterday.getDate() - 1);
     return yesterday;
+}
+
+function getTomorrow(date) {
+    let tomorrow = new Date(date);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow;
 }
 
 function isDateVisible(date, grid) {

@@ -2,6 +2,11 @@
 @use "../functions" as func;
 @use "../mixins" as mixins;
 
-td[role="gridcell"]:focus {
-    @include mixins.focus;
+.new-datepicker-wrapper {
+    border: 1px solid black;
+    width: fit-content;
+
+    td[role="gridcell"]:focus {
+        @include mixins.focus;
+    }
 }

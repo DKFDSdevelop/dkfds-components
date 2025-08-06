@@ -12127,7 +12127,11 @@ textarea.no-resize{
   margin:2rem 0 1rem;
 }
 
-td[role=gridcell]:focus{
+.new-datepicker-wrapper{
+  border:1px solid black;
+  width:fit-content;
+}
+.new-datepicker-wrapper td[role=gridcell]:focus{
   outline:3px solid #454545;
   outline-offset:1px;
 }
