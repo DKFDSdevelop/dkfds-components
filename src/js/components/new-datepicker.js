@@ -44,12 +44,60 @@ NewDatePicker.prototype.init = function () {
                 break;
         }
     });
+
+    this.datepicker.querySelector('.selected-month').addEventListener('change', (e) => {
+        let day = 1;
+        let month = parseInt(e.target.value) + 1;
+        let year = this.datepicker.querySelector('.selected-year').value;
+        this.redrawCalendarGrid(new Date(`${year}-${month}-${day}`));
+    });
+
+    this.datepicker.querySelector('.selected-year').addEventListener('change', (e) => {
+        let day = 1;
+        let month = parseInt(this.datepicker.querySelector('.selected-month').value) + 1;
+        let year = e.target.value;
+        this.redrawCalendarGrid(new Date(`${year}-${month}-${day}`));
+    });
+
+    this.placeFocusOnDate(new Date());
 }
 
 NewDatePicker.prototype.createCalendarGrid = function () {
-    let datePickerHeader = `<div class="datepicker-header"><button class="previous-month">Forrige</button><strong class="current-year"></strong><strong class="current-month"></strong><button class="next-month">Næste</button></div>`;
 
-    this.datepicker.innerHTML = datePickerHeader;
+    /* The date picker header with navigation options */
+
+    let datePickerHeader = document.createElement('div');
+    datePickerHeader.classList.add('datepicker-header');
+
+    let previousButton = document.createElement('button');
+    previousButton.classList.add('previous-month');
+    previousButton.textContent = 'Forrige';
+    datePickerHeader.appendChild(previousButton);
+
+    let monthSelect = document.createElement('select');
+    monthSelect.setAttribute('name', 'month');
+    monthSelect.setAttribute('aria-label', 'Vis måned');
+    monthSelect.classList.add('selected-month');
+    for (let i = 0; i < MONTHS.length; i++) {
+        monthSelect.innerHTML += `<option value="${i}">${MONTHS[i].charAt(0).toUpperCase() + MONTHS[i].slice(1)}</option>`;
+    }
+    datePickerHeader.appendChild(monthSelect);
+
+    let yearSelect = document.createElement('select');
+    yearSelect.setAttribute('name', 'year');
+    yearSelect.setAttribute('aria-label', 'Vis år');
+    yearSelect.classList.add('selected-year');
+    yearSelect.innerHTML = `<option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option>`;
+    datePickerHeader.appendChild(yearSelect);
+
+    let nextButton = document.createElement('button');
+    nextButton.classList.add('next-month');
+    nextButton.textContent = 'Næste';
+    datePickerHeader.appendChild(nextButton);
+
+    this.datepicker.appendChild(datePickerHeader);
+
+    /* The date picker grid with dates */
 
     let grid = document.createElement('table');
     grid.setAttribute('role', 'grid');
@@ -87,11 +135,14 @@ NewDatePicker.prototype.redrawCalendarGrid = function (date) {
     let gridcells = this.datepicker.querySelectorAll('td');
 
     // Update displayed year and month
-    this.datepicker.querySelector('.current-year').innerHTML = year;
-    this.datepicker.querySelector('.current-month').innerHTML = MONTHS[month];
+    this.datepicker.querySelector('.selected-month').value = month;
+    this.datepicker.querySelector('.selected-year').value = year;
 
     // Remove existing dates in the grid
     for (let i = 0; i < TOTAL_GRIDCELLS; i++) {
+        gridcells[i].removeAttribute('tabindex');
+        gridcells[i].removeAttribute('data-date');
+        gridcells[i].removeAttribute('aria-label');
         gridcells[i].innerHTML = '';
     }
 
@@ -104,8 +155,6 @@ NewDatePicker.prototype.redrawCalendarGrid = function (date) {
         gridcells[i + offset - 1].setAttribute('aria-label', `${i}. ${MONTHS[month]} ${year}`);
         gridcells[i + offset - 1].innerHTML = `${i}`;
     }
-
-    this.placeFocusOnDate(date);
 };
 
 NewDatePicker.prototype.placeFocusOnDate = function (date) {
