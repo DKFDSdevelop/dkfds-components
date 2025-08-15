@@ -6,18 +6,40 @@ const GRID_ROWS = 6; // To avoid potential height changes when changing month, t
 const TOTAL_GRIDCELLS = GRID_ROWS * DAYS.length;
 
 function NewDatePicker(newDatePicker) {
-    this.datepicker = newDatePicker;
+    this.datepicker = newDatePicker.querySelector('.new-datepicker-wrapper');
+    this.datePickerInput = newDatePicker.querySelector('.form-input');
+    this.datePickerButton = newDatePicker.querySelector('.button-icon-only');
 }
 
 NewDatePicker.prototype.init = function () {
     this.createCalendarGrid();
     this.redrawCalendarGrid(new Date());
+    document.body.addEventListener('click', closeAllDatePickers);
+
+    if (this.datePickerButton) {
+        this.datepicker.classList.add('d-none');
+
+        this.datePickerButton.addEventListener('click', () => {
+            if (this.datepicker.classList.contains('d-none')) {
+                this.datepicker.classList.remove('d-none');
+                this.placeFocusOnDate(new Date());
+            }
+            else {
+                this.datepicker.classList.add('d-none');
+            }
+        });
+
+        this.datepicker.setAttribute('role', 'dialog');
+        this.datepicker.setAttribute('aria-modal', 'true');
+        this.datepicker.setAttribute('aria-label', 'Vælg en dato');
+    }
 
     this.datepicker.addEventListener('click', (e) => {
         e.preventDefault();
         if (e.target.getAttribute('data-date')) {
             let clickedDate = new Date(e.target.getAttribute('data-date'));
             this.placeFocusOnDate(clickedDate);
+            this.selectDate(clickedDate);
         }
     });
 
@@ -59,7 +81,7 @@ NewDatePicker.prototype.init = function () {
         this.redrawCalendarGrid(new Date(`${year}-${month}-${day}`));
     });
 
-    this.placeFocusOnDate(new Date());
+    this.datepicker.querySelector(`[data-date="${getIsoLocalFormat(new Date())}"]`).setAttribute('tabindex', '0');
 }
 
 NewDatePicker.prototype.createCalendarGrid = function () {
@@ -119,7 +141,6 @@ NewDatePicker.prototype.createCalendarGrid = function () {
         let gridBodyRow = document.createElement('tr');
         for (let j = 0; j < DAYS.length; j++) {
             let gridCell = document.createElement('td');
-            gridCell.setAttribute('role', 'gridcell');
             gridBodyRow.appendChild(gridCell);
         }
         gridBody.appendChild(gridBodyRow);
@@ -143,6 +164,7 @@ NewDatePicker.prototype.redrawCalendarGrid = function (date) {
         gridcells[i].removeAttribute('tabindex');
         gridcells[i].removeAttribute('data-date');
         gridcells[i].removeAttribute('aria-label');
+        gridcells[i].removeAttribute('aria-selected');
         gridcells[i].innerHTML = '';
     }
 
@@ -153,7 +175,13 @@ NewDatePicker.prototype.redrawCalendarGrid = function (date) {
         gridcells[i + offset - 1].setAttribute('tabindex', '-1');
         gridcells[i + offset - 1].setAttribute('data-date', `${getIsoLocalFormat(new Date(year, month, i))}`);
         gridcells[i + offset - 1].setAttribute('aria-label', `${i}. ${MONTHS[month]} ${year}`);
+        gridcells[i + offset - 1].setAttribute('aria-selected', `false`);
         gridcells[i + offset - 1].innerHTML = `${i}`;
+    }
+
+    if (this.datepicker.getAttribute('data-selected-date')) {
+        let selectedDate = this.datepicker.getAttribute('data-selected-date');
+        this.selectDate(new Date(selectedDate));
     }
 };
 
@@ -163,6 +191,16 @@ NewDatePicker.prototype.placeFocusOnDate = function (date) {
     }
     this.datepicker.querySelector(`[data-date="${getIsoLocalFormat(date)}"]`).focus();
     this.datepicker.querySelector(`[data-date="${getIsoLocalFormat(date)}"]`).setAttribute('tabindex', '0');
+}
+
+NewDatePicker.prototype.selectDate = function (date) {
+    if (this.datepicker.querySelector('td[aria-selected="true"]')) {
+        this.datepicker.querySelector('td[aria-selected="true"]').setAttribute('aria-selected', 'false');
+    }
+    if (isDateVisible(date, this.datepicker)) {
+        this.datepicker.querySelector(`[data-date="${getIsoLocalFormat(date)}"]`).setAttribute('aria-selected', 'true');
+    }
+    this.datepicker.setAttribute('data-selected-date', getIsoLocalFormat(date));
 }
 
 function getWeekday(date) {
@@ -205,6 +243,18 @@ function getTomorrow(date) {
 function isDateVisible(date, grid) {
     let isoDate = getIsoLocalFormat(date);
     return grid.querySelector(`[data-date="${isoDate}"]`) ? true : false;
+}
+
+function closeAllDatePickers(e) {
+    const clickInDatePicker = e.target.closest('.new-datepicker-wrapper');
+    const clickedDatePickerButton = e.target.closest('.new-datepicker .button-icon-only[aria-haspopup="dialog"]');
+
+    if (!clickInDatePicker && !clickedDatePickerButton) {
+        let datePickers = document.querySelectorAll('.new-datepicker-wrapper[role="dialog"]');
+        for (let i = 0; i < datePickers.length; i++) {
+            datePickers[i].classList.add('d-none');
+        }
+    }
 }
 
 export default NewDatePicker;

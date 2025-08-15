@@ -3,10 +3,15 @@
 @use "../mixins" as mixins;
 
 .new-datepicker-wrapper {
-    border: 1px solid black;
+    border: 1px solid func.color('black');
     width: fit-content;
 
-    td[role="gridcell"]:focus {
+    td[data-date]:focus {
         @include mixins.focus;
+    }
+
+    td[aria-selected="true"] {
+        background-color: func.color('black');
+        color: func.color('white');
     }
 }

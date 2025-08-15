@@ -12128,12 +12128,16 @@ textarea.no-resize{
 }
 
 .new-datepicker-wrapper{
-  border:1px solid black;
+  border:1px solid #1a1a1a;
   width:fit-content;
 }
-.new-datepicker-wrapper td[role=gridcell]:focus{
+.new-datepicker-wrapper td[data-date]:focus{
   outline:3px solid #454545;
   outline-offset:1px;
+}
+.new-datepicker-wrapper td[aria-selected=true]{
+  background-color:#1a1a1a;
+  color:white;
 }
 
 @media print{
