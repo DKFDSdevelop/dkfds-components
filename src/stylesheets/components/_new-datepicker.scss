@@ -2,7 +2,7 @@
 @use "../functions" as func;
 @use "../mixins" as mixins;
 
-.new-datepicker-wrapper {
+.new-date-picker-wrapper {
     border: 1px solid func.color('black');
     width: fit-content;
 

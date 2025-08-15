@@ -6,7 +6,8 @@ const GRID_ROWS = 6; // To avoid potential height changes when changing month, t
 const TOTAL_GRIDCELLS = GRID_ROWS * DAYS.length;
 
 function NewDatePicker(newDatePicker) {
-    this.datepicker = newDatePicker.querySelector('.new-datepicker-wrapper');
+    this.datePicker = newDatePicker;
+    this.datePickerWrapper = newDatePicker.querySelector('.new-date-picker-wrapper');
     this.datePickerInput = newDatePicker.querySelector('.form-input');
     this.datePickerButton = newDatePicker.querySelector('.button-icon-only');
 }
@@ -17,41 +18,57 @@ NewDatePicker.prototype.init = function () {
     document.body.addEventListener('click', closeAllDatePickers);
 
     if (this.datePickerButton) {
-        this.datepicker.classList.add('d-none');
+        this.datePickerWrapper.classList.add('d-none');
 
         this.datePickerButton.addEventListener('click', () => {
-            if (this.datepicker.classList.contains('d-none')) {
-                this.datepicker.classList.remove('d-none');
-                this.placeFocusOnDate(new Date());
+            if (this.datePickerWrapper.classList.contains('d-none')) {
+                this.datePickerWrapper.classList.remove('d-none');
+
+                if (this.datePicker.getAttribute('data-selected-date')) {
+                    let selectedDate = this.datePicker.getAttribute('data-selected-date');
+                    this.redrawCalendarGrid(new Date(selectedDate));
+                    this.placeFocusOnDate(new Date(selectedDate));
+                }
+                else {
+                    this.redrawCalendarGrid(new Date());
+                    this.placeFocusOnDate(new Date());
+                }
             }
             else {
-                this.datepicker.classList.add('d-none');
+                this.datePickerWrapper.classList.add('d-none');
             }
         });
 
-        this.datepicker.setAttribute('role', 'dialog');
-        this.datepicker.setAttribute('aria-modal', 'true');
-        this.datepicker.setAttribute('aria-label', 'Vælg en dato');
+        this.datePickerWrapper.setAttribute('role', 'dialog');
+        this.datePickerWrapper.setAttribute('aria-modal', 'true');
+        this.datePickerWrapper.setAttribute('aria-label', 'Vælg en dato');
     }
 
-    this.datepicker.addEventListener('click', (e) => {
+    this.datePickerWrapper.addEventListener('click', (e) => {
         e.preventDefault();
         if (e.target.getAttribute('data-date')) {
             let clickedDate = new Date(e.target.getAttribute('data-date'));
-            this.placeFocusOnDate(clickedDate);
             this.selectDate(clickedDate);
+
+            if (this.datePickerWrapper.getAttribute('role')) {
+                this.datePickerWrapper.classList.add('d-none');
+                this.datePickerButton.focus();
+            }
+            else {
+                this.placeFocusOnDate(clickedDate);
+            }
         }
     });
 
-    this.datepicker.addEventListener('keydown', (e) => {
+    this.datePickerWrapper.addEventListener('keydown', (e) => {
         let key = e.key;
-        let focusedDay = this.datepicker.querySelector('td[data-date][tabindex="0"]');
+        let focusedDay = this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]');
 
         switch (key) {
             case 'ArrowLeft':
                 e.preventDefault();
                 let yesterday = getYesterday(new Date(focusedDay.getAttribute('data-date')));
-                if (!isDateVisible(yesterday, this.datepicker)) {
+                if (!isDateVisible(yesterday, this.datePickerWrapper)) {
                     this.redrawCalendarGrid(yesterday);
                 }
                 this.placeFocusOnDate(yesterday);
@@ -59,7 +76,7 @@ NewDatePicker.prototype.init = function () {
             case 'ArrowRight':
                 e.preventDefault();
                 let tomorrow = getTomorrow(new Date(focusedDay.getAttribute('data-date')));
-                if (!isDateVisible(tomorrow, this.datepicker)) {
+                if (!isDateVisible(tomorrow, this.datePickerWrapper)) {
                     this.redrawCalendarGrid(tomorrow);
                 }
                 this.placeFocusOnDate(tomorrow);
@@ -67,21 +84,21 @@ NewDatePicker.prototype.init = function () {
         }
     });
 
-    this.datepicker.querySelector('.selected-month').addEventListener('change', (e) => {
+    this.datePickerWrapper.querySelector('.selected-month').addEventListener('change', (e) => {
         let day = 1;
         let month = parseInt(e.target.value) + 1;
-        let year = this.datepicker.querySelector('.selected-year').value;
+        let year = this.datePickerWrapper.querySelector('.selected-year').value;
         this.redrawCalendarGrid(new Date(`${year}-${month}-${day}`));
     });
 
-    this.datepicker.querySelector('.selected-year').addEventListener('change', (e) => {
+    this.datePickerWrapper.querySelector('.selected-year').addEventListener('change', (e) => {
         let day = 1;
-        let month = parseInt(this.datepicker.querySelector('.selected-month').value) + 1;
+        let month = parseInt(this.datePickerWrapper.querySelector('.selected-month').value) + 1;
         let year = e.target.value;
         this.redrawCalendarGrid(new Date(`${year}-${month}-${day}`));
     });
 
-    this.datepicker.querySelector(`[data-date="${getIsoLocalFormat(new Date())}"]`).setAttribute('tabindex', '0');
+    this.datePickerWrapper.querySelector(`[data-date="${getIsoLocalFormat(new Date())}"]`).setAttribute('tabindex', '0');
 }
 
 NewDatePicker.prototype.createCalendarGrid = function () {
@@ -89,7 +106,7 @@ NewDatePicker.prototype.createCalendarGrid = function () {
     /* The date picker header with navigation options */
 
     let datePickerHeader = document.createElement('div');
-    datePickerHeader.classList.add('datepicker-header');
+    datePickerHeader.classList.add('date-picker-header');
 
     let previousButton = document.createElement('button');
     previousButton.classList.add('previous-month');
@@ -117,13 +134,13 @@ NewDatePicker.prototype.createCalendarGrid = function () {
     nextButton.textContent = 'Næste';
     datePickerHeader.appendChild(nextButton);
 
-    this.datepicker.appendChild(datePickerHeader);
+    this.datePickerWrapper.appendChild(datePickerHeader);
 
     /* The date picker grid with dates */
 
     let grid = document.createElement('table');
     grid.setAttribute('role', 'grid');
-    grid.classList.add('new-datepicker-grid');
+    grid.classList.add('new-date-picker-grid');
 
     let gridHead = document.createElement('thead');
     let gridHeadRow = document.createElement('tr');
@@ -147,17 +164,17 @@ NewDatePicker.prototype.createCalendarGrid = function () {
     }
     grid.appendChild(gridBody);
 
-    this.datepicker.appendChild(grid);
+    this.datePickerWrapper.appendChild(grid);
 };
 
 NewDatePicker.prototype.redrawCalendarGrid = function (date) {
     let year = date.getFullYear();
     let month = date.getMonth();
-    let gridcells = this.datepicker.querySelectorAll('td');
+    let gridcells = this.datePickerWrapper.querySelectorAll('td');
 
     // Update displayed year and month
-    this.datepicker.querySelector('.selected-month').value = month;
-    this.datepicker.querySelector('.selected-year').value = year;
+    this.datePickerWrapper.querySelector('.selected-month').value = month;
+    this.datePickerWrapper.querySelector('.selected-year').value = year;
 
     // Remove existing dates in the grid
     for (let i = 0; i < TOTAL_GRIDCELLS; i++) {
@@ -179,28 +196,28 @@ NewDatePicker.prototype.redrawCalendarGrid = function (date) {
         gridcells[i + offset - 1].innerHTML = `${i}`;
     }
 
-    if (this.datepicker.getAttribute('data-selected-date')) {
-        let selectedDate = this.datepicker.getAttribute('data-selected-date');
+    if (this.datePicker.getAttribute('data-selected-date')) {
+        let selectedDate = this.datePicker.getAttribute('data-selected-date');
         this.selectDate(new Date(selectedDate));
     }
 };
 
 NewDatePicker.prototype.placeFocusOnDate = function (date) {
-    if (this.datepicker.querySelector('td[data-date][tabindex="0"]')) {
-        this.datepicker.querySelector('td[data-date][tabindex="0"]').setAttribute('tabindex', '-1');
+    if (this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]')) {
+        this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]').setAttribute('tabindex', '-1');
     }
-    this.datepicker.querySelector(`[data-date="${getIsoLocalFormat(date)}"]`).focus();
-    this.datepicker.querySelector(`[data-date="${getIsoLocalFormat(date)}"]`).setAttribute('tabindex', '0');
+    this.datePickerWrapper.querySelector(`[data-date="${getIsoLocalFormat(date)}"]`).focus();
+    this.datePickerWrapper.querySelector(`[data-date="${getIsoLocalFormat(date)}"]`).setAttribute('tabindex', '0');
 }
 
 NewDatePicker.prototype.selectDate = function (date) {
-    if (this.datepicker.querySelector('td[aria-selected="true"]')) {
-        this.datepicker.querySelector('td[aria-selected="true"]').setAttribute('aria-selected', 'false');
+    if (this.datePickerWrapper.querySelector('td[aria-selected="true"]')) {
+        this.datePickerWrapper.querySelector('td[aria-selected="true"]').setAttribute('aria-selected', 'false');
     }
-    if (isDateVisible(date, this.datepicker)) {
-        this.datepicker.querySelector(`[data-date="${getIsoLocalFormat(date)}"]`).setAttribute('aria-selected', 'true');
+    if (isDateVisible(date, this.datePickerWrapper)) {
+        this.datePickerWrapper.querySelector(`[data-date="${getIsoLocalFormat(date)}"]`).setAttribute('aria-selected', 'true');
     }
-    this.datepicker.setAttribute('data-selected-date', getIsoLocalFormat(date));
+    this.datePicker.setAttribute('data-selected-date', getIsoLocalFormat(date));
 }
 
 function getWeekday(date) {
@@ -240,17 +257,17 @@ function getTomorrow(date) {
     return tomorrow;
 }
 
-function isDateVisible(date, grid) {
+function isDateVisible(date, datePickerWrapper) {
     let isoDate = getIsoLocalFormat(date);
-    return grid.querySelector(`[data-date="${isoDate}"]`) ? true : false;
+    return datePickerWrapper.querySelector(`[data-date="${isoDate}"]`) ? true : false;
 }
 
 function closeAllDatePickers(e) {
-    const clickInDatePicker = e.target.closest('.new-datepicker-wrapper');
-    const clickedDatePickerButton = e.target.closest('.new-datepicker .button-icon-only[aria-haspopup="dialog"]');
+    const clickInDatePicker = e.target.closest('.new-date-picker-wrapper');
+    const clickedDatePickerButton = e.target.closest('.new-date-picker .button-icon-only[aria-haspopup="dialog"]');
 
     if (!clickInDatePicker && !clickedDatePickerButton) {
-        let datePickers = document.querySelectorAll('.new-datepicker-wrapper[role="dialog"]');
+        let datePickers = document.querySelectorAll('.new-date-picker-wrapper[role="dialog"]');
         for (let i = 0; i < datePickers.length; i++) {
             datePickers[i].classList.add('d-none');
         }

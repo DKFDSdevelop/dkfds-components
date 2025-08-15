@@ -120,7 +120,8 @@ var init = function (options) {
   ---------------------
   */
   datePicker.on(scope);
-  const datePickers = scope.querySelectorAll('.new-datepicker');
+  
+  const datePickers = scope.querySelectorAll('.new-date-picker');
   for(let d = 0; d < datePickers.length; d++) {
     new NewDatePicker(datePickers[d]).init();
   }
