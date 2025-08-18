@@ -5709,12 +5709,23 @@ const MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'a
 const DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
 const GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
 const TOTAL_GRIDCELLS = GRID_ROWS * DAYS.length;
+
+/**
+ * Add functionality to date picker component
+ *
+ * @param {HTMLDivElement} newDatePicker - HTML element with the class "new-date-picker"
+ * @constructor
+ */
 function NewDatePicker(newDatePicker) {
   this.datePicker = newDatePicker;
   this.datePickerWrapper = newDatePicker.querySelector('.new-date-picker-wrapper');
   this.datePickerInput = newDatePicker.querySelector('.form-input');
   this.datePickerButton = newDatePicker.querySelector('.button-icon-only');
 }
+
+/**
+ * Initialize the date picker
+ */
 NewDatePicker.prototype.init = function () {
   this.createCalendarGrid();
   this.redrawCalendarGrid(new Date());
@@ -5789,6 +5800,10 @@ NewDatePicker.prototype.init = function () {
   });
   this.datePickerWrapper.querySelector(`[data-date="${getIsoLocalFormat(new Date())}"]`).setAttribute('tabindex', '0');
 };
+
+/**
+ * Build the calendar header and grid
+ */
 NewDatePicker.prototype.createCalendarGrid = function () {
   /* The date picker header with navigation options */
 
@@ -5845,6 +5860,12 @@ NewDatePicker.prototype.createCalendarGrid = function () {
   grid.appendChild(gridBody);
   this.datePickerWrapper.appendChild(grid);
 };
+
+/**
+ * Render the grid for a given month
+ *
+ * @param {Date} date - Any date in the month to render
+ */
 NewDatePicker.prototype.redrawCalendarGrid = function (date) {
   let year = date.getFullYear();
   let month = date.getMonth();
@@ -5878,6 +5899,12 @@ NewDatePicker.prototype.redrawCalendarGrid = function (date) {
     this.selectDate(new Date(selectedDate));
   }
 };
+
+/**
+ * Move focus to a specific date cell
+ *
+ * @param {Date} date - Date to focus
+ */
 NewDatePicker.prototype.placeFocusOnDate = function (date) {
   if (this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]')) {
     this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]').setAttribute('tabindex', '-1');
@@ -5885,6 +5912,12 @@ NewDatePicker.prototype.placeFocusOnDate = function (date) {
   this.datePickerWrapper.querySelector(`[data-date="${getIsoLocalFormat(date)}"]`).focus();
   this.datePickerWrapper.querySelector(`[data-date="${getIsoLocalFormat(date)}"]`).setAttribute('tabindex', '0');
 };
+
+/**
+ * Select a date in the grid
+ *
+ * @param {Date} date - Date to select
+ */
 NewDatePicker.prototype.selectDate = function (date) {
   if (this.datePickerWrapper.querySelector('td[aria-selected="true"]')) {
     this.datePickerWrapper.querySelector('td[aria-selected="true"]').setAttribute('aria-selected', 'false');
@@ -5894,6 +5927,13 @@ NewDatePicker.prototype.selectDate = function (date) {
   }
   this.datePicker.setAttribute('data-selected-date', getIsoLocalFormat(date));
 };
+
+/**
+ * Get weekday index with Monday as 0
+ *
+ * @param {Date} date - Date to get weekday for
+ * @return {number} Weekday index (0=Mon..6=Sun)
+ */
 function getWeekday(date) {
   let day = (date.getDay() + 6) % 7; // First day of the week changed from Sunday to Monday
   return day;
@@ -5911,26 +5951,61 @@ function daysInMonth(date) {
   const LAST_DAY_OF_PREVIOUS_MONTH = 0;
   return new Date(year, month + 1, LAST_DAY_OF_PREVIOUS_MONTH).getDate();
 }
+
+/**
+ * Format date as YYYY-MM-DD
+ *
+ * @param {Date} date - Date to format
+ * @return {string} ISO-like local date (YYYY-MM-DD)
+ */
 function getIsoLocalFormat(date) {
   let year = String(date.getFullYear()).padStart(4, '0');
   let month = String(date.getMonth() + 1).padStart(2, '0');
   let day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
+
+/**
+ * Get the previous day
+ *
+ * @param {Date} date - Reference date
+ * @return {Date} New Date representing yesterday
+ */
 function getYesterday(date) {
   let yesterday = new Date(date);
   yesterday.setDate(yesterday.getDate() - 1);
   return yesterday;
 }
+
+/**
+ * Get the next day
+ *
+ * @param {Date} date - Reference date
+ * @return {Date} New Date representing tomorrow
+ */
 function getTomorrow(date) {
   let tomorrow = new Date(date);
   tomorrow.setDate(tomorrow.getDate() + 1);
   return tomorrow;
 }
+
+/**
+ * Check if a date cell is visible in the grid
+ *
+ * @param {Date} date - Date to check
+ * @param {HTMLDivElement} datePickerWrapper - Wrapper containing the grid
+ * @return {boolean} True if the date cell is visible
+ */
 function isDateVisible(date, datePickerWrapper) {
   let isoDate = getIsoLocalFormat(date);
   return datePickerWrapper.querySelector(`[data-date="${isoDate}"]`) ? true : false;
 }
+
+/**
+ * Close all open date pickers on outside click
+ *
+ * @param {PointerEvent} e - Click event
+ */
 function closeAllDatePickers(e) {
   const clickInDatePicker = e.target.closest('.new-date-picker-wrapper');
   const clickedDatePickerButton = e.target.closest('.new-date-picker .button-icon-only[aria-haspopup="dialog"]');
