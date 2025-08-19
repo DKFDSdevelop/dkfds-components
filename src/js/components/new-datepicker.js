@@ -53,15 +53,19 @@ NewDatePicker.prototype.init = function () {
         this.datePickerWrapper.setAttribute('aria-label', 'Vælg en dato');
     }
 
+    /* Make dates selectable with click */
     this.datePickerWrapper.addEventListener('click', (e) => {
         e.preventDefault();
         if (e.target.getAttribute('data-date')) {
             let clickedDate = new Date(e.target.getAttribute('data-date'));
             this.selectDate(clickedDate);
 
-            if (this.datePickerWrapper.getAttribute('role')) {
-                this.datePickerWrapper.classList.add('d-none');
-                this.datePickerButton.focus();
+            if (isDialog(this.datePickerWrapper)) {
+                let day = this.datePickerWrapper.querySelector('td[aria-selected="true"]').textContent;
+                let month = this.datePickerWrapper.querySelector('.selected-month').value;
+                let year = this.datePickerWrapper.querySelector('.selected-year').value;
+                this.datePickerButton.querySelector('.sr-only').textContent = `Åbn datovælger, valgt dato er ${day}. ${MONTHS[month]} ${year}`;
+                this.close();
             }
             else {
                 this.placeFocusOnDate(clickedDate);
@@ -69,6 +73,7 @@ NewDatePicker.prototype.init = function () {
         }
     });
 
+    /* Add keyboard functionality */
     this.datePickerWrapper.addEventListener('keydown', (e) => {
         let key = e.key;
         let focusedDay = this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]');
@@ -90,9 +95,47 @@ NewDatePicker.prototype.init = function () {
                 }
                 this.placeFocusOnDate(tomorrow);
                 break;
+            case 'ArrowDown':
+                break;
+            case 'ArrowUp':
+                break;
+            case 'Enter':
+            case ' ':
+                e.preventDefault();
+                if (e.target.getAttribute('data-date')) {
+                    let selectedDate = new Date(e.target.getAttribute('data-date'));
+                    this.selectDate(selectedDate);
+
+                    if (isDialog(this.datePickerWrapper)) {
+                        let day = this.datePickerWrapper.querySelector('td[aria-selected="true"]').textContent;
+                        let month = this.datePickerWrapper.querySelector('.selected-month').value;
+                        let year = this.datePickerWrapper.querySelector('.selected-year').value;
+                        this.datePickerButton.querySelector('.sr-only').textContent = `Åbn datovælger, valgt dato er ${day}. ${MONTHS[month]} ${year}`;
+                        this.close();
+                    }
+                    else {
+                        this.placeFocusOnDate(selectedDate);
+                    }
+                }
+                break;
+            case 'Escape':
+                e.preventDefault();
+                this.close();
+                break;
+            case 'PageDown':
+                break;
+            case 'PageUp':
+                break;
+            case 'Home':
+                if (e.ctrlKey) { }
+                break;
+            case 'End':
+                if (e.ctrlKey) { }
+                break;
         }
     });
 
+    /* Update grid when month is changed */
     this.datePickerWrapper.querySelector('.selected-month').addEventListener('change', (e) => {
         let day = 1;
         let month = parseInt(e.target.value) + 1;
@@ -100,6 +143,7 @@ NewDatePicker.prototype.init = function () {
         this.redrawCalendarGrid(new Date(`${year}-${month}-${day}`));
     });
 
+    /* Update grid when year is changed */
     this.datePickerWrapper.querySelector('.selected-year').addEventListener('change', (e) => {
         let day = 1;
         let month = parseInt(this.datePickerWrapper.querySelector('.selected-month').value) + 1;
@@ -107,6 +151,7 @@ NewDatePicker.prototype.init = function () {
         this.redrawCalendarGrid(new Date(`${year}-${month}-${day}`));
     });
 
+    /* Make it possible to tab to a date in the grid */
     this.datePickerWrapper.querySelector(`[data-date="${getIsoLocalFormat(new Date())}"]`).setAttribute('tabindex', '0');
 }
 
@@ -220,6 +265,16 @@ NewDatePicker.prototype.redrawCalendarGrid = function (date) {
 };
 
 /**
+ * Close the date picker dialog
+ */
+NewDatePicker.prototype.close = function () {
+    if (isDialog(this.datePickerWrapper)) {
+        this.datePickerWrapper.classList.add('d-none');
+        this.datePickerButton.focus();
+    }
+}
+
+/**
  * Move focus to a specific date cell
  *
  * @param {Date} date - Date to focus
@@ -238,12 +293,15 @@ NewDatePicker.prototype.placeFocusOnDate = function (date) {
  * @param {Date} date - Date to select
  */
 NewDatePicker.prototype.selectDate = function (date) {
+    // Remove previous selection (if selected date is visible)
     if (this.datePickerWrapper.querySelector('td[aria-selected="true"]')) {
         this.datePickerWrapper.querySelector('td[aria-selected="true"]').setAttribute('aria-selected', 'false');
     }
+    // Select new date in grid (if date is visible)
     if (isDateVisible(date, this.datePickerWrapper)) {
         this.datePickerWrapper.querySelector(`[data-date="${getIsoLocalFormat(date)}"]`).setAttribute('aria-selected', 'true');
     }
+    // Store the selected date in a date picker attribute
     this.datePicker.setAttribute('data-selected-date', getIsoLocalFormat(date));
 }
 
@@ -318,6 +376,16 @@ function getTomorrow(date) {
 function isDateVisible(date, datePickerWrapper) {
     let isoDate = getIsoLocalFormat(date);
     return datePickerWrapper.querySelector(`[data-date="${isoDate}"]`) ? true : false;
+}
+
+/**
+ * Check if the date picker is placed in a dialog
+ *
+ * @param {HTMLDivElement} datePickerWrapper - Wrapper containing the grid
+ * @return {boolean} True if the date picker is in a dialog
+ */
+function isDialog(datePickerWrapper) {
+    return datePickerWrapper.getAttribute('role') ? true : false;
 }
 
 /**
