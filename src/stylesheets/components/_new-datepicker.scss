@@ -14,4 +14,9 @@
         background-color: func.color('black');
         color: func.color('white');
     }
+
+    &[role="dialog"] {
+        position: absolute;
+        background-color: func.color('white');
+    }
 }

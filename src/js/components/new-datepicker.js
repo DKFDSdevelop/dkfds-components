@@ -16,6 +16,11 @@ function NewDatePicker(newDatePicker) {
     this.datePickerWrapper = newDatePicker.querySelector('.new-date-picker-wrapper');
     this.datePickerInput = newDatePicker.querySelector('.form-input');
     this.datePickerButton = newDatePicker.querySelector('.button-icon-only');
+    if (this.datePickerButton) {
+        this.datePickerWrapper = document.createElement('div');
+        this.datePickerWrapper.classList.add('new-date-picker-wrapper');
+        document.body.appendChild(this.datePickerWrapper);
+    }
 }
 
 /**
@@ -24,7 +29,23 @@ function NewDatePicker(newDatePicker) {
 NewDatePicker.prototype.init = function () {
     this.createCalendarGrid();
     this.redrawCalendarGrid(new Date());
-    document.body.addEventListener('click', closeAllDatePickers);
+
+    document.body.addEventListener('click', (e) => {
+        let clickInDatePicker = e.target.closest('.new-date-picker-wrapper');
+        let clickedDatePickerButton = e.target.closest('.new-date-picker .button-icon-only[aria-haspopup="dialog"]');
+        if (!clickInDatePicker && !clickedDatePickerButton) {
+            closeAllDatePickers();
+        }
+    });
+
+    /* If focus somehow escapes a date picker's keyboard trap, ensure all date picker dialogs 
+       are closed when something else is focused on the page. */
+    document.body.addEventListener('focusin', (e) => {
+        let focusInDatePicker = e.target.closest('.new-date-picker-wrapper');
+        if (!focusInDatePicker) {
+            closeAllDatePickers();
+        }
+    });
 
     if (this.datePickerButton) {
         this.datePickerWrapper.classList.add('d-none');
@@ -77,23 +98,28 @@ NewDatePicker.prototype.init = function () {
     this.datePickerWrapper.addEventListener('keydown', (e) => {
         let key = e.key;
         let focusedDay = this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]');
+        let focusOnDate = e.target.getAttribute('data-date');
 
         switch (key) {
             case 'ArrowLeft':
-                e.preventDefault();
-                let yesterday = getYesterday(new Date(focusedDay.getAttribute('data-date')));
-                if (!isDateVisible(yesterday, this.datePickerWrapper)) {
-                    this.redrawCalendarGrid(yesterday);
+                if (focusOnDate) {
+                    e.preventDefault();
+                    let yesterday = getYesterday(new Date(focusedDay.getAttribute('data-date')));
+                    if (!isDateVisible(yesterday, this.datePickerWrapper)) {
+                        this.redrawCalendarGrid(yesterday);
+                    }
+                    this.placeFocusOnDate(yesterday);
                 }
-                this.placeFocusOnDate(yesterday);
                 break;
             case 'ArrowRight':
-                e.preventDefault();
-                let tomorrow = getTomorrow(new Date(focusedDay.getAttribute('data-date')));
-                if (!isDateVisible(tomorrow, this.datePickerWrapper)) {
-                    this.redrawCalendarGrid(tomorrow);
+                if (focusOnDate) {
+                    e.preventDefault();
+                    let tomorrow = getTomorrow(new Date(focusedDay.getAttribute('data-date')));
+                    if (!isDateVisible(tomorrow, this.datePickerWrapper)) {
+                        this.redrawCalendarGrid(tomorrow);
+                    }
+                    this.placeFocusOnDate(tomorrow);
                 }
-                this.placeFocusOnDate(tomorrow);
                 break;
             case 'ArrowDown':
                 break;
@@ -101,8 +127,9 @@ NewDatePicker.prototype.init = function () {
                 break;
             case 'Enter':
             case ' ':
-                e.preventDefault();
-                if (e.target.getAttribute('data-date')) {
+                if (focusOnDate) {
+                    e.preventDefault();
+
                     let selectedDate = new Date(e.target.getAttribute('data-date'));
                     this.selectDate(selectedDate);
 
@@ -132,6 +159,19 @@ NewDatePicker.prototype.init = function () {
             case 'End':
                 if (e.ctrlKey) { }
                 break;
+            case 'Tab':
+                let focusLeftDate = e.target.getAttribute('data-date');
+                let focusLeftPreviousButton = e.target.classList.contains('previous-month');
+
+                if (focusLeftDate && !e.shiftKey && isDialog(this.datePickerWrapper)) {
+                    e.preventDefault();
+                    this.datePickerWrapper.querySelector('.previous-month').focus();
+                }
+                else if (focusLeftPreviousButton && e.shiftKey && isDialog(this.datePickerWrapper)) {
+                    e.preventDefault();
+                    this.datePickerWrapper.querySelector('td[tabindex="0"]').focus();
+                }
+                break;
         }
     });
 
@@ -140,7 +180,8 @@ NewDatePicker.prototype.init = function () {
         let day = 1;
         let month = parseInt(e.target.value) + 1;
         let year = this.datePickerWrapper.querySelector('.selected-year').value;
-        this.redrawCalendarGrid(new Date(`${year}-${month}-${day}`));
+        let newDate = new Date(`${year}-${month}-${day}`);
+        this.redrawCalendarGrid(newDate);
     });
 
     /* Update grid when year is changed */
@@ -148,7 +189,8 @@ NewDatePicker.prototype.init = function () {
         let day = 1;
         let month = parseInt(this.datePickerWrapper.querySelector('.selected-month').value) + 1;
         let year = e.target.value;
-        this.redrawCalendarGrid(new Date(`${year}-${month}-${day}`));
+        let newDate = new Date(`${year}-${month}-${day}`);
+        this.redrawCalendarGrid(newDate);
     });
 
     /* Make it possible to tab to a date in the grid */
@@ -261,6 +303,11 @@ NewDatePicker.prototype.redrawCalendarGrid = function (date) {
     if (this.datePicker.getAttribute('data-selected-date')) {
         let selectedDate = this.datePicker.getAttribute('data-selected-date');
         this.selectDate(new Date(selectedDate));
+    }
+
+    // The grid must always have a focusable element
+    if (!this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]')) {
+        this.datePickerWrapper.querySelector(`[data-date="${getIsoLocalFormat(date)}"]`).setAttribute('tabindex', '0');
     }
 };
 
@@ -389,19 +436,12 @@ function isDialog(datePickerWrapper) {
 }
 
 /**
- * Close all open date pickers on outside click
- *
- * @param {PointerEvent} e - Click event
+ * Close all open date pickers
  */
 function closeAllDatePickers(e) {
-    const clickInDatePicker = e.target.closest('.new-date-picker-wrapper');
-    const clickedDatePickerButton = e.target.closest('.new-date-picker .button-icon-only[aria-haspopup="dialog"]');
-
-    if (!clickInDatePicker && !clickedDatePickerButton) {
-        let datePickers = document.querySelectorAll('.new-date-picker-wrapper[role="dialog"]');
-        for (let i = 0; i < datePickers.length; i++) {
-            datePickers[i].classList.add('d-none');
-        }
+    let datePickers = document.querySelectorAll('.new-date-picker-wrapper[role="dialog"]');
+    for (let i = 0; i < datePickers.length; i++) {
+        datePickers[i].classList.add('d-none');
     }
 }
 

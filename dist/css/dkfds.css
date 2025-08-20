@@ -12139,6 +12139,10 @@ textarea.no-resize{
   background-color:#1a1a1a;
   color:white;
 }
+.new-date-picker-wrapper[role=dialog]{
+  position:absolute;
+  background-color:white;
+}
 
 @media print{
   html{
