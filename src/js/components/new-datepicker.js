@@ -75,8 +75,39 @@ NewDatePicker.prototype.init = function () {
             else {
                 this.placeFocusOnDate(clickedDate);
             }
+
+            if (this.datePickerInput) {
+                let day = String(clickedDate.getDate()).padStart(2, '0');
+                let month = String(clickedDate.getMonth() + 1).padStart(2, '0');
+                let year = String(clickedDate.getFullYear()).padStart(2, '0');
+                this.datePickerInput.value = `${day}/${month}/${year}`;
+            }
         }
     });
+
+    if (this.datePickerInput) {
+        this.datePickerInput.addEventListener('input', (e) => {
+            const input = e.target.value;
+            const regex = /(\d{1,2})[\/\-\. ](\d{1,2})[\/\-\. ](\d{1,4})/;
+
+            const match = input.match(regex);
+            if (match) {
+                const day = match[1].padStart(2, '0');
+                const month = match[2].padStart(2, '0');
+                const year = match[3].padStart(4, '0');
+                const date = new Date(`${year}-${month}-${day}`);
+
+                let daysMax = daysInMonth(new Date(`${year}-${month}-01`));
+                
+                if (!isNaN(date.getTime()) && !(parseInt(day, 10) > daysMax)) {
+                    this.selectDate(date);
+                }
+                else {
+                    this.deselectDate();
+                }
+            }
+        });
+    }
 
     /* Add keyboard functionality */
     this.datePickerWrapper.addEventListener('keydown', (e) => {
@@ -127,6 +158,13 @@ NewDatePicker.prototype.init = function () {
                     }
                     else {
                         this.placeFocusOnDate(selectedDate);
+                    }
+
+                    if (this.datePickerInput) {
+                        let day = String(selectedDate.getDate()).padStart(2, '0');
+                        let month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                        let year = String(selectedDate.getFullYear()).padStart(2, '0');
+                        this.datePickerInput.value = `${day}/${month}/${year}`;
                     }
                 }
                 break;
@@ -372,6 +410,16 @@ NewDatePicker.prototype.selectDate = function (date) {
     }
     // Store the selected date in a date picker attribute
     this.datePicker.setAttribute('data-selected-date', getIsoLocalFormat(date));
+}
+
+/**
+ * Deselect a date so no dates are selected
+ */
+NewDatePicker.prototype.deselectDate = function () {
+    this.datePicker.removeAttribute('data-selected-date');
+    if (this.datePickerWrapper.querySelector('td[aria-selected="true"]')) {
+        this.datePickerWrapper.querySelector('td[aria-selected="true"]').setAttribute('aria-selected', 'false');
+    }
 }
 
 /**
