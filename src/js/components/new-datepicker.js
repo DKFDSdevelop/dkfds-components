@@ -5,6 +5,9 @@ const DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'S�
 const GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
 const TOTAL_GRIDCELLS = GRID_ROWS * DAYS.length;
 
+let datePickerDialogs = [];
+let lastFocusedDatePickerWrapper = null;
+
 /**
  * Add functionality to date picker component
  *
@@ -20,6 +23,7 @@ function NewDatePicker(newDatePicker) {
         this.datePickerWrapper = document.createElement('div');
         this.datePickerWrapper.classList.add('new-date-picker-wrapper');
         document.body.appendChild(this.datePickerWrapper);
+        datePickerDialogs.push(this);
     }
 }
 
@@ -30,42 +34,18 @@ NewDatePicker.prototype.init = function () {
     this.createCalendarGrid();
     this.redrawCalendarGrid(new Date());
 
-    document.body.addEventListener('click', (e) => {
-        let clickInDatePicker = e.target.closest('.new-date-picker-wrapper');
-        let clickedDatePickerButton = e.target.closest('.new-date-picker .button-icon-only[aria-haspopup="dialog"]');
-        if (!clickInDatePicker && !clickedDatePickerButton) {
-            closeAllDatePickers();
-        }
-    });
-
-    /* If focus somehow escapes a date picker's keyboard trap, ensure all date picker dialogs 
-       are closed when something else is focused on the page. */
-    document.body.addEventListener('focusin', (e) => {
-        let focusInDatePicker = e.target.closest('.new-date-picker-wrapper');
-        if (!focusInDatePicker) {
-            closeAllDatePickers();
-        }
-    });
+    document.body.addEventListener('click', closeAllDatePickers);
+    document.body.addEventListener('focusin', removeHiddenOnFocusMove);
+    document.addEventListener('keydown', closeDatePickerDialogsOnKeydown);
 
     if (this.datePickerButton) {
         this.datePickerWrapper.classList.add('d-none');
 
-        this.datePickerButton.addEventListener('click', () => {
+        this.datePickerButton.addEventListener('click', (e) => {
             if (this.datePickerWrapper.classList.contains('d-none')) {
-                this.datePickerWrapper.classList.remove('d-none');
-
-                if (this.datePicker.getAttribute('data-selected-date')) {
-                    let selectedDate = this.datePicker.getAttribute('data-selected-date');
-                    this.redrawCalendarGrid(new Date(selectedDate));
-                    this.placeFocusOnDate(new Date(selectedDate));
-                }
-                else {
-                    this.redrawCalendarGrid(new Date());
-                    this.placeFocusOnDate(new Date());
-                }
-            }
-            else {
-                this.datePickerWrapper.classList.add('d-none');
+                e.stopPropagation(); // Prevent the body click event listener from triggering
+                closeAllDatePickers(); // Ensure no other date picker dialogs are open
+                this.open();
             }
         });
 
@@ -76,7 +56,10 @@ NewDatePicker.prototype.init = function () {
 
     /* Make dates selectable with click */
     this.datePickerWrapper.addEventListener('click', (e) => {
-        e.preventDefault();
+        if (isDialog(this.datePickerWrapper)) {
+            e.stopPropagation(); // Prevent the body click event listener from triggering
+        }
+        //e.preventDefault();
         if (e.target.getAttribute('data-date')) {
             let clickedDate = new Date(e.target.getAttribute('data-date'));
             this.selectDate(clickedDate);
@@ -87,6 +70,7 @@ NewDatePicker.prototype.init = function () {
                 let year = this.datePickerWrapper.querySelector('.selected-year').value;
                 this.datePickerButton.querySelector('.sr-only').textContent = `Åbn datovælger, valgt dato er ${day}. ${MONTHS[month]} ${year}`;
                 this.close();
+                this.datePickerButton.focus();
             }
             else {
                 this.placeFocusOnDate(clickedDate);
@@ -139,6 +123,7 @@ NewDatePicker.prototype.init = function () {
                         let year = this.datePickerWrapper.querySelector('.selected-year').value;
                         this.datePickerButton.querySelector('.sr-only').textContent = `Åbn datovælger, valgt dato er ${day}. ${MONTHS[month]} ${year}`;
                         this.close();
+                        this.datePickerButton.focus();
                     }
                     else {
                         this.placeFocusOnDate(selectedDate);
@@ -148,6 +133,7 @@ NewDatePicker.prototype.init = function () {
             case 'Escape':
                 e.preventDefault();
                 this.close();
+                this.datePickerButton.focus();
                 break;
             case 'PageDown':
                 break;
@@ -312,12 +298,48 @@ NewDatePicker.prototype.redrawCalendarGrid = function (date) {
 };
 
 /**
+ * Open the date picker dialog
+ */
+NewDatePicker.prototype.open = function () {
+    if (isDialog(this.datePickerWrapper)) {
+        this.datePickerWrapper.classList.remove('d-none');
+
+        if (this.datePicker.getAttribute('data-selected-date')) {
+            let selectedDate = this.datePicker.getAttribute('data-selected-date');
+            this.redrawCalendarGrid(new Date(selectedDate));
+            this.placeFocusOnDate(new Date(selectedDate));
+        }
+        else {
+            this.redrawCalendarGrid(new Date());
+            this.placeFocusOnDate(new Date());
+        }
+
+        /* Hide all other elements from screen readers */
+        let bodyChildren = document.querySelectorAll('body > *');
+        for (let c = 0; c < bodyChildren.length; c++) {
+            let child = bodyChildren[c];
+            if (child.tagName !== 'SCRIPT' && !child.classList.contains('new-date-picker-wrapper')) {
+                child.setAttribute('aria-hidden', 'true');
+                child.classList.add('fds-date-picker-aria-hidden');
+            }
+        }
+    }
+}
+
+/**
  * Close the date picker dialog
  */
 NewDatePicker.prototype.close = function () {
     if (isDialog(this.datePickerWrapper)) {
         this.datePickerWrapper.classList.add('d-none');
-        this.datePickerButton.focus();
+
+        let bodyChildren = document.querySelectorAll('body > *');
+        for (let c = 0; c < bodyChildren.length; c++) {
+            if (bodyChildren[c].classList.contains('fds-date-picker-aria-hidden')) {
+                bodyChildren[c].removeAttribute('aria-hidden');
+                bodyChildren[c].classList.remove('fds-date-picker-aria-hidden');
+            }
+        }
     }
 }
 
@@ -438,10 +460,42 @@ function isDialog(datePickerWrapper) {
 /**
  * Close all open date pickers
  */
-function closeAllDatePickers(e) {
-    let datePickers = document.querySelectorAll('.new-date-picker-wrapper[role="dialog"]');
-    for (let i = 0; i < datePickers.length; i++) {
-        datePickers[i].classList.add('d-none');
+function closeAllDatePickers() {
+    for (let i = 0; i < datePickerDialogs.length; i++) {
+        datePickerDialogs[i].close();
+    }
+}
+
+/**
+ * Remove aria-hidden from all body children to prevent browser warnings when focus changes
+ *
+ * @param {FocusEvent} e - Focus event from body focusin event handler
+ */
+function removeHiddenOnFocusMove(e) {
+    let currentFocusedDatePickerWrapper = e.target.closest('.new-date-picker-wrapper');
+
+    if (!currentFocusedDatePickerWrapper || currentFocusedDatePickerWrapper !== lastFocusedDatePickerWrapper) {
+        let bodyChildren = document.querySelectorAll('body > *');
+        for (let c = 0; c < bodyChildren.length; c++) {
+            if (bodyChildren[c].classList.contains('fds-date-picker-aria-hidden')) {
+                bodyChildren[c].removeAttribute('aria-hidden');
+                bodyChildren[c].classList.remove('fds-date-picker-aria-hidden');
+            }
+        }
+    }
+
+    lastFocusedDatePickerWrapper = currentFocusedDatePickerWrapper;
+}
+
+/**
+ * If the focus somehow escapes the keyboard trap in a date picker dialog, close all dialogs
+ *
+ * @param {KeyboardEvent} e - Keyboard event from body keydown event handler
+ */
+function closeDatePickerDialogsOnKeydown(e) {
+    let keydownInDatePickerDialog = e.target.closest('.new-date-picker-wrapper[role="dialog"]');
+    if (!keydownInDatePickerDialog) {
+        closeAllDatePickers();
     }
 }
 
