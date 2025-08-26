@@ -1,0 +1,34 @@
+{% from "components/form/controls/label.njk" import label as label %}
+{% from "components/form/controls/helptext.njk" import helptext as helptext %}
+{% from "components/form/controls/helptext.njk" import helptext_id as helptext_id %}
+{% from "components/form/controls/errormessage.njk" import errorMessage as errorMessage %}
+{% from "components/form/controls/errormessage.njk" import errorMessage_id as errorMessage_id %}
+
+{% macro datepicker(params) %}
+{% set isRequired = true %}
+{% if params.required === false %}{% set isRequired = false %}{% endif %}
+{% if params.requiredLabel === true %}{% set isRequired = true %}{% endif %}
+{% if params.optionalLabel === true %}{% set isRequired = false %}{% endif %}
+{% if params.disabled === true %}{% set isRequired = false %}{% endif %}
+<div class="form-group new-date-picker{% if params.errorMessage %} form-error{% endif %}{% if params.classes.formgroup %} {{params.classes.formgroup}}{% endif %}"{% if params.attributes.formgroup %} {{params.attributes.formgroup | safe}}{% endif %}{% if params.minDate %} data-min-date="{{params.minDate}}"{% endif %}{% if params.maxDate %} data-max-date="{{params.maxDate}}"{% endif %}{% if params.defaultDate %} data-default-date="{{params.defaultDate}}"{% endif %}{% if params.format %} data-dateformat="{{params.format}}"{% endif %}>
+    {{
+        label({
+            text: params.label,
+            classes: params.classes.label,
+            for: params.id,
+            attributes: params.attributes.label,
+            optionalLabel: params.optionalLabel,
+            requiredLabel: params.requiredLabel,
+            tooltip: { "text": params.tooltip }
+        })
+    }}
+    {% if params.helptext %}{{ helptext({ text: params.helptext, id: params.id }) }}{% endif %}
+    {% if params.errorMessage %}{{ errorMessage({ text: params.errorMessage, id: params.id }) }}{% endif %}
+    <div class="d-flex pt-3">
+        <input type="text" id="{{params.id}}" name="{{params.name}}" class="form-input input-width-xs mt-0 mr-2{% if params.classes.input %} {{params.classes.input}}{% endif %}"{% if params.value %} value="{{params.value}}"{% endif %}{% if params.disabled %} disabled{% endif %}{% if params.errorMessage %} aria-invalid="true"{% endif %}{% if params.errorMessage or params.helptext %} aria-describedby="{% if params.helptext %}{{helptext_id(params.id)}} {% endif %}{% if params.errorMessage %}{{errorMessage_id(params.id)}}{% endif %}"{% endif %}{% if isRequired %} required{% endif %}{% if params.attributes.input %} {{params.attributes.input | safe}}{% endif %}>
+        <button class="button button-icon-only" aria-haspopup="dialog">
+            <svg class="icon-svg" focusable="false" aria-hidden="true"><use href="#calendar-month"></use></svg>
+            <span class="sr-only">Åbn datovælger</span>
+        </button>
+    </div>
+</div>{% endmacro %}

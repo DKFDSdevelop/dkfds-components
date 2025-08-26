@@ -4,6 +4,7 @@ const MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'a
 const DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
 const GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
 const TOTAL_GRIDCELLS = GRID_ROWS * DAYS.length;
+const FORMATS = ['DD/MM/YYYY', 'DD-MM-YYYY', 'DD.MM.YYYY', 'DD MM YYYY', 'DD/MM-YYYY'];
 
 let datePickerDialogs = [];
 let lastFocusedDatePickerWrapper = null;
@@ -84,7 +85,7 @@ NewDatePicker.prototype.init = function () {
                     let day = String(clickedDate.getDate()).padStart(2, '0');
                     let month = String(clickedDate.getMonth() + 1).padStart(2, '0');
                     let year = String(clickedDate.getFullYear()).padStart(2, '0');
-                    this.datePickerInput.value = `${day}/${month}/${year}`;
+                    this.datePickerInput.value = this.dateFormat().replace('DD', day).replace('MM', month).replace('YYYY', year);
                 }
             }
         }
@@ -172,14 +173,17 @@ NewDatePicker.prototype.init = function () {
                         let day = String(selectedDate.getDate()).padStart(2, '0');
                         let month = String(selectedDate.getMonth() + 1).padStart(2, '0');
                         let year = String(selectedDate.getFullYear()).padStart(2, '0');
-                        this.datePickerInput.value = `${day}/${month}/${year}`;
+                        //this.datePickerInput.value = `${day}/${month}/${year}`;
+                        this.datePickerInput.value = this.dateFormat().replace('DD', day).replace('MM', month).replace('YYYY', year);
                     }
                 }
                 break;
             case 'Escape':
-                e.preventDefault();
-                this.close();
-                this.datePickerButton.focus();
+                if (isDialog(this.datePickerWrapper)) {
+                    e.preventDefault();
+                    this.close();
+                    this.datePickerButton.focus();
+                }
                 break;
             case 'PageDown':
                 break;
@@ -400,6 +404,8 @@ NewDatePicker.prototype.redrawCalendarGrid = function (date) {
  */
 NewDatePicker.prototype.open = function () {
     if (isDialog(this.datePickerWrapper)) {
+        this.datePickerWrapper.style.top = (this.datePickerButton.getBoundingClientRect().bottom + window.scrollY) + 'px';
+
         this.datePickerWrapper.classList.remove('d-none');
 
         if (this.datePicker.getAttribute('data-selected-date')) {
@@ -489,6 +495,20 @@ NewDatePicker.prototype.minDate = function () {
 
 NewDatePicker.prototype.maxDate = function () {
     return new Date(this.datePicker.getAttribute('data-max-date'));
+}
+
+NewDatePicker.prototype.dateFormat = function () {
+    if (this.datePicker.getAttribute('data-dateformat')) {
+        if (FORMATS.includes(this.datePicker.getAttribute('data-dateformat'))) {
+            return this.datePicker.getAttribute('data-dateformat');
+        }
+        else {
+            return FORMATS[0];
+        }
+    }
+    else {
+        return FORMATS[0];
+    }
 }
 
 /**

@@ -12138,6 +12138,12 @@ textarea.no-resize{
   outline:3px solid #454545;
   outline-offset:1px;
 }
+.new-date-picker-wrapper td[aria-selected]{
+  cursor:pointer;
+}
+.new-date-picker-wrapper td[aria-selected]:hover{
+  background-color:#DCDCDC;
+}
 .new-date-picker-wrapper td[aria-selected=true]{
   background-color:#1a1a1a;
   color:white;

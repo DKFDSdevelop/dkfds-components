@@ -13,6 +13,14 @@
             @include mixins.focus;
         }
 
+        &[aria-selected] {
+            cursor: pointer;
+
+            &:hover {
+                background-color: func.color('gray-200');
+            }
+        }
+
         &[aria-selected="true"] {
             background-color: func.color('black');
             color: func.color('white');
