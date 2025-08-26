@@ -5710,6 +5710,7 @@ const DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'LÃ¸rdag', 'SÃ
 const GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
 const TOTAL_GRIDCELLS = GRID_ROWS * DAYS.length;
 const FORMATS = ['DD/MM/YYYY', 'DD-MM-YYYY', 'DD.MM.YYYY', 'DD MM YYYY', 'DD/MM-YYYY'];
+const INPUT_REGEX = /(\d{1,2})[\/\-\. ](\d{1,2})[\/\-\. ](\d{1,4})/;
 let datePickerDialogs = [];
 let lastFocusedDatePickerWrapper = null;
 
@@ -5737,7 +5738,28 @@ function NewDatePicker(newDatePicker) {
  */
 NewDatePicker.prototype.init = function () {
   this.createCalendarGrid();
-  this.redrawCalendarGrid(new Date());
+  let initialDate = new Date();
+  if (this.datePickerInput && this.datePickerInput.value !== '') {
+    const match = this.datePickerInput.value.match(INPUT_REGEX);
+    if (match) {
+      const day = match[1];
+      const month = match[2];
+      const year = match[3];
+      const inputDate = new Date(ISOFormatFromNumbers(year, month, day));
+      let monthRange = daysInMonth(new Date(ISOFormatFromNumbers(year, month, 1)));
+      let invalidDateFormat = isNaN(inputDate.getTime());
+      let dayInMonthRange = parseInt(day, 10) < monthRange;
+      if (!invalidDateFormat && dayInMonthRange) {
+        initialDate = inputDate;
+        this.datePicker.setAttribute('data-selected-date', ISOFormatFromDate(initialDate));
+      }
+    }
+  } else if (this.datePicker.getAttribute('data-selected-date')) {
+    initialDate = new Date(this.datePicker.getAttribute('data-selected-date'));
+  } else if (this.datePicker.getAttribute('data-default-date')) {
+    initialDate = new Date(this.datePicker.getAttribute('data-default-date'));
+  }
+  this.redrawCalendarGrid(initialDate);
   document.body.addEventListener('click', closeAllDatePickers);
   document.body.addEventListener('focusin', removeHiddenOnFocusMove);
   document.addEventListener('keydown', closeDatePickerDialogsOnKeydown);
@@ -5789,8 +5811,7 @@ NewDatePicker.prototype.init = function () {
   if (this.datePickerInput) {
     this.datePickerInput.addEventListener('input', e => {
       const input = e.target.value;
-      const regex = /(\d{1,2})[\/\-\. ](\d{1,2})[\/\-\. ](\d{1,4})/;
-      const match = input.match(regex);
+      const match = input.match(INPUT_REGEX);
       if (match) {
         const day = match[1];
         const month = match[2];
@@ -5804,6 +5825,8 @@ NewDatePicker.prototype.init = function () {
         } else {
           this.deselectDate();
         }
+      } else {
+        this.deselectDate();
       }
     });
   }
@@ -5858,7 +5881,6 @@ NewDatePicker.prototype.init = function () {
             let day = String(selectedDate.getDate()).padStart(2, '0');
             let month = String(selectedDate.getMonth() + 1).padStart(2, '0');
             let year = String(selectedDate.getFullYear()).padStart(2, '0');
-            //this.datePickerInput.value = `${day}/${month}/${year}`;
             this.datePickerInput.value = this.dateFormat().replace('DD', day).replace('MM', month).replace('YYYY', year);
           }
         }
@@ -6075,14 +6097,14 @@ NewDatePicker.prototype.open = function () {
   if (isDialog(this.datePickerWrapper)) {
     this.datePickerWrapper.style.top = this.datePickerButton.getBoundingClientRect().bottom + window.scrollY + 'px';
     this.datePickerWrapper.classList.remove('d-none');
+    let openDate = new Date();
     if (this.datePicker.getAttribute('data-selected-date')) {
-      let selectedDate = this.datePicker.getAttribute('data-selected-date');
-      this.redrawCalendarGrid(new Date(selectedDate));
-      this.placeFocusOnDate(new Date(selectedDate));
-    } else {
-      this.redrawCalendarGrid(new Date());
-      this.placeFocusOnDate(new Date());
+      openDate = new Date(this.datePicker.getAttribute('data-selected-date'));
+    } else if (this.datePicker.getAttribute('data-default-date')) {
+      openDate = new Date(this.datePicker.getAttribute('data-default-date'));
     }
+    this.redrawCalendarGrid(openDate);
+    this.placeFocusOnDate(openDate);
 
     /* Hide all other elements from screen readers */
     let bodyChildren = document.querySelectorAll('body > *');
