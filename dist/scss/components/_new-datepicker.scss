@@ -6,13 +6,21 @@
     border: 1px solid func.color('black');
     width: fit-content;
 
-    td[data-date]:focus {
-        @include mixins.focus;
-    }
+    td {
+        height: 26px;
 
-    td[aria-selected="true"] {
-        background-color: func.color('black');
-        color: func.color('white');
+        &[data-date]:focus {
+            @include mixins.focus;
+        }
+
+        &[aria-selected="true"] {
+            background-color: func.color('black');
+            color: func.color('white');
+        }
+
+        &[aria-disabled="true"] {
+            color: func.color('gray-300');
+        }
     }
 
     &[role="dialog"] {

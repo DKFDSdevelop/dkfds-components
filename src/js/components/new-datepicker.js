@@ -52,6 +52,7 @@ NewDatePicker.prototype.init = function () {
         this.datePickerWrapper.setAttribute('role', 'dialog');
         this.datePickerWrapper.setAttribute('aria-modal', 'true');
         this.datePickerWrapper.setAttribute('aria-label', 'Vælg en dato');
+        this.datePickerWrapper.setAttribute('tabindex', '-1'); // Ensure focus stays in the date picker when non-clickable element is clicked
     }
 
     /* Make dates selectable with click */
@@ -59,28 +60,32 @@ NewDatePicker.prototype.init = function () {
         if (isDialog(this.datePickerWrapper)) {
             e.stopPropagation(); // Prevent the body click event listener from triggering
         }
-        //e.preventDefault();
+        e.preventDefault();
         if (e.target.getAttribute('data-date')) {
             let clickedDate = new Date(e.target.getAttribute('data-date'));
-            this.selectDate(clickedDate);
+            let dateSelectable = e.target.getAttribute('aria-selected');
 
-            if (isDialog(this.datePickerWrapper)) {
-                let day = this.datePickerWrapper.querySelector('td[aria-selected="true"]').textContent;
-                let month = this.datePickerWrapper.querySelector('.selected-month').value;
-                let year = this.datePickerWrapper.querySelector('.selected-year').value;
-                this.datePickerButton.querySelector('.sr-only').textContent = `Åbn datovælger, valgt dato er ${day}. ${MONTHS[month]} ${year}`;
-                this.close();
-                this.datePickerButton.focus();
-            }
-            else {
-                this.placeFocusOnDate(clickedDate);
-            }
+            if (dateSelectable) {
+                this.selectDate(clickedDate);
 
-            if (this.datePickerInput) {
-                let day = String(clickedDate.getDate()).padStart(2, '0');
-                let month = String(clickedDate.getMonth() + 1).padStart(2, '0');
-                let year = String(clickedDate.getFullYear()).padStart(2, '0');
-                this.datePickerInput.value = `${day}/${month}/${year}`;
+                if (isDialog(this.datePickerWrapper)) {
+                    let day = this.datePickerWrapper.querySelector('td[aria-selected="true"]').textContent;
+                    let month = this.datePickerWrapper.querySelector('.selected-month').value;
+                    let year = this.datePickerWrapper.querySelector('.selected-year').value;
+                    this.datePickerButton.querySelector('.sr-only').textContent = `Åbn datovælger, valgt dato er ${day}. ${MONTHS[month]} ${year}`;
+                    this.close();
+                    this.datePickerButton.focus();
+                }
+                else {
+                    this.placeFocusOnDate(clickedDate);
+                }
+
+                if (this.datePickerInput) {
+                    let day = String(clickedDate.getDate()).padStart(2, '0');
+                    let month = String(clickedDate.getMonth() + 1).padStart(2, '0');
+                    let year = String(clickedDate.getFullYear()).padStart(2, '0');
+                    this.datePickerInput.value = `${day}/${month}/${year}`;
+                }
             }
         }
     });
@@ -92,14 +97,17 @@ NewDatePicker.prototype.init = function () {
 
             const match = input.match(regex);
             if (match) {
-                const day = match[1].padStart(2, '0');
-                const month = match[2].padStart(2, '0');
-                const year = match[3].padStart(4, '0');
-                const date = new Date(`${year}-${month}-${day}`);
+                const day = match[1];
+                const month = match[2];
+                const year = match[3];
+                const date = new Date(ISOFormatFromNumbers(year, month, day));
 
-                let daysMax = daysInMonth(new Date(`${year}-${month}-01`));
-                
-                if (!isNaN(date.getTime()) && !(parseInt(day, 10) > daysMax)) {
+                let monthRange = daysInMonth(new Date(ISOFormatFromNumbers(year, month, 1)));
+
+                let invalidDateFormat = isNaN(date.getTime());
+                let dayInMonthRange = (parseInt(day, 10) < monthRange);
+
+                if (!invalidDateFormat && dayInMonthRange) {
                     this.selectDate(date);
                 }
                 else {
@@ -204,7 +212,7 @@ NewDatePicker.prototype.init = function () {
         let day = 1;
         let month = parseInt(e.target.value) + 1;
         let year = this.datePickerWrapper.querySelector('.selected-year').value;
-        let newDate = new Date(`${year}-${month}-${day}`);
+        let newDate = new Date(ISOFormatFromNumbers(year, month, day));
         this.redrawCalendarGrid(newDate);
     });
 
@@ -213,12 +221,9 @@ NewDatePicker.prototype.init = function () {
         let day = 1;
         let month = parseInt(this.datePickerWrapper.querySelector('.selected-month').value) + 1;
         let year = e.target.value;
-        let newDate = new Date(`${year}-${month}-${day}`);
+        let newDate = new Date(ISOFormatFromNumbers(year, month, day));
         this.redrawCalendarGrid(newDate);
     });
-
-    /* Make it possible to tab to a date in the grid */
-    this.datePickerWrapper.querySelector(`[data-date="${getIsoLocalFormat(new Date())}"]`).setAttribute('tabindex', '0');
 }
 
 /**
@@ -249,7 +254,26 @@ NewDatePicker.prototype.createCalendarGrid = function () {
     yearSelect.setAttribute('name', 'year');
     yearSelect.setAttribute('aria-label', 'Vis år');
     yearSelect.classList.add('selected-year');
-    yearSelect.innerHTML = `<option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option>`;
+    let minYear = 1900;
+    let maxYear = 2100;
+    if (this.datePicker.getAttribute('data-min-date')) {
+        minYear = parseInt(new Date(this.datePicker.getAttribute('data-min-date')).getFullYear(), 10);
+    }
+    else {
+        this.datePicker.setAttribute('data-min-date', `${minYear}-01-01`);
+    }
+    if (this.datePicker.getAttribute('data-max-date')) {
+        maxYear = parseInt(new Date(this.datePicker.getAttribute('data-max-date')).getFullYear(), 10);
+    }
+    else {
+        this.datePicker.setAttribute('data-max-date', `${maxYear}-12-31`);
+    }
+    if (maxYear < minYear) {
+        throw new Error(`max-date must be greater than min-date`);
+    }
+    for (let i = minYear; i <= maxYear; i++) {
+        yearSelect.innerHTML += `<option value="${i}">${i}</option>`;
+    }
     datePickerHeader.appendChild(yearSelect);
 
     let nextButton = document.createElement('button');
@@ -296,6 +320,8 @@ NewDatePicker.prototype.createCalendarGrid = function () {
  * @param {Date} date - Any date in the month to render
  */
 NewDatePicker.prototype.redrawCalendarGrid = function (date) {
+    date = correctDate(this.minDate(), this.maxDate(), date);
+
     let year = date.getFullYear();
     let month = date.getMonth();
     let gridcells = this.datePickerWrapper.querySelectorAll('td');
@@ -310,20 +336,28 @@ NewDatePicker.prototype.redrawCalendarGrid = function (date) {
         gridcells[i].removeAttribute('data-date');
         gridcells[i].removeAttribute('aria-label');
         gridcells[i].removeAttribute('aria-selected');
+        gridcells[i].removeAttribute('aria-disabled');
         gridcells[i].innerHTML = '';
     }
 
     // Add new dates
     let totalDays = daysInMonth(date);
-    let offset = getWeekday(new Date(year, month, 1));
+    let offset = getWeekday(new Date(ISOFormatFromNumbers(year, month + 1, 1)));
     for (let i = 1; i <= totalDays; i++) {
-        gridcells[i + offset - 1].setAttribute('tabindex', '-1');
-        gridcells[i + offset - 1].setAttribute('data-date', `${getIsoLocalFormat(new Date(year, month, i))}`);
+        let gridcellDate = new Date(ISOFormatFromNumbers(year, month + 1, i));
+        gridcells[i + offset - 1].setAttribute('data-date', `${ISOFormatFromDate(gridcellDate)}`);
         gridcells[i + offset - 1].setAttribute('aria-label', `${i}. ${MONTHS[month]} ${year}`);
-        gridcells[i + offset - 1].setAttribute('aria-selected', `false`);
-        gridcells[i + offset - 1].innerHTML = `${i}`;
+        gridcells[i + offset - 1].innerHTML = `${i}`; // TODO: aria-hide the value and move aria-label as sr-only content. Several screen readers read both value and aria-label
+        if (this.minDate().getTime() <= gridcellDate.getTime() && gridcellDate.getTime() <= this.maxDate().getTime()) {
+            gridcells[i + offset - 1].setAttribute('aria-selected', `false`);
+            gridcells[i + offset - 1].setAttribute('tabindex', '-1');
+        }
+        else {
+            gridcells[i + offset - 1].setAttribute('aria-disabled', `true`);
+        }
     }
 
+    // If a date has been selected, apply correct styling and attributes
     if (this.datePicker.getAttribute('data-selected-date')) {
         let selectedDate = this.datePicker.getAttribute('data-selected-date');
         this.selectDate(new Date(selectedDate));
@@ -331,7 +365,33 @@ NewDatePicker.prototype.redrawCalendarGrid = function (date) {
 
     // The grid must always have a focusable element
     if (!this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]')) {
-        this.datePickerWrapper.querySelector(`[data-date="${getIsoLocalFormat(date)}"]`).setAttribute('tabindex', '0');
+        this.datePickerWrapper.querySelector(`[data-date="${ISOFormatFromDate(date)}"]`).setAttribute('tabindex', '0');
+    }
+
+    // Disable unselectable months
+    let monthSelect = this.datePickerWrapper.querySelector('.selected-month');
+    let yearSelect = this.datePickerWrapper.querySelector('.selected-year');
+    let monthOptions = monthSelect.querySelectorAll('option');
+    let chosenYear = yearSelect.value;
+
+    for (let i = 0; i < monthOptions.length; i++) {
+        monthOptions[i].removeAttribute('disabled'); // Reset disabled status on all options
+    }
+    if (this.minDate().getFullYear() === parseInt(chosenYear)) {
+        let minMonth = this.minDate().getMonth();
+        for (let i = 0; i < monthOptions.length; i++) {
+            if (i < minMonth) {
+                monthOptions[i].setAttribute('disabled', '');
+            }
+        }
+    }
+    if (this.maxDate().getFullYear() === parseInt(chosenYear)) {
+        let maxMonth = this.maxDate().getMonth();
+        for (let i = 0; i < monthOptions.length; i++) {
+            if (i > maxMonth) {
+                monthOptions[i].setAttribute('disabled', '');
+            }
+        }
     }
 };
 
@@ -387,11 +447,12 @@ NewDatePicker.prototype.close = function () {
  * @param {Date} date - Date to focus
  */
 NewDatePicker.prototype.placeFocusOnDate = function (date) {
+    date = correctDate(this.minDate(), this.maxDate(), date);
     if (this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]')) {
         this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]').setAttribute('tabindex', '-1');
     }
-    this.datePickerWrapper.querySelector(`[data-date="${getIsoLocalFormat(date)}"]`).focus();
-    this.datePickerWrapper.querySelector(`[data-date="${getIsoLocalFormat(date)}"]`).setAttribute('tabindex', '0');
+    this.datePickerWrapper.querySelector(`[data-date="${ISOFormatFromDate(date)}"]`).focus();
+    this.datePickerWrapper.querySelector(`[data-date="${ISOFormatFromDate(date)}"]`).setAttribute('tabindex', '0');
 }
 
 /**
@@ -406,10 +467,10 @@ NewDatePicker.prototype.selectDate = function (date) {
     }
     // Select new date in grid (if date is visible)
     if (isDateVisible(date, this.datePickerWrapper)) {
-        this.datePickerWrapper.querySelector(`[data-date="${getIsoLocalFormat(date)}"]`).setAttribute('aria-selected', 'true');
+        this.datePickerWrapper.querySelector(`[data-date="${ISOFormatFromDate(date)}"]`).setAttribute('aria-selected', 'true');
     }
     // Store the selected date in a date picker attribute
-    this.datePicker.setAttribute('data-selected-date', getIsoLocalFormat(date));
+    this.datePicker.setAttribute('data-selected-date', ISOFormatFromDate(date));
 }
 
 /**
@@ -420,6 +481,14 @@ NewDatePicker.prototype.deselectDate = function () {
     if (this.datePickerWrapper.querySelector('td[aria-selected="true"]')) {
         this.datePickerWrapper.querySelector('td[aria-selected="true"]').setAttribute('aria-selected', 'false');
     }
+}
+
+NewDatePicker.prototype.minDate = function () {
+    return new Date(this.datePicker.getAttribute('data-min-date'));
+}
+
+NewDatePicker.prototype.maxDate = function () {
+    return new Date(this.datePicker.getAttribute('data-max-date'));
 }
 
 /**
@@ -446,17 +515,36 @@ function daysInMonth(date) {
     return new Date(year, month + 1, LAST_DAY_OF_PREVIOUS_MONTH).getDate();
 }
 
+function correctDate(minDate, maxDate, dateToCorrect) {
+    if (dateToCorrect < minDate.getTime()) {
+        return minDate;
+    }
+    else if (maxDate.getTime() < dateToCorrect) {
+        return maxDate;
+    }
+    else {
+        return dateToCorrect;
+    }
+}
+
 /**
  * Format date as YYYY-MM-DD
  *
  * @param {Date} date - Date to format
  * @return {string} ISO-like local date (YYYY-MM-DD)
  */
-function getIsoLocalFormat(date) {
+function ISOFormatFromDate(date) {
     let year = String(date.getFullYear()).padStart(4, '0');
     let month = String(date.getMonth() + 1).padStart(2, '0');
     let day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+}
+
+function ISOFormatFromNumbers(year, month, day) {
+    let y = String(year).padStart(4, '0');
+    let m = String(month).padStart(2, '0');
+    let d = String(day).padStart(2, '0');
+    return `${y}-${m}-${d}`;
 }
 
 /**
@@ -491,7 +579,7 @@ function getTomorrow(date) {
  * @return {boolean} True if the date cell is visible
  */
 function isDateVisible(date, datePickerWrapper) {
-    let isoDate = getIsoLocalFormat(date);
+    let isoDate = ISOFormatFromDate(date);
     return datePickerWrapper.querySelector(`[data-date="${isoDate}"]`) ? true : false;
 }
 

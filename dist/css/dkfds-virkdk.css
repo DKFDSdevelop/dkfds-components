@@ -12131,6 +12131,9 @@ textarea.no-resize{
   border:1px solid #1a1a1a;
   width:fit-content;
 }
+.new-date-picker-wrapper td{
+  height:26px;
+}
 .new-date-picker-wrapper td[data-date]:focus{
   outline:3px solid #454545;
   outline-offset:1px;
@@ -12138,6 +12141,9 @@ textarea.no-resize{
 .new-date-picker-wrapper td[aria-selected=true]{
   background-color:#1a1a1a;
   color:white;
+}
+.new-date-picker-wrapper td[aria-disabled=true]{
+  color:#BFBFBF;
 }
 .new-date-picker-wrapper[role=dialog]{
   position:absolute;
