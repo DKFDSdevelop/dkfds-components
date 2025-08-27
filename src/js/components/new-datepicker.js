@@ -5,7 +5,7 @@ const DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'LÃ¸rdag', 'SÃ
 const GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
 const TOTAL_GRIDCELLS = GRID_ROWS * DAYS.length;
 const FORMATS = ['DD/MM/YYYY', 'DD-MM-YYYY', 'DD.MM.YYYY', 'DD MM YYYY', 'DD/MM-YYYY'];
-const INPUT_REGEX = /(\d{1,2})[\/\-\. ](\d{1,2})[\/\-\. ](\d{1,4})/;
+const INPUT_REGEX = /^(\d{1,2})[\/\-\. ](\d{1,2})[\/\-\. ](\d{1,4})$/;
 
 let datePickerDialogs = [];
 let lastFocusedDatePickerWrapper = null;
@@ -177,8 +177,24 @@ NewDatePicker.prototype.init = function () {
                 }
                 break;
             case 'ArrowDown':
+                if (focusOnDate) {
+                    e.preventDefault();
+                    let nextWeek = getNextWeek(new Date(focusedDay.getAttribute('data-date')));
+                    if (!isDateVisible(nextWeek, this.datePickerWrapper)) {
+                        this.redrawCalendarGrid(nextWeek);
+                    }
+                    this.placeFocusOnDate(nextWeek);
+                }
                 break;
             case 'ArrowUp':
+                if (focusOnDate) {
+                    e.preventDefault();
+                    let prevWeek = getPrevWeek(new Date(focusedDay.getAttribute('data-date')));
+                    if (!isDateVisible(prevWeek, this.datePickerWrapper)) {
+                        this.redrawCalendarGrid(prevWeek);
+                    }
+                    this.placeFocusOnDate(prevWeek);
+                }
                 break;
             case 'Enter':
             case ' ':
@@ -216,24 +232,89 @@ NewDatePicker.prototype.init = function () {
                 }
                 break;
             case 'PageDown':
+                if (focusOnDate) {
+                    e.preventDefault();
+                    if (e.shiftKey) {
+                        let nextYear = getNextYear(new Date(focusedDay.getAttribute('data-date')));
+                        this.redrawCalendarGrid(nextYear);
+                        this.placeFocusOnDate(nextYear);
+                    }
+                    else {
+                        let nextMonth = getNextMonth(new Date(focusedDay.getAttribute('data-date')));
+                        this.redrawCalendarGrid(nextMonth);
+                        this.placeFocusOnDate(nextMonth);
+                    }
+                }
                 break;
             case 'PageUp':
+                if (focusOnDate) {
+                    e.preventDefault();
+                    if (e.shiftKey) {
+                        let prevYear = getPrevYear(new Date(focusedDay.getAttribute('data-date')));
+                        this.redrawCalendarGrid(prevYear);
+                        this.placeFocusOnDate(prevYear);
+                    }
+                    else {
+                        let prevMonth = getPrevMonth(new Date(focusedDay.getAttribute('data-date')));
+                        this.redrawCalendarGrid(prevMonth);
+                        this.placeFocusOnDate(prevMonth);
+                    }
+                }
                 break;
             case 'Home':
-                if (e.ctrlKey) { }
+                if (focusOnDate) {
+                    e.preventDefault();
+                    if (e.ctrlKey) {
+                        const month = parseInt(this.datePickerWrapper.querySelector('.selected-month').value);
+                        const year = parseInt(this.datePickerWrapper.querySelector('.selected-year').value);
+                        const firstDay = new Date(ISOFormatFromNumbers(year, month + 1, 1));
+                        this.redrawCalendarGrid(firstDay);
+                        this.placeFocusOnDate(firstDay);
+                    }
+                    else {
+                        const focusedDayAsDate = new Date(focusedDay.getAttribute('data-date'));
+                        const weekDay = getWeekday(focusedDayAsDate);
+                        if (weekDay !== 0) {
+                            const monday = new Date(focusedDayAsDate);
+                            monday.setDate(focusedDayAsDate.getDate() - weekDay);
+                            this.redrawCalendarGrid(monday);
+                            this.placeFocusOnDate(monday);
+                        }
+                    }
+                }
                 break;
             case 'End':
-                if (e.ctrlKey) { }
+                if (focusOnDate) {
+                    e.preventDefault();
+                    if (e.ctrlKey) {
+                        const month = parseInt(this.datePickerWrapper.querySelector('.selected-month').value);
+                        const year = parseInt(this.datePickerWrapper.querySelector('.selected-year').value);
+                        const day = daysInMonth(new Date(ISOFormatFromNumbers(year, month + 1, 1)));
+                        const lastDay = new Date(ISOFormatFromNumbers(year, month + 1, day));
+                        this.redrawCalendarGrid(lastDay);
+                        this.placeFocusOnDate(lastDay);
+                    }
+                    else {
+                        const focusedDayAsDate = new Date(focusedDay.getAttribute('data-date'));
+                        const weekDay = getWeekday(focusedDayAsDate);
+                        if (weekDay !== 6) {
+                            const sunday = new Date(focusedDayAsDate);
+                            sunday.setDate(focusedDayAsDate.getDate() + (6 - weekDay));
+                            this.redrawCalendarGrid(sunday);
+                            this.placeFocusOnDate(sunday);
+                        }
+                    }
+                }
                 break;
             case 'Tab':
                 let focusLeftDate = e.target.getAttribute('data-date');
-                let focusLeftPreviousButton = e.target.classList.contains('previous-month');
+                let focusLeftPrevButton = e.target.classList.contains('previous-month');
 
                 if (focusLeftDate && !e.shiftKey && isDialog(this.datePickerWrapper)) {
                     e.preventDefault();
                     this.datePickerWrapper.querySelector('.previous-month').focus();
                 }
-                else if (focusLeftPreviousButton && e.shiftKey && isDialog(this.datePickerWrapper)) {
+                else if (focusLeftPrevButton && e.shiftKey && isDialog(this.datePickerWrapper)) {
                     e.preventDefault();
                     this.datePickerWrapper.querySelector('td[tabindex="0"]').focus();
                 }
@@ -258,6 +339,20 @@ NewDatePicker.prototype.init = function () {
         let newDate = new Date(ISOFormatFromNumbers(year, month, day));
         this.redrawCalendarGrid(newDate);
     });
+
+    this.datePickerWrapper.querySelector('.previous-month').addEventListener('click', (e) => {
+        let prevMonth = getPrevMonth(new Date(this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]').getAttribute('data-date')));
+        if (!isDateVisible(prevMonth, this.datePickerWrapper)) {
+            this.redrawCalendarGrid(prevMonth);
+        }
+    });
+
+    this.datePickerWrapper.querySelector('.next-month').addEventListener('click', (e) => {
+        let nextMonth = getNextMonth(new Date(this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]').getAttribute('data-date')));
+        if (!isDateVisible(nextMonth, this.datePickerWrapper)) {
+            this.redrawCalendarGrid(nextMonth);
+        }
+    });
 }
 
 /**
@@ -270,10 +365,10 @@ NewDatePicker.prototype.createCalendarGrid = function () {
     let datePickerHeader = document.createElement('div');
     datePickerHeader.classList.add('date-picker-header');
 
-    let previousButton = document.createElement('button');
-    previousButton.classList.add('previous-month');
-    previousButton.textContent = 'Forrige';
-    datePickerHeader.appendChild(previousButton);
+    let prevButton = document.createElement('button');
+    prevButton.classList.add('previous-month');
+    prevButton.textContent = 'Forrige';
+    datePickerHeader.appendChild(prevButton);
 
     let monthSelect = document.createElement('select');
     monthSelect.setAttribute('name', 'month');
@@ -427,6 +522,12 @@ NewDatePicker.prototype.redrawCalendarGrid = function (date) {
             }
         }
     }
+
+    // Ensure previous and next month buttons have the proper status
+    const prevMonthButton = this.datePickerWrapper.querySelector('.previous-month');
+    isDateVisible(this.minDate(), this.datePickerWrapper) ? prevMonthButton.setAttribute('disabled', '') : prevMonthButton.removeAttribute('disabled');
+    const nextMonthButton = this.datePickerWrapper.querySelector('.next-month');
+    isDateVisible(this.maxDate(), this.datePickerWrapper) ? nextMonthButton.setAttribute('disabled', '') : nextMonthButton.removeAttribute('disabled');
 };
 
 /**
@@ -435,6 +536,7 @@ NewDatePicker.prototype.redrawCalendarGrid = function (date) {
 NewDatePicker.prototype.open = function () {
     if (isDialog(this.datePickerWrapper)) {
         this.datePickerWrapper.style.top = (this.datePickerButton.getBoundingClientRect().bottom + window.scrollY) + 'px';
+        this.datePickerWrapper.style.left = (this.datePickerInput.getBoundingClientRect().left) + 'px';
 
         this.datePickerWrapper.classList.remove('d-none');
 
@@ -621,6 +723,74 @@ function getTomorrow(date) {
     let tomorrow = new Date(date);
     tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow;
+}
+
+function getPrevWeek(date) {
+    let prevWeek = new Date(date);
+    prevWeek.setDate(prevWeek.getDate() - 7);
+    return prevWeek;
+}
+
+function getNextWeek(date) {
+    let nextWeek = new Date(date);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    return nextWeek;
+}
+
+function getPrevMonth(date) {
+    let day = date.getDate();
+    let month = date.getMonth() + 1;
+    let year = date.getFullYear();
+    let prevMonth = month - 1;
+    if (prevMonth === 0) {
+        prevMonth = 12;
+        year = year - 1;
+    }
+    let newDaysInMonth = daysInMonth(new Date(ISOFormatFromNumbers(year, prevMonth, 1)));
+    if (newDaysInMonth < day) {
+        day = newDaysInMonth;
+    }
+    return new Date(ISOFormatFromNumbers(year, prevMonth, day));
+}
+
+function getNextMonth(date) {
+    let day = date.getDate();
+    let month = date.getMonth() + 1;
+    let year = date.getFullYear();
+    let nextMonth = month + 1;
+    if (nextMonth === 13) {
+        nextMonth = 1;
+        year = year + 1;
+    }
+    let newDaysInMonth = daysInMonth(new Date(ISOFormatFromNumbers(year, nextMonth, 1)));
+    if (newDaysInMonth < day) {
+        day = newDaysInMonth;
+    }
+    return new Date(ISOFormatFromNumbers(year, nextMonth, day));
+}
+
+function getPrevYear(date) {
+    let day = date.getDate();
+    let month = date.getMonth() + 1;
+    let year = date.getFullYear();
+    let prevYear = year - 1;
+    let newDaysInMonth = daysInMonth(new Date(ISOFormatFromNumbers(prevYear, month, 1)));
+    if (newDaysInMonth < day) {
+        day = newDaysInMonth;
+    }
+    return new Date(ISOFormatFromNumbers(prevYear, month, day));
+}
+
+function getNextYear(date) {
+    let day = date.getDate();
+    let month = date.getMonth() + 1;
+    let year = date.getFullYear();
+    let nextYear = year + 1;
+    let newDaysInMonth = daysInMonth(new Date(ISOFormatFromNumbers(nextYear, month, 1)));
+    if (newDaysInMonth < day) {
+        day = newDaysInMonth;
+    }
+    return new Date(ISOFormatFromNumbers(nextYear, month, day));
 }
 
 /**
