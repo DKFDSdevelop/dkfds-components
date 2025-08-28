@@ -5702,7 +5702,218 @@ function closeOnKey(e) {
   }
 }
 /* harmony default export */ const tooltip = (Tooltip);
+;// ./src/js/components/new-date-picker-utils.js
+let lastFocusedDatePickerWrapper = null;
+let datePickerDialogs = [];
+
+/**
+ * Get weekday index with Monday as 0
+ *
+ * @param {Date} date - Date to get weekday for
+ * @return {number} Weekday index (0=Mon..6=Sun)
+ */
+function getWeekday(date) {
+  let day = (date.getDay() + 6) % 7; // First day of the week changed from Sunday to Monday
+  return day;
+}
+
+/**
+ * Get the number of days in a month
+ *
+ * @param {Date} date - Any date in the month, for which you want the total number of days
+ * @return {number} The month's total number of days
+ */
+function daysInMonth(date) {
+  let year = date.getFullYear();
+  let month = date.getMonth();
+  const LAST_DAY_OF_PREVIOUS_MONTH = 0;
+  return new Date(year, month + 1, LAST_DAY_OF_PREVIOUS_MONTH).getDate();
+}
+function placeDateWithinMinMax(minDate, maxDate, dateToCorrect) {
+  if (dateToCorrect < minDate.getTime()) {
+    return minDate;
+  } else if (maxDate.getTime() < dateToCorrect) {
+    return maxDate;
+  } else {
+    return dateToCorrect;
+  }
+}
+
+/* function returnValidDay(year, month, day) {
+    let totalDays = daysInMonth(new Date(ISOFormatFromNumbers(year, month, 1)));
+    if (newDaysInMonth < day) {
+        day = newDaysInMonth;
+    }
+} */
+
+/**
+ * Format date as YYYY-MM-DD
+ *
+ * @param {Date} date - Date to format
+ * @return {string} ISO-like local date (YYYY-MM-DD)
+ */
+function ISOFormatFromDate(date) {
+  let year = String(date.getFullYear()).padStart(4, '0');
+  let month = String(date.getMonth() + 1).padStart(2, '0');
+  let day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+function ISOFormatFromNumbers(year, month, day) {
+  let y = String(year).padStart(4, '0');
+  let m = String(month + 1).padStart(2, '0');
+  let d = String(day).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/**
+ * Get the previous day
+ *
+ * @param {Date} date - Reference date
+ * @return {Date} New Date representing yesterday
+ */
+function getYesterday(date) {
+  let yesterday = new Date(date);
+  yesterday.setDate(yesterday.getDate() - 1);
+  return yesterday;
+}
+
+/**
+ * Get the next day
+ *
+ * @param {Date} date - Reference date
+ * @return {Date} New Date representing tomorrow
+ */
+function getTomorrow(date) {
+  let tomorrow = new Date(date);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow;
+}
+function getPrevWeek(date) {
+  let prevWeek = new Date(date);
+  prevWeek.setDate(prevWeek.getDate() - 7);
+  return prevWeek;
+}
+function getNextWeek(date) {
+  let nextWeek = new Date(date);
+  nextWeek.setDate(nextWeek.getDate() + 7);
+  return nextWeek;
+}
+function getPrevMonth(date) {
+  let day = date.getDate();
+  let month = date.getMonth();
+  let year = date.getFullYear();
+  let prevMonth = month - 1;
+  if (prevMonth === -1) {
+    prevMonth = 11;
+    year = year - 1;
+  }
+  let newDaysInMonth = daysInMonth(new Date(ISOFormatFromNumbers(year, prevMonth, 1)));
+  if (newDaysInMonth < day) {
+    day = newDaysInMonth;
+  }
+  return new Date(ISOFormatFromNumbers(year, prevMonth, day));
+}
+function getNextMonth(date) {
+  let day = date.getDate();
+  let month = date.getMonth();
+  let year = date.getFullYear();
+  let nextMonth = month + 1;
+  if (nextMonth === 12) {
+    nextMonth = 1;
+    year = year + 1;
+  }
+  let newDaysInMonth = daysInMonth(new Date(ISOFormatFromNumbers(year, nextMonth, 1)));
+  if (newDaysInMonth < day) {
+    day = newDaysInMonth;
+  }
+  return new Date(ISOFormatFromNumbers(year, nextMonth, day));
+}
+function getPrevYear(date) {
+  let day = date.getDate();
+  let month = date.getMonth();
+  let year = date.getFullYear();
+  let prevYear = year - 1;
+  let newDaysInMonth = daysInMonth(new Date(ISOFormatFromNumbers(prevYear, month, 1)));
+  if (newDaysInMonth < day) {
+    day = newDaysInMonth;
+  }
+  return new Date(ISOFormatFromNumbers(prevYear, month, day));
+}
+function getNextYear(date) {
+  let day = date.getDate();
+  let month = date.getMonth();
+  let year = date.getFullYear();
+  let nextYear = year + 1;
+  let newDaysInMonth = daysInMonth(new Date(ISOFormatFromNumbers(nextYear, month, 1)));
+  if (newDaysInMonth < day) {
+    day = newDaysInMonth;
+  }
+  return new Date(ISOFormatFromNumbers(nextYear, month, day));
+}
+
+/**
+ * Check if a date cell is visible in the grid
+ *
+ * @param {Date} date - Date to check
+ * @param {HTMLDivElement} datePickerWrapper - Wrapper containing the grid
+ * @return {boolean} True if the date cell is visible
+ */
+function isDateVisible(date, datePickerWrapper) {
+  let isoDate = ISOFormatFromDate(date);
+  return datePickerWrapper.querySelector(`[data-date="${isoDate}"]`) ? true : false;
+}
+
+/**
+ * Check if the date picker is placed in a dialog
+ *
+ * @param {HTMLDivElement} datePickerWrapper - Wrapper containing the grid
+ * @return {boolean} True if the date picker is in a dialog
+ */
+function isDialog(datePickerWrapper) {
+  return datePickerWrapper.getAttribute('role') ? true : false;
+}
+
+/**
+ * Close all open date pickers
+ */
+function closeAllDatePickers() {
+  for (let i = 0; i < datePickerDialogs.length; i++) {
+    datePickerDialogs[i].close();
+  }
+}
+
+/**
+ * Remove aria-hidden from all body children to prevent browser warnings when focus changes
+ *
+ * @param {FocusEvent} e - Focus event from body focusin event handler
+ */
+function removeHiddenOnFocusMove(e) {
+  let currentFocusedDatePickerWrapper = e.target.closest('.new-date-picker-wrapper');
+  if (!currentFocusedDatePickerWrapper || currentFocusedDatePickerWrapper !== lastFocusedDatePickerWrapper) {
+    let bodyChildren = document.querySelectorAll('body > *');
+    for (let c = 0; c < bodyChildren.length; c++) {
+      if (bodyChildren[c].classList.contains('fds-date-picker-aria-hidden')) {
+        bodyChildren[c].removeAttribute('aria-hidden');
+        bodyChildren[c].classList.remove('fds-date-picker-aria-hidden');
+      }
+    }
+  }
+  lastFocusedDatePickerWrapper = currentFocusedDatePickerWrapper;
+}
+
+/**
+ * If the focus somehow escapes the keyboard trap in a date picker dialog, close all dialogs
+ *
+ * @param {KeyboardEvent} e - Keyboard event from body keydown event handler
+ */
+function closeDatePickerDialogsOnKeydown(e) {
+  let keydownInDatePickerDialog = e.target.closest('.new-date-picker-wrapper[role="dialog"]');
+  if (!keydownInDatePickerDialog) {
+    closeAllDatePickers();
+  }
+}
 ;// ./src/js/components/new-datepicker.js
+
 
 
 const MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
@@ -5710,9 +5921,7 @@ const DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'LÃ¸rdag', 'SÃ
 const GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
 const TOTAL_GRIDCELLS = GRID_ROWS * DAYS.length;
 const FORMATS = ['DD/MM/YYYY', 'DD-MM-YYYY', 'DD.MM.YYYY', 'DD MM YYYY', 'DD/MM-YYYY'];
-const INPUT_REGEX = /^(\d{1,2})[\/\-\. ](\d{1,2})[\/\-\. ](\d{1,4})$/;
-let datePickerDialogs = [];
-let lastFocusedDatePickerWrapper = null;
+const INPUT_REGEX = /^(\d{1,2})[\/\-\. ](\d{1,2})[\/\-\. ](\d{4})$/;
 
 /**
  * Add functionality to date picker component
@@ -5742,11 +5951,11 @@ NewDatePicker.prototype.init = function () {
   if (this.datePickerInput && this.datePickerInput.value !== '') {
     const match = this.datePickerInput.value.match(INPUT_REGEX);
     if (match) {
-      const day = match[1];
-      const month = match[2];
-      const year = match[3];
-      const inputDate = new Date(ISOFormatFromNumbers(year, month, day));
-      let monthRange = daysInMonth(new Date(ISOFormatFromNumbers(year, month, 1)));
+      const day = parseInt(match[1], 10);
+      const month = parseInt(match[2], 10);
+      const year = parseInt(match[3], 10);
+      const inputDate = new Date(ISOFormatFromNumbers(year, month - 1, day));
+      let monthRange = daysInMonth(new Date(ISOFormatFromNumbers(year, month - 1, 1)));
       let invalidDateFormat = isNaN(inputDate.getTime());
       let dayInMonthRange = parseInt(day, 10) < monthRange;
       if (!invalidDateFormat && dayInMonthRange) {
@@ -5813,11 +6022,11 @@ NewDatePicker.prototype.init = function () {
       const input = e.target.value;
       const match = input.match(INPUT_REGEX);
       if (match) {
-        const day = match[1];
-        const month = match[2];
-        const year = match[3];
-        const date = new Date(ISOFormatFromNumbers(year, month, day));
-        let monthRange = daysInMonth(new Date(ISOFormatFromNumbers(year, month, 1)));
+        const day = parseInt(match[1], 10);
+        const month = parseInt(match[2], 10);
+        const year = parseInt(match[3], 10);
+        const date = new Date(ISOFormatFromNumbers(year, month - 1, day));
+        let monthRange = daysInMonth(new Date(ISOFormatFromNumbers(year, month - 1, 1)));
         let invalidDateFormat = isNaN(date.getTime());
         let dayInMonthRange = parseInt(day, 10) < monthRange;
         if (!invalidDateFormat && dayInMonthRange) {
@@ -5835,12 +6044,13 @@ NewDatePicker.prototype.init = function () {
   this.datePickerWrapper.addEventListener('keydown', e => {
     let key = e.key;
     let focusedDay = this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]');
+    const focusedDayAsDate = new Date(focusedDay.getAttribute('data-date'));
     let focusOnDate = e.target.getAttribute('data-date');
     switch (key) {
       case 'ArrowLeft':
         if (focusOnDate) {
           e.preventDefault();
-          let yesterday = getYesterday(new Date(focusedDay.getAttribute('data-date')));
+          let yesterday = getYesterday(focusedDayAsDate);
           if (!isDateVisible(yesterday, this.datePickerWrapper)) {
             this.redrawCalendarGrid(yesterday);
           }
@@ -5850,7 +6060,7 @@ NewDatePicker.prototype.init = function () {
       case 'ArrowRight':
         if (focusOnDate) {
           e.preventDefault();
-          let tomorrow = getTomorrow(new Date(focusedDay.getAttribute('data-date')));
+          let tomorrow = getTomorrow(focusedDayAsDate);
           if (!isDateVisible(tomorrow, this.datePickerWrapper)) {
             this.redrawCalendarGrid(tomorrow);
           }
@@ -5860,7 +6070,7 @@ NewDatePicker.prototype.init = function () {
       case 'ArrowDown':
         if (focusOnDate) {
           e.preventDefault();
-          let nextWeek = getNextWeek(new Date(focusedDay.getAttribute('data-date')));
+          let nextWeek = getNextWeek(focusedDayAsDate);
           if (!isDateVisible(nextWeek, this.datePickerWrapper)) {
             this.redrawCalendarGrid(nextWeek);
           }
@@ -5870,7 +6080,7 @@ NewDatePicker.prototype.init = function () {
       case 'ArrowUp':
         if (focusOnDate) {
           e.preventDefault();
-          let prevWeek = getPrevWeek(new Date(focusedDay.getAttribute('data-date')));
+          let prevWeek = getPrevWeek(focusedDayAsDate);
           if (!isDateVisible(prevWeek, this.datePickerWrapper)) {
             this.redrawCalendarGrid(prevWeek);
           }
@@ -5912,11 +6122,11 @@ NewDatePicker.prototype.init = function () {
         if (focusOnDate) {
           e.preventDefault();
           if (e.shiftKey) {
-            let nextYear = getNextYear(new Date(focusedDay.getAttribute('data-date')));
+            let nextYear = getNextYear(focusedDayAsDate);
             this.redrawCalendarGrid(nextYear);
             this.placeFocusOnDate(nextYear);
           } else {
-            let nextMonth = getNextMonth(new Date(focusedDay.getAttribute('data-date')));
+            let nextMonth = getNextMonth(focusedDayAsDate);
             this.redrawCalendarGrid(nextMonth);
             this.placeFocusOnDate(nextMonth);
           }
@@ -5926,11 +6136,11 @@ NewDatePicker.prototype.init = function () {
         if (focusOnDate) {
           e.preventDefault();
           if (e.shiftKey) {
-            let prevYear = getPrevYear(new Date(focusedDay.getAttribute('data-date')));
+            let prevYear = getPrevYear(focusedDayAsDate);
             this.redrawCalendarGrid(prevYear);
             this.placeFocusOnDate(prevYear);
           } else {
-            let prevMonth = getPrevMonth(new Date(focusedDay.getAttribute('data-date')));
+            let prevMonth = getPrevMonth(focusedDayAsDate);
             this.redrawCalendarGrid(prevMonth);
             this.placeFocusOnDate(prevMonth);
           }
@@ -5942,11 +6152,10 @@ NewDatePicker.prototype.init = function () {
           if (e.ctrlKey) {
             const month = parseInt(this.datePickerWrapper.querySelector('.selected-month').value);
             const year = parseInt(this.datePickerWrapper.querySelector('.selected-year').value);
-            const firstDay = new Date(ISOFormatFromNumbers(year, month + 1, 1));
+            const firstDay = new Date(ISOFormatFromNumbers(year, month, 1));
             this.redrawCalendarGrid(firstDay);
             this.placeFocusOnDate(firstDay);
           } else {
-            const focusedDayAsDate = new Date(focusedDay.getAttribute('data-date'));
             const weekDay = getWeekday(focusedDayAsDate);
             if (weekDay !== 0) {
               const monday = new Date(focusedDayAsDate);
@@ -5963,12 +6172,11 @@ NewDatePicker.prototype.init = function () {
           if (e.ctrlKey) {
             const month = parseInt(this.datePickerWrapper.querySelector('.selected-month').value);
             const year = parseInt(this.datePickerWrapper.querySelector('.selected-year').value);
-            const day = daysInMonth(new Date(ISOFormatFromNumbers(year, month + 1, 1)));
-            const lastDay = new Date(ISOFormatFromNumbers(year, month + 1, day));
+            const day = daysInMonth(new Date(ISOFormatFromNumbers(year, month, 1)));
+            const lastDay = new Date(ISOFormatFromNumbers(year, month, day));
             this.redrawCalendarGrid(lastDay);
             this.placeFocusOnDate(lastDay);
           } else {
-            const focusedDayAsDate = new Date(focusedDay.getAttribute('data-date'));
             const weekDay = getWeekday(focusedDayAsDate);
             if (weekDay !== 6) {
               const sunday = new Date(focusedDayAsDate);
@@ -5996,7 +6204,7 @@ NewDatePicker.prototype.init = function () {
   /* Update grid when month is changed */
   this.datePickerWrapper.querySelector('.selected-month').addEventListener('change', e => {
     let day = 1;
-    let month = parseInt(e.target.value) + 1;
+    let month = parseInt(e.target.value);
     let year = this.datePickerWrapper.querySelector('.selected-year').value;
     let newDate = new Date(ISOFormatFromNumbers(year, month, day));
     this.redrawCalendarGrid(newDate);
@@ -6005,7 +6213,7 @@ NewDatePicker.prototype.init = function () {
   /* Update grid when year is changed */
   this.datePickerWrapper.querySelector('.selected-year').addEventListener('change', e => {
     let day = 1;
-    let month = parseInt(this.datePickerWrapper.querySelector('.selected-month').value) + 1;
+    let month = parseInt(this.datePickerWrapper.querySelector('.selected-month').value);
     let year = e.target.value;
     let newDate = new Date(ISOFormatFromNumbers(year, month, day));
     this.redrawCalendarGrid(newDate);
@@ -6107,7 +6315,10 @@ NewDatePicker.prototype.createCalendarGrid = function () {
  * @param {Date} date - Any date in the month to render
  */
 NewDatePicker.prototype.redrawCalendarGrid = function (date) {
-  date = correctDate(this.minDate(), this.maxDate(), date);
+  if (!(date instanceof Date) || isNaN(date)) {
+    throw new Error('Cannot create date picker grid with invalid date');
+  }
+  date = placeDateWithinMinMax(this.minDate(), this.maxDate(), date);
   let year = date.getFullYear();
   let month = date.getMonth();
   let gridcells = this.datePickerWrapper.querySelectorAll('td');
@@ -6128,9 +6339,9 @@ NewDatePicker.prototype.redrawCalendarGrid = function (date) {
 
   // Add new dates
   let totalDays = daysInMonth(date);
-  let offset = getWeekday(new Date(ISOFormatFromNumbers(year, month + 1, 1)));
+  let offset = getWeekday(new Date(ISOFormatFromNumbers(year, month, 1)));
   for (let i = 1; i <= totalDays; i++) {
-    let gridcellDate = new Date(ISOFormatFromNumbers(year, month + 1, i));
+    let gridcellDate = new Date(ISOFormatFromNumbers(year, month, i));
     gridcells[i + offset - 1].setAttribute('data-date', `${ISOFormatFromDate(gridcellDate)}`);
     gridcells[i + offset - 1].setAttribute('aria-label', `${i}. ${MONTHS[month]} ${year}`);
     gridcells[i + offset - 1].innerHTML = `${i}`; // TODO: aria-hide the value and move aria-label as sr-only content. Several screen readers read both value and aria-label
@@ -6236,7 +6447,7 @@ NewDatePicker.prototype.close = function () {
  * @param {Date} date - Date to focus
  */
 NewDatePicker.prototype.placeFocusOnDate = function (date) {
-  date = correctDate(this.minDate(), this.maxDate(), date);
+  date = placeDateWithinMinMax(this.minDate(), this.maxDate(), date);
   if (this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]')) {
     this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]').setAttribute('tabindex', '-1');
   }
@@ -6288,206 +6499,6 @@ NewDatePicker.prototype.dateFormat = function () {
     return FORMATS[0];
   }
 };
-
-/**
- * Get weekday index with Monday as 0
- *
- * @param {Date} date - Date to get weekday for
- * @return {number} Weekday index (0=Mon..6=Sun)
- */
-function getWeekday(date) {
-  let day = (date.getDay() + 6) % 7; // First day of the week changed from Sunday to Monday
-  return day;
-}
-
-/**
- * Get the number of days in a month
- *
- * @param {Date} date - Any date in the month, for which you want the total number of days
- * @return {number} The month's total number of days
- */
-function daysInMonth(date) {
-  let year = date.getFullYear();
-  let month = date.getMonth();
-  const LAST_DAY_OF_PREVIOUS_MONTH = 0;
-  return new Date(year, month + 1, LAST_DAY_OF_PREVIOUS_MONTH).getDate();
-}
-function correctDate(minDate, maxDate, dateToCorrect) {
-  if (dateToCorrect < minDate.getTime()) {
-    return minDate;
-  } else if (maxDate.getTime() < dateToCorrect) {
-    return maxDate;
-  } else {
-    return dateToCorrect;
-  }
-}
-
-/**
- * Format date as YYYY-MM-DD
- *
- * @param {Date} date - Date to format
- * @return {string} ISO-like local date (YYYY-MM-DD)
- */
-function ISOFormatFromDate(date) {
-  let year = String(date.getFullYear()).padStart(4, '0');
-  let month = String(date.getMonth() + 1).padStart(2, '0');
-  let day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-function ISOFormatFromNumbers(year, month, day) {
-  let y = String(year).padStart(4, '0');
-  let m = String(month).padStart(2, '0');
-  let d = String(day).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-/**
- * Get the previous day
- *
- * @param {Date} date - Reference date
- * @return {Date} New Date representing yesterday
- */
-function getYesterday(date) {
-  let yesterday = new Date(date);
-  yesterday.setDate(yesterday.getDate() - 1);
-  return yesterday;
-}
-
-/**
- * Get the next day
- *
- * @param {Date} date - Reference date
- * @return {Date} New Date representing tomorrow
- */
-function getTomorrow(date) {
-  let tomorrow = new Date(date);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  return tomorrow;
-}
-function getPrevWeek(date) {
-  let prevWeek = new Date(date);
-  prevWeek.setDate(prevWeek.getDate() - 7);
-  return prevWeek;
-}
-function getNextWeek(date) {
-  let nextWeek = new Date(date);
-  nextWeek.setDate(nextWeek.getDate() + 7);
-  return nextWeek;
-}
-function getPrevMonth(date) {
-  let day = date.getDate();
-  let month = date.getMonth() + 1;
-  let year = date.getFullYear();
-  let prevMonth = month - 1;
-  if (prevMonth === 0) {
-    prevMonth = 12;
-    year = year - 1;
-  }
-  let newDaysInMonth = daysInMonth(new Date(ISOFormatFromNumbers(year, prevMonth, 1)));
-  if (newDaysInMonth < day) {
-    day = newDaysInMonth;
-  }
-  return new Date(ISOFormatFromNumbers(year, prevMonth, day));
-}
-function getNextMonth(date) {
-  let day = date.getDate();
-  let month = date.getMonth() + 1;
-  let year = date.getFullYear();
-  let nextMonth = month + 1;
-  if (nextMonth === 13) {
-    nextMonth = 1;
-    year = year + 1;
-  }
-  let newDaysInMonth = daysInMonth(new Date(ISOFormatFromNumbers(year, nextMonth, 1)));
-  if (newDaysInMonth < day) {
-    day = newDaysInMonth;
-  }
-  return new Date(ISOFormatFromNumbers(year, nextMonth, day));
-}
-function getPrevYear(date) {
-  let day = date.getDate();
-  let month = date.getMonth() + 1;
-  let year = date.getFullYear();
-  let prevYear = year - 1;
-  let newDaysInMonth = daysInMonth(new Date(ISOFormatFromNumbers(prevYear, month, 1)));
-  if (newDaysInMonth < day) {
-    day = newDaysInMonth;
-  }
-  return new Date(ISOFormatFromNumbers(prevYear, month, day));
-}
-function getNextYear(date) {
-  let day = date.getDate();
-  let month = date.getMonth() + 1;
-  let year = date.getFullYear();
-  let nextYear = year + 1;
-  let newDaysInMonth = daysInMonth(new Date(ISOFormatFromNumbers(nextYear, month, 1)));
-  if (newDaysInMonth < day) {
-    day = newDaysInMonth;
-  }
-  return new Date(ISOFormatFromNumbers(nextYear, month, day));
-}
-
-/**
- * Check if a date cell is visible in the grid
- *
- * @param {Date} date - Date to check
- * @param {HTMLDivElement} datePickerWrapper - Wrapper containing the grid
- * @return {boolean} True if the date cell is visible
- */
-function isDateVisible(date, datePickerWrapper) {
-  let isoDate = ISOFormatFromDate(date);
-  return datePickerWrapper.querySelector(`[data-date="${isoDate}"]`) ? true : false;
-}
-
-/**
- * Check if the date picker is placed in a dialog
- *
- * @param {HTMLDivElement} datePickerWrapper - Wrapper containing the grid
- * @return {boolean} True if the date picker is in a dialog
- */
-function isDialog(datePickerWrapper) {
-  return datePickerWrapper.getAttribute('role') ? true : false;
-}
-
-/**
- * Close all open date pickers
- */
-function closeAllDatePickers() {
-  for (let i = 0; i < datePickerDialogs.length; i++) {
-    datePickerDialogs[i].close();
-  }
-}
-
-/**
- * Remove aria-hidden from all body children to prevent browser warnings when focus changes
- *
- * @param {FocusEvent} e - Focus event from body focusin event handler
- */
-function removeHiddenOnFocusMove(e) {
-  let currentFocusedDatePickerWrapper = e.target.closest('.new-date-picker-wrapper');
-  if (!currentFocusedDatePickerWrapper || currentFocusedDatePickerWrapper !== lastFocusedDatePickerWrapper) {
-    let bodyChildren = document.querySelectorAll('body > *');
-    for (let c = 0; c < bodyChildren.length; c++) {
-      if (bodyChildren[c].classList.contains('fds-date-picker-aria-hidden')) {
-        bodyChildren[c].removeAttribute('aria-hidden');
-        bodyChildren[c].classList.remove('fds-date-picker-aria-hidden');
-      }
-    }
-  }
-  lastFocusedDatePickerWrapper = currentFocusedDatePickerWrapper;
-}
-
-/**
- * If the focus somehow escapes the keyboard trap in a date picker dialog, close all dialogs
- *
- * @param {KeyboardEvent} e - Keyboard event from body keydown event handler
- */
-function closeDatePickerDialogsOnKeydown(e) {
-  let keydownInDatePickerDialog = e.target.closest('.new-date-picker-wrapper[role="dialog"]');
-  if (!keydownInDatePickerDialog) {
-    closeAllDatePickers();
-  }
-}
 /* harmony default export */ const new_datepicker = (NewDatePicker);
 ;// ./src/js/dkfds.js
 
