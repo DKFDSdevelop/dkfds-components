@@ -9,7 +9,7 @@ export let datePickerDialogs = [];
  * @return {number} Weekday index (0=Mon..6=Sun)
  */
 export function getWeekday(date) {
-    let day = (date.getDay() + 6) % 7; // First day of the week changed from Sunday to Monday
+    const day = (date.getDay() + 6) % 7; // First day of the week changed from Sunday to Monday
     return day;
 }
 
@@ -20,9 +20,10 @@ export function getWeekday(date) {
  * @return {number} The month's total number of days
  */
 export function daysInMonth(date) {
-    let year = date.getFullYear();
-    let month = date.getMonth();
+    const year = date.getFullYear();
+    const month = date.getMonth();
     const LAST_DAY_OF_PREVIOUS_MONTH = 0;
+
     return new Date(year, month + 1, LAST_DAY_OF_PREVIOUS_MONTH).getDate();
 }
 
@@ -38,13 +39,6 @@ export function placeDateWithinMinMax(minDate, maxDate, dateToCorrect) {
     }
 }
 
-/* function returnValidDay(year, month, day) {
-    let totalDays = daysInMonth(new Date(ISOFormatFromNumbers(year, month, 1)));
-    if (newDaysInMonth < day) {
-        day = newDaysInMonth;
-    }
-} */
-
 /**
  * Format date as YYYY-MM-DD
  *
@@ -52,17 +46,66 @@ export function placeDateWithinMinMax(minDate, maxDate, dateToCorrect) {
  * @return {string} ISO-like local date (YYYY-MM-DD)
  */
 export function ISOFormatFromDate(date) {
-    let year = String(date.getFullYear()).padStart(4, '0');
-    let month = String(date.getMonth() + 1).padStart(2, '0');
-    let day = String(date.getDate()).padStart(2, '0');
+    const year = String(date.getFullYear()).padStart(4, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
 }
 
-export function ISOFormatFromNumbers(year, month, day) {
-    let y = String(year).padStart(4, '0');
-    let m = String(month+1).padStart(2, '0');
-    let d = String(day).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+export function stringToDate(str, isYearFirst) {
+    let regex = /^(\d{1,2})[\/\-\. ](\d{1,2})[\/\-\. ](\d{4})$/; // Matches day first, e.g. DD-MM-YYYY
+    if (isYearFirst) {
+        regex = /^(\d{4})[\/\-\. ](\d{1,2})[\/\-\. ](\d{1,2})$/; // Matches year first, e.g. YYYY-MM-DD
+    }
+
+    const match = str.match(regex);
+    if (match) {
+        let day = 0;
+        let month = 0;
+        let year = 0;
+
+        if (isYearFirst) {
+            year = parseInt(match[1], 10);
+            month = parseInt(match[2], 10) - 1;
+            day = parseInt(match[3], 10);
+        }
+        else {
+            day = parseInt(match[1], 10);
+            month = parseInt(match[2], 10) - 1;
+            year = parseInt(match[3], 10);
+        }
+
+        return numbersToDate(year, month, day);
+    }
+    else {
+        return new Date('invalid');
+    }
+}
+
+export function numbersToDate(year, month, day) {
+    if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+        throw new Error('numbersToDate() must receive integers');
+    }
+    if (0 <= month && month <= 11 && 0 <= year && year <= 9999) {
+        const totalMonthDays = daysInMonth(new Date(year, month, 1));
+        if (1 <= day && day <= totalMonthDays) {
+            const date = new Date(1990, 1, 1); // Don't use new Date() without an argument
+            date.setFullYear(year);
+            date.setMonth(month);
+            date.setDate(day);
+            return date;
+        }
+        else {
+            return new Date('invalid');
+        }
+    }
+    else {
+        return new Date('invalid');
+    }
+}
+
+export function isValidDate(date) {
+    return (date instanceof Date) && !isNaN(date.getTime());
 }
 
 /**
@@ -72,7 +115,7 @@ export function ISOFormatFromNumbers(year, month, day) {
  * @return {Date} New Date representing yesterday
  */
 export function getYesterday(date) {
-    let yesterday = new Date(date);
+    const yesterday = new Date(date);
     yesterday.setDate(yesterday.getDate() - 1);
     return yesterday;
 }
@@ -84,19 +127,19 @@ export function getYesterday(date) {
  * @return {Date} New Date representing tomorrow
  */
 export function getTomorrow(date) {
-    let tomorrow = new Date(date);
+    const tomorrow = new Date(date);
     tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow;
 }
 
 export function getPrevWeek(date) {
-    let prevWeek = new Date(date);
+    const prevWeek = new Date(date);
     prevWeek.setDate(prevWeek.getDate() - 7);
     return prevWeek;
 }
 
 export function getNextWeek(date) {
-    let nextWeek = new Date(date);
+    const nextWeek = new Date(date);
     nextWeek.setDate(nextWeek.getDate() + 7);
     return nextWeek;
 }
@@ -110,11 +153,11 @@ export function getPrevMonth(date) {
         prevMonth = 11;
         year = year - 1;
     }
-    let newDaysInMonth = daysInMonth(new Date(ISOFormatFromNumbers(year, prevMonth, 1)));
+    const newDaysInMonth = daysInMonth(new Date(year, prevMonth, 1));
     if (newDaysInMonth < day) {
         day = newDaysInMonth;
     }
-    return new Date(ISOFormatFromNumbers(year, prevMonth, day));
+    return new Date(year, prevMonth, day);
 }
 
 export function getNextMonth(date) {
@@ -126,35 +169,35 @@ export function getNextMonth(date) {
         nextMonth = 1;
         year = year + 1;
     }
-    let newDaysInMonth = daysInMonth(new Date(ISOFormatFromNumbers(year, nextMonth, 1)));
+    const newDaysInMonth = daysInMonth(new Date(year, nextMonth, 1));
     if (newDaysInMonth < day) {
         day = newDaysInMonth;
     }
-    return new Date(ISOFormatFromNumbers(year, nextMonth, day));
+    return new Date(year, nextMonth, day);
 }
 
 export function getPrevYear(date) {
     let day = date.getDate();
-    let month = date.getMonth();
+    const month = date.getMonth();
     let year = date.getFullYear();
     let prevYear = year - 1;
-    let newDaysInMonth = daysInMonth(new Date(ISOFormatFromNumbers(prevYear, month, 1)));
+    const newDaysInMonth = daysInMonth(new Date(prevYear, month, 1));
     if (newDaysInMonth < day) {
         day = newDaysInMonth;
     }
-    return new Date(ISOFormatFromNumbers(prevYear, month, day));
+    return new Date(prevYear, month, day);
 }
 
 export function getNextYear(date) {
     let day = date.getDate();
-    let month = date.getMonth();
+    const month = date.getMonth();
     let year = date.getFullYear();
     let nextYear = year + 1;
-    let newDaysInMonth = daysInMonth(new Date(ISOFormatFromNumbers(nextYear, month, 1)));
+    const newDaysInMonth = daysInMonth(new Date(nextYear, month, 1));
     if (newDaysInMonth < day) {
         day = newDaysInMonth;
     }
-    return new Date(ISOFormatFromNumbers(nextYear, month, day));
+    return new Date(nextYear, month, day);
 }
 
 /**
@@ -165,7 +208,7 @@ export function getNextYear(date) {
  * @return {boolean} True if the date cell is visible
  */
 export function isDateVisible(date, datePickerWrapper) {
-    let isoDate = ISOFormatFromDate(date);
+    const isoDate = ISOFormatFromDate(date);
     return datePickerWrapper.querySelector(`[data-date="${isoDate}"]`) ? true : false;
 }
 
@@ -194,10 +237,10 @@ export function closeAllDatePickers() {
  * @param {FocusEvent} e - Focus event from body focusin event handler
  */
 export function removeHiddenOnFocusMove(e) {
-    let currentFocusedDatePickerWrapper = e.target.closest('.new-date-picker-wrapper');
+    const currentFocusedDatePickerWrapper = e.target.closest('.new-date-picker-wrapper');
 
     if (!currentFocusedDatePickerWrapper || currentFocusedDatePickerWrapper !== lastFocusedDatePickerWrapper) {
-        let bodyChildren = document.querySelectorAll('body > *');
+        const bodyChildren = document.querySelectorAll('body > *');
         for (let c = 0; c < bodyChildren.length; c++) {
             if (bodyChildren[c].classList.contains('fds-date-picker-aria-hidden')) {
                 bodyChildren[c].removeAttribute('aria-hidden');
@@ -215,7 +258,7 @@ export function removeHiddenOnFocusMove(e) {
  * @param {KeyboardEvent} e - Keyboard event from body keydown event handler
  */
 export function closeDatePickerDialogsOnKeydown(e) {
-    let keydownInDatePickerDialog = e.target.closest('.new-date-picker-wrapper[role="dialog"]');
+    const keydownInDatePickerDialog = e.target.closest('.new-date-picker-wrapper[role="dialog"]');
     if (!keydownInDatePickerDialog) {
         closeAllDatePickers();
     }
