@@ -6034,7 +6034,7 @@ NewDatePicker.prototype.init = function () {
         if (this.datePickerInput) {
           const day = String(clickedDate.getDate()).padStart(2, '0');
           const month = String(clickedDate.getMonth() + 1).padStart(2, '0');
-          const year = String(clickedDate.getFullYear()).padStart(2, '0');
+          const year = String(clickedDate.getFullYear()).padStart(4, '0');
           this.datePickerInput.value = this.dateFormat().replace('DD', day).replace('MM', month).replace('YYYY', year);
         }
       }
@@ -6117,7 +6117,7 @@ NewDatePicker.prototype.init = function () {
           if (this.datePickerInput) {
             const day = String(selectedDate.getDate()).padStart(2, '0');
             const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-            const year = String(selectedDate.getFullYear()).padStart(2, '0');
+            const year = String(selectedDate.getFullYear()).padStart(4, '0');
             this.datePickerInput.value = this.dateFormat().replace('DD', day).replace('MM', month).replace('YYYY', year);
           }
         }
@@ -6200,11 +6200,13 @@ NewDatePicker.prototype.init = function () {
         break;
       case 'Tab':
         const focusLeftDate = e.target.getAttribute('data-date');
-        const focusLeftPrevButton = e.target.classList.contains('previous-month');
+        const firstFocusableElement = this.datePickerWrapper.querySelector('.date-picker-header button:not(:disabled), .date-picker-header select:not(:disabled)');
         if (focusLeftDate && !e.shiftKey && isDialog(this.datePickerWrapper)) {
           e.preventDefault();
-          this.datePickerWrapper.querySelector('.previous-month').focus();
-        } else if (focusLeftPrevButton && e.shiftKey && isDialog(this.datePickerWrapper)) {
+          if (firstFocusableElement) {
+            firstFocusableElement.focus();
+          }
+        } else if (e.target === firstFocusableElement && e.shiftKey && isDialog(this.datePickerWrapper)) {
           e.preventDefault();
           this.datePickerWrapper.querySelector('td[tabindex="0"]').focus();
         }
@@ -6214,18 +6216,30 @@ NewDatePicker.prototype.init = function () {
 
   /* Update grid when month is changed */
   this.datePickerWrapper.querySelector('.selected-month').addEventListener('change', e => {
-    const day = 1;
+    const focusedDay = this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]');
+    const focusedDayAsDate = stringToDate(focusedDay.getAttribute('data-date'), true);
+    let day = focusedDayAsDate.getDate();
     const month = parseInt(e.target.value, 10);
     const year = parseInt(this.datePickerWrapper.querySelector('.selected-year').value, 10);
+    const newDaysInMonth = daysInMonth(numbersToDate(year, month, 1));
+    if (newDaysInMonth < day) {
+      day = newDaysInMonth;
+    }
     const newDate = numbersToDate(year, month, day);
     this.redrawCalendarGrid(newDate);
   });
 
   /* Update grid when year is changed */
   this.datePickerWrapper.querySelector('.selected-year').addEventListener('change', e => {
-    const day = 1;
+    const focusedDay = this.datePickerWrapper.querySelector('td[data-date][tabindex="0"]');
+    const focusedDayAsDate = stringToDate(focusedDay.getAttribute('data-date'), true);
+    let day = focusedDayAsDate.getDate();
     const month = parseInt(this.datePickerWrapper.querySelector('.selected-month').value, 10);
     const year = parseInt(e.target.value, 10);
+    const newDaysInMonth = daysInMonth(numbersToDate(year, month, 1));
+    if (newDaysInMonth < day) {
+      day = newDaysInMonth;
+    }
     const newDate = numbersToDate(year, month, day);
     this.redrawCalendarGrid(newDate);
   });
