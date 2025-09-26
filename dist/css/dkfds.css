@@ -12387,3 +12387,8 @@ textarea.no-resize{
     display:none;
   }
 }
+fds-accordion h2,
+.fds-accordion h2{
+  margin-top:0;
+  margin-bottom:0;
+}

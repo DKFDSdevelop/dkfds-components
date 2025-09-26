@@ -1,0 +1,11 @@
+@use "../variables" as vars;
+@use "../functions" as func;
+@use "../mixins" as mixins;
+
+fds-accordion,
+.fds-accordion {
+    h2 {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+}

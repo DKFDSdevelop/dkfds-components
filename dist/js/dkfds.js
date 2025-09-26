@@ -3203,7 +3203,8 @@ __webpack_require__.d(__webpack_exports__, {
   Toast: () => (/* reexport */ toast),
   Tooltip: () => (/* reexport */ tooltip),
   datePicker: () => (/* binding */ datePicker),
-  init: () => (/* binding */ init)
+  init: () => (/* binding */ init),
+  initCustomElements: () => (/* binding */ initCustomElements)
 });
 
 ;// ./src/js/components/accordion.js
@@ -5701,6 +5702,28 @@ function closeOnKey(e) {
   }
 }
 /* harmony default export */ const tooltip = (Tooltip);
+;// ./src/js/custom-elements/fds-accordion.js
+
+
+class FDSAccordion extends HTMLElement {
+  constructor() {
+    super();
+  }
+  connectedCallback() {
+    this.innerHTML = `<h2>
+            <button class="accordion-button" aria-expanded="true" aria-controls="a1">
+                <span class="accordion-title">Lorem ipsum dolor sit amet</span>
+            </button>
+        </h2>
+        <div id="a1" aria-hidden="false" class="accordion-content">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+                nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+            </p>
+        </div>`;
+  }
+}
+/* harmony default export */ const fds_accordion = (FDSAccordion);
 ;// ./src/js/dkfds.js
 
 
@@ -5722,6 +5745,10 @@ function closeOnKey(e) {
 
 
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
+
+// Custom elements
+
+
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
  * older browsers, so must be loaded first.
@@ -5906,6 +5933,11 @@ var init = function (options) {
   const jsSelectorTooltip = scope.getElementsByClassName('tooltip-wrapper');
   for (let c = 0; c < jsSelectorTooltip.length; c++) {
     new tooltip(jsSelectorTooltip[c]).init();
+  }
+};
+const initCustomElements = () => {
+  if (customElements.get('fds-accordion') === undefined) {
+    window.customElements.define('fds-accordion', fds_accordion);
   }
 };
 
