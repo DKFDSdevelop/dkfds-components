@@ -12387,6 +12387,10 @@ textarea.no-resize{
     display:none;
   }
 }
+fds-accordion,
+.fds-accordion{
+  display:block;
+}
 fds-accordion h2,
 .fds-accordion h2{
   margin-top:0;

@@ -1,22 +1,83 @@
 'use strict';
 
 class FDSAccordion extends HTMLElement {
-    constructor() {
-        super();
+
+    /* Private instance fields */
+
+    #initialized;
+
+    #headingElement;
+    #contentElement;
+
+    /* Private methods */
+
+    #init() {
+        if (!this.#initialized) {
+
+            /* Accordion heading */
+
+            const heading = document.createElement('span');
+            heading.classList.add('accordion-title');
+
+            const accordionButton = document.createElement('button');
+            accordionButton.classList.add('accordion-button');
+            accordionButton.setAttribute('aria-expanded', 'true');
+            accordionButton.setAttribute('aria-controls', 'a1');
+            accordionButton.setAttribute('type', 'button');
+
+            this.#headingElement = document.createElement('h2');
+
+            accordionButton.appendChild(heading);
+            this.#headingElement.appendChild(accordionButton);
+
+            /* Accordion content */
+
+            this.#contentElement = document.createElement('div');
+            this.#contentElement.classList.add('accordion-content');
+            this.#contentElement.setAttribute('id', 'a1');
+            this.#contentElement.setAttribute('aria-hidden', 'false');
+            this.#contentElement.innerHTML = this.innerHTML;
+
+            this.innerHTML = '';
+            this.#initialized = true;
+        }
     }
 
+    /* Attributes which can invoke attributeChangedCallback() */
+
+    static observedAttributes = ['heading'];
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+    -------------------------------------------------- */
+
+    constructor() {
+        super();
+
+        this.#initialized = false;
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT ADDED TO DOCUMENT
+    -------------------------------------------------- */
+
     connectedCallback() {
-        this.innerHTML = `<h2>
-            <button class="accordion-button" aria-expanded="true" aria-controls="a1">
-                <span class="accordion-title">Lorem ipsum dolor sit amet</span>
-            </button>
-        </h2>
-        <div id="a1" aria-hidden="false" class="accordion-content">
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-                nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-            </p>
-        </div>`;
+        this.#init();
+
+        this.appendChild(this.#headingElement);
+        this.appendChild(this.#contentElement);
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+    -------------------------------------------------- */
+
+    attributeChangedCallback(attribute, oldValue, newValue) {
+        this.#init();
+
+        if (attribute === 'heading') {
+            this.#headingElement.querySelector('.accordion-title').textContent = newValue;
+        }
     }
 }
 
