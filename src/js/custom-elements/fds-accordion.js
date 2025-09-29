@@ -5,9 +5,12 @@ class FDSAccordion extends HTMLElement {
     /* Private instance fields */
 
     #initialized;
+    #expanded;
 
     #headingElement;
     #contentElement;
+
+    #handleAccordionClick;
 
     /* Private methods */
 
@@ -38,14 +41,34 @@ class FDSAccordion extends HTMLElement {
             this.#contentElement.setAttribute('aria-hidden', 'false');
             this.#contentElement.innerHTML = this.innerHTML;
 
+            /* Default accordion state if no attribute is set */
+
+            this.#expanded = true;
+
+            /* Clear accordion content for proper construction in connectedCallback() */
+
             this.innerHTML = '';
             this.#initialized = true;
         }
     }
 
+    #updateHeading(heading) {
+        this.#headingElement.querySelector('.accordion-title').textContent = heading;
+    }
+
+    #updateExpanded(expanded) {
+        this.#expanded = expanded === "true" ? true : false;
+        if (this.#expanded) {
+            this.expandAccordion();
+        }
+        else {
+            this.collapseAccordion();
+        }
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['heading'];
+    static observedAttributes = ['heading', 'expanded'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -55,6 +78,37 @@ class FDSAccordion extends HTMLElement {
         super();
 
         this.#initialized = false;
+
+        this.#handleAccordionClick = () => {
+            this.toggleAccordion();
+        };
+    }
+
+    /*
+    --------------------------------------------------
+    CUSTOM ELEMENT FUNCTIONS
+    --------------------------------------------------
+    */
+
+    expandAccordion() {
+        this.#headingElement.querySelector('button.accordion-button').setAttribute('aria-expanded', 'true');
+        this.#contentElement.setAttribute('aria-hidden', 'false');
+        this.#expanded = true;
+    }
+
+    collapseAccordion() {
+        this.#headingElement.querySelector('button.accordion-button').setAttribute('aria-expanded', 'false');
+        this.#contentElement.setAttribute('aria-hidden', 'true');
+        this.#expanded = false;
+    }
+
+    toggleAccordion() {
+        if (this.#expanded) {
+            this.collapseAccordion();
+        }
+        else {
+            this.expandAccordion();
+        }
     }
 
     /* --------------------------------------------------
@@ -62,10 +116,22 @@ class FDSAccordion extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
-        this.#init();
+        if (!this.#initialized) {
+            this.#init();
 
-        this.appendChild(this.#headingElement);
-        this.appendChild(this.#contentElement);
+            this.appendChild(this.#headingElement);
+            this.appendChild(this.#contentElement);
+
+            if (this.hasAttribute('heading')) {
+                this.#updateHeading(this.getAttribute('heading'));
+            }
+
+            if (this.hasAttribute('expanded')) {
+                this.#updateExpanded(this.getAttribute('expanded'));
+            }
+
+            this.#headingElement.querySelector('button.accordion-button').addEventListener('click', this.#handleAccordionClick, false);
+        }
     }
 
     /* --------------------------------------------------
@@ -73,10 +139,15 @@ class FDSAccordion extends HTMLElement {
     -------------------------------------------------- */
 
     attributeChangedCallback(attribute, oldValue, newValue) {
-        this.#init();
+        if (this.#initialized) {
 
-        if (attribute === 'heading') {
-            this.#headingElement.querySelector('.accordion-title').textContent = newValue;
+            if (attribute === 'heading') {
+                this.#updateHeading(newValue);
+            }
+
+            if (attribute === 'expanded') {
+                this.#updateExpanded(newValue);
+            }
         }
     }
 }
