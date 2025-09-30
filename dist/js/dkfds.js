@@ -5726,10 +5726,11 @@ class FDSAccordion extends HTMLElement {
 
   #init() {
     if (!this.#initialized) {
-      let id = '';
+      let defaultId = '';
       do {
-        id = generateUniqueIdWithPrefix('acc');
-      } while (document.getElementById(id));
+        defaultId = generateUniqueIdWithPrefix('acc');
+      } while (document.getElementById(defaultId));
+      let defaultHeadingLevel = 'h3';
 
       /* Accordion heading */
 
@@ -5739,8 +5740,8 @@ class FDSAccordion extends HTMLElement {
       accordionButton.classList.add('accordion-button');
       accordionButton.setAttribute('aria-expanded', 'true');
       accordionButton.setAttribute('type', 'button');
-      accordionButton.setAttribute('aria-controls', id);
-      this.#headingElement = document.createElement('h3');
+      accordionButton.setAttribute('aria-controls', defaultId);
+      this.#headingElement = document.createElement(defaultHeadingLevel);
       accordionButton.appendChild(heading);
       this.#headingElement.appendChild(accordionButton);
 
@@ -5748,7 +5749,7 @@ class FDSAccordion extends HTMLElement {
 
       this.#contentElement = document.createElement('div');
       this.#contentElement.classList.add('accordion-content');
-      this.#contentElement.setAttribute('id', id);
+      this.#contentElement.setAttribute('id', defaultId);
       this.#contentElement.setAttribute('aria-hidden', 'false');
       this.#contentElement.innerHTML = this.innerHTML;
 
@@ -5765,6 +5766,12 @@ class FDSAccordion extends HTMLElement {
   #updateHeading(heading) {
     this.#headingElement.querySelector('.accordion-title').textContent = heading;
   }
+  #updateHeadingLevel(headingLevel) {
+    const newHeadingLevel = document.createElement(`${headingLevel}`);
+    newHeadingLevel.append(...this.#headingElement.childNodes);
+    this.#headingElement.replaceWith(newHeadingLevel);
+    this.#headingElement = newHeadingLevel;
+  }
   #updateExpanded(expanded) {
     this.#expanded = expanded === "true" ? true : false;
     if (this.#expanded) {
@@ -5780,7 +5787,7 @@ class FDSAccordion extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['heading', 'expanded', 'content-id'];
+  static observedAttributes = ['heading', 'heading-level', 'expanded', 'content-id'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -5833,6 +5840,9 @@ class FDSAccordion extends HTMLElement {
       if (this.hasAttribute('heading')) {
         this.#updateHeading(this.getAttribute('heading'));
       }
+      if (this.hasAttribute('heading-level')) {
+        this.#updateHeadingLevel(this.getAttribute('heading-level'));
+      }
       if (this.hasAttribute('expanded')) {
         this.#updateExpanded(this.getAttribute('expanded'));
       } else {
@@ -5853,6 +5863,9 @@ class FDSAccordion extends HTMLElement {
     if (this.#initialized) {
       if (attribute === 'heading') {
         this.#updateHeading(newValue);
+      }
+      if (attribute === 'heading-level') {
+        this.#updateHeadingLevel(newValue);
       }
       if (attribute === 'expanded') {
         this.#updateExpanded(newValue);
