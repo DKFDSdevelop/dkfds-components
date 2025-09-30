@@ -5702,7 +5702,15 @@ function closeOnKey(e) {
   }
 }
 /* harmony default export */ const tooltip = (Tooltip);
+;// ./src/js/utils/generate-unique-id.js
+function generateUniqueId() {
+  return crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
+}
+function generateUniqueIdWithPrefix(str) {
+  return str + crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
+}
 ;// ./src/js/custom-elements/fds-accordion.js
+
 
 
 class FDSAccordion extends HTMLElement {
@@ -5718,6 +5726,11 @@ class FDSAccordion extends HTMLElement {
 
   #init() {
     if (!this.#initialized) {
+      let id = '';
+      do {
+        id = generateUniqueIdWithPrefix('acc');
+      } while (document.getElementById(id));
+
       /* Accordion heading */
 
       const heading = document.createElement('span');
@@ -5725,9 +5738,9 @@ class FDSAccordion extends HTMLElement {
       const accordionButton = document.createElement('button');
       accordionButton.classList.add('accordion-button');
       accordionButton.setAttribute('aria-expanded', 'true');
-      accordionButton.setAttribute('aria-controls', 'a1');
       accordionButton.setAttribute('type', 'button');
-      this.#headingElement = document.createElement('h2');
+      accordionButton.setAttribute('aria-controls', id);
+      this.#headingElement = document.createElement('h3');
       accordionButton.appendChild(heading);
       this.#headingElement.appendChild(accordionButton);
 
@@ -5735,13 +5748,13 @@ class FDSAccordion extends HTMLElement {
 
       this.#contentElement = document.createElement('div');
       this.#contentElement.classList.add('accordion-content');
-      this.#contentElement.setAttribute('id', 'a1');
+      this.#contentElement.setAttribute('id', id);
       this.#contentElement.setAttribute('aria-hidden', 'false');
       this.#contentElement.innerHTML = this.innerHTML;
 
       /* Default accordion state if no attribute is set */
 
-      this.#expanded = true;
+      this.#expanded = false;
 
       /* Clear accordion content for proper construction in connectedCallback() */
 
@@ -5760,10 +5773,14 @@ class FDSAccordion extends HTMLElement {
       this.collapseAccordion();
     }
   }
+  #updateContentId(contentId) {
+    this.#headingElement.querySelector('.accordion-button').setAttribute('aria-controls', contentId);
+    this.#contentElement.setAttribute('id', contentId);
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['heading', 'expanded'];
+  static observedAttributes = ['heading', 'expanded', 'content-id'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -5772,6 +5789,9 @@ class FDSAccordion extends HTMLElement {
   constructor() {
     super();
     this.#initialized = false;
+
+    /* Set up instance fields for event handling */
+
     this.#handleAccordionClick = () => {
       this.toggleAccordion();
     };
@@ -5815,6 +5835,11 @@ class FDSAccordion extends HTMLElement {
       }
       if (this.hasAttribute('expanded')) {
         this.#updateExpanded(this.getAttribute('expanded'));
+      } else {
+        this.#updateExpanded(this.#expanded);
+      }
+      if (this.hasAttribute('content-id')) {
+        this.#updateContentId(this.getAttribute('content-id'));
       }
       this.#headingElement.querySelector('button.accordion-button').addEventListener('click', this.#handleAccordionClick, false);
     }
@@ -5831,6 +5856,9 @@ class FDSAccordion extends HTMLElement {
       }
       if (attribute === 'expanded') {
         this.#updateExpanded(newValue);
+      }
+      if (attribute === 'content-id') {
+        this.#updateContentId(newValue);
       }
     }
   }

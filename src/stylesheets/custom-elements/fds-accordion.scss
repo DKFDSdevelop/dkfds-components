@@ -5,9 +5,11 @@
 fds-accordion,
 .fds-accordion {
     display: block;
+    margin-bottom: func.units(3, 'rem');
 
-    h2 {
+    h1, h2, h3, h4, h5, h6 {
         margin-top: 0;
         margin-bottom: 0;
+        max-width: none;
     }
 }

@@ -12390,9 +12390,16 @@ textarea.no-resize{
 fds-accordion,
 .fds-accordion{
   display:block;
+  margin-bottom:0.8rem;
 }
-fds-accordion h2,
-.fds-accordion h2{
+fds-accordion h1, fds-accordion h2, fds-accordion h3, fds-accordion h4, fds-accordion h5, fds-accordion h6,
+.fds-accordion h1,
+.fds-accordion h2,
+.fds-accordion h3,
+.fds-accordion h4,
+.fds-accordion h5,
+.fds-accordion h6{
   margin-top:0;
   margin-bottom:0;
+  max-width:none;
 }
