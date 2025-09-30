@@ -107,22 +107,22 @@ class FDSAccordion extends HTMLElement {
         };
     }
 
-    /*
-    --------------------------------------------------
+    /* --------------------------------------------------
     CUSTOM ELEMENT FUNCTIONS
-    --------------------------------------------------
-    */
+    -------------------------------------------------- */
 
     expandAccordion() {
         this.#headingElement.querySelector('button.accordion-button').setAttribute('aria-expanded', 'true');
         this.#contentElement.setAttribute('aria-hidden', 'false');
         this.#expanded = true;
+        this.dispatchEvent(new Event('fds-accordion-expanded'));
     }
 
     collapseAccordion() {
         this.#headingElement.querySelector('button.accordion-button').setAttribute('aria-expanded', 'false');
         this.#contentElement.setAttribute('aria-hidden', 'true');
         this.#expanded = false;
+        this.dispatchEvent(new Event('fds-accordion-collapsed'));
     }
 
     toggleAccordion() {
@@ -165,6 +165,19 @@ class FDSAccordion extends HTMLElement {
             }
 
             this.#headingElement.querySelector('button.accordion-button').addEventListener('click', this.#handleAccordionClick, false);
+        }
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT REMOVED FROM DOCUMENT
+    -------------------------------------------------- */
+
+    disconnectedCallback() {
+        if (this.#headingElement) {
+            const button = this.#headingElement.querySelector('button.accordion-button');
+            if (button && this.#handleAccordionClick) {
+                button.removeEventListener('click', this.#handleAccordionClick, false);
+            }
         }
     }
 
