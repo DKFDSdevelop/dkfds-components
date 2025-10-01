@@ -20,6 +20,7 @@ const datePicker = require('./components/date-picker').default;
 
 // Custom elements
 import FDSAccordion from './custom-elements/fds-accordion';
+import FDSAccordionGroup from './custom-elements/fds-accordion-group';
 
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
@@ -213,6 +214,9 @@ var init = function (options) {
 const initCustomElements = () => {
   if (customElements.get('fds-accordion') === undefined) {
     window.customElements.define('fds-accordion', FDSAccordion);
+  }
+  if (customElements.get('fds-accordion-group') === undefined) {
+    window.customElements.define('fds-accordion-group', FDSAccordionGroup);
   }
 };
 

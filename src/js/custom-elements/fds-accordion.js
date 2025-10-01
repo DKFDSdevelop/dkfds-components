@@ -19,12 +19,16 @@ class FDSAccordion extends HTMLElement {
     #init() {
         if (!this.#initialized) {
 
+            /* Default values */
+
             let defaultId = '';
             do {
                 defaultId = generateUniqueIdWithPrefix('acc');
             } while (document.getElementById(defaultId));
 
             let defaultHeadingLevel = 'h3';
+
+            this.#expanded = false;
 
             /* Accordion heading */
 
@@ -48,15 +52,13 @@ class FDSAccordion extends HTMLElement {
             this.#contentElement.classList.add('accordion-content');
             this.#contentElement.setAttribute('id', defaultId);
             this.#contentElement.setAttribute('aria-hidden', 'false');
-            this.#contentElement.innerHTML = this.innerHTML;
 
-            /* Default accordion state if no attribute is set */
+            while (this.firstChild) {
+                this.#contentElement.appendChild(this.firstChild);
+            }
 
-            this.#expanded = false;
+            /* Accordion ready */
 
-            /* Clear accordion content for proper construction in connectedCallback() */
-
-            this.innerHTML = '';
             this.#initialized = true;
         }
     }

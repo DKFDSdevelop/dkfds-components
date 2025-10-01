@@ -2328,7 +2328,7 @@ const isElement = value => value && typeof value === "object" && value.nodeType 
 
 /***/ }),
 
-/***/ 188:
+/***/ 807:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -3210,7 +3210,7 @@ __webpack_require__.d(__webpack_exports__, {
 ;// ./src/js/components/accordion.js
 
 
-const toggle = (__webpack_require__(188)/* ["default"] */ .A);
+const toggle = (__webpack_require__(807)/* ["default"] */ .A);
 const isElementInViewport = (__webpack_require__(665)/* ["default"] */ .A);
 const BUTTON = `.accordion-button[aria-controls]`;
 const EXPANDED = 'aria-expanded';
@@ -5726,11 +5726,14 @@ class FDSAccordion extends HTMLElement {
 
   #init() {
     if (!this.#initialized) {
+      /* Default values */
+
       let defaultId = '';
       do {
         defaultId = generateUniqueIdWithPrefix('acc');
       } while (document.getElementById(defaultId));
       let defaultHeadingLevel = 'h3';
+      this.#expanded = false;
 
       /* Accordion heading */
 
@@ -5751,15 +5754,12 @@ class FDSAccordion extends HTMLElement {
       this.#contentElement.classList.add('accordion-content');
       this.#contentElement.setAttribute('id', defaultId);
       this.#contentElement.setAttribute('aria-hidden', 'false');
-      this.#contentElement.innerHTML = this.innerHTML;
+      while (this.firstChild) {
+        this.#contentElement.appendChild(this.firstChild);
+      }
 
-      /* Default accordion state if no attribute is set */
+      /* Accordion ready */
 
-      this.#expanded = false;
-
-      /* Clear accordion content for proper construction in connectedCallback() */
-
-      this.innerHTML = '';
       this.#initialized = true;
     }
   }
@@ -5890,6 +5890,52 @@ class FDSAccordion extends HTMLElement {
   }
 }
 /* harmony default export */ const fds_accordion = (FDSAccordion);
+;// ./src/js/custom-elements/fds-accordion-group.js
+
+
+class FDSAccordionGroup extends HTMLElement {
+  /* Private methods */
+
+  #updateHeadingLevel(headingLevel) {
+    const accordions = this.querySelectorAll(':scope > fds-accordion');
+    for (let i = 0; i < accordions.length; i++) {
+      accordions[i].setAttribute('heading-level', headingLevel);
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['heading-level'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.hasAttribute('heading-level')) {
+      this.#updateHeadingLevel(this.getAttribute('heading-level'));
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'heading-level') {
+      this.#updateHeadingLevel(newValue);
+    }
+  }
+}
+/* harmony default export */ const fds_accordion_group = (FDSAccordionGroup);
 ;// ./src/js/dkfds.js
 
 
@@ -5913,6 +5959,7 @@ class FDSAccordion extends HTMLElement {
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 // Custom elements
+
 
 
 /**
@@ -6104,6 +6151,9 @@ var init = function (options) {
 const initCustomElements = () => {
   if (customElements.get('fds-accordion') === undefined) {
     window.customElements.define('fds-accordion', fds_accordion);
+  }
+  if (customElements.get('fds-accordion-group') === undefined) {
+    window.customElements.define('fds-accordion-group', fds_accordion_group);
   }
 };
 

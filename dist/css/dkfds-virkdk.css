@@ -12399,7 +12399,206 @@ fds-accordion h1, fds-accordion h2, fds-accordion h3, fds-accordion h4, fds-acco
 .fds-accordion h4,
 .fds-accordion h5,
 .fds-accordion h6{
-  margin-top:0;
-  margin-bottom:0;
+  margin:0;
   max-width:none;
+}
+fds-accordion h1 .accordion-button, fds-accordion h2 .accordion-button, fds-accordion h3 .accordion-button, fds-accordion h4 .accordion-button, fds-accordion h5 .accordion-button, fds-accordion h6 .accordion-button,
+.fds-accordion h1 .accordion-button,
+.fds-accordion h2 .accordion-button,
+.fds-accordion h3 .accordion-button,
+.fds-accordion h4 .accordion-button,
+.fds-accordion h5 .accordion-button,
+.fds-accordion h6 .accordion-button{
+  font-weight:700;
+  text-align:left;
+  min-height:auto;
+  background-color:#F5F5F5;
+  color:#1a1a1a;
+  cursor:pointer;
+  margin:0;
+  display:block;
+  line-height:1.5;
+  padding:1.6rem 1.6rem 1.6rem 5.6rem;
+  width:100%;
+  font-size:1.6rem;
+  position:relative;
+  border-radius:8px;
+}
+fds-accordion h1 .accordion-button::before, fds-accordion h2 .accordion-button::before, fds-accordion h3 .accordion-button::before, fds-accordion h4 .accordion-button::before, fds-accordion h5 .accordion-button::before, fds-accordion h6 .accordion-button::before,
+.fds-accordion h1 .accordion-button::before,
+.fds-accordion h2 .accordion-button::before,
+.fds-accordion h3 .accordion-button::before,
+.fds-accordion h4 .accordion-button::before,
+.fds-accordion h5 .accordion-button::before,
+.fds-accordion h6 .accordion-button::before{
+  content:"";
+  background-image:url("../img/svg-icons/minus.svg");
+  background-size:2.4rem;
+  background-repeat:no-repeat;
+  position:absolute;
+  height:2.4rem;
+  width:2.4rem;
+  left:1.6rem;
+}
+fds-accordion h1 .accordion-button:hover, fds-accordion h2 .accordion-button:hover, fds-accordion h3 .accordion-button:hover, fds-accordion h4 .accordion-button:hover, fds-accordion h5 .accordion-button:hover, fds-accordion h6 .accordion-button:hover,
+.fds-accordion h1 .accordion-button:hover,
+.fds-accordion h2 .accordion-button:hover,
+.fds-accordion h3 .accordion-button:hover,
+.fds-accordion h4 .accordion-button:hover,
+.fds-accordion h5 .accordion-button:hover,
+.fds-accordion h6 .accordion-button:hover{
+  background-color:#DCDCDC;
+  color:#1a1a1a;
+}
+@media (min-width: 768px){
+  fds-accordion h1 .accordion-button, fds-accordion h2 .accordion-button, fds-accordion h3 .accordion-button, fds-accordion h4 .accordion-button, fds-accordion h5 .accordion-button, fds-accordion h6 .accordion-button,
+  .fds-accordion h1 .accordion-button,
+  .fds-accordion h2 .accordion-button,
+  .fds-accordion h3 .accordion-button,
+  .fds-accordion h4 .accordion-button,
+  .fds-accordion h5 .accordion-button,
+  .fds-accordion h6 .accordion-button{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+}
+fds-accordion h1 .accordion-button .icon_text, fds-accordion h2 .accordion-button .icon_text, fds-accordion h3 .accordion-button .icon_text, fds-accordion h4 .accordion-button .icon_text, fds-accordion h5 .accordion-button .icon_text, fds-accordion h6 .accordion-button .icon_text,
+.fds-accordion h1 .accordion-button .icon_text,
+.fds-accordion h2 .accordion-button .icon_text,
+.fds-accordion h3 .accordion-button .icon_text,
+.fds-accordion h4 .accordion-button .icon_text,
+.fds-accordion h5 .accordion-button .icon_text,
+.fds-accordion h6 .accordion-button .icon_text{
+  font-weight:400;
+  font-size:1.6rem;
+  margin-right:8px;
+  overflow-wrap:break-word;
+  max-width:calc(100% - 8px - 24px);
+}
+fds-accordion h1 .accordion-button .accordion-title, fds-accordion h2 .accordion-button .accordion-title, fds-accordion h3 .accordion-button .accordion-title, fds-accordion h4 .accordion-button .accordion-title, fds-accordion h5 .accordion-button .accordion-title, fds-accordion h6 .accordion-button .accordion-title,
+.fds-accordion h1 .accordion-button .accordion-title,
+.fds-accordion h2 .accordion-button .accordion-title,
+.fds-accordion h3 .accordion-button .accordion-title,
+.fds-accordion h4 .accordion-button .accordion-title,
+.fds-accordion h5 .accordion-button .accordion-title,
+.fds-accordion h6 .accordion-button .accordion-title{
+  max-width:100%;
+  overflow-wrap:break-word;
+}
+fds-accordion h1 .accordion-button .accordion-icon, fds-accordion h2 .accordion-button .accordion-icon, fds-accordion h3 .accordion-button .accordion-icon, fds-accordion h4 .accordion-button .accordion-icon, fds-accordion h5 .accordion-button .accordion-icon, fds-accordion h6 .accordion-button .accordion-icon,
+.fds-accordion h1 .accordion-button .accordion-icon,
+.fds-accordion h2 .accordion-button .accordion-icon,
+.fds-accordion h3 .accordion-button .accordion-icon,
+.fds-accordion h4 .accordion-button .accordion-icon,
+.fds-accordion h5 .accordion-button .accordion-icon,
+.fds-accordion h6 .accordion-button .accordion-icon{
+  line-height:2.4rem;
+  position:initial;
+  text-align:left;
+  display:block;
+  top:0.8rem;
+}
+@media (min-width: 768px){
+  fds-accordion h1 .accordion-button .accordion-icon, fds-accordion h2 .accordion-button .accordion-icon, fds-accordion h3 .accordion-button .accordion-icon, fds-accordion h4 .accordion-button .accordion-icon, fds-accordion h5 .accordion-button .accordion-icon, fds-accordion h6 .accordion-button .accordion-icon,
+  .fds-accordion h1 .accordion-button .accordion-icon,
+  .fds-accordion h2 .accordion-button .accordion-icon,
+  .fds-accordion h3 .accordion-button .accordion-icon,
+  .fds-accordion h4 .accordion-button .accordion-icon,
+  .fds-accordion h5 .accordion-button .accordion-icon,
+  .fds-accordion h6 .accordion-button .accordion-icon{
+    text-align:end;
+    display:flex;
+    align-items:center;
+    max-width:30%;
+    margin-left:16px;
+  }
+}
+fds-accordion h1 .accordion-button .accordion-icon .icon-svg, fds-accordion h2 .accordion-button .accordion-icon .icon-svg, fds-accordion h3 .accordion-button .accordion-icon .icon-svg, fds-accordion h4 .accordion-button .accordion-icon .icon-svg, fds-accordion h5 .accordion-button .accordion-icon .icon-svg, fds-accordion h6 .accordion-button .accordion-icon .icon-svg,
+.fds-accordion h1 .accordion-button .accordion-icon .icon-svg,
+.fds-accordion h2 .accordion-button .accordion-icon .icon-svg,
+.fds-accordion h3 .accordion-button .accordion-icon .icon-svg,
+.fds-accordion h4 .accordion-button .accordion-icon .icon-svg,
+.fds-accordion h5 .accordion-button .accordion-icon .icon-svg,
+.fds-accordion h6 .accordion-button .accordion-icon .icon-svg{
+  fill:#1a1a1a;
+  flex-shrink:0;
+  vertical-align:bottom;
+}
+fds-accordion h1 .accordion-button .accordion-icon:hover .icon-svg, fds-accordion h2 .accordion-button .accordion-icon:hover .icon-svg, fds-accordion h3 .accordion-button .accordion-icon:hover .icon-svg, fds-accordion h4 .accordion-button .accordion-icon:hover .icon-svg, fds-accordion h5 .accordion-button .accordion-icon:hover .icon-svg, fds-accordion h6 .accordion-button .accordion-icon:hover .icon-svg,
+.fds-accordion h1 .accordion-button .accordion-icon:hover .icon-svg,
+.fds-accordion h2 .accordion-button .accordion-icon:hover .icon-svg,
+.fds-accordion h3 .accordion-button .accordion-icon:hover .icon-svg,
+.fds-accordion h4 .accordion-button .accordion-icon:hover .icon-svg,
+.fds-accordion h5 .accordion-button .accordion-icon:hover .icon-svg,
+.fds-accordion h6 .accordion-button .accordion-icon:hover .icon-svg{
+  fill:#1a1a1a;
+}
+fds-accordion h1 .accordion-button[aria-expanded=true], fds-accordion h2 .accordion-button[aria-expanded=true], fds-accordion h3 .accordion-button[aria-expanded=true], fds-accordion h4 .accordion-button[aria-expanded=true], fds-accordion h5 .accordion-button[aria-expanded=true], fds-accordion h6 .accordion-button[aria-expanded=true],
+.fds-accordion h1 .accordion-button[aria-expanded=true],
+.fds-accordion h2 .accordion-button[aria-expanded=true],
+.fds-accordion h3 .accordion-button[aria-expanded=true],
+.fds-accordion h4 .accordion-button[aria-expanded=true],
+.fds-accordion h5 .accordion-button[aria-expanded=true],
+.fds-accordion h6 .accordion-button[aria-expanded=true]{
+  border-radius:8px 8px 0 0;
+}
+fds-accordion h1 .accordion-button[aria-expanded=false], fds-accordion h2 .accordion-button[aria-expanded=false], fds-accordion h3 .accordion-button[aria-expanded=false], fds-accordion h4 .accordion-button[aria-expanded=false], fds-accordion h5 .accordion-button[aria-expanded=false], fds-accordion h6 .accordion-button[aria-expanded=false],
+.fds-accordion h1 .accordion-button[aria-expanded=false],
+.fds-accordion h2 .accordion-button[aria-expanded=false],
+.fds-accordion h3 .accordion-button[aria-expanded=false],
+.fds-accordion h4 .accordion-button[aria-expanded=false],
+.fds-accordion h5 .accordion-button[aria-expanded=false],
+.fds-accordion h6 .accordion-button[aria-expanded=false]{
+  border-radius:8px;
+}
+fds-accordion h1 .accordion-button[aria-expanded=false]::before, fds-accordion h2 .accordion-button[aria-expanded=false]::before, fds-accordion h3 .accordion-button[aria-expanded=false]::before, fds-accordion h4 .accordion-button[aria-expanded=false]::before, fds-accordion h5 .accordion-button[aria-expanded=false]::before, fds-accordion h6 .accordion-button[aria-expanded=false]::before,
+.fds-accordion h1 .accordion-button[aria-expanded=false]::before,
+.fds-accordion h2 .accordion-button[aria-expanded=false]::before,
+.fds-accordion h3 .accordion-button[aria-expanded=false]::before,
+.fds-accordion h4 .accordion-button[aria-expanded=false]::before,
+.fds-accordion h5 .accordion-button[aria-expanded=false]::before,
+.fds-accordion h6 .accordion-button[aria-expanded=false]::before{
+  content:"";
+  background-image:url("../img/svg-icons/plus.svg");
+  background-size:2.4rem;
+  background-repeat:no-repeat;
+}
+fds-accordion .accordion-content,
+.fds-accordion .accordion-content{
+  background-color:#F5F5F5;
+  color:#1a1a1a;
+  overflow:auto;
+  padding:0.8rem 1.6rem 2.4rem 5.6rem;
+  border-radius:0 0 8px 8px;
+}
+fds-accordion .accordion-content p, fds-accordion .accordion-content h1, fds-accordion .accordion-content h2, fds-accordion .accordion-content h3, fds-accordion .accordion-content h4, fds-accordion .accordion-content h5, fds-accordion .accordion-content .h1, fds-accordion .accordion-content .h2, fds-accordion .accordion-content .h3, fds-accordion .accordion-content .h4, fds-accordion .accordion-content .h5,
+.fds-accordion .accordion-content p,
+.fds-accordion .accordion-content h1,
+.fds-accordion .accordion-content h2,
+.fds-accordion .accordion-content h3,
+.fds-accordion .accordion-content h4,
+.fds-accordion .accordion-content h5,
+.fds-accordion .accordion-content .h1,
+.fds-accordion .accordion-content .h2,
+.fds-accordion .accordion-content .h3,
+.fds-accordion .accordion-content .h4,
+.fds-accordion .accordion-content .h5{
+  color:#1a1a1a;
+}
+fds-accordion .accordion-content > *:first-child,
+.fds-accordion .accordion-content > *:first-child{
+  margin-top:0;
+}
+fds-accordion .accordion-content > *:last-child,
+.fds-accordion .accordion-content > *:last-child{
+  margin-bottom:0;
+}
+fds-accordion .accordion-content:not([aria-hidden]),
+.fds-accordion .accordion-content:not([aria-hidden]){
+  display:none;
+}
+fds-accordion .accordion-content[aria-hidden=true],
+.fds-accordion .accordion-content[aria-hidden=true]{
+  display:none;
 }
