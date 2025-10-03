@@ -92,41 +92,40 @@ class FDSAccordion extends HTMLElement {
     #updateVariant(text, icon) {
         const button = this.#headingElement.querySelector('button.accordion-button');
 
-        let variantEl = button.querySelector('.accordion-icon');
-        if (!variantEl) {
-            variantEl = document.createElement('span');
-            variantEl.classList.add('accordion-icon');
-            button.appendChild(variantEl);
-        }
+        if (text && icon) {
+            let variantEl = button.querySelector('.accordion-icon');
+            if (!variantEl) {
+                variantEl = document.createElement('span');
+                variantEl.classList.add('accordion-icon');
+                button.appendChild(variantEl);
+            }
 
-        variantEl.innerHTML = '';
+            variantEl.innerHTML = '';
 
-        if (text) {
             const textEl = document.createElement('span');
             textEl.classList.add('icon_text');
             textEl.textContent = text;
             variantEl.appendChild(textEl);
-        }
 
-
-        if (icon) {
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.classList.add('icon-svg');
             svg.setAttribute('focusable', 'false');
             svg.setAttribute('aria-hidden', 'true');
 
             const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-            use.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `#${icon}`);
+            use.setAttributeNS(null, 'href', `#${icon}`);
             svg.appendChild(use);
 
             variantEl.appendChild(svg);
         }
+        else if (button.querySelector('.accordion-icon')) {
+            button.querySelector('.accordion-icon').remove();
+        }
     }
-
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['heading', 'heading-level', 'expanded', 'content-id', 'variant-text', 'variant-icon', 'has-error'];
+    static observedAttributes = ['heading', 'heading-level', 'expanded', 'content-id', 'variant-text', 'variant-icon'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -245,13 +244,23 @@ class FDSAccordion extends HTMLElement {
                 this.#updateContentId(newValue);
             }
 
-            if (attribute === 'variant-text' && attribute === 'variant-icon') {
-                this.#updateVariant(
-                    this.getAttribute('variant-text'),
-                    this.getAttribute('variant-icon')
-                );
+            if (attribute === 'variant-text') {
+                if (this.hasAttribute('variant-icon')) {
+                    this.#updateVariant(newValue, this.getAttribute('variant-icon'));
+                }
+                else {
+                    this.#updateVariant(newValue, '');
+                }
             }
 
+            if (attribute === 'variant-icon') {
+                if (this.hasAttribute('variant-text')) {
+                    this.#updateVariant(this.getAttribute('variant-text'), newValue);
+                }
+                else {
+                    this.#updateVariant('', newValue);
+                }
+            }
         }
     }
 }
