@@ -12392,6 +12392,12 @@ fds-accordion,
   display:block;
   margin-bottom:0.8rem;
 }
+fds-accordion[has-error=true] .accordion-button, fds-accordion[has-error=true] .accordion-content,
+.fds-accordion[has-error=true] .accordion-button,
+.fds-accordion[has-error=true] .accordion-content{
+  background-image:linear-gradient(to right, #CC0000 4px, transparent 4px);
+  background-position-x:0;
+}
 fds-accordion h1, fds-accordion h2, fds-accordion h3, fds-accordion h4, fds-accordion h5, fds-accordion h6,
 .fds-accordion h1,
 .fds-accordion h2,

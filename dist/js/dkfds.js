@@ -5718,6 +5718,7 @@ class FDSAccordion extends HTMLElement {
 
   #initialized;
   #expanded;
+  #hasError;
   #headingElement;
   #contentElement;
   #handleAccordionClick;
@@ -5784,10 +5785,36 @@ class FDSAccordion extends HTMLElement {
     this.#headingElement.querySelector('.accordion-button').setAttribute('aria-controls', contentId);
     this.#contentElement.setAttribute('id', contentId);
   }
+  #updateVariant(text, icon) {
+    const button = this.#headingElement.querySelector('button.accordion-button');
+    let variantEl = button.querySelector('.accordion-icon');
+    if (!variantEl) {
+      variantEl = document.createElement('span');
+      variantEl.classList.add('accordion-icon');
+      button.appendChild(variantEl);
+    }
+    variantEl.innerHTML = '';
+    if (text) {
+      const textEl = document.createElement('span');
+      textEl.classList.add('icon_text');
+      textEl.textContent = text;
+      variantEl.appendChild(textEl);
+    }
+    if (icon) {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.classList.add('icon-svg');
+      svg.setAttribute('focusable', 'false');
+      svg.setAttribute('aria-hidden', 'true');
+      const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+      use.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `#${icon}`);
+      svg.appendChild(use);
+      variantEl.appendChild(svg);
+    }
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['heading', 'heading-level', 'expanded', 'content-id'];
+  static observedAttributes = ['heading', 'heading-level', 'expanded', 'content-id', 'variant-text', 'variant-icon', 'has-error'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -5851,6 +5878,9 @@ class FDSAccordion extends HTMLElement {
       if (this.hasAttribute('content-id')) {
         this.#updateContentId(this.getAttribute('content-id'));
       }
+      if (this.hasAttribute('variant-text') && this.hasAttribute('variant-icon')) {
+        this.#updateVariant(this.getAttribute('variant-text'), this.getAttribute('variant-icon'));
+      }
       this.#headingElement.querySelector('button.accordion-button').addEventListener('click', this.#handleAccordionClick, false);
     }
   }
@@ -5885,6 +5915,9 @@ class FDSAccordion extends HTMLElement {
       }
       if (attribute === 'content-id') {
         this.#updateContentId(newValue);
+      }
+      if (attribute === 'variant-text' && attribute === 'variant-icon') {
+        this.#updateVariant(this.getAttribute('variant-text'), this.getAttribute('variant-icon'));
       }
     }
   }
