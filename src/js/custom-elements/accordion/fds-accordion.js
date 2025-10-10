@@ -1,6 +1,6 @@
 'use strict';
 
-import { generateUniqueIdWithPrefix } from '../utils/generate-unique-id';
+import { generateUniqueIdWithPrefix } from '../../utils/generate-unique-id';
 
 class FDSAccordion extends HTMLElement {
 

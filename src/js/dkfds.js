@@ -19,8 +19,8 @@ import Tooltip from './components/tooltip';
 const datePicker = require('./components/date-picker').default;
 
 // Custom elements
-import FDSAccordion from './custom-elements/fds-accordion';
-import FDSAccordionGroup from './custom-elements/fds-accordion-group';
+import FDSAccordion from './custom-elements/accordion/fds-accordion';
+import FDSAccordionGroup from './custom-elements/accordion/fds-accordion-group';
 
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from

@@ -2328,7 +2328,7 @@ const isElement = value => value && typeof value === "object" && value.nodeType 
 
 /***/ }),
 
-/***/ 807:
+/***/ 188:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -3210,7 +3210,7 @@ __webpack_require__.d(__webpack_exports__, {
 ;// ./src/js/components/accordion.js
 
 
-const toggle = (__webpack_require__(807)/* ["default"] */ .A);
+const toggle = (__webpack_require__(188)/* ["default"] */ .A);
 const isElementInViewport = (__webpack_require__(665)/* ["default"] */ .A);
 const BUTTON = `.accordion-button[aria-controls]`;
 const EXPANDED = 'aria-expanded';
@@ -5709,7 +5709,7 @@ function generateUniqueId() {
 function generateUniqueIdWithPrefix(str) {
   return str + crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
 }
-;// ./src/js/custom-elements/fds-accordion.js
+;// ./src/js/custom-elements/accordion/fds-accordion.js
 
 
 
@@ -5933,7 +5933,7 @@ class FDSAccordion extends HTMLElement {
   }
 }
 /* harmony default export */ const fds_accordion = (FDSAccordion);
-;// ./src/js/custom-elements/fds-accordion-group.js
+;// ./src/js/custom-elements/accordion/fds-accordion-group.js
 
 
 class FDSAccordionGroup extends HTMLElement {
