@@ -1,6 +1,7 @@
 'use strict';
 
 import { generateUniqueIdWithPrefix } from '../../utils/generate-unique-id';
+import { renderAccordionHTML } from './renderAccordionHTML.js';
 
 class FDSAccordion extends HTMLElement {
 
@@ -53,49 +54,49 @@ class FDSAccordion extends HTMLElement {
             }
 
             if (!accordionRendered) {
-                /* Default values */
+                //  Capture existing child nodes to preserve full HTML (multiple <p>, links, etc.)
+                const preservedNodes = Array.from(this.childNodes);
 
-                let defaultId = '';
-                do {
-                    defaultId = generateUniqueIdWithPrefix('acc');
-                } while (document.getElementById(defaultId));
-
-                let defaultHeadingLevel = 'h3';
-
-                this.#expanded = false;
-
-                /* Accordion heading */
-
-                const heading = document.createElement('span');
-                heading.classList.add('accordion-title');
-
-                const accordionButton = document.createElement('button');
-                accordionButton.classList.add('accordion-button');
-                accordionButton.setAttribute('aria-expanded', 'true');
-                accordionButton.setAttribute('type', 'button');
-                accordionButton.setAttribute('aria-controls', defaultId);
-
-                let headingElement = document.createElement(defaultHeadingLevel);
-
-                accordionButton.appendChild(heading);
-                headingElement.appendChild(accordionButton);
-
-                /* Accordion content */
-
-                let contentElement = document.createElement('div');
-                contentElement.classList.add('accordion-content');
-                contentElement.setAttribute('id', defaultId);
-                contentElement.setAttribute('aria-hidden', 'false');
-
-                while (this.firstChild) {
-                    contentElement.appendChild(this.firstChild);
+                let id = this.getAttribute('content-id') || '';
+                if (!id) {
+                    do {
+                        id = generateUniqueIdWithPrefix('acc');
+                    } while (document.getElementById(id));
+                    this.setAttribute('content-id', id);
                 }
 
-                this.appendChild(headingElement);
-                this.appendChild(contentElement);
-            }
+                const heading = this.getAttribute('heading') || '';
+                const headingLevel = (this.getAttribute('heading-level') || 'h3').toLowerCase();
+                const expandedAttr = this.getAttribute('expanded');
+                const expanded = expandedAttr === 'true';
 
-            this.#initialized = true;
+
+                // Render inner markup and replace children
+                const inner = renderAccordionHTML({
+                    heading,
+                    headingLevel,
+                    expanded,
+                    contentId: id,
+                    content: '',
+                });
+
+                this.innerHTML = inner;
+
+                // Reinsert preserved nodes into the content container (replace placeholder)
+                const contentEl = this.querySelector('.accordion-content');
+                if (contentEl) {
+                    // Clear the placeholder <p> and inject original nodes
+                    contentEl.innerHTML = '';
+                    const fragment = document.createDocumentFragment();
+                    for (const node of preservedNodes) {
+                        fragment.appendChild(node);
+                    }
+                    contentEl.appendChild(fragment);
+                }
+
+                // 5) Sync internal state
+                this.#expanded = expanded;
+            }
         }
     }
 
