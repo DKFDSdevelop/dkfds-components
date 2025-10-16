@@ -5709,7 +5709,46 @@ function generateUniqueId() {
 function generateUniqueIdWithPrefix(str) {
   return str + crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
 }
+;// ./src/js/custom-elements/accordion/renderAccordionHTML.js
+
+function renderAccordionHTML() {
+  let {
+    heading = '',
+    headingLevel = 'h3',
+    expanded = false,
+    contentId = '',
+    variantText = '',
+    variantIcon = '',
+    content = ''
+  } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  const id = contentId || generateUniqueIdWithPrefix('acc');
+  const ariaExpanded = expanded ? 'true' : 'false';
+  const ariaHidden = expanded ? 'false' : 'true';
+  const variantMarkup = variantText && variantIcon ? `<span class="accordion-icon">
+                    <span class="icon_text">${variantText}</span>
+                    <svg class="icon-svg" focusable="false" aria-hidden="true">
+                        <use href="#${variantIcon}"></use>
+                    </svg>
+                </span>` : '';
+  return `
+        <${headingLevel}>
+            <button class="accordion-button"
+                    type="button"
+                    aria-expanded="${ariaExpanded}"
+                    aria-controls="${id}">
+            <span class="accordion-title">${heading}</span>
+            ${variantMarkup}
+            </button>
+        </${headingLevel}>
+        <div class="accordion-content"
+            id="${id}"
+            aria-hidden="${ariaHidden}">
+            <p>${content}</p>
+        </div>
+  `.trim();
+}
 ;// ./src/js/custom-elements/accordion/fds-accordion.js
+
 
 
 
@@ -5759,41 +5798,45 @@ class FDSAccordion extends HTMLElement {
         accordionRendered = false;
       }
       if (!accordionRendered) {
-        /* Default values */
-
-        let defaultId = '';
-        do {
-          defaultId = generateUniqueIdWithPrefix('acc');
-        } while (document.getElementById(defaultId));
-        let defaultHeadingLevel = 'h3';
-        this.#expanded = false;
-
-        /* Accordion heading */
-
-        const heading = document.createElement('span');
-        heading.classList.add('accordion-title');
-        const accordionButton = document.createElement('button');
-        accordionButton.classList.add('accordion-button');
-        accordionButton.setAttribute('aria-expanded', 'true');
-        accordionButton.setAttribute('type', 'button');
-        accordionButton.setAttribute('aria-controls', defaultId);
-        let headingElement = document.createElement(defaultHeadingLevel);
-        accordionButton.appendChild(heading);
-        headingElement.appendChild(accordionButton);
-
-        /* Accordion content */
-
-        let contentElement = document.createElement('div');
-        contentElement.classList.add('accordion-content');
-        contentElement.setAttribute('id', defaultId);
-        contentElement.setAttribute('aria-hidden', 'false');
-        while (this.firstChild) {
-          contentElement.appendChild(this.firstChild);
+        //  Capture existing child nodes to preserve full HTML (multiple <p>, links, etc.)
+        const preservedNodes = Array.from(this.childNodes);
+        let id = this.getAttribute('content-id') || '';
+        if (!id) {
+          do {
+            id = generateUniqueIdWithPrefix('acc');
+          } while (document.getElementById(id));
+          this.setAttribute('content-id', id);
         }
-        this.appendChild(headingElement);
-        this.appendChild(contentElement);
+        const heading = this.getAttribute('heading') || '';
+        const headingLevel = (this.getAttribute('heading-level') || 'h3').toLowerCase();
+        const expandedAttr = this.getAttribute('expanded');
+        const expanded = expandedAttr === 'true';
+
+        // Render inner markup and replace children
+        const inner = renderAccordionHTML({
+          heading,
+          headingLevel,
+          expanded,
+          contentId: id,
+          content: ''
+        });
+        this.innerHTML = inner;
+
+        // Reinsert preserved nodes into the content container (replace placeholder)
+        const contentEl = this.querySelector('.accordion-content');
+        if (contentEl) {
+          // Clear the placeholder <p> and inject original nodes
+          contentEl.innerHTML = '';
+          const fragment = document.createDocumentFragment();
+          for (const node of preservedNodes) {
+            fragment.appendChild(node);
+          }
+          contentEl.appendChild(fragment);
+        }
+
+        // 5) Sync internal state
+        this.#expanded = expanded;
       }
-      this.#initialized = true;
     }
   }
   #updateHeading(heading) {
