@@ -3204,7 +3204,9 @@ __webpack_require__.d(__webpack_exports__, {
   Tooltip: () => (/* reexport */ tooltip),
   datePicker: () => (/* binding */ datePicker),
   init: () => (/* binding */ init),
-  initCustomElements: () => (/* binding */ initCustomElements)
+  initCustomElements: () => (/* binding */ initCustomElements),
+  renderAccordionHTML: () => (/* reexport */ renderAccordionHTML),
+  validateAccordionHTML: () => (/* reexport */ validateAccordionHTML)
 });
 
 ;// ./src/js/components/accordion.js
@@ -5742,7 +5744,33 @@ function renderAccordionHTML() {
         </div>
         `.trim();
 }
+;// ./src/js/custom-elements/accordion/validateAccordionHTML.js
+function validateAccordionHTML(children) {
+  if (children.length !== 2) return false;
+  const [heading, content] = children;
+
+  // Heading tag
+  if (!['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(heading.tagName)) return false;
+
+  // Button
+  const button = heading.querySelector(':scope > button.accordion-button[aria-expanded][aria-controls]');
+  if (!button) return false;
+
+  // Title
+  if (!button.querySelector(':scope > .accordion-title')) return false;
+
+  // Variant icon and text (optional)
+  const variant = button.querySelector(':scope > .accordion-title + .accordion-icon');
+  if (variant) {
+    if (!variant.querySelector(':scope > .icon_text') || !variant.querySelector(':scope > .icon-svg')) return false;
+  }
+
+  // Content
+  if (!content.classList.contains('accordion-content') || !content.hasAttribute('id') || !content.hasAttribute('aria-hidden')) return false;
+  return true;
+}
 ;// ./src/js/custom-elements/accordion/fds-accordion.js
+
 
 
 
@@ -5758,40 +5786,8 @@ class FDSAccordion extends HTMLElement {
 
   #init() {
     if (!this.#initialized) {
-      let accordionRendered = true;
-      if (this.children.length === 2) {
-        const ACC_HEADING = this.children[0];
-        const ACC_CONTENT = this.children[1];
-
-        // Validate heading
-        if (!['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(ACC_HEADING.tagName)) {
-          accordionRendered = false;
-        }
-
-        // Validate button in heading
-        if (ACC_HEADING.querySelectorAll(':scope > button.accordion-button[aria-expanded][aria-controls]').length !== 1) {
-          accordionRendered = false;
-        }
-
-        // Validate accordion title
-        if (ACC_HEADING.querySelectorAll(':scope > button.accordion-button[aria-expanded][aria-controls] > .accordion-title').length !== 1) {
-          accordionRendered = false;
-        }
-
-        // Validate content
-        if (!(ACC_CONTENT.classList.contains('accordion-content') && ACC_CONTENT.hasAttribute('id') && ACC_CONTENT.hasAttribute('aria-hidden'))) {
-          accordionRendered = false;
-        }
-
-        // Validate variant and variant icon
-        if (ACC_HEADING.querySelectorAll(':scope > button.accordion-button[aria-expanded][aria-controls] > .accordion-title + .accordion-icon').length === 1) {
-          if (!(ACC_HEADING.querySelectorAll(':scope > button.accordion-button[aria-expanded][aria-controls] > .accordion-title + .accordion-icon > .icon_text').length === 1 && ACC_HEADING.querySelectorAll(':scope > button.accordion-button[aria-expanded][aria-controls] > .accordion-title + .accordion-icon > .icon-svg').length)) {
-            accordionRendered = false;
-          }
-        }
-      } else {
-        accordionRendered = false;
-      }
+      // Check if the HTML inside the accordion already has been rendered
+      const accordionRendered = validateAccordionHTML(this.children);
       if (!accordionRendered) {
         // Capture existing child nodes to preserve functionality
         const preservedNodes = Array.from(this.childNodes);
@@ -6077,6 +6073,8 @@ class FDSAccordionGroup extends HTMLElement {
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 // Custom elements
+
+
 
 
 

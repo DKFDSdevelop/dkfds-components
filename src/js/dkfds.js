@@ -21,6 +21,8 @@ const datePicker = require('./components/date-picker').default;
 // Custom elements
 import FDSAccordion from './custom-elements/accordion/fds-accordion';
 import FDSAccordionGroup from './custom-elements/accordion/fds-accordion-group';
+import { renderAccordionHTML } from './custom-elements/accordion/renderAccordionHTML.js';
+import { validateAccordionHTML } from './custom-elements/accordion/validateAccordionHTML.js'
 
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
@@ -220,4 +222,4 @@ const initCustomElements = () => {
   }
 };
 
-export { init, initCustomElements, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
+export { init, initCustomElements, renderAccordionHTML, validateAccordionHTML, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
