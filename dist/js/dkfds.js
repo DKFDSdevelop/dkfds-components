@@ -5710,7 +5710,6 @@ function generateUniqueIdWithPrefix(str) {
   return str + crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
 }
 ;// ./src/js/custom-elements/accordion/renderAccordionHTML.js
-
 function renderAccordionHTML() {
   let {
     heading = '',
@@ -5721,7 +5720,7 @@ function renderAccordionHTML() {
     variantIcon,
     content = ''
   } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  const id = contentId || generateUniqueIdWithPrefix('acc');
+  const id = contentId || '';
   const ariaExpanded = expanded;
   const ariaHidden = !expanded;
   const variantMarkup = variantText && variantIcon ? `
@@ -5796,12 +5795,6 @@ class FDSAccordion extends HTMLElement {
       if (!accordionRendered) {
         //  Capture existing child nodes to preserve full HTML (multiple <p>, links, etc.)
         const preservedNodes = Array.from(this.childNodes);
-        let defaultId = this.getAttribute('content-id') || '';
-        if (!defaultId) {
-          do {
-            defaultId = generateUniqueIdWithPrefix('acc');
-          } while (document.getElementById(defaultId));
-        }
         const heading = this.getAttribute('heading') || '';
         const headingLevel = (this.getAttribute('heading-level') || 'h3').toLowerCase();
         const exp_attr = this.getAttribute('expanded');
@@ -5813,7 +5806,7 @@ class FDSAccordion extends HTMLElement {
           heading,
           headingLevel,
           expanded,
-          contentId: defaultId,
+          contentId: '',
           content: ''
         });
         this.innerHTML = inner;
@@ -5950,6 +5943,22 @@ class FDSAccordion extends HTMLElement {
   connectedCallback() {
     if (!this.#initialized) {
       this.#init();
+
+      // Ensure the accordion has a valid id
+      const accId = this.#getContentElement().getAttribute('id');
+      if (accId === '' || accId !== this.#getHeadingElement().querySelector('.accordion-button').getAttribute('aria-controls')) {
+        let defaultId = '';
+        if (this.hasAttribute('content-id')) {
+          defaultId = this.getAttribute('content-id');
+        } else if (accId === '') {
+          do {
+            defaultId = generateUniqueIdWithPrefix('acc');
+          } while (document.getElementById(defaultId));
+        } else {
+          defaultId = accId;
+        }
+        this.#updateContentId(defaultId);
+      }
       if (this.hasAttribute('variant-text') && this.hasAttribute('variant-icon')) {
         this.#updateVariant(this.getAttribute('variant-text'), this.getAttribute('variant-icon'));
       }

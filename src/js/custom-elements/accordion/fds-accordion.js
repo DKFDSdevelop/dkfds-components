@@ -57,13 +57,6 @@ class FDSAccordion extends HTMLElement {
                 //  Capture existing child nodes to preserve full HTML (multiple <p>, links, etc.)
                 const preservedNodes = Array.from(this.childNodes);
 
-                let defaultId = this.getAttribute('content-id') || '';
-                if (!defaultId) {
-                    do {
-                        defaultId = generateUniqueIdWithPrefix('acc');
-                    } while (document.getElementById(defaultId));
-                }
-
                 const heading = this.getAttribute('heading') || '';
                 const headingLevel = (this.getAttribute('heading-level') || 'h3').toLowerCase();
 
@@ -76,7 +69,7 @@ class FDSAccordion extends HTMLElement {
                     heading,
                     headingLevel,
                     expanded,
-                    contentId: defaultId,
+                    contentId: '',
                     content: '',
                 });
 
@@ -232,6 +225,24 @@ class FDSAccordion extends HTMLElement {
     connectedCallback() {
         if (!this.#initialized) {
             this.#init();
+
+            // Ensure the accordion has a valid id
+            const accId = this.#getContentElement().getAttribute('id');
+            if (accId === '' || accId !== this.#getHeadingElement().querySelector('.accordion-button').getAttribute('aria-controls')) {
+                let defaultId = '';
+                if (this.hasAttribute('content-id')) {
+                    defaultId = this.getAttribute('content-id');
+                }
+                else if (accId === '') {
+                    do {
+                        defaultId = generateUniqueIdWithPrefix('acc');
+                    } while (document.getElementById(defaultId));
+                }
+                else {
+                    defaultId = accId;
+                }
+                this.#updateContentId(defaultId);
+            }
 
             if (this.hasAttribute('variant-text') && this.hasAttribute('variant-icon')) {
                 this.#updateVariant(this.getAttribute('variant-text'), this.getAttribute('variant-icon'));

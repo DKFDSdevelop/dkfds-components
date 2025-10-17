@@ -1,5 +1,3 @@
-import { generateUniqueIdWithPrefix } from '../../utils/generate-unique-id.js';
-
 export function renderAccordionHTML({
     heading = '',
     headingLevel = 'h3',
@@ -10,7 +8,7 @@ export function renderAccordionHTML({
     content = '',
 } = {}) {
 
-    const id = contentId || generateUniqueIdWithPrefix('acc');
+    const id = contentId || '';
     const ariaExpanded = expanded;
     const ariaHidden = !expanded;
     const variantMarkup = (variantText && variantIcon)
