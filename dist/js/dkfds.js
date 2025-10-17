@@ -5793,35 +5793,28 @@ class FDSAccordion extends HTMLElement {
         accordionRendered = false;
       }
       if (!accordionRendered) {
-        //  Capture existing child nodes to preserve full HTML (multiple <p>, links, etc.)
+        // Capture existing child nodes to preserve functionality
         const preservedNodes = Array.from(this.childNodes);
-        const heading = this.getAttribute('heading') || '';
-        const headingLevel = (this.getAttribute('heading-level') || 'h3').toLowerCase();
-        const exp_attr = this.getAttribute('expanded');
-        const expanded = exp_attr !== null && exp_attr !== 'false';
-        this.#expanded = expanded;
 
-        // Render inner markup and replace children
+        // Set expanded state
+        this.#expanded = this.getAttribute('expanded') !== null && this.getAttribute('expanded') !== 'false';
+
+        // Render inner markup
         const inner = renderAccordionHTML({
-          heading,
-          headingLevel,
-          expanded,
+          heading: this.getAttribute('heading') || '',
+          headingLevel: (this.getAttribute('heading-level') || 'h3').toLowerCase(),
+          expanded: this.#expanded,
           contentId: '',
           content: ''
         });
         this.innerHTML = inner;
 
-        // Reinsert preserved nodes into the content container (replace placeholder)
-        const contentEl = this.querySelector('.accordion-content');
-        if (contentEl) {
-          // Clear the placeholder <p> and inject original nodes
-          contentEl.innerHTML = '';
-          const fragment = document.createDocumentFragment();
-          for (const node of preservedNodes) {
-            fragment.appendChild(node);
-          }
-          contentEl.appendChild(fragment);
-        }
+        // Reinsert preserved nodes into the content container
+        const contentEl = this.#getContentElement();
+        contentEl.innerHTML = ''; // Remove any whitespaces created by renderAccordionHTML()
+        const fragment = document.createDocumentFragment();
+        preservedNodes.forEach(node => fragment.appendChild(node));
+        contentEl.appendChild(fragment);
       }
       this.#initialized = true;
     }
