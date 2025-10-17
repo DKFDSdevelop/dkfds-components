@@ -57,26 +57,26 @@ class FDSAccordion extends HTMLElement {
                 //  Capture existing child nodes to preserve full HTML (multiple <p>, links, etc.)
                 const preservedNodes = Array.from(this.childNodes);
 
-                let id = this.getAttribute('content-id') || '';
-                if (!id) {
+                let defaultId = this.getAttribute('content-id') || '';
+                if (!defaultId) {
                     do {
-                        id = generateUniqueIdWithPrefix('acc');
-                    } while (document.getElementById(id));
-                    this.setAttribute('content-id', id);
+                        defaultId = generateUniqueIdWithPrefix('acc');
+                    } while (document.getElementById(defaultId));
                 }
 
                 const heading = this.getAttribute('heading') || '';
                 const headingLevel = (this.getAttribute('heading-level') || 'h3').toLowerCase();
-                const expandedAttr = this.getAttribute('expanded');
-                const expanded = expandedAttr === 'true';
 
+                const exp_attr = this.getAttribute('expanded');
+                const expanded = exp_attr !== null && exp_attr !== 'false';
+                this.#expanded = expanded;
 
                 // Render inner markup and replace children
                 const inner = renderAccordionHTML({
                     heading,
                     headingLevel,
                     expanded,
-                    contentId: id,
+                    contentId: defaultId,
                     content: '',
                 });
 
@@ -93,10 +93,9 @@ class FDSAccordion extends HTMLElement {
                     }
                     contentEl.appendChild(fragment);
                 }
-
-                // 5) Sync internal state
-                this.#expanded = expanded;
             }
+
+            this.#initialized = true;
         }
     }
 
@@ -174,6 +173,11 @@ class FDSAccordion extends HTMLElement {
 
     static observedAttributes = ['heading', 'heading-level', 'expanded', 'content-id', 'variant-text', 'variant-icon'];
 
+    /* Getters and setters */
+
+    get heading() { return this.getAttribute('heading'); }
+    set heading(val) { this.setAttribute('heading', val); }
+
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
     -------------------------------------------------- */
@@ -217,6 +221,10 @@ class FDSAccordion extends HTMLElement {
         }
     }
 
+    isExpanded() {
+        return this.#expanded;
+    }
+
     /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
     -------------------------------------------------- */
@@ -224,25 +232,6 @@ class FDSAccordion extends HTMLElement {
     connectedCallback() {
         if (!this.#initialized) {
             this.#init();
-
-            if (this.hasAttribute('heading')) {
-                this.#updateHeading(this.getAttribute('heading'));
-            }
-
-            if (this.hasAttribute('heading-level')) {
-                this.#updateHeadingLevel(this.getAttribute('heading-level'));
-            }
-
-            if (this.hasAttribute('expanded')) {
-                this.#updateExpanded(this.getAttribute('expanded'));
-            }
-            else {
-                this.#updateExpanded(this.#expanded);
-            }
-
-            if (this.hasAttribute('content-id')) {
-                this.#updateContentId(this.getAttribute('content-id'));
-            }
 
             if (this.hasAttribute('variant-text') && this.hasAttribute('variant-icon')) {
                 this.#updateVariant(this.getAttribute('variant-text'), this.getAttribute('variant-icon'));
