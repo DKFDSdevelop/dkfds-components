@@ -3204,7 +3204,9 @@ __webpack_require__.d(__webpack_exports__, {
   Tooltip: () => (/* reexport */ tooltip),
   datePicker: () => (/* binding */ datePicker),
   init: () => (/* binding */ init),
-  initCustomElements: () => (/* binding */ initCustomElements),
+  registerAccordion: () => (/* reexport */ registerAccordion),
+  registerAccordionGroup: () => (/* reexport */ fds_accordion_group),
+  registerCustomElements: () => (/* binding */ registerCustomElements),
   renderAccordionHTML: () => (/* reexport */ renderAccordionHTML),
   validateAccordionHTML: () => (/* reexport */ validateAccordionHTML)
 });
@@ -6002,7 +6004,12 @@ class FDSAccordion extends HTMLElement {
     }
   }
 }
-/* harmony default export */ const fds_accordion = (FDSAccordion);
+function registerAccordion() {
+  if (customElements.get('fds-accordion') === undefined) {
+    window.customElements.define('fds-accordion', FDSAccordion);
+  }
+}
+
 ;// ./src/js/custom-elements/accordion/fds-accordion-group.js
 
 
@@ -6048,7 +6055,12 @@ class FDSAccordionGroup extends HTMLElement {
     }
   }
 }
-/* harmony default export */ const fds_accordion_group = (FDSAccordionGroup);
+function registerAccordionGroup() {
+  if (customElements.get('fds-accordion-group') === undefined) {
+    window.customElements.define('fds-accordion-group', FDSAccordionGroup);
+  }
+}
+/* harmony default export */ const fds_accordion_group = (registerAccordionGroup);
 ;// ./src/js/dkfds.js
 
 
@@ -6072,8 +6084,6 @@ class FDSAccordionGroup extends HTMLElement {
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 // Custom elements
-
-
 
 
 
@@ -6263,13 +6273,9 @@ var init = function (options) {
     new tooltip(jsSelectorTooltip[c]).init();
   }
 };
-const initCustomElements = () => {
-  if (customElements.get('fds-accordion') === undefined) {
-    window.customElements.define('fds-accordion', fds_accordion);
-  }
-  if (customElements.get('fds-accordion-group') === undefined) {
-    window.customElements.define('fds-accordion-group', fds_accordion_group);
-  }
+const registerCustomElements = () => {
+  registerAccordion();
+  fds_accordion_group();
 };
 
 })();

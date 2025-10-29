@@ -59,11 +59,11 @@ class FDSAccordion extends HTMLElement {
     }
 
     #updateExpanded(expanded) {
-        if (expanded !== null && expanded !== "false") { 
+        if (expanded !== null && expanded !== "false") {
             this.expandAccordion();
         }
-        else { 
-            this.collapseAccordion(); 
+        else {
+            this.collapseAccordion();
         }
     }
 
@@ -265,4 +265,10 @@ class FDSAccordion extends HTMLElement {
     }
 }
 
-export default FDSAccordion;
+function registerAccordion() {
+    if (customElements.get('fds-accordion') === undefined) {
+        window.customElements.define('fds-accordion', FDSAccordion);
+    }
+}
+
+export { registerAccordion, renderAccordionHTML, validateAccordionHTML };
