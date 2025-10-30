@@ -3204,7 +3204,9 @@ __webpack_require__.d(__webpack_exports__, {
   Tooltip: () => (/* reexport */ tooltip),
   datePicker: () => (/* binding */ datePicker),
   init: () => (/* binding */ init),
-  initCustomElements: () => (/* binding */ initCustomElements),
+  registerAccordion: () => (/* reexport */ registerAccordion),
+  registerAccordionGroup: () => (/* reexport */ fds_accordion_group),
+  registerCustomElements: () => (/* binding */ registerCustomElements),
   renderAccordionHTML: () => (/* reexport */ renderAccordionHTML),
   validateAccordionHTML: () => (/* reexport */ validateAccordionHTML)
 });
@@ -5728,11 +5730,9 @@ function renderAccordionHTML() {
   const variantMarkup = variantText && variantIcon ? `
         <span class="accordion-icon">
             <span class="icon_text">${variantText}</span>
-            <svg class="icon-svg" focusable="false" aria-hidden="true">
-                <use href="#${variantIcon}"></use>
-            </svg>
+            <svg class="icon-svg" focusable="false" aria-hidden="true"><use href="#${variantIcon}"></use></svg>
         </span>
-        ` : '';
+        `.trim() : '';
   return `
         <${headingLevel}>
             <button class="accordion-button" aria-expanded="${ariaExpanded}" type="button" aria-controls="${id}">
@@ -5797,6 +5797,8 @@ class FDSAccordion extends HTMLElement {
           headingLevel: (this.getAttribute('heading-level') || 'h3').toLowerCase(),
           expanded: this.isExpanded(),
           contentId: '',
+          variantText: this.getAttribute('variant-text'),
+          variantIcon: this.getAttribute('variant-icon'),
           content: ''
         });
         this.innerHTML = inner;
@@ -5947,9 +5949,8 @@ class FDSAccordion extends HTMLElement {
         }
         this.#updateContentId(defaultId);
       }
-      if (this.hasAttribute('variant-text') && this.hasAttribute('variant-icon')) {
-        this.#updateVariant(this.getAttribute('variant-text'), this.getAttribute('variant-icon'));
-      }
+
+      // Add event listeners
       this.#getHeadingElement().querySelector('button.accordion-button').addEventListener('click', this.#handleAccordionClick, false);
     }
   }
@@ -6002,7 +6003,12 @@ class FDSAccordion extends HTMLElement {
     }
   }
 }
-/* harmony default export */ const fds_accordion = (FDSAccordion);
+function registerAccordion() {
+  if (customElements.get('fds-accordion') === undefined) {
+    window.customElements.define('fds-accordion', FDSAccordion);
+  }
+}
+
 ;// ./src/js/custom-elements/accordion/fds-accordion-group.js
 
 
@@ -6048,6 +6054,7 @@ class FDSAccordionGroup extends HTMLElement {
     }
   }
 }
+<<<<<<< HEAD
 /* harmony default export */ const fds_accordion_group = (FDSAccordionGroup);
 ;// ./src/js/custom-elements/input/fds-input.js
 
@@ -6174,6 +6181,14 @@ class FDSHelpText extends HTMLElement {
   }
 }
 /* harmony default export */ const fds_help_text = (FDSHelpText);
+=======
+function registerAccordionGroup() {
+  if (customElements.get('fds-accordion-group') === undefined) {
+    window.customElements.define('fds-accordion-group', FDSAccordionGroup);
+  }
+}
+/* harmony default export */ const fds_accordion_group = (registerAccordionGroup);
+>>>>>>> custom-elements
 ;// ./src/js/dkfds.js
 
 
@@ -6200,10 +6215,13 @@ const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 
 
+<<<<<<< HEAD
 
 
 
 
+=======
+>>>>>>> custom-elements
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
  * older browsers, so must be loaded first.
@@ -6390,6 +6408,7 @@ var init = function (options) {
     new tooltip(jsSelectorTooltip[c]).init();
   }
 };
+<<<<<<< HEAD
 const initCustomElements = () => {
   if (customElements.get('fds-accordion') === undefined) {
     window.customElements.define('fds-accordion', fds_accordion);
@@ -6403,6 +6422,11 @@ const initCustomElements = () => {
   if (customElements.get('fds-help-text') === undefined) {
     window.customElements.define('fds-help-text', fds_help_text);
   }
+=======
+const registerCustomElements = () => {
+  registerAccordion();
+  fds_accordion_group();
+>>>>>>> custom-elements
 };
 
 })();

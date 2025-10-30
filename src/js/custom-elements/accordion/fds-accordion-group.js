@@ -44,4 +44,10 @@ class FDSAccordionGroup extends HTMLElement {
     }
 }
 
-export default FDSAccordionGroup;
+function registerAccordionGroup() {
+    if (customElements.get('fds-accordion-group') === undefined) {
+        window.customElements.define('fds-accordion-group', FDSAccordionGroup);
+    }
+}
+
+export default registerAccordionGroup;
