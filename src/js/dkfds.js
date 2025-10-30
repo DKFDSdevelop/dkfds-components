@@ -23,6 +23,8 @@ import FDSAccordion from './custom-elements/accordion/fds-accordion';
 import FDSAccordionGroup from './custom-elements/accordion/fds-accordion-group';
 import { renderAccordionHTML } from './custom-elements/accordion/renderAccordionHTML.js';
 import { validateAccordionHTML } from './custom-elements/accordion/validateAccordionHTML.js'
+import FDSInput from './custom-elements/input/fds-input';
+import FDSHelpText from './custom-elements/fds-help-text.js'
 
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
@@ -219,6 +221,12 @@ const initCustomElements = () => {
   }
   if (customElements.get('fds-accordion-group') === undefined) {
     window.customElements.define('fds-accordion-group', FDSAccordionGroup);
+  }
+  if (customElements.get('fds-input') === undefined) {
+    window.customElements.define('fds-input', FDSInput);
+  }
+  if (customElements.get('fds-help-text') === undefined) {
+    window.customElements.define('fds-help-text', FDSHelpText);
   }
 };
 

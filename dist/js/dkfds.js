@@ -6049,6 +6049,131 @@ class FDSAccordionGroup extends HTMLElement {
   }
 }
 /* harmony default export */ const fds_accordion_group = (FDSAccordionGroup);
+;// ./src/js/custom-elements/input/fds-input.js
+
+
+
+class FDSInput extends HTMLElement {
+  /* Private instance fields */
+
+  /* Private methods */
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = [];
+
+  /* Getters and setters */
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    const label = this.querySelector('label');
+    const input = this.querySelector('input');
+    if (!label || !input) return;
+    const inputId = input.getAttribute('id');
+    const labelFor = label.getAttribute('for');
+    const hasInputId = inputId !== null && inputId.trim() !== '';
+    const hasLabelFor = labelFor !== null && labelFor.trim() !== '';
+    if (hasInputId && hasLabelFor) {
+      if (labelFor !== inputId) {
+        label.setAttribute('for', inputId);
+      }
+    } else if (hasInputId && !hasLabelFor) {
+      label.setAttribute('for', inputId);
+    } else if (!hasInputId && hasLabelFor) {
+      input.setAttribute('id', labelFor);
+    } else {
+      // Neither provided: generate an id
+      const autoId = generateUniqueIdWithPrefix('inp');
+      input.setAttribute('id', autoId);
+      label.setAttribute('for', autoId);
+    }
+    const helpEl = this.querySelector('fds-help-text, .form-hint');
+    if (helpEl) {
+      const helpId = `${input.id}-hint`;
+      helpEl.id = helpId;
+      input.setAttribute('aria-describedby', helpId);
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT REMOVED FROM DOCUMENT
+    -------------------------------------------------- */
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+    -------------------------------------------------- */
+  }
+}
+/* harmony default export */ const fds_input = (FDSInput);
+;// ./src/js/custom-elements/fds-help-text.js
+
+class FDSHelpText extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['id'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.#initialized) return;
+    let span = this.querySelector('.form-hint');
+    if (!span) {
+      span = document.createElement('span');
+      span.className = 'form-hint';
+
+      // Move existing child nodes into the span (preserves text, links, listeners)
+      while (this.firstChild) {
+        span.appendChild(this.firstChild);
+      }
+      this.appendChild(span);
+    }
+
+    // Mirror host id to span.id if present
+    if (this.id && this.id.trim() !== '') {
+      span.id = this.id.trim();
+    }
+    this.#initialized = true;
+  }
+
+  /* --------------------------------------------------
+     CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+     -------------------------------------------------- */
+
+  attributeChangedCallback(name, oldVal, newVal) {
+    if (name === 'id') {
+      const span = this.querySelector('.form-hint');
+      if (span) {
+        const val = (newVal || '').trim();
+        if (val) {
+          span.id = val;
+        } else {
+          span.removeAttribute('id');
+        }
+      }
+    }
+  }
+}
+/* harmony default export */ const fds_help_text = (FDSHelpText);
 ;// ./src/js/dkfds.js
 
 
@@ -6072,6 +6197,8 @@ class FDSAccordionGroup extends HTMLElement {
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 // Custom elements
+
+
 
 
 
@@ -6269,6 +6396,12 @@ const initCustomElements = () => {
   }
   if (customElements.get('fds-accordion-group') === undefined) {
     window.customElements.define('fds-accordion-group', fds_accordion_group);
+  }
+  if (customElements.get('fds-input') === undefined) {
+    window.customElements.define('fds-input', fds_input);
+  }
+  if (customElements.get('fds-help-text') === undefined) {
+    window.customElements.define('fds-help-text', fds_help_text);
   }
 };
 
