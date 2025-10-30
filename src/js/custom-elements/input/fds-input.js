@@ -48,4 +48,10 @@ class FDSInput extends HTMLElement {
     }
 }
 
-export default FDSInput;
+function registerInput() {
+    if (customElements.get('fds-input') === undefined) {
+        window.customElements.define('fds-input', FDSInput);
+    }
+}
+
+export default registerInput;

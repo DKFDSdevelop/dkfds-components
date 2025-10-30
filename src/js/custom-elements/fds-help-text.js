@@ -57,4 +57,10 @@ class FDSHelpText extends HTMLElement {
     }
 }
 
-export default FDSHelpText;
+function registerHelpTetx() {
+    if (customElements.get('fds-help-text') === undefined) {
+        window.customElements.define('fds-help-text', FDSHelpText);
+    }
+}
+
+export default registerHelpTetx;
