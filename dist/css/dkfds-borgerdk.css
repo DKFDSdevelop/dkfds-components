@@ -12620,3 +12620,11 @@ fds-accordion .accordion-content[aria-hidden=true],
 .fds-accordion .accordion-content[aria-hidden=true]{
   display:none;
 }
+
+fds-input{
+  display:block;
+  margin-top:24px;
+}
+fds-input:first-child{
+  margin-top:0;
+}
