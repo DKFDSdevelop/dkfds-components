@@ -1,6 +1,7 @@
 'use strict';
 
 import { generateUniqueIdWithPrefix } from '../../utils/generate-unique-id';
+import { validateInputHTML } from './validateInputHTML'
 
 class FDSInput extends HTMLElement {
 
@@ -9,10 +10,16 @@ class FDSInput extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
+        //Validate structure
+        if (!validateInputHTML(this.children)) {
+            console.error('fds-input: Must contain exactly one <label> and one <input> element');
+            return;
+        }
+
         const label = this.querySelector('label');
         const input = this.querySelector('input');
 
-        if (!label || !input) return;
+        // if (!label || !input) return;
 
         const inputId = input.getAttribute('id');
         const labelFor = label.getAttribute('for');

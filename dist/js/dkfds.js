@@ -6060,7 +6060,15 @@ function registerAccordionGroup() {
   }
 }
 /* harmony default export */ const fds_accordion_group = (registerAccordionGroup);
+;// ./src/js/custom-elements/input/validateInputHTML.js
+function validateInputHTML(children) {
+  const labels = Array.from(children).filter(child => child.tagName === 'LABEL');
+  const inputs = Array.from(children).filter(child => child.tagName === 'INPUT');
+  if (labels.length !== 1 || inputs.length !== 1) return false;
+  return true;
+}
 ;// ./src/js/custom-elements/input/fds-input.js
+
 
 
 
@@ -6070,9 +6078,16 @@ class FDSInput extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
+    //Validate structure
+    if (!validateInputHTML(this.children)) {
+      console.error('fds-input: Must contain exactly one <label> and one <input> element');
+      return;
+    }
     const label = this.querySelector('label');
     const input = this.querySelector('input');
-    if (!label || !input) return;
+
+    // if (!label || !input) return;
+
     const inputId = input.getAttribute('id');
     const labelFor = label.getAttribute('for');
     const hasInputId = inputId !== null && inputId.trim() !== '';
@@ -6106,11 +6121,24 @@ function registerInput() {
 }
 /* harmony default export */ const fds_input = (registerInput);
 ;// ./src/js/custom-elements/fds-help-text.js
-
 class FDSHelpText extends HTMLElement {
   /* Private instance fields */
 
   #initialized = false;
+
+  /* Private methods */
+
+  #updateId(newValue) {
+    const span = this.querySelector('.form-hint');
+    if (span) {
+      const val = (newValue || '').trim();
+      if (val) {
+        span.id = val;
+      } else {
+        span.removeAttribute('id');
+      }
+    }
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -6135,9 +6163,7 @@ class FDSHelpText extends HTMLElement {
     }
 
     // Mirror host id to span.id if present
-    if (this.id && this.id.trim() !== '') {
-      span.id = this.id.trim();
-    }
+    this.#updateId(this.id);
     this.#initialized = true;
   }
 
@@ -6147,24 +6173,16 @@ class FDSHelpText extends HTMLElement {
 
   attributeChangedCallback(name, oldVal, newVal) {
     if (name === 'id') {
-      const span = this.querySelector('.form-hint');
-      if (span) {
-        const val = (newVal || '').trim();
-        if (val) {
-          span.id = val;
-        } else {
-          span.removeAttribute('id');
-        }
-      }
+      this.#updateId(newVal);
     }
   }
 }
-function registerHelpTetx() {
+function registerHelpText() {
   if (customElements.get('fds-help-text') === undefined) {
     window.customElements.define('fds-help-text', FDSHelpText);
   }
 }
-/* harmony default export */ const fds_help_text = (registerHelpTetx);
+/* harmony default export */ const fds_help_text = (registerHelpText);
 ;// ./src/js/dkfds.js
 
 

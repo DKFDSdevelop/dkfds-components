@@ -1,10 +1,22 @@
-import { generateUniqueIdWithPrefix } from '../utils/generate-unique-id';
-
 class FDSHelpText extends HTMLElement {
 
     /* Private instance fields */
 
     #initialized = false;
+
+    /* Private methods */
+
+    #updateId(newValue) {
+        const span = this.querySelector('.form-hint');
+        if (span) {
+            const val = (newValue || '').trim();
+            if (val) {
+                span.id = val;
+            } else {
+                span.removeAttribute('id');
+            }
+        }
+    }
 
     /* Attributes which can invoke attributeChangedCallback() */
 
@@ -31,9 +43,7 @@ class FDSHelpText extends HTMLElement {
         }
 
         // Mirror host id to span.id if present
-        if (this.id && this.id.trim() !== '') {
-            span.id = this.id.trim();
-        }
+        this.#updateId(this.id);
 
         this.#initialized = true;
     }
@@ -44,23 +54,15 @@ class FDSHelpText extends HTMLElement {
 
     attributeChangedCallback(name, oldVal, newVal) {
         if (name === 'id') {
-            const span = this.querySelector('.form-hint');
-            if (span) {
-                const val = (newVal || '').trim();
-                if (val) {
-                    span.id = val;
-                } else {
-                    span.removeAttribute('id');
-                }
-            }
+            this.#updateId(newVal);
         }
     }
 }
 
-function registerHelpTetx() {
+function registerHelpText() {
     if (customElements.get('fds-help-text') === undefined) {
         window.customElements.define('fds-help-text', FDSHelpText);
     }
 }
 
-export default registerHelpTetx;
+export default registerHelpText;
