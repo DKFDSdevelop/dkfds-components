@@ -5,6 +5,31 @@ import { validateInputHTML } from './validateInputHTML'
 
 class FDSInput extends HTMLElement {
 
+    /* Private methods */
+
+    #addLabelIndicator(attributeName, defaultText) {
+        if (this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false') {
+            const attributeValue = this.getAttribute(attributeName);
+            const span = document.createElement('span');
+            span.className = 'weight-normal';
+
+            if (attributeValue && attributeValue !== 'true' && attributeValue !== '') {
+                span.textContent = ` (${attributeValue})`;
+            } else {
+                span.textContent = ` (${defaultText})`;
+            }
+
+            const label = this.querySelector('label');
+            label.appendChild(span);
+
+            // Required attribute specific logic
+            if (attributeName === 'required') {
+                const input = this.querySelector('input');
+                input.setAttribute('required', '');
+            }
+        }
+    }
+
     /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
     -------------------------------------------------- */
@@ -46,19 +71,12 @@ class FDSInput extends HTMLElement {
         }
 
         //Required attribute
-        if (this.hasAttribute('required') && this.getAttribute('required') !== 'false') {
-            const requiredValue = this.getAttribute('required');
-            const requiredSpan = document.createElement('span');
-            requiredSpan.className = 'weight-normal';
 
-            if (requiredValue && requiredValue !== 'true' && requiredValue !== '') {
-                requiredSpan.textContent = ` (${requiredValue})`;
-            } else {
-                requiredSpan.textContent = ' (*skal udfyldes)';
-            }
+        this.#addLabelIndicator('required', '*skal udfyldes');
 
-            label.appendChild(requiredSpan);
-        }
+        //Optional attribute
+
+        this.#addLabelIndicator('optional', 'frivilligt');
 
 
         const helpEl = this.querySelector('fds-help-text, .form-hint');
