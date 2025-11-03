@@ -21,6 +21,9 @@ class FDSInput extends HTMLElement {
 
         // if (!label || !input) return;
 
+        label.classList.add('form-label')
+        input.classList.add('form-input')
+
         const inputId = input.getAttribute('id');
         const labelFor = label.getAttribute('for');
 
@@ -40,6 +43,21 @@ class FDSInput extends HTMLElement {
             const autoId = generateUniqueIdWithPrefix('inp');
             input.setAttribute('id', autoId);
             label.setAttribute('for', autoId);
+        }
+
+        //Required attribute
+        if (this.hasAttribute('required') && this.getAttribute('required') !== 'false') {
+            const requiredValue = this.getAttribute('required');
+            const requiredSpan = document.createElement('span');
+            requiredSpan.className = 'weight-normal';
+
+            if (requiredValue && requiredValue !== 'true' && requiredValue !== '') {
+                requiredSpan.textContent = ` (${requiredValue})`;
+            } else {
+                requiredSpan.textContent = ' (*skal udfyldes)';
+            }
+
+            label.appendChild(requiredSpan);
         }
 
 
