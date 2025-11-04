@@ -6180,6 +6180,202 @@ function registerAccordionGroup() {
   }
 }
 /* harmony default export */ const fds_accordion_group = (registerAccordionGroup);
+;// ./src/js/custom-elements/input/fds-input.js
+
+
+
+class FDSInput extends HTMLElement {
+  /* Private instance fields */
+
+  #input;
+  #label;
+
+  /* Private methods */
+
+  #ensureMatchingIds() {
+    const inputId = this.#input.id?.trim();
+    const labelFor = this.#label.htmlFor?.trim();
+    if (inputId && labelFor) {
+      if (labelFor !== inputId) label.htmlFor = inputId;
+      return;
+    }
+    if (inputId && !labelFor) {
+      this.#label.htmlFor = inputId;
+      return;
+    }
+    if (!inputId && labelFor) {
+      this.#input.id = labelFor;
+      return;
+    }
+    const autoId = generateUniqueIdWithPrefix('inp');
+    this.#input.id = autoId;
+    this.#label.htmlFor = autoId;
+  }
+  #connectHelpText() {
+    const helpEls = this.querySelectorAll('fds-help-text, .form-hint');
+    if (!helpEls.length) return;
+    const ids = Array.from(helpEls).map(helpEl => {
+      const helpId = helpEl.id?.trim() || generateUniqueIdWithPrefix('hint');
+      helpEl.id = helpId;
+      return helpId;
+    });
+    this.#input.setAttribute('aria-describedby', ids.join(' '));
+  }
+  #addLabelIndicator(attributeName, defaultText) {
+    if (!(this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false')) return;
+    if (!this.#label) return;
+
+    // Remove an existing trailing indicator span if present
+    this.#label.querySelector(':scope > span.weight-normal')?.remove();
+    const attributeValue = this.getAttribute(attributeName);
+    const span = document.createElement('span');
+    span.className = 'weight-normal';
+    span.textContent = attributeValue && attributeValue !== 'true' && attributeValue !== '' ? ` (${attributeValue})` : ` (${defaultText})`;
+    this.#label.appendChild(span);
+    if (attributeName === 'required') {
+      this.#input?.setAttribute('required', '');
+    }
+  }
+  #applyRequiredOrOptional() {
+    if (this.hasAttribute('required')) this.#updateRequired();else if (this.hasAttribute('optional')) this.#updateOptional();
+  }
+  #updateRequired() {
+    this.#addLabelIndicator('required', '*skal udfyldes');
+  }
+  #updateOptional() {
+    this.#addLabelIndicator('optional', 'frivilligt');
+  }
+  #applyReadonly() {
+    if (!this.#input) return;
+    if (this.hasAttribute('readonly') && this.getAttribute('readonly') !== 'false') {
+      this.#input.setAttribute('readonly', '');
+    } else {
+      this.#input.removeAttribute('readonly');
+    }
+  }
+  #applyDisabled() {
+    if (!this.#input) return;
+    if (this.hasAttribute('disabled') && this.getAttribute('disabled') !== 'false') {
+      this.#input.setAttribute('disabled', '');
+      this.#label.classList.add('disabled');
+    } else {
+      this.#input.removeAttribute('disabled');
+      this.#label.classList.remove('disabled');
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['required', 'optional', 'readonly', 'disabled'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    this.#label = this.querySelector('label');
+    this.#input = this.querySelector('input');
+    if (!this.#label || !this.#input) return;
+    this.#label.classList.add('form-label');
+    this.#input.classList.add('form-input');
+
+    //Ensuring correct ids
+    this.#ensureMatchingIds();
+    this.#connectHelpText();
+    this.#applyRequiredOrOptional();
+    this.#applyReadonly();
+    this.#applyDisabled();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute) {
+    if (!this.isConnected) return;
+    if (attribute === 'required') {
+      this.#updateRequired();
+    }
+    if (attribute === 'optional') {
+      this.#updateOptional();
+    }
+    if (attribute === 'readonly') {
+      this.#applyReadonly();
+    }
+    if (attribute === 'disabled') {
+      this.#applyDisabled();
+    }
+  }
+}
+function registerInput() {
+  if (customElements.get('fds-input') === undefined) {
+    window.customElements.define('fds-input', FDSInput);
+  }
+}
+/* harmony default export */ const fds_input = (registerInput);
+;// ./src/js/custom-elements/fds-help-text.js
+class FDSHelpText extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+
+  /* Private methods */
+
+  #updateId(newValue) {
+    const span = this.querySelector('.form-hint');
+    if (span) {
+      const val = (newValue || '').trim();
+      if (val) {
+        span.id = val;
+      } else {
+        span.removeAttribute('id');
+      }
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['id'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.#initialized) return;
+    let span = this.querySelector('.form-hint');
+    if (!span) {
+      span = document.createElement('span');
+      span.className = 'form-hint';
+
+      // Move existing child nodes into the span (preserves text, links, listeners)
+      while (this.firstChild) {
+        span.appendChild(this.firstChild);
+      }
+      this.appendChild(span);
+    }
+
+    // Mirror host id to span.id if present
+    this.#updateId(this.id);
+    this.#initialized = true;
+  }
+
+  /* --------------------------------------------------
+     CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+     -------------------------------------------------- */
+
+  attributeChangedCallback(name, oldVal, newVal) {
+    if (name === 'id') {
+      this.#updateId(newVal);
+    }
+  }
+}
+function registerHelpText() {
+  if (customElements.get('fds-help-text') === undefined) {
+    window.customElements.define('fds-help-text', FDSHelpText);
+  }
+}
+/* harmony default export */ const fds_help_text = (registerHelpText);
 ;// ./src/js/dkfds.js
 
 
@@ -6203,6 +6399,8 @@ function registerAccordionGroup() {
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 // Custom elements
+
+
 
 
 
@@ -6395,6 +6593,7 @@ var init = function (options) {
 const registerCustomElements = () => {
   registerAccordion();
   fds_accordion_group();
+  fds_input(), fds_help_text();
 };
 
 })();

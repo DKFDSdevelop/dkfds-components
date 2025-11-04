@@ -1,0 +1,10 @@
+@use "../functions" as func;
+
+fds-input {
+    display: block;
+    margin-top: func.units(5); // 4
+
+    &:first-child {
+        margin-top: 0;
+    }
+}
