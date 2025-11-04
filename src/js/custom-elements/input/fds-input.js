@@ -4,11 +4,16 @@ import { generateUniqueIdWithPrefix } from '../../utils/generate-unique-id';
 
 class FDSInput extends HTMLElement {
 
+    /* Private instance fields */
+
+    #input;
+    #label;
+
     /* Private methods */
 
-    #ensureMatchingIds(label, input) {
-        const inputId = input.id?.trim();
-        const labelFor = label.htmlFor?.trim();
+    #ensureMatchingIds() {
+        const inputId = this.#input.id?.trim();
+        const labelFor = this.#label.htmlFor?.trim();
 
         if (inputId && labelFor) {
             if (labelFor !== inputId) label.htmlFor = inputId;
@@ -16,21 +21,21 @@ class FDSInput extends HTMLElement {
         }
 
         if (inputId && !labelFor) {
-            label.htmlFor = inputId;
+            this.#label.htmlFor = inputId;
             return;
         }
 
         if (!inputId && labelFor) {
-            input.id = labelFor;
+            this.#input.id = labelFor;
             return;
         }
 
         const autoId = generateUniqueIdWithPrefix('inp');
-        input.id = autoId;
-        label.htmlFor = autoId;
+        this.#input.id = autoId;
+        this.#label.htmlFor = autoId;
     }
 
-    #connectHelpText(input) {
+    #connectHelpText() {
         const helpEls = this.querySelectorAll('fds-help-text, .form-hint');
         if (!helpEls.length) return;
 
@@ -40,18 +45,17 @@ class FDSInput extends HTMLElement {
             return helpId;
         });
 
-        input.setAttribute('aria-describedby', ids.join(' '));
+        this.#input.setAttribute('aria-describedby', ids.join(' '));
     }
 
 
     #addLabelIndicator(attributeName, defaultText) {
         if (!(this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false')) return;
 
-        const label = this.querySelector('label');
-        if (!label) return;
+        if (!this.#label) return;
 
         // Remove an existing trailing indicator span if present
-        label.querySelector(':scope > span.weight-normal')?.remove();
+        this.#label.querySelector(':scope > span.weight-normal')?.remove();
 
         const attributeValue = this.getAttribute(attributeName);
         const span = document.createElement('span');
@@ -60,10 +64,10 @@ class FDSInput extends HTMLElement {
             ? ` (${attributeValue})`
             : ` (${defaultText})`;
 
-        label.appendChild(span);
+        this.#label.appendChild(span);
 
         if (attributeName === 'required') {
-            this.querySelector('input')?.setAttribute('required', '');
+            this.#input?.setAttribute('required', '');
         }
     }
 
@@ -81,55 +85,73 @@ class FDSInput extends HTMLElement {
     }
 
     #applyReadonly() {
-        const input = this.querySelector('input');
-        if (!input) return;
+        if (!this.#input) return;
 
         if (this.hasAttribute('readonly') && this.getAttribute('readonly') !== 'false') {
-            input.setAttribute('readonly', '');
+            this.#input.setAttribute('readonly', '');
+        } else {
+            this.#input.removeAttribute('readonly');
+        }
+    }
+
+    #applyDisabled() {
+        if (!this.#input) return;
+
+        if (this.hasAttribute('disabled') && this.getAttribute('disabled') !== 'false') {
+            this.#input.setAttribute('disabled', '');
+            this.#label.classList.add('disabled');
+        } else {
+            this.#input.removeAttribute('disabled');
+            this.#label.classList.remove('disabled');
         }
     }
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['required', 'optional', 'readonly'];
+    static observedAttributes = ['required', 'optional', 'readonly', 'disabled'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
     -------------------------------------------------- */
 
     connectedCallback() {
-        const label = this.querySelector('label');
-        const input = this.querySelector('input');
+        this.#label = this.querySelector('label');
+        this.#input = this.querySelector('input');
 
-        if (!label || !input) return;
+        if (!this.#label || !this.#input) return;
 
-        label.classList.add('form-label')
-        input.classList.add('form-input')
+        this.#label.classList.add('form-label');
+        this.#input.classList.add('form-input');
 
         //Ensuring correct ids
-        this.#ensureMatchingIds(label, input)
-        this.#connectHelpText(input);
-        this.#applyRequiredOrOptional(input)
+        this.#ensureMatchingIds();
+        this.#connectHelpText();
+        this.#applyRequiredOrOptional();
         this.#applyReadonly();
+        this.#applyDisabled();
     }
 
     /* --------------------------------------------------
     CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
     -------------------------------------------------- */
 
-    attributeChangedCallback(attribute, oldValue, newValue) {
+    attributeChangedCallback(attribute) {
         if (!this.isConnected) return;
 
         if (attribute === 'required') {
-            this.#updateRequired(newValue);
+            this.#updateRequired();
         }
 
         if (attribute === 'optional') {
-            this.#updateOptional(newValue);
+            this.#updateOptional();
         }
 
         if (attribute === 'readonly') {
             this.#applyReadonly();
+        }
+
+        if (attribute === 'disabled') {
+            this.#applyDisabled();
         }
     }
 }
