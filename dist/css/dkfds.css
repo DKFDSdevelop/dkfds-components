@@ -7295,14 +7295,16 @@ hr{
   border-top:1px solid #8E8E8E;
 }
 
-button.function-link, button.accordion-bulk-button{
+button.function-link, fds-accordion-group button.bulk-button,
+.fds-accordion-group button.bulk-button, button.accordion-bulk-button{
   background:none;
   padding:0;
   text-decoration:underline;
   text-align:left;
 }
 
-.function-link, button.accordion-bulk-button{
+.function-link, fds-accordion-group button.bulk-button,
+.fds-accordion-group button.bulk-button, button.accordion-bulk-button{
   border:none;
   font-size:1.6rem;
   line-height:2.4rem;
@@ -7315,19 +7317,25 @@ button.function-link, button.accordion-bulk-button{
   overflow-wrap:break-word;
   max-width:100% !important;
 }
-.function-link:hover, button.accordion-bulk-button:hover, .function-link:visited, button.accordion-bulk-button:visited, .function-link:focus, button.accordion-bulk-button:focus{
+.function-link:hover, fds-accordion-group button.bulk-button:hover,
+.fds-accordion-group button.bulk-button:hover, button.accordion-bulk-button:hover, .function-link:visited, fds-accordion-group button.bulk-button:visited,
+.fds-accordion-group button.bulk-button:visited, button.accordion-bulk-button:visited, .function-link:focus, fds-accordion-group button.bulk-button:focus,
+.fds-accordion-group button.bulk-button:focus, button.accordion-bulk-button:focus{
   color:#1a1a1a;
 }
-.function-link .icon-svg, button.accordion-bulk-button .icon-svg{
+.function-link .icon-svg, fds-accordion-group button.bulk-button .icon-svg,
+.fds-accordion-group button.bulk-button .icon-svg, button.accordion-bulk-button .icon-svg{
   margin-right:4px;
   fill:currentColor;
   vertical-align:top;
   margin-top:0.1rem;
 }
-.function-link.icon-link .icon-svg, button.icon-link.accordion-bulk-button .icon-svg{
+.function-link.icon-link .icon-svg, fds-accordion-group button.icon-link.bulk-button .icon-svg,
+.fds-accordion-group button.icon-link.bulk-button .icon-svg, button.icon-link.accordion-bulk-button .icon-svg{
   margin-right:0;
 }
-.function-link.link-right, button.link-right.accordion-bulk-button{
+.function-link.link-right, fds-accordion-group button.link-right.bulk-button,
+.fds-accordion-group button.link-right.bulk-button, button.link-right.accordion-bulk-button{
   text-align:right;
 }
 
@@ -12621,10 +12629,15 @@ fds-accordion .accordion-content[aria-hidden=true],
   display:none;
 }
 
-fds-input{
-  display:block;
-  margin-top:24px;
+fds-accordion-group button.bulk-button,
+.fds-accordion-group button.bulk-button{
+  background-image:url("../img/svg-icons/plus.svg");
+  background-repeat:no-repeat;
+  background-position:left top;
+  padding-left:28px;
+  margin-bottom:16px;
 }
-fds-input:first-child{
-  margin-top:0;
+fds-accordion-group button.bulk-button.close,
+.fds-accordion-group button.bulk-button.close{
+  background-image:url("../img/svg-icons/minus.svg");
 }

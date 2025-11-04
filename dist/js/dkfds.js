@@ -5784,34 +5784,34 @@ class FDSAccordion extends HTMLElement {
   /* Private methods */
 
   #init() {
-    if (!this.#initialized) {
-      // Check if the HTML inside the accordion already has been rendered
-      const accordionRendered = validateAccordionHTML(this.children);
-      if (!accordionRendered) {
-        // Capture existing child nodes to preserve functionality
-        const preservedNodes = Array.from(this.childNodes);
+    if (this.#initialized) return;
 
-        // Render inner markup
-        const inner = renderAccordionHTML({
-          heading: this.getAttribute('heading') || '',
-          headingLevel: (this.getAttribute('heading-level') || 'h3').toLowerCase(),
-          expanded: this.isExpanded(),
-          contentId: '',
-          variantText: this.getAttribute('variant-text'),
-          variantIcon: this.getAttribute('variant-icon'),
-          content: ''
-        });
-        this.innerHTML = inner;
+    // Check if the HTML inside the accordion already has been rendered
+    const accordionRendered = validateAccordionHTML(this.children);
+    if (!accordionRendered) {
+      // Capture existing child nodes to preserve functionality
+      const preservedNodes = Array.from(this.childNodes);
 
-        // Reinsert preserved nodes into the content container
-        const contentEl = this.#getContentElement();
-        contentEl.innerHTML = ''; // Remove any whitespaces created by renderAccordionHTML()
-        const fragment = document.createDocumentFragment();
-        preservedNodes.forEach(node => fragment.appendChild(node));
-        contentEl.appendChild(fragment);
-      }
-      this.#initialized = true;
+      // Render inner markup
+      const inner = renderAccordionHTML({
+        heading: this.getAttribute('heading') || '',
+        headingLevel: (this.getAttribute('heading-level') || 'h3').toLowerCase(),
+        expanded: this.isExpanded(),
+        contentId: '',
+        variantText: this.getAttribute('variant-text'),
+        variantIcon: this.getAttribute('variant-icon'),
+        content: ''
+      });
+      this.innerHTML = inner;
+
+      // Reinsert preserved nodes into the content container
+      const contentEl = this.#getContentElement();
+      contentEl.innerHTML = ''; // Remove any whitespaces created by renderAccordionHTML()
+      const fragment = document.createDocumentFragment();
+      preservedNodes.forEach(node => fragment.appendChild(node));
+      contentEl.appendChild(fragment);
     }
+    this.#initialized = true;
   }
   #updateHeading(heading) {
     this.querySelector('.accordion-title').textContent = heading;
@@ -5905,7 +5905,10 @@ class FDSAccordion extends HTMLElement {
     if (this.getAttribute('expanded') === null || this.getAttribute('expanded') === 'false') {
       this.setAttribute('expanded', 'true');
     }
-    this.dispatchEvent(new Event('fds-accordion-expanded'));
+    this.dispatchEvent(new CustomEvent('fds-accordion-expanded', {
+      bubbles: true,
+      composed: true
+    }));
   }
   collapseAccordion() {
     this.#getHeadingElement().querySelector('button.accordion-button').setAttribute('aria-expanded', 'false');
@@ -5913,7 +5916,10 @@ class FDSAccordion extends HTMLElement {
     if (this.hasAttribute('expanded')) {
       this.setAttribute('expanded', 'false');
     }
-    this.dispatchEvent(new Event('fds-accordion-collapsed'));
+    this.dispatchEvent(new CustomEvent('fds-accordion-collapsed', {
+      bubbles: true,
+      composed: true
+    }));
   }
   toggleAccordion() {
     if (this.isExpanded()) {
@@ -5931,28 +5937,27 @@ class FDSAccordion extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
-    if (!this.#initialized) {
-      this.#init();
+    if (this.#initialized) return;
+    this.#init();
 
-      // Ensure the accordion has a valid id
-      const accId = this.#getContentElement().getAttribute('id');
-      if (accId === '' || accId !== this.#getHeadingElement().querySelector('.accordion-button').getAttribute('aria-controls')) {
-        let defaultId = '';
-        if (this.hasAttribute('content-id')) {
-          defaultId = this.getAttribute('content-id');
-        } else if (accId === '') {
-          do {
-            defaultId = generateUniqueIdWithPrefix('acc');
-          } while (document.getElementById(defaultId));
-        } else {
-          defaultId = accId;
-        }
-        this.#updateContentId(defaultId);
+    // Ensure the accordion has a valid id
+    const accId = this.#getContentElement().getAttribute('id');
+    if (accId === '' || accId !== this.#getHeadingElement().querySelector('.accordion-button').getAttribute('aria-controls')) {
+      let defaultId = '';
+      if (this.hasAttribute('content-id')) {
+        defaultId = this.getAttribute('content-id');
+      } else if (accId === '') {
+        do {
+          defaultId = generateUniqueIdWithPrefix('acc');
+        } while (document.getElementById(defaultId));
+      } else {
+        defaultId = accId;
       }
-
-      // Add event listeners
-      this.#getHeadingElement().querySelector('button.accordion-button').addEventListener('click', this.#handleAccordionClick, false);
+      this.#updateContentId(defaultId);
     }
+
+    // Add event listeners
+    this.#getHeadingElement().querySelector('button.accordion-button').addEventListener('click', this.#handleAccordionClick, false);
   }
 
   /* --------------------------------------------------
@@ -6013,18 +6018,83 @@ function registerAccordion() {
 
 
 class FDSAccordionGroup extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized;
+  #listenersAttached;
+  #bulkButton;
+  #handleBulkClick;
+  #handleAccordionExpanded;
+  #handleAccordionCollapsed;
+
   /* Private methods */
 
-  #updateHeadingLevel(headingLevel) {
-    const accordions = this.querySelectorAll(':scope > fds-accordion');
-    for (let i = 0; i < accordions.length; i++) {
-      accordions[i].setAttribute('heading-level', headingLevel);
+  #getBulkButton() {
+    if (this.#bulkButton) return this.#bulkButton;
+    this.#bulkButton = this.querySelector(':scope > .bulk-button');
+    return this.#bulkButton;
+  }
+  #renderBulkButton() {
+    if (!this.#getBulkButton()) {
+      const bulkButton = document.createElement('button');
+      bulkButton.classList.add('bulk-button');
+      this.prepend(bulkButton);
+      this.#bulkButton = bulkButton;
     }
+  }
+  #init() {
+    if (this.#initialized) return;
+    const hasRenderedBulkButton = this.querySelectorAll('button.bulk-button').length > 0;
+    const hasBulkButtonFromAttr = this.getAttribute('has-bulk-button') !== null && this.getAttribute('has-bulk-button') !== 'false';
+    if (hasBulkButtonFromAttr && !hasRenderedBulkButton) {
+      this.#renderBulkButton();
+    }
+    this.#updateBulkButtonText();
+    this.#initialized = true;
+  }
+  #updateHeadingLevel(headingLevel) {
+    const valid = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+    if (!valid.includes(headingLevel)) return;
+    this.#getAllAccordions().forEach(acc => acc.setAttribute('heading-level', headingLevel));
+  }
+  #getAllAccordions() {
+    return Array.from(this.querySelectorAll(':scope > fds-accordion'));
+  }
+  #areAllExpanded() {
+    return this.#getAllAccordions().every(acc => {
+      const expandedAttr = acc.getAttribute('expanded');
+      if (expandedAttr != null) return expandedAttr === 'true';
+      const button = acc.querySelector('button.accordion-button');
+      return button?.getAttribute('aria-expanded') === 'true';
+    });
+  }
+  #updateBulkButtonText() {
+    const button = this.#getBulkButton();
+    if (!button) return;
+    const openText = this.getAttribute('open-all-text') || 'Åbn alle';
+    const closeText = this.getAttribute('close-all-text') || 'Luk alle';
+    const allExpanded = this.#areAllExpanded();
+    button.textContent = allExpanded ? closeText : openText;
+    allExpanded ? button.classList.add('close') : button.classList.remove('close');
+  }
+  #updateHasBulkButton(attrValue) {
+    const mustHasBulkButton = attrValue !== null && attrValue !== 'false';
+    const hasBulkButton = this.#getBulkButton();
+    if (mustHasBulkButton) {
+      this.#renderBulkButton();
+      this.#getBulkButton()?.removeEventListener('click', this.#handleBulkClick);
+      this.#getBulkButton()?.addEventListener('click', this.#handleBulkClick);
+    } else if (!mustHasBulkButton && hasBulkButton) {
+      this.#getBulkButton()?.removeEventListener('click', this.#handleBulkClick);
+      this.#getBulkButton()?.remove();
+      this.#bulkButton = null;
+    }
+    this.#updateBulkButtonText();
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['heading-level'];
+  static observedAttributes = ['heading-level', 'has-bulk-button', 'open-all-text', 'close-all-text'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -6032,6 +6102,24 @@ class FDSAccordionGroup extends HTMLElement {
 
   constructor() {
     super();
+    this.#initialized = false;
+    this.#listenersAttached = false;
+    this.#bulkButton = null;
+    this.#handleBulkClick = () => this.toggleAllAccordions();
+    this.#handleAccordionExpanded = () => this.#updateBulkButtonText();
+    this.#handleAccordionCollapsed = () => this.#updateBulkButtonText();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  toggleAllAccordions() {
+    const accordions = this.#getAllAccordions();
+    const shouldExpandAll = !this.#areAllExpanded();
+    const newValue = shouldExpandAll ? 'true' : 'false';
+    accordions.forEach(acc => acc.setAttribute('expanded', newValue));
+    this.#updateBulkButtonText();
   }
 
   /* --------------------------------------------------
@@ -6039,9 +6127,33 @@ class FDSAccordionGroup extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
+    if (this.#initialized) return;
+    this.#init();
+    if (this.#listenersAttached) return;
+    this.addEventListener('fds-accordion-expanded', this.#handleAccordionExpanded);
+    this.addEventListener('fds-accordion-collapsed', this.#handleAccordionCollapsed);
+    if (this.#getBulkButton()) {
+      this.#getBulkButton().addEventListener('click', this.#handleBulkClick);
+    }
+    this.#listenersAttached = true;
     if (this.hasAttribute('heading-level')) {
       this.#updateHeadingLevel(this.getAttribute('heading-level'));
     }
+    this.#updateBulkButtonText();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    if (!this.#listenersAttached) return;
+    this.removeEventListener('fds-accordion-expanded', this.#handleAccordionExpanded);
+    this.removeEventListener('fds-accordion-collapsed', this.#handleAccordionCollapsed);
+    if (this.#getBulkButton()) {
+      this.#getBulkButton().removeEventListener('click', this.#handleBulkClick);
+    }
+    this.#listenersAttached = false;
   }
 
   /* --------------------------------------------------
@@ -6049,8 +6161,16 @@ class FDSAccordionGroup extends HTMLElement {
   -------------------------------------------------- */
 
   attributeChangedCallback(attribute, oldValue, newValue) {
-    if (attribute === 'heading-level') {
-      this.#updateHeadingLevel(newValue);
+    if (this.#initialized) {
+      if (attribute === 'heading-level') {
+        this.#updateHeadingLevel(newValue);
+      }
+      if (attribute === 'has-bulk-button') {
+        this.#updateHasBulkButton(newValue);
+      }
+      if (attribute === 'open-all-text' || attribute === 'close-all-text') {
+        this.#updateBulkButtonText();
+      }
     }
   }
 }

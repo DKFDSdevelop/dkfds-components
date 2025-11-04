@@ -14,38 +14,37 @@ class FDSAccordion extends HTMLElement {
     /* Private methods */
 
     #init() {
-        if (!this.#initialized) {
+        if (this.#initialized) return;
 
-            // Check if the HTML inside the accordion already has been rendered
-            const accordionRendered = validateAccordionHTML(this.children);
+        // Check if the HTML inside the accordion already has been rendered
+        const accordionRendered = validateAccordionHTML(this.children);
 
-            if (!accordionRendered) {
+        if (!accordionRendered) {
 
-                // Capture existing child nodes to preserve functionality
-                const preservedNodes = Array.from(this.childNodes);
+            // Capture existing child nodes to preserve functionality
+            const preservedNodes = Array.from(this.childNodes);
 
-                // Render inner markup
-                const inner = renderAccordionHTML({
-                    heading: this.getAttribute('heading') || '',
-                    headingLevel: (this.getAttribute('heading-level') || 'h3').toLowerCase(),
-                    expanded: this.isExpanded(),
-                    contentId: '',
-                    variantText: this.getAttribute('variant-text'),
-                    variantIcon: this.getAttribute('variant-icon'),
-                    content: '',
-                });
-                this.innerHTML = inner;
+            // Render inner markup
+            const inner = renderAccordionHTML({
+                heading: this.getAttribute('heading') || '',
+                headingLevel: (this.getAttribute('heading-level') || 'h3').toLowerCase(),
+                expanded: this.isExpanded(),
+                contentId: '',
+                variantText: this.getAttribute('variant-text'),
+                variantIcon: this.getAttribute('variant-icon'),
+                content: '',
+            });
+            this.innerHTML = inner;
 
-                // Reinsert preserved nodes into the content container
-                const contentEl = this.#getContentElement();
-                contentEl.innerHTML = ''; // Remove any whitespaces created by renderAccordionHTML()
-                const fragment = document.createDocumentFragment();
-                preservedNodes.forEach(node => fragment.appendChild(node));
-                contentEl.appendChild(fragment);
-            }
-
-            this.#initialized = true;
+            // Reinsert preserved nodes into the content container
+            const contentEl = this.#getContentElement();
+            contentEl.innerHTML = ''; // Remove any whitespaces created by renderAccordionHTML()
+            const fragment = document.createDocumentFragment();
+            preservedNodes.forEach(node => fragment.appendChild(node));
+            contentEl.appendChild(fragment);
         }
+
+        this.#initialized = true;
     }
 
     #updateHeading(heading) {
@@ -136,9 +135,7 @@ class FDSAccordion extends HTMLElement {
 
         /* Set up instance fields for event handling */
 
-        this.#handleAccordionClick = () => {
-            this.toggleAccordion();
-        };
+        this.#handleAccordionClick = () => { this.toggleAccordion(); };
     }
 
     /* --------------------------------------------------
@@ -151,7 +148,10 @@ class FDSAccordion extends HTMLElement {
         if (this.getAttribute('expanded') === null || this.getAttribute('expanded') === 'false') {
             this.setAttribute('expanded', 'true');
         }
-        this.dispatchEvent(new Event('fds-accordion-expanded'));
+        this.dispatchEvent(new CustomEvent('fds-accordion-expanded', {
+            bubbles: true,
+            composed: true
+        }));
     }
 
     collapseAccordion() {
@@ -160,7 +160,10 @@ class FDSAccordion extends HTMLElement {
         if (this.hasAttribute('expanded')) {
             this.setAttribute('expanded', 'false');
         }
-        this.dispatchEvent(new Event('fds-accordion-collapsed'));
+        this.dispatchEvent(new CustomEvent('fds-accordion-collapsed', {
+            bubbles: true,
+            composed: true
+        }));
     }
 
     toggleAccordion() {
@@ -181,30 +184,30 @@ class FDSAccordion extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
-        if (!this.#initialized) {
-            this.#init();
+        if (this.#initialized) return;
 
-            // Ensure the accordion has a valid id
-            const accId = this.#getContentElement().getAttribute('id');
-            if (accId === '' || accId !== this.#getHeadingElement().querySelector('.accordion-button').getAttribute('aria-controls')) {
-                let defaultId = '';
-                if (this.hasAttribute('content-id')) {
-                    defaultId = this.getAttribute('content-id');
-                }
-                else if (accId === '') {
-                    do {
-                        defaultId = generateUniqueIdWithPrefix('acc');
-                    } while (document.getElementById(defaultId));
-                }
-                else {
-                    defaultId = accId;
-                }
-                this.#updateContentId(defaultId);
+        this.#init();
+
+        // Ensure the accordion has a valid id
+        const accId = this.#getContentElement().getAttribute('id');
+        if (accId === '' || accId !== this.#getHeadingElement().querySelector('.accordion-button').getAttribute('aria-controls')) {
+            let defaultId = '';
+            if (this.hasAttribute('content-id')) {
+                defaultId = this.getAttribute('content-id');
             }
-
-            // Add event listeners
-            this.#getHeadingElement().querySelector('button.accordion-button').addEventListener('click', this.#handleAccordionClick, false);
+            else if (accId === '') {
+                do {
+                    defaultId = generateUniqueIdWithPrefix('acc');
+                } while (document.getElementById(defaultId));
+            }
+            else {
+                defaultId = accId;
+            }
+            this.#updateContentId(defaultId);
         }
+
+        // Add event listeners
+        this.#getHeadingElement().querySelector('button.accordion-button').addEventListener('click', this.#handleAccordionClick, false);
     }
 
     /* --------------------------------------------------
