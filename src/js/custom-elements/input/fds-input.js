@@ -80,9 +80,18 @@ class FDSInput extends HTMLElement {
         this.#addLabelIndicator('optional', 'frivilligt');
     }
 
+    #applyReadonly() {
+        const input = this.querySelector('input');
+        if (!input) return;
+
+        if (this.hasAttribute('readonly') && this.getAttribute('readonly') !== 'false') {
+            input.setAttribute('readonly', '');
+        }
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['required', 'optional'];
+    static observedAttributes = ['required', 'optional', 'readonly'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
@@ -101,6 +110,7 @@ class FDSInput extends HTMLElement {
         this.#ensureMatchingIds(label, input)
         this.#connectHelpText(input);
         this.#applyRequiredOrOptional(input)
+        this.#applyReadonly();
     }
 
     /* --------------------------------------------------
@@ -116,6 +126,10 @@ class FDSInput extends HTMLElement {
 
         if (attribute === 'optional') {
             this.#updateOptional(newValue);
+        }
+
+        if (attribute === 'readonly') {
+            this.#applyReadonly();
         }
     }
 }
