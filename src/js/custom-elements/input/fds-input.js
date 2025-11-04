@@ -1,93 +1,122 @@
 'use strict';
 
 import { generateUniqueIdWithPrefix } from '../../utils/generate-unique-id';
-import { validateInputHTML } from './validateInputHTML'
 
 class FDSInput extends HTMLElement {
 
     /* Private methods */
 
+    #ensureMatchingIds(label, input) {
+        const inputId = input.id?.trim();
+        const labelFor = label.htmlFor?.trim();
+
+        if (inputId && labelFor) {
+            if (labelFor !== inputId) label.htmlFor = inputId;
+            return;
+        }
+
+        if (inputId && !labelFor) {
+            label.htmlFor = inputId;
+            return;
+        }
+
+        if (!inputId && labelFor) {
+            input.id = labelFor;
+            return;
+        }
+
+        const autoId = generateUniqueIdWithPrefix('inp');
+        input.id = autoId;
+        label.htmlFor = autoId;
+    }
+
+    #connectHelpText(input) {
+        const helpEls = this.querySelectorAll('fds-help-text, .form-hint');
+        if (!helpEls.length) return;
+
+        const ids = Array.from(helpEls).map(helpEl => {
+            const helpId = helpEl.id?.trim() || generateUniqueIdWithPrefix('hint');
+            helpEl.id = helpId;
+            return helpId;
+        });
+
+        input.setAttribute('aria-describedby', ids.join(' '));
+    }
+
+
     #addLabelIndicator(attributeName, defaultText) {
-        if (this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false') {
-            const attributeValue = this.getAttribute(attributeName);
-            const span = document.createElement('span');
-            span.className = 'weight-normal';
+        if (!(this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false')) return;
 
-            if (attributeValue && attributeValue !== 'true' && attributeValue !== '') {
-                span.textContent = ` (${attributeValue})`;
-            } else {
-                span.textContent = ` (${defaultText})`;
-            }
+        const label = this.querySelector('label');
+        if (!label) return;
 
-            const label = this.querySelector('label');
-            label.appendChild(span);
+        // Remove an existing trailing indicator span if present
+        label.querySelector(':scope > span.weight-normal')?.remove();
 
-            // Required attribute specific logic
-            if (attributeName === 'required') {
-                const input = this.querySelector('input');
-                input.setAttribute('required', '');
-            }
+        const attributeValue = this.getAttribute(attributeName);
+        const span = document.createElement('span');
+        span.className = 'weight-normal';
+        span.textContent = attributeValue && attributeValue !== 'true' && attributeValue !== ''
+            ? ` (${attributeValue})`
+            : ` (${defaultText})`;
+
+        label.appendChild(span);
+
+        if (attributeName === 'required') {
+            this.querySelector('input')?.setAttribute('required', '');
         }
     }
+
+    #applyRequiredOrOptional() {
+        if (this.hasAttribute('required')) this.#updateRequired();
+        else if (this.hasAttribute('optional')) this.#updateOptional();
+    }
+
+    #updateRequired() {
+        this.#addLabelIndicator('required', '*skal udfyldes');
+    }
+
+    #updateOptional() {
+        this.#addLabelIndicator('optional', 'frivilligt');
+    }
+
+    /* Attributes which can invoke attributeChangedCallback() */
+
+    static observedAttributes = ['required', 'optional'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
     -------------------------------------------------- */
 
     connectedCallback() {
-        //Validate structure
-        if (!validateInputHTML(this.children)) {
-            console.error('fds-input: Must contain exactly one <label> and one <input> element');
-            return;
-        }
-
         const label = this.querySelector('label');
         const input = this.querySelector('input');
 
-        // if (!label || !input) return;
+        if (!label || !input) return;
 
         label.classList.add('form-label')
         input.classList.add('form-input')
 
-        const inputId = input.getAttribute('id');
-        const labelFor = label.getAttribute('for');
+        //Ensuring correct ids
+        this.#ensureMatchingIds(label, input)
+        this.#connectHelpText(input);
+        this.#applyRequiredOrOptional(input)
+    }
 
-        const hasInputId = inputId !== null && inputId.trim() !== '';
-        const hasLabelFor = labelFor !== null && labelFor.trim() !== '';
+    /* --------------------------------------------------
+    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+    -------------------------------------------------- */
 
-        if (hasInputId && hasLabelFor) {
-            if (labelFor !== inputId) {
-                label.setAttribute('for', inputId);
-            }
-        } else if (hasInputId && !hasLabelFor) {
-            label.setAttribute('for', inputId);
-        } else if (!hasInputId && hasLabelFor) {
-            input.setAttribute('id', labelFor);
-        } else {
-            // Neither provided: generate an id
-            const autoId = generateUniqueIdWithPrefix('inp');
-            input.setAttribute('id', autoId);
-            label.setAttribute('for', autoId);
+    attributeChangedCallback(attribute, oldValue, newValue) {
+        if (!this.isConnected) return;
+
+        if (attribute === 'required') {
+            this.#updateRequired(newValue);
         }
 
-        //Required attribute
-
-        this.#addLabelIndicator('required', '*skal udfyldes');
-
-        //Optional attribute
-
-        this.#addLabelIndicator('optional', 'frivilligt');
-
-
-        const helpEl = this.querySelector('fds-help-text, .form-hint');
-        if (helpEl) {
-            const helpId = `${input.id}-hint`;
-
-            helpEl.id = helpId;
-
-            input.setAttribute('aria-describedby', helpId);
+        if (attribute === 'optional') {
+            this.#updateOptional(newValue);
         }
-
     }
 }
 
