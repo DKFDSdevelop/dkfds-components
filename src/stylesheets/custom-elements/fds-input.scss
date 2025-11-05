@@ -1,8 +1,9 @@
 @use "../functions" as func;
 
-fds-input {
+fds-input,
+.fds-input {
     display: block;
-    margin-top: func.units(5); // 4
+    margin-top: func.units(5);
 
     &:first-child {
         margin-top: 0;
