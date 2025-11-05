@@ -5785,6 +5785,16 @@ class FDSAccordion extends HTMLElement {
 
   /* Private methods */
 
+  #createRandomId() {
+    let randomId = generateUniqueIdWithPrefix('acc');
+    let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
+
+    while (document.getElementById(randomId) && attempts > 0) {
+      randomId = generateUniqueIdWithPrefix('acc');
+      attempts--;
+    }
+    return randomId;
+  }
   #init() {
     if (this.#initialized) return;
 
@@ -5943,19 +5953,18 @@ class FDSAccordion extends HTMLElement {
     this.#init();
 
     // Ensure the accordion has a valid id
-    const accId = this.#getContentElement().getAttribute('id');
-    if (accId === '' || accId !== this.#getHeadingElement().querySelector('.accordion-button').getAttribute('aria-controls')) {
-      let defaultId = '';
+    const contentId = this.#getContentElement().getAttribute('id');
+    const buttonHeadingId = this.#getHeadingElement().querySelector('.accordion-button').getAttribute('aria-controls');
+    if (contentId === '' || contentId !== buttonHeadingId) {
+      let newId = '';
       if (this.hasAttribute('content-id')) {
-        defaultId = this.getAttribute('content-id');
-      } else if (accId === '') {
-        do {
-          defaultId = generateUniqueIdWithPrefix('acc');
-        } while (document.getElementById(defaultId));
+        newId = this.getAttribute('content-id');
+      } else if (contentId === '') {
+        newId = this.#createRandomId();
       } else {
-        defaultId = accId;
+        newId = contentId;
       }
-      this.#updateContentId(defaultId);
+      this.#updateContentId(newId);
     }
 
     // Add event listeners
@@ -6330,6 +6339,16 @@ class FDSHelpText extends HTMLElement {
     this.#helpText = this.querySelector(':scope > .help-text');
     return this.#helpText;
   }
+  #createRandomId() {
+    let randomId = generateUniqueIdWithPrefix('help');
+    let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
+
+    while (document.getElementById(randomId) && attempts > 0) {
+      randomId = generateUniqueIdWithPrefix('help');
+      attempts--;
+    }
+    return randomId;
+  }
   #init() {
     if (this.#initialized) return;
     let span = this.#getHelpText();
@@ -6382,11 +6401,7 @@ class FDSHelpText extends HTMLElement {
     this.#init();
     const helpText = this.#getHelpText();
     if (!helpText.id) {
-      let randomId = '';
-      do {
-        randomId = generateUniqueIdWithPrefix('help');
-      } while (document.getElementById(randomId));
-      helpText.id = randomId;
+      helpText.id = this.#createRandomId();
     }
   }
 

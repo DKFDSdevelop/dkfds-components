@@ -18,6 +18,18 @@ class FDSHelpText extends HTMLElement {
         return this.#helpText;
     }
 
+    #createRandomId() {
+        let randomId = generateUniqueIdWithPrefix('help');
+        let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
+        
+        while (document.getElementById(randomId) && attempts > 0) {
+            randomId = generateUniqueIdWithPrefix('help');
+            attempts--;
+        }
+
+        return randomId;
+    }
+
     #init() {
         if (this.#initialized) return;
 
@@ -78,11 +90,7 @@ class FDSHelpText extends HTMLElement {
 
         const helpText = this.#getHelpText();
         if (!helpText.id) {
-            let randomId = '';
-            do {
-                randomId = generateUniqueIdWithPrefix('help');
-            } while (document.getElementById(randomId));
-            helpText.id = randomId;
+            helpText.id = this.#createRandomId();
         }
     }
 
