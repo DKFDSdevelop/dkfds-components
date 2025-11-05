@@ -3207,6 +3207,8 @@ __webpack_require__.d(__webpack_exports__, {
   registerAccordion: () => (/* reexport */ registerAccordion),
   registerAccordionGroup: () => (/* reexport */ fds_accordion_group),
   registerCustomElements: () => (/* binding */ registerCustomElements),
+  registerHelpText: () => (/* reexport */ fds_help_text),
+  registerInput: () => (/* reexport */ fds_input),
   renderAccordionHTML: () => (/* reexport */ renderAccordionHTML),
   validateAccordionHTML: () => (/* reexport */ validateAccordionHTML)
 });
@@ -5978,32 +5980,31 @@ class FDSAccordion extends HTMLElement {
   -------------------------------------------------- */
 
   attributeChangedCallback(attribute, oldValue, newValue) {
-    if (this.#initialized) {
-      if (attribute === 'heading') {
-        this.#updateHeading(newValue);
+    if (!this.#initialized) return;
+    if (attribute === 'heading') {
+      this.#updateHeading(newValue);
+    }
+    if (attribute === 'heading-level') {
+      this.#updateHeadingLevel(newValue);
+    }
+    if (attribute === 'expanded' && oldValue !== newValue) {
+      this.#updateExpanded(newValue);
+    }
+    if (attribute === 'content-id') {
+      this.#updateContentId(newValue);
+    }
+    if (attribute === 'variant-text') {
+      if (this.hasAttribute('variant-icon')) {
+        this.#updateVariant(newValue, this.getAttribute('variant-icon'));
+      } else {
+        this.#updateVariant(newValue, '');
       }
-      if (attribute === 'heading-level') {
-        this.#updateHeadingLevel(newValue);
-      }
-      if (attribute === 'expanded' && oldValue !== newValue) {
-        this.#updateExpanded(newValue);
-      }
-      if (attribute === 'content-id') {
-        this.#updateContentId(newValue);
-      }
-      if (attribute === 'variant-text') {
-        if (this.hasAttribute('variant-icon')) {
-          this.#updateVariant(newValue, this.getAttribute('variant-icon'));
-        } else {
-          this.#updateVariant(newValue, '');
-        }
-      }
-      if (attribute === 'variant-icon') {
-        if (this.hasAttribute('variant-text')) {
-          this.#updateVariant(this.getAttribute('variant-text'), newValue);
-        } else {
-          this.#updateVariant('', newValue);
-        }
+    }
+    if (attribute === 'variant-icon') {
+      if (this.hasAttribute('variant-text')) {
+        this.#updateVariant(this.getAttribute('variant-text'), newValue);
+      } else {
+        this.#updateVariant('', newValue);
       }
     }
   }
@@ -6161,16 +6162,15 @@ class FDSAccordionGroup extends HTMLElement {
   -------------------------------------------------- */
 
   attributeChangedCallback(attribute, oldValue, newValue) {
-    if (this.#initialized) {
-      if (attribute === 'heading-level') {
-        this.#updateHeadingLevel(newValue);
-      }
-      if (attribute === 'has-bulk-button') {
-        this.#updateHasBulkButton(newValue);
-      }
-      if (attribute === 'open-all-text' || attribute === 'close-all-text') {
-        this.#updateBulkButtonText();
-      }
+    if (!this.#initialized) return;
+    if (attribute === 'heading-level') {
+      this.#updateHeadingLevel(newValue);
+    }
+    if (attribute === 'has-bulk-button') {
+      this.#updateHasBulkButton(newValue);
+    }
+    if (attribute === 'open-all-text' || attribute === 'close-all-text') {
+      this.#updateBulkButtonText();
     }
   }
 }
@@ -6313,29 +6313,65 @@ function registerInput() {
   }
 }
 /* harmony default export */ const fds_input = (registerInput);
-;// ./src/js/custom-elements/fds-help-text.js
+;// ./src/js/custom-elements/help-text/fds-help-text.js
+
+
+
 class FDSHelpText extends HTMLElement {
   /* Private instance fields */
 
-  #initialized = false;
+  #initialized;
+  #helpText;
 
   /* Private methods */
 
-  #updateId(newValue) {
-    const span = this.querySelector('.form-hint');
-    if (span) {
-      const val = (newValue || '').trim();
-      if (val) {
-        span.id = val;
-      } else {
-        span.removeAttribute('id');
+  #getHelpText() {
+    if (this.#helpText) return this.#helpText;
+    this.#helpText = this.querySelector(':scope > .help-text');
+    return this.#helpText;
+  }
+  #init() {
+    if (this.#initialized) return;
+    let span = this.#getHelpText();
+    if (!span) {
+      span = document.createElement('span');
+      span.className = 'help-text';
+
+      // Move existing child nodes into the span
+      while (this.firstChild) {
+        span.appendChild(this.firstChild);
       }
+      this.appendChild(span);
+    }
+    if (this.getAttribute('help-text-id') !== null && this.getAttribute('help-text-id') !== '') {
+      this.#getHelpText().id = this.getAttribute('help-text-id');
+    }
+    this.#initialized = true;
+  }
+  #updateId(newValue) {
+    const span = this.#getHelpText();
+    if (!span) return;
+    const val = (newValue || '').trim();
+    if (val) {
+      span.id = val;
+    } else {
+      span.removeAttribute('id');
     }
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['id'];
+  static observedAttributes = ['help-text-id'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+    this.#initialized = false;
+    this.#helpText = null;
+  }
 
   /* --------------------------------------------------
   CUSTOM ELEMENT ADDED TO DOCUMENT
@@ -6343,30 +6379,34 @@ class FDSHelpText extends HTMLElement {
 
   connectedCallback() {
     if (this.#initialized) return;
-    let span = this.querySelector('.form-hint');
-    if (!span) {
-      span = document.createElement('span');
-      span.className = 'form-hint';
-
-      // Move existing child nodes into the span (preserves text, links, listeners)
-      while (this.firstChild) {
-        span.appendChild(this.firstChild);
-      }
-      this.appendChild(span);
+    this.#init();
+    const helpText = this.#getHelpText();
+    if (!helpText.id) {
+      let randomId = '';
+      do {
+        randomId = generateUniqueIdWithPrefix('help');
+      } while (document.getElementById(randomId));
+      helpText.id = randomId;
     }
-
-    // Mirror host id to span.id if present
-    this.#updateId(this.id);
-    this.#initialized = true;
   }
 
   /* --------------------------------------------------
-     CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-     -------------------------------------------------- */
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
 
-  attributeChangedCallback(name, oldVal, newVal) {
-    if (name === 'id') {
-      this.#updateId(newVal);
+  disconnectedCallback() {
+    this.#helpText = null;
+    this.#initialized = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (name === 'help-text-id') {
+      this.#updateId(newValue);
     }
   }
 }

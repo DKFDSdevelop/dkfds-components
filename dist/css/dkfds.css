@@ -12641,3 +12641,25 @@ fds-accordion-group button.bulk-button.close,
 .fds-accordion-group button.bulk-button.close{
   background-image:url("../img/svg-icons/minus.svg");
 }
+
+fds-input,
+.fds-input{
+  display:block;
+  margin-top:24px;
+}
+fds-input:first-child,
+.fds-input:first-child{
+  margin-top:0;
+}
+
+fds-help-text .help-text,
+.fds-help-text .help-text{
+  max-width:66ch;
+  display:block;
+  color:#707070;
+  font-size:1.6rem;
+  line-height:2.4rem;
+  letter-spacing:normal;
+  font-weight:400;
+  overflow-wrap:break-word;
+}

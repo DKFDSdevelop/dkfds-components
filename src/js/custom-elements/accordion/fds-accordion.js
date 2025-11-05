@@ -228,40 +228,39 @@ class FDSAccordion extends HTMLElement {
     -------------------------------------------------- */
 
     attributeChangedCallback(attribute, oldValue, newValue) {
-        if (this.#initialized) {
+        if (!this.#initialized) return;
+        
+        if (attribute === 'heading') {
+            this.#updateHeading(newValue);
+        }
 
-            if (attribute === 'heading') {
-                this.#updateHeading(newValue);
+        if (attribute === 'heading-level') {
+            this.#updateHeadingLevel(newValue);
+        }
+
+        if (attribute === 'expanded' && oldValue !== newValue) {
+            this.#updateExpanded(newValue);
+        }
+
+        if (attribute === 'content-id') {
+            this.#updateContentId(newValue);
+        }
+
+        if (attribute === 'variant-text') {
+            if (this.hasAttribute('variant-icon')) {
+                this.#updateVariant(newValue, this.getAttribute('variant-icon'));
             }
-
-            if (attribute === 'heading-level') {
-                this.#updateHeadingLevel(newValue);
+            else {
+                this.#updateVariant(newValue, '');
             }
+        }
 
-            if (attribute === 'expanded' && oldValue !== newValue) {
-                this.#updateExpanded(newValue);
+        if (attribute === 'variant-icon') {
+            if (this.hasAttribute('variant-text')) {
+                this.#updateVariant(this.getAttribute('variant-text'), newValue);
             }
-
-            if (attribute === 'content-id') {
-                this.#updateContentId(newValue);
-            }
-
-            if (attribute === 'variant-text') {
-                if (this.hasAttribute('variant-icon')) {
-                    this.#updateVariant(newValue, this.getAttribute('variant-icon'));
-                }
-                else {
-                    this.#updateVariant(newValue, '');
-                }
-            }
-
-            if (attribute === 'variant-icon') {
-                if (this.hasAttribute('variant-text')) {
-                    this.#updateVariant(this.getAttribute('variant-text'), newValue);
-                }
-                else {
-                    this.#updateVariant('', newValue);
-                }
+            else {
+                this.#updateVariant('', newValue);
             }
         }
     }

@@ -22,7 +22,7 @@ const datePicker = require('./components/date-picker').default;
 import { registerAccordion, renderAccordionHTML, validateAccordionHTML } from './custom-elements/accordion/fds-accordion';
 import registerAccordionGroup from './custom-elements/accordion/fds-accordion-group';
 import registerInput from './custom-elements/input/fds-input';
-import registerHelpText from './custom-elements/fds-help-text'
+import registerHelpText from './custom-elements/help-text/fds-help-text';
 
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
@@ -220,4 +220,4 @@ const registerCustomElements = () => {
   registerHelpText()
 };
 
-export { init, registerCustomElements, registerAccordion, renderAccordionHTML, validateAccordionHTML, registerAccordionGroup, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
+export { init, registerCustomElements, registerAccordion, renderAccordionHTML, validateAccordionHTML, registerAccordionGroup, registerInput, registerHelpText, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };

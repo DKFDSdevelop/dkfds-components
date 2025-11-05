@@ -173,18 +173,18 @@ class FDSAccordionGroup extends HTMLElement {
     -------------------------------------------------- */
 
     attributeChangedCallback(attribute, oldValue, newValue) {
-        if (this.#initialized) {
-            if (attribute === 'heading-level') {
-                this.#updateHeadingLevel(newValue);
-            }
+        if (!this.#initialized) return;
 
-            if (attribute === 'has-bulk-button') {
-                this.#updateHasBulkButton(newValue);
-            }
+        if (attribute === 'heading-level') {
+            this.#updateHeadingLevel(newValue);
+        }
 
-            if (attribute === 'open-all-text' || attribute === 'close-all-text') {
-                this.#updateBulkButtonText();
-            }
+        if (attribute === 'has-bulk-button') {
+            this.#updateHasBulkButton(newValue);
+        }
+
+        if (attribute === 'open-all-text' || attribute === 'close-all-text') {
+            this.#updateBulkButtonText();
         }
     }
 }
