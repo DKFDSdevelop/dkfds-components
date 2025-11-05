@@ -6,7 +6,7 @@ class FDSHelpText extends HTMLElement {
 
     /* Private instance fields */
 
-    #initialized;
+    #rendered;
     #helpText;
 
     /* Private methods */
@@ -30,8 +30,8 @@ class FDSHelpText extends HTMLElement {
         return randomId;
     }
 
-    #init() {
-        if (this.#initialized) return;
+    #render() {
+        if (this.#rendered) return;
 
         let span = this.#getHelpText();
         if (!span) {
@@ -50,18 +50,17 @@ class FDSHelpText extends HTMLElement {
             this.#getHelpText().id = this.getAttribute('help-text-id');
         }
 
-        this.#initialized = true;
+        this.#rendered = true;
     }
 
     #updateId(newValue) {
         const span = this.#getHelpText();
         if (!span) return;
 
-        const val = (newValue || '').trim();
-        if (val) {
-            span.id = val;
+        if (newValue !== null && newValue !== '') {
+            span.id = newValue;
         } else {
-            span.removeAttribute('id');
+            span.id = this.#createRandomId();
         }
     }
 
@@ -75,7 +74,7 @@ class FDSHelpText extends HTMLElement {
 
     constructor() {
         super();
-        this.#initialized = false;
+        this.#rendered = false;
         this.#helpText = null;
     }
 
@@ -84,9 +83,9 @@ class FDSHelpText extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
-        if (this.#initialized) return;
+        if (this.#rendered) return;
 
-        this.#init();
+        this.#render();
 
         const helpText = this.#getHelpText();
         if (!helpText.id) {
@@ -100,7 +99,7 @@ class FDSHelpText extends HTMLElement {
 
     disconnectedCallback() {
         this.#helpText = null;
-        this.#initialized = false;
+        this.#rendered = false;
     }
 
     /* --------------------------------------------------
@@ -108,7 +107,7 @@ class FDSHelpText extends HTMLElement {
     -------------------------------------------------- */
 
     attributeChangedCallback(name, oldValue, newValue) {
-        if (!this.#initialized) return;
+        if (!this.#rendered) return;
 
         if (name === 'help-text-id') {
             this.#updateId(newValue);

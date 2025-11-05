@@ -8,7 +8,7 @@ class FDSAccordion extends HTMLElement {
 
     /* Private instance fields */
 
-    #initialized;
+    #rendered;
     #handleAccordionClick;
 
     /* Private methods */
@@ -25,8 +25,8 @@ class FDSAccordion extends HTMLElement {
         return randomId;
     }
 
-    #init() {
-        if (this.#initialized) return;
+    #render() {
+        if (this.#rendered) return;
 
         // Check if the HTML inside the accordion already has been rendered
         const accordionRendered = validateAccordionHTML(this.children);
@@ -56,7 +56,7 @@ class FDSAccordion extends HTMLElement {
             contentEl.appendChild(fragment);
         }
 
-        this.#initialized = true;
+        this.#rendered = true;
     }
 
     #updateHeading(heading) {
@@ -143,7 +143,7 @@ class FDSAccordion extends HTMLElement {
     constructor() {
         super();
 
-        this.#initialized = false;
+        this.#rendered = false;
 
         /* Set up instance fields for event handling */
 
@@ -196,9 +196,9 @@ class FDSAccordion extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
-        if (this.#initialized) return;
+        if (this.#rendered) return;
 
-        this.#init();
+        this.#render();
 
         // Ensure the accordion has a valid id
         const contentId = this.#getContentElement().getAttribute('id');
@@ -226,6 +226,8 @@ class FDSAccordion extends HTMLElement {
     -------------------------------------------------- */
 
     disconnectedCallback() {
+        this.#rendered = false;
+
         if (this.#getHeadingElement()) {
             const button = this.#getHeadingElement().querySelector('button.accordion-button');
             if (button && this.#handleAccordionClick) {
@@ -239,7 +241,7 @@ class FDSAccordion extends HTMLElement {
     -------------------------------------------------- */
 
     attributeChangedCallback(attribute, oldValue, newValue) {
-        if (!this.#initialized) return;
+        if (!this.#rendered) return;
 
         if (attribute === 'heading') {
             this.#updateHeading(newValue);
