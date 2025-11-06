@@ -8,6 +8,7 @@ class FDSInput extends HTMLElement {
 
     #input;
     #label;
+    #wrapper;
 
     /* Private methods */
 
@@ -16,7 +17,7 @@ class FDSInput extends HTMLElement {
         const labelFor = this.#label.htmlFor?.trim();
 
         if (inputId && labelFor) {
-            if (labelFor !== inputId) label.htmlFor = inputId;
+            if (labelFor !== inputId) this.#label.htmlFor = inputId;
             return;
         }
 
@@ -48,6 +49,65 @@ class FDSInput extends HTMLElement {
         this.#input.setAttribute('aria-describedby', ids.join(' '));
     }
 
+    #setupPrefixSuffix() {
+        if (!this.#input) return;
+
+        const hasPrefix = this.hasAttribute('prefix');
+        const hasSuffix = this.hasAttribute('suffix');
+
+        // Remove wrapper if no prefix/suffix needed
+        if (!hasPrefix && !hasSuffix) {
+            this.#wrapper?.replaceWith(this.#input);
+            this.#wrapper = null;
+            return;
+        }
+
+        // Create wrapper if it doesn't exist
+        if (!this.#wrapper) {
+            this.#wrapper = document.createElement('div');
+            this.insertBefore(this.#wrapper, this.#input);
+            this.#wrapper.appendChild(this.#input);
+        }
+
+        // Set wrapper classes
+        this.#wrapper.className = 'form-input-wrapper';
+        if (hasPrefix) this.#wrapper.classList.add('form-input-wrapper--prefix');
+        if (hasSuffix) this.#wrapper.classList.add('form-input-wrapper--suffix');
+        if (this.hasAttribute('disabled') && this.getAttribute('disabled') !== 'false') {
+            this.#wrapper.classList.add('disabled');
+        }
+        if (this.hasAttribute('readonly') && this.getAttribute('readonly') !== 'false') {
+            this.#wrapper.classList.add('readonly');
+        }
+
+        // Handle prefix
+        let prefixEl = this.#wrapper.querySelector('.form-input-prefix');
+        if (hasPrefix) {
+            if (!prefixEl) {
+                prefixEl = document.createElement('div');
+                prefixEl.className = 'form-input-prefix';
+                prefixEl.setAttribute('aria-hidden', 'true');
+                this.#wrapper.insertBefore(prefixEl, this.#input);
+            }
+            prefixEl.textContent = this.getAttribute('prefix');
+        } else if (prefixEl) {
+            prefixEl.remove();
+        }
+
+        // Handle suffix
+        let suffixEl = this.#wrapper.querySelector('.form-input-suffix');
+        if (hasSuffix) {
+            if (!suffixEl) {
+                suffixEl = document.createElement('div');
+                suffixEl.className = 'form-input-suffix';
+                suffixEl.setAttribute('aria-hidden', 'true');
+                this.#wrapper.appendChild(suffixEl);
+            }
+            suffixEl.textContent = this.getAttribute('suffix');
+        } else if (suffixEl) {
+            suffixEl.remove();
+        }
+    }
 
     #addLabelIndicator(attributeName, defaultText) {
         if (!(this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false')) return;
@@ -108,7 +168,7 @@ class FDSInput extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['required', 'optional', 'readonly', 'disabled'];
+    static observedAttributes = ['required', 'optional', 'readonly', 'disabled', 'prefix', 'suffix'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
@@ -123,8 +183,8 @@ class FDSInput extends HTMLElement {
         this.#label.classList.add('form-label');
         this.#input.classList.add('form-input');
 
-        //Ensuring correct ids
         this.#ensureMatchingIds();
+        this.#setupPrefixSuffix();
         this.#connectHelpText();
         this.#applyRequiredOrOptional();
         this.#applyReadonly();
@@ -152,6 +212,10 @@ class FDSInput extends HTMLElement {
 
         if (attribute === 'disabled') {
             this.#applyDisabled();
+        }
+
+        if (attribute === 'prefix' || attribute === 'suffix') {
+            this.#setupPrefixSuffix();
         }
     }
 }
