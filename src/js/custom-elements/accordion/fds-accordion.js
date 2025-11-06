@@ -8,13 +8,25 @@ class FDSAccordion extends HTMLElement {
 
     /* Private instance fields */
 
-    #initialized;
+    #rendered;
     #handleAccordionClick;
 
     /* Private methods */
 
-    #init() {
-        if (this.#initialized) return;
+    #createRandomId() {
+        let randomId = generateUniqueIdWithPrefix('acc');
+        let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
+        
+        while (document.getElementById(randomId) && attempts > 0) {
+            randomId = generateUniqueIdWithPrefix('acc');
+            attempts--;
+        }
+
+        return randomId;
+    }
+
+    #render() {
+        if (this.#rendered) return;
 
         // Check if the HTML inside the accordion already has been rendered
         const accordionRendered = validateAccordionHTML(this.children);
@@ -44,7 +56,7 @@ class FDSAccordion extends HTMLElement {
             contentEl.appendChild(fragment);
         }
 
-        this.#initialized = true;
+        this.#rendered = true;
     }
 
     #updateHeading(heading) {
@@ -131,7 +143,7 @@ class FDSAccordion extends HTMLElement {
     constructor() {
         super();
 
-        this.#initialized = false;
+        this.#rendered = false;
 
         /* Set up instance fields for event handling */
 
@@ -184,26 +196,25 @@ class FDSAccordion extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
-        if (this.#initialized) return;
+        if (this.#rendered) return;
 
-        this.#init();
+        this.#render();
 
         // Ensure the accordion has a valid id
-        const accId = this.#getContentElement().getAttribute('id');
-        if (accId === '' || accId !== this.#getHeadingElement().querySelector('.accordion-button').getAttribute('aria-controls')) {
-            let defaultId = '';
+        const contentId = this.#getContentElement().getAttribute('id');
+        const buttonHeadingId = this.#getHeadingElement().querySelector('.accordion-button').getAttribute('aria-controls');
+        if (contentId === '' || contentId !== buttonHeadingId) {
+            let newId = '';
             if (this.hasAttribute('content-id')) {
-                defaultId = this.getAttribute('content-id');
+                newId = this.getAttribute('content-id');
             }
-            else if (accId === '') {
-                do {
-                    defaultId = generateUniqueIdWithPrefix('acc');
-                } while (document.getElementById(defaultId));
+            else if (contentId === '') {
+                newId = this.#createRandomId();
             }
             else {
-                defaultId = accId;
+                newId = contentId;
             }
-            this.#updateContentId(defaultId);
+            this.#updateContentId(newId);
         }
 
         // Add event listeners
@@ -215,6 +226,8 @@ class FDSAccordion extends HTMLElement {
     -------------------------------------------------- */
 
     disconnectedCallback() {
+        this.#rendered = false;
+
         if (this.#getHeadingElement()) {
             const button = this.#getHeadingElement().querySelector('button.accordion-button');
             if (button && this.#handleAccordionClick) {
@@ -228,8 +241,8 @@ class FDSAccordion extends HTMLElement {
     -------------------------------------------------- */
 
     attributeChangedCallback(attribute, oldValue, newValue) {
-        if (!this.#initialized) return;
-        
+        if (!this.#rendered) return;
+
         if (attribute === 'heading') {
             this.#updateHeading(newValue);
         }

@@ -5780,13 +5780,23 @@ function validateAccordionHTML(children) {
 class FDSAccordion extends HTMLElement {
   /* Private instance fields */
 
-  #initialized;
+  #rendered;
   #handleAccordionClick;
 
   /* Private methods */
 
-  #init() {
-    if (this.#initialized) return;
+  #createRandomId() {
+    let randomId = generateUniqueIdWithPrefix('acc');
+    let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
+
+    while (document.getElementById(randomId) && attempts > 0) {
+      randomId = generateUniqueIdWithPrefix('acc');
+      attempts--;
+    }
+    return randomId;
+  }
+  #render() {
+    if (this.#rendered) return;
 
     // Check if the HTML inside the accordion already has been rendered
     const accordionRendered = validateAccordionHTML(this.children);
@@ -5813,7 +5823,7 @@ class FDSAccordion extends HTMLElement {
       preservedNodes.forEach(node => fragment.appendChild(node));
       contentEl.appendChild(fragment);
     }
-    this.#initialized = true;
+    this.#rendered = true;
   }
   #updateHeading(heading) {
     this.querySelector('.accordion-title').textContent = heading;
@@ -5888,7 +5898,7 @@ class FDSAccordion extends HTMLElement {
 
   constructor() {
     super();
-    this.#initialized = false;
+    this.#rendered = false;
 
     /* Set up instance fields for event handling */
 
@@ -5939,23 +5949,22 @@ class FDSAccordion extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
-    if (this.#initialized) return;
-    this.#init();
+    if (this.#rendered) return;
+    this.#render();
 
     // Ensure the accordion has a valid id
-    const accId = this.#getContentElement().getAttribute('id');
-    if (accId === '' || accId !== this.#getHeadingElement().querySelector('.accordion-button').getAttribute('aria-controls')) {
-      let defaultId = '';
+    const contentId = this.#getContentElement().getAttribute('id');
+    const buttonHeadingId = this.#getHeadingElement().querySelector('.accordion-button').getAttribute('aria-controls');
+    if (contentId === '' || contentId !== buttonHeadingId) {
+      let newId = '';
       if (this.hasAttribute('content-id')) {
-        defaultId = this.getAttribute('content-id');
-      } else if (accId === '') {
-        do {
-          defaultId = generateUniqueIdWithPrefix('acc');
-        } while (document.getElementById(defaultId));
+        newId = this.getAttribute('content-id');
+      } else if (contentId === '') {
+        newId = this.#createRandomId();
       } else {
-        defaultId = accId;
+        newId = contentId;
       }
-      this.#updateContentId(defaultId);
+      this.#updateContentId(newId);
     }
 
     // Add event listeners
@@ -5967,6 +5976,7 @@ class FDSAccordion extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
+    this.#rendered = false;
     if (this.#getHeadingElement()) {
       const button = this.#getHeadingElement().querySelector('button.accordion-button');
       if (button && this.#handleAccordionClick) {
@@ -5980,7 +5990,7 @@ class FDSAccordion extends HTMLElement {
   -------------------------------------------------- */
 
   attributeChangedCallback(attribute, oldValue, newValue) {
-    if (!this.#initialized) return;
+    if (!this.#rendered) return;
     if (attribute === 'heading') {
       this.#updateHeading(newValue);
     }
@@ -6021,7 +6031,7 @@ function registerAccordion() {
 class FDSAccordionGroup extends HTMLElement {
   /* Private instance fields */
 
-  #initialized;
+  #rendered;
   #listenersAttached;
   #bulkButton;
   #handleBulkClick;
@@ -6043,15 +6053,15 @@ class FDSAccordionGroup extends HTMLElement {
       this.#bulkButton = bulkButton;
     }
   }
-  #init() {
-    if (this.#initialized) return;
+  #render() {
+    if (this.#rendered) return;
     const hasRenderedBulkButton = this.querySelectorAll('button.bulk-button').length > 0;
     const hasBulkButtonFromAttr = this.getAttribute('has-bulk-button') !== null && this.getAttribute('has-bulk-button') !== 'false';
     if (hasBulkButtonFromAttr && !hasRenderedBulkButton) {
       this.#renderBulkButton();
     }
     this.#updateBulkButtonText();
-    this.#initialized = true;
+    this.#rendered = true;
   }
   #updateHeadingLevel(headingLevel) {
     const valid = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
@@ -6103,7 +6113,7 @@ class FDSAccordionGroup extends HTMLElement {
 
   constructor() {
     super();
-    this.#initialized = false;
+    this.#rendered = false;
     this.#listenersAttached = false;
     this.#bulkButton = null;
     this.#handleBulkClick = () => this.toggleAllAccordions();
@@ -6128,8 +6138,8 @@ class FDSAccordionGroup extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
-    if (this.#initialized) return;
-    this.#init();
+    if (this.#rendered) return;
+    this.#render();
     if (this.#listenersAttached) return;
     this.addEventListener('fds-accordion-expanded', this.#handleAccordionExpanded);
     this.addEventListener('fds-accordion-collapsed', this.#handleAccordionCollapsed);
@@ -6148,6 +6158,7 @@ class FDSAccordionGroup extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
+    this.#rendered = false;
     if (!this.#listenersAttached) return;
     this.removeEventListener('fds-accordion-expanded', this.#handleAccordionExpanded);
     this.removeEventListener('fds-accordion-collapsed', this.#handleAccordionCollapsed);
@@ -6162,7 +6173,7 @@ class FDSAccordionGroup extends HTMLElement {
   -------------------------------------------------- */
 
   attributeChangedCallback(attribute, oldValue, newValue) {
-    if (!this.#initialized) return;
+    if (!this.#rendered) return;
     if (attribute === 'heading-level') {
       this.#updateHeadingLevel(newValue);
     }
@@ -6381,7 +6392,7 @@ function registerInput() {
 class FDSHelpText extends HTMLElement {
   /* Private instance fields */
 
-  #initialized;
+  #rendered;
   #helpText;
 
   /* Private methods */
@@ -6391,8 +6402,18 @@ class FDSHelpText extends HTMLElement {
     this.#helpText = this.querySelector(':scope > .help-text');
     return this.#helpText;
   }
-  #init() {
-    if (this.#initialized) return;
+  #createRandomId() {
+    let randomId = generateUniqueIdWithPrefix('help');
+    let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
+
+    while (document.getElementById(randomId) && attempts > 0) {
+      randomId = generateUniqueIdWithPrefix('help');
+      attempts--;
+    }
+    return randomId;
+  }
+  #render() {
+    if (this.#rendered) return;
     let span = this.#getHelpText();
     if (!span) {
       span = document.createElement('span');
@@ -6407,16 +6428,15 @@ class FDSHelpText extends HTMLElement {
     if (this.getAttribute('help-text-id') !== null && this.getAttribute('help-text-id') !== '') {
       this.#getHelpText().id = this.getAttribute('help-text-id');
     }
-    this.#initialized = true;
+    this.#rendered = true;
   }
   #updateId(newValue) {
     const span = this.#getHelpText();
     if (!span) return;
-    const val = (newValue || '').trim();
-    if (val) {
-      span.id = val;
+    if (newValue !== null && newValue !== '') {
+      span.id = newValue;
     } else {
-      span.removeAttribute('id');
+      span.id = this.#createRandomId();
     }
   }
 
@@ -6430,7 +6450,7 @@ class FDSHelpText extends HTMLElement {
 
   constructor() {
     super();
-    this.#initialized = false;
+    this.#rendered = false;
     this.#helpText = null;
   }
 
@@ -6439,15 +6459,11 @@ class FDSHelpText extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
-    if (this.#initialized) return;
-    this.#init();
+    if (this.#rendered) return;
+    this.#render();
     const helpText = this.#getHelpText();
     if (!helpText.id) {
-      let randomId = '';
-      do {
-        randomId = generateUniqueIdWithPrefix('help');
-      } while (document.getElementById(randomId));
-      helpText.id = randomId;
+      helpText.id = this.#createRandomId();
     }
   }
 
@@ -6457,7 +6473,7 @@ class FDSHelpText extends HTMLElement {
 
   disconnectedCallback() {
     this.#helpText = null;
-    this.#initialized = false;
+    this.#rendered = false;
   }
 
   /* --------------------------------------------------
@@ -6465,7 +6481,7 @@ class FDSHelpText extends HTMLElement {
   -------------------------------------------------- */
 
   attributeChangedCallback(name, oldValue, newValue) {
-    if (!this.#initialized) return;
+    if (!this.#rendered) return;
     if (name === 'help-text-id') {
       this.#updateId(newValue);
     }

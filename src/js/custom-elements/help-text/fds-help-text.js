@@ -6,7 +6,7 @@ class FDSHelpText extends HTMLElement {
 
     /* Private instance fields */
 
-    #initialized;
+    #rendered;
     #helpText;
 
     /* Private methods */
@@ -18,8 +18,20 @@ class FDSHelpText extends HTMLElement {
         return this.#helpText;
     }
 
-    #init() {
-        if (this.#initialized) return;
+    #createRandomId() {
+        let randomId = generateUniqueIdWithPrefix('help');
+        let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
+        
+        while (document.getElementById(randomId) && attempts > 0) {
+            randomId = generateUniqueIdWithPrefix('help');
+            attempts--;
+        }
+
+        return randomId;
+    }
+
+    #render() {
+        if (this.#rendered) return;
 
         let span = this.#getHelpText();
         if (!span) {
@@ -38,18 +50,17 @@ class FDSHelpText extends HTMLElement {
             this.#getHelpText().id = this.getAttribute('help-text-id');
         }
 
-        this.#initialized = true;
+        this.#rendered = true;
     }
 
     #updateId(newValue) {
         const span = this.#getHelpText();
         if (!span) return;
 
-        const val = (newValue || '').trim();
-        if (val) {
-            span.id = val;
+        if (newValue !== null && newValue !== '') {
+            span.id = newValue;
         } else {
-            span.removeAttribute('id');
+            span.id = this.#createRandomId();
         }
     }
 
@@ -63,7 +74,7 @@ class FDSHelpText extends HTMLElement {
 
     constructor() {
         super();
-        this.#initialized = false;
+        this.#rendered = false;
         this.#helpText = null;
     }
 
@@ -72,17 +83,13 @@ class FDSHelpText extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
-        if (this.#initialized) return;
+        if (this.#rendered) return;
 
-        this.#init();
+        this.#render();
 
         const helpText = this.#getHelpText();
         if (!helpText.id) {
-            let randomId = '';
-            do {
-                randomId = generateUniqueIdWithPrefix('help');
-            } while (document.getElementById(randomId));
-            helpText.id = randomId;
+            helpText.id = this.#createRandomId();
         }
     }
 
@@ -92,7 +99,7 @@ class FDSHelpText extends HTMLElement {
 
     disconnectedCallback() {
         this.#helpText = null;
-        this.#initialized = false;
+        this.#rendered = false;
     }
 
     /* --------------------------------------------------
@@ -100,7 +107,7 @@ class FDSHelpText extends HTMLElement {
     -------------------------------------------------- */
 
     attributeChangedCallback(name, oldValue, newValue) {
-        if (!this.#initialized) return;
+        if (!this.#rendered) return;
 
         if (name === 'help-text-id') {
             this.#updateId(newValue);

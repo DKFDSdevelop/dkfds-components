@@ -4,7 +4,7 @@ class FDSAccordionGroup extends HTMLElement {
 
     /* Private instance fields */
 
-    #initialized;
+    #rendered;
     #listenersAttached;
     #bulkButton;
 
@@ -30,8 +30,8 @@ class FDSAccordionGroup extends HTMLElement {
         }
     }
 
-    #init() {
-        if (this.#initialized) return;
+    #render() {
+        if (this.#rendered) return;
 
         const hasRenderedBulkButton = this.querySelectorAll('button.bulk-button').length > 0;
         const hasBulkButtonFromAttr = this.getAttribute('has-bulk-button') !== null && this.getAttribute('has-bulk-button') !== 'false';
@@ -41,7 +41,7 @@ class FDSAccordionGroup extends HTMLElement {
         }
         this.#updateBulkButtonText();
 
-        this.#initialized = true;
+        this.#rendered = true;
     }
 
     #updateHeadingLevel(headingLevel) {
@@ -102,7 +102,7 @@ class FDSAccordionGroup extends HTMLElement {
 
     constructor() {
         super();
-        this.#initialized = false;
+        this.#rendered = false;
         this.#listenersAttached = false;
         this.#bulkButton = null;
 
@@ -130,9 +130,9 @@ class FDSAccordionGroup extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
-        if (this.#initialized) return;
+        if (this.#rendered) return;
 
-        this.#init();
+        this.#render();
 
         if (this.#listenersAttached) return;
 
@@ -156,6 +156,8 @@ class FDSAccordionGroup extends HTMLElement {
     -------------------------------------------------- */
 
     disconnectedCallback() {
+        this.#rendered = false;
+
         if (!this.#listenersAttached) return;
 
         this.removeEventListener('fds-accordion-expanded', this.#handleAccordionExpanded);
@@ -173,7 +175,7 @@ class FDSAccordionGroup extends HTMLElement {
     -------------------------------------------------- */
 
     attributeChangedCallback(attribute, oldValue, newValue) {
-        if (!this.#initialized) return;
+        if (!this.#rendered) return;
 
         if (attribute === 'heading-level') {
             this.#updateHeadingLevel(newValue);
