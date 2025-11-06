@@ -5715,6 +5715,16 @@ function generateUniqueId() {
 function generateUniqueIdWithPrefix(str) {
   return str + crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
 }
+function createAndVerifyUniqueId(str) {
+  let uniqueId = generateUniqueIdWithPrefix(str);
+  let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
+
+  while (document.getElementById(uniqueId) && attempts > 0) {
+    uniqueId = generateUniqueIdWithPrefix(str);
+    attempts--;
+  }
+  return uniqueId;
+}
 ;// ./src/js/custom-elements/accordion/renderAccordionHTML.js
 function renderAccordionHTML() {
   let {
@@ -5908,8 +5918,7 @@ class FDSAccordion extends HTMLElement {
       this.setAttribute('expanded', 'true');
     }
     this.dispatchEvent(new CustomEvent('fds-accordion-expanded', {
-      bubbles: true,
-      composed: true
+      bubbles: true
     }));
   }
   collapseAccordion() {
@@ -5919,8 +5928,7 @@ class FDSAccordion extends HTMLElement {
       this.setAttribute('expanded', 'false');
     }
     this.dispatchEvent(new CustomEvent('fds-accordion-collapsed', {
-      bubbles: true,
-      composed: true
+      bubbles: true
     }));
   }
   toggleAccordion() {
@@ -6117,8 +6125,14 @@ class FDSAccordionGroup extends HTMLElement {
     this.#listenersAttached = false;
     this.#bulkButton = null;
     this.#handleBulkClick = () => this.toggleAllAccordions();
-    this.#handleAccordionExpanded = () => this.#updateBulkButtonText();
-    this.#handleAccordionCollapsed = () => this.#updateBulkButtonText();
+    this.#handleAccordionExpanded = e => {
+      e.stopPropagation();
+      this.#updateBulkButtonText();
+    };
+    this.#handleAccordionCollapsed = e => {
+      e.stopPropagation();
+      this.#updateBulkButtonText();
+    };
   }
 
   /* --------------------------------------------------
@@ -6201,37 +6215,18 @@ class FDSInputWrapper extends HTMLElement {
   #input;
   #label;
   #wrapper;
+  #handleHelpTextCallback;
 
   /* Private methods */
 
-  #ensureMatchingIds() {
-    const inputId = this.#input.id?.trim();
-    const labelFor = this.#label.htmlFor?.trim();
-    if (inputId && labelFor) {
-      if (labelFor !== inputId) this.#label.htmlFor = inputId;
-      return;
-    }
-    if (inputId && !labelFor) {
-      this.#label.htmlFor = inputId;
-      return;
-    }
-    if (!inputId && labelFor) {
-      this.#input.id = labelFor;
-      return;
-    }
-    const autoId = generateUniqueIdWithPrefix('inp');
-    this.#input.id = autoId;
-    this.#label.htmlFor = autoId;
+  #getInputElement() {
+    return this.querySelector(':scope > input');
   }
-  #connectHelpText() {
-    const helpEls = this.querySelectorAll('fds-help-text, .form-hint');
-    if (!helpEls.length) return;
-    const ids = Array.from(helpEls).map(helpEl => {
-      const helpId = helpEl.id?.trim() || generateUniqueIdWithPrefix('hint');
-      helpEl.id = helpId;
-      return helpId;
-    });
-    this.#input.setAttribute('aria-describedby', ids.join(' '));
+  #getLabelElement() {
+    return this.querySelector(':scope > label');
+  }
+  #getHelpTexts() {
+    return this.querySelectorAll(':scope > fds-help-text');
   }
   #setupPrefixSuffix() {
     if (!this.#input) return;
@@ -6339,6 +6334,47 @@ class FDSInputWrapper extends HTMLElement {
   static observedAttributes = ['required', 'optional', 'readonly', 'disabled', 'prefix', 'suffix'];
 
   /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+    this.#handleHelpTextCallback = () => {
+      this.updateIdReferences();
+    };
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  updateIdReferences() {
+    if (!this.#getInputElement()) return;
+
+    // Set/remove 'for' on label
+    if (this.#getLabelElement()) {
+      if (!this.#getInputElement().id) {
+        this.#getInputElement().id = createAndVerifyUniqueId('inp');
+      }
+      this.#getLabelElement().htmlFor = this.#getInputElement().id;
+    }
+
+    // Set/remove aria-describedby on input
+    const idsForAriaDescribedby = [];
+    this.#getHelpTexts().forEach(helptext => {
+      const text = helptext.querySelector(':scope > .help-text');
+      if (text?.hasAttribute('id')) {
+        idsForAriaDescribedby.push(text.id);
+      }
+    });
+    if (idsForAriaDescribedby.length > 0) {
+      this.#getInputElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
+    } else {
+      this.#getInputElement().removeAttribute('aria-describedby');
+    }
+  }
+
+  /* --------------------------------------------------
   CUSTOM ELEMENT ADDED TO DOCUMENT
   -------------------------------------------------- */
 
@@ -6348,12 +6384,20 @@ class FDSInputWrapper extends HTMLElement {
     if (!this.#label || !this.#input) return;
     this.#label.classList.add('form-label');
     this.#input.classList.add('form-input');
-    this.#ensureMatchingIds();
     this.#setupPrefixSuffix();
-    this.#connectHelpText();
     this.#applyRequiredOrOptional();
     this.#applyReadonly();
     this.#applyDisabled();
+    this.updateIdReferences();
+    this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
   }
 
   /* --------------------------------------------------
@@ -6394,6 +6438,7 @@ class FDSHelpText extends HTMLElement {
 
   #rendered;
   #helpText;
+  #parentWrapper;
 
   /* Private methods */
 
@@ -6442,6 +6487,7 @@ class FDSHelpText extends HTMLElement {
     super();
     this.#rendered = false;
     this.#helpText = null;
+    this.#parentWrapper = null;
   }
 
   /* --------------------------------------------------
@@ -6455,6 +6501,11 @@ class FDSHelpText extends HTMLElement {
     if (!helpText.id) {
       helpText.id = fds_help_text_createRandomId();
     }
+
+    // During disconnect, the custom element may lose connection to the input-wrapper.
+    // Save the input-wrapper and use it to dispatch events - otherwise, the events may be lost.
+    this.#parentWrapper = this.closest('fds-input-wrapper');
+    this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
   }
 
   /* --------------------------------------------------
@@ -6462,7 +6513,9 @@ class FDSHelpText extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
+    this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
     this.#helpText = null;
+    this.#parentWrapper = null;
     this.#rendered = false;
   }
 
@@ -6475,6 +6528,7 @@ class FDSHelpText extends HTMLElement {
     if (name === 'help-text-id') {
       this.#updateId(newValue);
     }
+    this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
   }
 }
 function registerHelpText() {

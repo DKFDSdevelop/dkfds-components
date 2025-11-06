@@ -1,6 +1,6 @@
 'use strict';
 
-import { generateUniqueIdWithPrefix } from '../../utils/generate-unique-id';
+import { createAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 class FDSInputWrapper extends HTMLElement {
 
@@ -10,43 +10,20 @@ class FDSInputWrapper extends HTMLElement {
     #label;
     #wrapper;
 
+    #handleHelpTextCallback;
+
     /* Private methods */
 
-    #ensureMatchingIds() {
-        const inputId = this.#input.id?.trim();
-        const labelFor = this.#label.htmlFor?.trim();
-
-        if (inputId && labelFor) {
-            if (labelFor !== inputId) this.#label.htmlFor = inputId;
-            return;
-        }
-
-        if (inputId && !labelFor) {
-            this.#label.htmlFor = inputId;
-            return;
-        }
-
-        if (!inputId && labelFor) {
-            this.#input.id = labelFor;
-            return;
-        }
-
-        const autoId = generateUniqueIdWithPrefix('inp');
-        this.#input.id = autoId;
-        this.#label.htmlFor = autoId;
+    #getInputElement() {
+        return this.querySelector(':scope > input');
     }
 
-    #connectHelpText() {
-        const helpEls = this.querySelectorAll('fds-help-text, .form-hint');
-        if (!helpEls.length) return;
+    #getLabelElement() {
+        return this.querySelector(':scope > label');
+    }
 
-        const ids = Array.from(helpEls).map(helpEl => {
-            const helpId = helpEl.id?.trim() || generateUniqueIdWithPrefix('hint');
-            helpEl.id = helpId;
-            return helpId;
-        });
-
-        this.#input.setAttribute('aria-describedby', ids.join(' '));
+    #getHelpTexts() {
+        return this.querySelectorAll(':scope > fds-help-text');
     }
 
     #setupPrefixSuffix() {
@@ -171,6 +148,47 @@ class FDSInputWrapper extends HTMLElement {
     static observedAttributes = ['required', 'optional', 'readonly', 'disabled', 'prefix', 'suffix'];
 
     /* --------------------------------------------------
+    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+    -------------------------------------------------- */
+
+    constructor() {
+        super();
+
+        this.#handleHelpTextCallback = () => { this.updateIdReferences(); };
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT METHODS
+    -------------------------------------------------- */
+
+    updateIdReferences() {
+        if (!this.#getInputElement()) return;
+
+        // Set/remove 'for' on label
+        if (this.#getLabelElement()) {
+            if (!this.#getInputElement().id) {
+                this.#getInputElement().id = createAndVerifyUniqueId('inp');
+            }
+            this.#getLabelElement().htmlFor = this.#getInputElement().id;
+        }
+
+        // Set/remove aria-describedby on input
+        const idsForAriaDescribedby = [];
+        this.#getHelpTexts().forEach(helptext => {
+            const text = helptext.querySelector(':scope > .help-text');
+            if (text?.hasAttribute('id')) {
+                idsForAriaDescribedby.push(text.id);
+            }
+        });
+        if (idsForAriaDescribedby.length > 0) {
+            this.#getInputElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
+        }
+        else {
+            this.#getInputElement().removeAttribute('aria-describedby');
+        }
+    }
+
+    /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
     -------------------------------------------------- */
 
@@ -183,12 +201,21 @@ class FDSInputWrapper extends HTMLElement {
         this.#label.classList.add('form-label');
         this.#input.classList.add('form-input');
 
-        this.#ensureMatchingIds();
         this.#setupPrefixSuffix();
-        this.#connectHelpText();
         this.#applyRequiredOrOptional();
         this.#applyReadonly();
         this.#applyDisabled();
+        this.updateIdReferences();
+
+        this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT REMOVED FROM DOCUMENT
+    -------------------------------------------------- */
+
+    disconnectedCallback() {
+        this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
     }
 
     /* --------------------------------------------------

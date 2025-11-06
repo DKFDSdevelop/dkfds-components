@@ -12652,6 +12652,10 @@ fds-input-wrapper:first-child,
   margin-top:0;
 }
 
+fds-help-text,
+.fds-help-text{
+  display:block;
+}
 fds-help-text .help-text,
 .fds-help-text .help-text{
   max-width:66ch;

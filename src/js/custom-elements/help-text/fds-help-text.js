@@ -8,6 +8,7 @@ class FDSHelpText extends HTMLElement {
 
     #rendered;
     #helpText;
+    #parentWrapper;
 
     /* Private methods */
 
@@ -64,6 +65,7 @@ class FDSHelpText extends HTMLElement {
         super();
         this.#rendered = false;
         this.#helpText = null;
+        this.#parentWrapper = null;
     }
 
     /* --------------------------------------------------
@@ -79,6 +81,12 @@ class FDSHelpText extends HTMLElement {
         if (!helpText.id) {
             helpText.id = createRandomId();
         }
+
+        // During disconnect, the custom element may lose connection to the input-wrapper.
+        // Save the input-wrapper and use it to dispatch events - otherwise, the events may be lost.
+        this.#parentWrapper = this.closest('fds-input-wrapper');
+
+        this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
     }
 
     /* --------------------------------------------------
@@ -86,7 +94,10 @@ class FDSHelpText extends HTMLElement {
     -------------------------------------------------- */
 
     disconnectedCallback() {
+        this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
+
         this.#helpText = null;
+        this.#parentWrapper = null;
         this.#rendered = false;
     }
 
@@ -100,6 +111,8 @@ class FDSHelpText extends HTMLElement {
         if (name === 'help-text-id') {
             this.#updateId(newValue);
         }
+
+        this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
     }
 }
 

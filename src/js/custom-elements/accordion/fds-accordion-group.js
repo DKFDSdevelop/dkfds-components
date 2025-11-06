@@ -107,8 +107,14 @@ class FDSAccordionGroup extends HTMLElement {
         this.#bulkButton = null;
 
         this.#handleBulkClick = () => this.toggleAllAccordions();
-        this.#handleAccordionExpanded = () => this.#updateBulkButtonText();
-        this.#handleAccordionCollapsed = () => this.#updateBulkButtonText();
+        this.#handleAccordionExpanded = (e) => {
+            e.stopPropagation();
+            this.#updateBulkButtonText();
+        };
+        this.#handleAccordionCollapsed = (e) => {
+            e.stopPropagation();
+            this.#updateBulkButtonText();
+        };
     }
 
     /* --------------------------------------------------
