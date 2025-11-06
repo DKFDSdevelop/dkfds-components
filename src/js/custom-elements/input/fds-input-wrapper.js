@@ -1,6 +1,6 @@
 'use strict';
 
-import { createAndVerifyUniqueId } from '../../utils/generate-unique-id';
+import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 class FDSInputWrapper extends HTMLElement {
 
@@ -15,15 +15,11 @@ class FDSInputWrapper extends HTMLElement {
     /* Private methods */
 
     #getInputElement() {
-        return this.querySelector(':scope > input');
+        return this.querySelector('input');
     }
 
     #getLabelElement() {
-        return this.querySelector(':scope > label');
-    }
-
-    #getHelpTexts() {
-        return this.querySelectorAll(':scope > fds-help-text');
+        return this.querySelector('label');
     }
 
     #setupPrefixSuffix() {
@@ -50,10 +46,10 @@ class FDSInputWrapper extends HTMLElement {
         this.#wrapper.className = 'form-input-wrapper';
         if (hasPrefix) this.#wrapper.classList.add('form-input-wrapper--prefix');
         if (hasSuffix) this.#wrapper.classList.add('form-input-wrapper--suffix');
-        if (this.hasAttribute('disabled') && this.getAttribute('disabled') !== 'false') {
+        if (this.hasAttribute('input-disabled') && this.getAttribute('input-disabled') !== 'false') {
             this.#wrapper.classList.add('disabled');
         }
-        if (this.hasAttribute('readonly') && this.getAttribute('readonly') !== 'false') {
+        if (this.hasAttribute('input-readonly') && this.getAttribute('input-readonly') !== 'false') {
             this.#wrapper.classList.add('readonly');
         }
 
@@ -103,28 +99,28 @@ class FDSInputWrapper extends HTMLElement {
 
         this.#label.appendChild(span);
 
-        if (attributeName === 'required') {
+        if (attributeName === 'input-required') {
             this.#input?.setAttribute('required', '');
         }
     }
 
     #applyRequiredOrOptional() {
-        if (this.hasAttribute('required')) this.#updateRequired();
-        else if (this.hasAttribute('optional')) this.#updateOptional();
+        if (this.hasAttribute('input-required')) this.#updateRequired();
+        else if (this.hasAttribute('input-optional')) this.#updateOptional();
     }
 
     #updateRequired() {
-        this.#addLabelIndicator('required', '*skal udfyldes');
+        this.#addLabelIndicator('input-required', '*skal udfyldes');
     }
 
     #updateOptional() {
-        this.#addLabelIndicator('optional', 'frivilligt');
+        this.#addLabelIndicator('input-optional', 'frivilligt');
     }
 
     #applyReadonly() {
         if (!this.#input) return;
 
-        if (this.hasAttribute('readonly') && this.getAttribute('readonly') !== 'false') {
+        if (this.hasAttribute('input-readonly') && this.getAttribute('input-readonly') !== 'false') {
             this.#input.setAttribute('readonly', '');
         } else {
             this.#input.removeAttribute('readonly');
@@ -134,7 +130,7 @@ class FDSInputWrapper extends HTMLElement {
     #applyDisabled() {
         if (!this.#input) return;
 
-        if (this.hasAttribute('disabled') && this.getAttribute('disabled') !== 'false') {
+        if (this.hasAttribute('input-disabled') && this.getAttribute('input-disabled') !== 'false') {
             this.#input.setAttribute('disabled', '');
             this.#label.classList.add('disabled');
         } else {
@@ -145,7 +141,7 @@ class FDSInputWrapper extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['required', 'optional', 'readonly', 'disabled', 'prefix', 'suffix'];
+    static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'prefix', 'suffix'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -167,14 +163,14 @@ class FDSInputWrapper extends HTMLElement {
         // Set/remove 'for' on label
         if (this.#getLabelElement()) {
             if (!this.#getInputElement().id) {
-                this.#getInputElement().id = createAndVerifyUniqueId('inp');
+                this.#getInputElement().id = generateAndVerifyUniqueId('inp');
             }
             this.#getLabelElement().htmlFor = this.#getInputElement().id;
         }
 
         // Set/remove aria-describedby on input
         const idsForAriaDescribedby = [];
-        this.#getHelpTexts().forEach(helptext => {
+        this.querySelectorAll('fds-help-text').forEach(helptext => {
             const text = helptext.querySelector(':scope > .help-text');
             if (text?.hasAttribute('id')) {
                 idsForAriaDescribedby.push(text.id);
@@ -193,8 +189,8 @@ class FDSInputWrapper extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
-        this.#label = this.querySelector('label');
-        this.#input = this.querySelector('input');
+        this.#label = this.#getLabelElement();
+        this.#input = this.#getInputElement();
 
         if (!this.#label || !this.#input) return;
 
@@ -225,19 +221,19 @@ class FDSInputWrapper extends HTMLElement {
     attributeChangedCallback(attribute) {
         if (!this.isConnected) return;
 
-        if (attribute === 'required') {
+        if (attribute === 'input-required') {
             this.#updateRequired();
         }
 
-        if (attribute === 'optional') {
+        if (attribute === 'input-optional') {
             this.#updateOptional();
         }
 
-        if (attribute === 'readonly') {
+        if (attribute === 'input-readonly') {
             this.#applyReadonly();
         }
 
-        if (attribute === 'disabled') {
+        if (attribute === 'input-disabled') {
             this.#applyDisabled();
         }
 

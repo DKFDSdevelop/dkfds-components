@@ -1,6 +1,6 @@
 'use strict';
 
-import { generateUniqueIdWithPrefix } from '../../utils/generate-unique-id';
+import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 class FDSHelpText extends HTMLElement {
 
@@ -49,7 +49,7 @@ class FDSHelpText extends HTMLElement {
         if (newValue !== null && newValue !== '') {
             span.id = newValue;
         } else {
-            span.id = createRandomId();
+            span.id = generateAndVerifyUniqueId('help');
         }
     }
 
@@ -79,7 +79,7 @@ class FDSHelpText extends HTMLElement {
 
         const helpText = this.#getHelpText();
         if (!helpText.id) {
-            helpText.id = createRandomId();
+            helpText.id = generateAndVerifyUniqueId('help');
         }
 
         // During disconnect, the custom element may lose connection to the input-wrapper.
@@ -120,18 +120,6 @@ function registerHelpText() {
     if (customElements.get('fds-help-text') === undefined) {
         window.customElements.define('fds-help-text', FDSHelpText);
     }
-}
-
-function createRandomId() {
-    let randomId = generateUniqueIdWithPrefix('help');
-    let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
-
-    while (document.getElementById(randomId) && attempts > 0) {
-        randomId = generateUniqueIdWithPrefix('help');
-        attempts--;
-    }
-
-    return randomId;
 }
 
 export default registerHelpText;

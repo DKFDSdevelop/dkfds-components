@@ -5,6 +5,8 @@
 
 fds-accordion-group,
 .fds-accordion-group {
+    display: block;
+
     button.bulk-button {
         @extend .function-link;
 

@@ -1,6 +1,6 @@
 'use strict';
 
-import { generateUniqueIdWithPrefix } from '../../utils/generate-unique-id';
+import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 import { renderAccordionHTML } from './renderAccordionHTML.js';
 import { validateAccordionHTML } from './validateAccordionHTML.js'
 
@@ -191,7 +191,7 @@ class FDSAccordion extends HTMLElement {
                 newId = this.getAttribute('content-id');
             }
             else if (contentId === '') {
-                newId = createRandomId();
+                newId = generateAndVerifyUniqueId('acc');
             }
             else {
                 newId = contentId;
@@ -265,18 +265,6 @@ function registerAccordion() {
     if (customElements.get('fds-accordion') === undefined) {
         window.customElements.define('fds-accordion', FDSAccordion);
     }
-}
-
-function createRandomId() {
-    let randomId = generateUniqueIdWithPrefix('acc');
-    let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
-
-    while (document.getElementById(randomId) && attempts > 0) {
-        randomId = generateUniqueIdWithPrefix('acc');
-        attempts--;
-    }
-
-    return randomId;
 }
 
 export { registerAccordion, renderAccordionHTML, validateAccordionHTML };
