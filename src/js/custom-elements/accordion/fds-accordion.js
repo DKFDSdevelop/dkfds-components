@@ -13,16 +13,12 @@ class FDSAccordion extends HTMLElement {
 
     /* Private methods */
 
-    #createRandomId() {
-        let randomId = generateUniqueIdWithPrefix('acc');
-        let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
-        
-        while (document.getElementById(randomId) && attempts > 0) {
-            randomId = generateUniqueIdWithPrefix('acc');
-            attempts--;
-        }
+    #getHeadingElement() {
+        return this.querySelector('h1, h2, h3, h4, h5, h6');
+    }
 
-        return randomId;
+    #getContentElement() {
+        return this.querySelector('.accordion-content');
     }
 
     #render() {
@@ -119,14 +115,6 @@ class FDSAccordion extends HTMLElement {
         }
     }
 
-    #getHeadingElement() {
-        return this.querySelector('h1, h2, h3, h4, h5, h6');
-    }
-
-    #getContentElement() {
-        return this.querySelector('.accordion-content');
-    }
-
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = ['heading', 'heading-level', 'expanded', 'content-id', 'variant-text', 'variant-icon'];
@@ -188,7 +176,7 @@ class FDSAccordion extends HTMLElement {
     }
 
     isExpanded() {
-        return this.getAttribute('expanded') !== null && this.getAttribute('expanded') !== 'false';
+        return this.hasAttribute('expanded') && this.getAttribute('expanded') !== 'false';
     }
 
     /* --------------------------------------------------
@@ -209,7 +197,7 @@ class FDSAccordion extends HTMLElement {
                 newId = this.getAttribute('content-id');
             }
             else if (contentId === '') {
-                newId = this.#createRandomId();
+                newId = createRandomId();
             }
             else {
                 newId = contentId;
@@ -283,6 +271,18 @@ function registerAccordion() {
     if (customElements.get('fds-accordion') === undefined) {
         window.customElements.define('fds-accordion', FDSAccordion);
     }
+}
+
+function createRandomId() {
+    let randomId = generateUniqueIdWithPrefix('acc');
+    let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
+
+    while (document.getElementById(randomId) && attempts > 0) {
+        randomId = generateUniqueIdWithPrefix('acc');
+        attempts--;
+    }
+
+    return randomId;
 }
 
 export { registerAccordion, renderAccordionHTML, validateAccordionHTML };

@@ -3208,7 +3208,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerAccordionGroup: () => (/* reexport */ fds_accordion_group),
   registerCustomElements: () => (/* binding */ registerCustomElements),
   registerHelpText: () => (/* reexport */ fds_help_text),
-  registerInput: () => (/* reexport */ fds_input),
+  registerInputWrapper: () => (/* reexport */ fds_input_wrapper),
   renderAccordionHTML: () => (/* reexport */ renderAccordionHTML),
   validateAccordionHTML: () => (/* reexport */ validateAccordionHTML)
 });
@@ -5785,15 +5785,11 @@ class FDSAccordion extends HTMLElement {
 
   /* Private methods */
 
-  #createRandomId() {
-    let randomId = generateUniqueIdWithPrefix('acc');
-    let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
-
-    while (document.getElementById(randomId) && attempts > 0) {
-      randomId = generateUniqueIdWithPrefix('acc');
-      attempts--;
-    }
-    return randomId;
+  #getHeadingElement() {
+    return this.querySelector('h1, h2, h3, h4, h5, h6');
+  }
+  #getContentElement() {
+    return this.querySelector('.accordion-content');
   }
   #render() {
     if (this.#rendered) return;
@@ -5872,12 +5868,6 @@ class FDSAccordion extends HTMLElement {
       button.querySelector('.accordion-icon').remove();
     }
   }
-  #getHeadingElement() {
-    return this.querySelector('h1, h2, h3, h4, h5, h6');
-  }
-  #getContentElement() {
-    return this.querySelector('.accordion-content');
-  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -5941,7 +5931,7 @@ class FDSAccordion extends HTMLElement {
     }
   }
   isExpanded() {
-    return this.getAttribute('expanded') !== null && this.getAttribute('expanded') !== 'false';
+    return this.hasAttribute('expanded') && this.getAttribute('expanded') !== 'false';
   }
 
   /* --------------------------------------------------
@@ -5960,7 +5950,7 @@ class FDSAccordion extends HTMLElement {
       if (this.hasAttribute('content-id')) {
         newId = this.getAttribute('content-id');
       } else if (contentId === '') {
-        newId = this.#createRandomId();
+        newId = createRandomId();
       } else {
         newId = contentId;
       }
@@ -6024,6 +6014,16 @@ function registerAccordion() {
     window.customElements.define('fds-accordion', FDSAccordion);
   }
 }
+function createRandomId() {
+  let randomId = generateUniqueIdWithPrefix('acc');
+  let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
+
+  while (document.getElementById(randomId) && attempts > 0) {
+    randomId = generateUniqueIdWithPrefix('acc');
+    attempts--;
+  }
+  return randomId;
+}
 
 ;// ./src/js/custom-elements/accordion/fds-accordion-group.js
 
@@ -6063,11 +6063,6 @@ class FDSAccordionGroup extends HTMLElement {
     this.#updateBulkButtonText();
     this.#rendered = true;
   }
-  #updateHeadingLevel(headingLevel) {
-    const valid = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
-    if (!valid.includes(headingLevel)) return;
-    this.#getAllAccordions().forEach(acc => acc.setAttribute('heading-level', headingLevel));
-  }
   #getAllAccordions() {
     return Array.from(this.querySelectorAll(':scope > fds-accordion'));
   }
@@ -6079,14 +6074,10 @@ class FDSAccordionGroup extends HTMLElement {
       return button?.getAttribute('aria-expanded') === 'true';
     });
   }
-  #updateBulkButtonText() {
-    const button = this.#getBulkButton();
-    if (!button) return;
-    const openText = this.getAttribute('open-all-text') || 'Åbn alle';
-    const closeText = this.getAttribute('close-all-text') || 'Luk alle';
-    const allExpanded = this.#areAllExpanded();
-    button.textContent = allExpanded ? closeText : openText;
-    allExpanded ? button.classList.add('close') : button.classList.remove('close');
+  #updateHeadingLevel(headingLevel) {
+    const valid = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+    if (!valid.includes(headingLevel)) return;
+    this.#getAllAccordions().forEach(acc => acc.setAttribute('heading-level', headingLevel));
   }
   #updateHasBulkButton(attrValue) {
     const mustHasBulkButton = attrValue !== null && attrValue !== 'false';
@@ -6101,6 +6092,15 @@ class FDSAccordionGroup extends HTMLElement {
       this.#bulkButton = null;
     }
     this.#updateBulkButtonText();
+  }
+  #updateBulkButtonText() {
+    const button = this.#getBulkButton();
+    if (!button) return;
+    const openText = this.getAttribute('open-all-text') || 'Åbn alle';
+    const closeText = this.getAttribute('close-all-text') || 'Luk alle';
+    const allExpanded = this.#areAllExpanded();
+    button.textContent = allExpanded ? closeText : openText;
+    allExpanded ? button.classList.add('close') : button.classList.remove('close');
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
@@ -6191,11 +6191,11 @@ function registerAccordionGroup() {
   }
 }
 /* harmony default export */ const fds_accordion_group = (registerAccordionGroup);
-;// ./src/js/custom-elements/input/fds-input.js
+;// ./src/js/custom-elements/input/fds-input-wrapper.js
 
 
 
-class FDSInput extends HTMLElement {
+class FDSInputWrapper extends HTMLElement {
   /* Private instance fields */
 
   #input;
@@ -6379,12 +6379,12 @@ class FDSInput extends HTMLElement {
     }
   }
 }
-function registerInput() {
-  if (customElements.get('fds-input') === undefined) {
-    window.customElements.define('fds-input', FDSInput);
+function registerInputWrapper() {
+  if (customElements.get('fds-input-wrapper') === undefined) {
+    window.customElements.define('fds-input-wrapper', FDSInputWrapper);
   }
 }
-/* harmony default export */ const fds_input = (registerInput);
+/* harmony default export */ const fds_input_wrapper = (registerInputWrapper);
 ;// ./src/js/custom-elements/help-text/fds-help-text.js
 
 
@@ -6401,16 +6401,6 @@ class FDSHelpText extends HTMLElement {
     if (this.#helpText) return this.#helpText;
     this.#helpText = this.querySelector(':scope > .help-text');
     return this.#helpText;
-  }
-  #createRandomId() {
-    let randomId = generateUniqueIdWithPrefix('help');
-    let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
-
-    while (document.getElementById(randomId) && attempts > 0) {
-      randomId = generateUniqueIdWithPrefix('help');
-      attempts--;
-    }
-    return randomId;
   }
   #render() {
     if (this.#rendered) return;
@@ -6436,7 +6426,7 @@ class FDSHelpText extends HTMLElement {
     if (newValue !== null && newValue !== '') {
       span.id = newValue;
     } else {
-      span.id = this.#createRandomId();
+      span.id = fds_help_text_createRandomId();
     }
   }
 
@@ -6463,7 +6453,7 @@ class FDSHelpText extends HTMLElement {
     this.#render();
     const helpText = this.#getHelpText();
     if (!helpText.id) {
-      helpText.id = this.#createRandomId();
+      helpText.id = fds_help_text_createRandomId();
     }
   }
 
@@ -6491,6 +6481,16 @@ function registerHelpText() {
   if (customElements.get('fds-help-text') === undefined) {
     window.customElements.define('fds-help-text', FDSHelpText);
   }
+}
+function fds_help_text_createRandomId() {
+  let randomId = generateUniqueIdWithPrefix('help');
+  let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
+
+  while (document.getElementById(randomId) && attempts > 0) {
+    randomId = generateUniqueIdWithPrefix('help');
+    attempts--;
+  }
+  return randomId;
 }
 /* harmony default export */ const fds_help_text = (registerHelpText);
 ;// ./src/js/dkfds.js
@@ -6710,7 +6710,7 @@ var init = function (options) {
 const registerCustomElements = () => {
   registerAccordion();
   fds_accordion_group();
-  fds_input(), fds_help_text();
+  fds_input_wrapper(), fds_help_text();
 };
 
 })();

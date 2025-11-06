@@ -18,18 +18,6 @@ class FDSHelpText extends HTMLElement {
         return this.#helpText;
     }
 
-    #createRandomId() {
-        let randomId = generateUniqueIdWithPrefix('help');
-        let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
-        
-        while (document.getElementById(randomId) && attempts > 0) {
-            randomId = generateUniqueIdWithPrefix('help');
-            attempts--;
-        }
-
-        return randomId;
-    }
-
     #render() {
         if (this.#rendered) return;
 
@@ -60,7 +48,7 @@ class FDSHelpText extends HTMLElement {
         if (newValue !== null && newValue !== '') {
             span.id = newValue;
         } else {
-            span.id = this.#createRandomId();
+            span.id = createRandomId();
         }
     }
 
@@ -89,7 +77,7 @@ class FDSHelpText extends HTMLElement {
 
         const helpText = this.#getHelpText();
         if (!helpText.id) {
-            helpText.id = this.#createRandomId();
+            helpText.id = createRandomId();
         }
     }
 
@@ -119,6 +107,18 @@ function registerHelpText() {
     if (customElements.get('fds-help-text') === undefined) {
         window.customElements.define('fds-help-text', FDSHelpText);
     }
+}
+
+function createRandomId() {
+    let randomId = generateUniqueIdWithPrefix('help');
+    let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
+
+    while (document.getElementById(randomId) && attempts > 0) {
+        randomId = generateUniqueIdWithPrefix('help');
+        attempts--;
+    }
+
+    return randomId;
 }
 
 export default registerHelpText;

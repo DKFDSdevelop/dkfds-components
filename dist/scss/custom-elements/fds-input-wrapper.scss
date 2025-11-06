@@ -1,7 +1,7 @@
 @use "../functions" as func;
 
-fds-input,
-.fds-input {
+fds-input-wrapper,
+.fds-input-wrapper {
     display: block;
     margin-top: func.units(5);
 

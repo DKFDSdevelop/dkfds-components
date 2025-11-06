@@ -44,12 +44,6 @@ class FDSAccordionGroup extends HTMLElement {
         this.#rendered = true;
     }
 
-    #updateHeadingLevel(headingLevel) {
-        const valid = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
-        if (!valid.includes(headingLevel)) return;
-        this.#getAllAccordions().forEach(acc => acc.setAttribute('heading-level', headingLevel));
-    }
-
     #getAllAccordions() {
         return Array.from(this.querySelectorAll(':scope > fds-accordion'));
     }
@@ -63,15 +57,10 @@ class FDSAccordionGroup extends HTMLElement {
         });
     }
 
-    #updateBulkButtonText() {
-        const button = this.#getBulkButton();
-        if (!button) return;
-
-        const openText = this.getAttribute('open-all-text') || 'Åbn alle';
-        const closeText = this.getAttribute('close-all-text') || 'Luk alle';
-        const allExpanded = this.#areAllExpanded();
-        button.textContent = allExpanded ? closeText : openText;
-        allExpanded ? button.classList.add('close') : button.classList.remove('close');
+    #updateHeadingLevel(headingLevel) {
+        const valid = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+        if (!valid.includes(headingLevel)) return;
+        this.#getAllAccordions().forEach(acc => acc.setAttribute('heading-level', headingLevel));
     }
 
     #updateHasBulkButton(attrValue) {
@@ -90,6 +79,17 @@ class FDSAccordionGroup extends HTMLElement {
         }
 
         this.#updateBulkButtonText();
+    }
+
+    #updateBulkButtonText() {
+        const button = this.#getBulkButton();
+        if (!button) return;
+
+        const openText = this.getAttribute('open-all-text') || 'Åbn alle';
+        const closeText = this.getAttribute('close-all-text') || 'Luk alle';
+        const allExpanded = this.#areAllExpanded();
+        button.textContent = allExpanded ? closeText : openText;
+        allExpanded ? button.classList.add('close') : button.classList.remove('close');
     }
 
     /* Attributes which can invoke attributeChangedCallback() */

@@ -2,7 +2,7 @@
 
 import { generateUniqueIdWithPrefix } from '../../utils/generate-unique-id';
 
-class FDSInput extends HTMLElement {
+class FDSInputWrapper extends HTMLElement {
 
     /* Private instance fields */
 
@@ -220,10 +220,10 @@ class FDSInput extends HTMLElement {
     }
 }
 
-function registerInput() {
-    if (customElements.get('fds-input') === undefined) {
-        window.customElements.define('fds-input', FDSInput);
+function registerInputWrapper() {
+    if (customElements.get('fds-input-wrapper') === undefined) {
+        window.customElements.define('fds-input-wrapper', FDSInputWrapper);
     }
 }
 
-export default registerInput;
+export default registerInputWrapper;

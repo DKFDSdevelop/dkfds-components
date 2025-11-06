@@ -21,7 +21,7 @@ const datePicker = require('./components/date-picker').default;
 // Custom elements
 import { registerAccordion, renderAccordionHTML, validateAccordionHTML } from './custom-elements/accordion/fds-accordion';
 import registerAccordionGroup from './custom-elements/accordion/fds-accordion-group';
-import registerInput from './custom-elements/input/fds-input';
+import registerInputWrapper from './custom-elements/input/fds-input-wrapper';
 import registerHelpText from './custom-elements/help-text/fds-help-text';
 
 /**
@@ -216,8 +216,8 @@ var init = function (options) {
 const registerCustomElements = () => {
   registerAccordion();
   registerAccordionGroup();
-  registerInput(),
+  registerInputWrapper(),
   registerHelpText()
 };
 
-export { init, registerCustomElements, registerAccordion, renderAccordionHTML, validateAccordionHTML, registerAccordionGroup, registerInput, registerHelpText, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
+export { init, registerCustomElements, registerAccordion, renderAccordionHTML, validateAccordionHTML, registerAccordionGroup, registerInputWrapper, registerHelpText, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
