@@ -139,9 +139,36 @@ class FDSInputWrapper extends HTMLElement {
         }
     }
 
+    #applyInputWidth() {
+        if (!this.#input) return;
+
+        const widthClasses = ['input-width-xxs', 'input-width-xs', 'input-width-s', 'input-width-m', 'input-width-l','input-width-xl'];
+
+        this.#input.classList.remove(...widthClasses);
+
+        const activeAttr = widthClasses.find(attr => this.hasAttribute(attr));
+
+        if (activeAttr) {
+            this.#input.classList.add(activeAttr);
+        }
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'prefix', 'suffix'];
+    static observedAttributes = [
+        'input-required',
+        'input-optional',
+        'input-readonly',
+        'input-disabled',
+        'prefix',
+        'suffix',
+        'input-width-xxs',
+        'input-width-xs',
+        'input-width-s',
+        'input-width-m',
+        'input-width-l',
+        'input-width-xl'
+    ];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -201,6 +228,7 @@ class FDSInputWrapper extends HTMLElement {
         this.#applyRequiredOrOptional();
         this.#applyReadonly();
         this.#applyDisabled();
+        this.#applyInputWidth();
         this.updateIdReferences();
 
         this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
@@ -239,6 +267,10 @@ class FDSInputWrapper extends HTMLElement {
 
         if (attribute === 'prefix' || attribute === 'suffix') {
             this.#setupPrefixSuffix();
+        }
+
+        if (attribute.startsWith('input-width-')) {
+            this.#applyInputWidth();
         }
     }
 }
