@@ -139,17 +139,22 @@ class FDSInputWrapper extends HTMLElement {
         }
     }
 
-    #applyInputWidth() {
+    #applyMaxWidth() {
         if (!this.#input) return;
 
-        const widthClasses = ['input-width-xxs', 'input-width-xs', 'input-width-s', 'input-width-m', 'input-width-l','input-width-xl'];
+        this.#input.classList.forEach(cls => {
+            if (cls.startsWith('input-width-') || cls.startsWith('input-char-')) {
+                this.#input.classList.remove(cls);
+            }
+        });
 
-        this.#input.classList.remove(...widthClasses);
+        const value = this.getAttribute('maxwidth');
+        if (!value) return;
 
-        const activeAttr = widthClasses.find(attr => this.hasAttribute(attr));
-
-        if (activeAttr) {
-            this.#input.classList.add(activeAttr);
+        if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
+            this.#input.classList.add(`input-width-${value}`);
+        } else if (/^\d+$/.test(value)) {
+            this.#input.classList.add(`input-char-${value}`);
         }
     }
 
@@ -162,12 +167,7 @@ class FDSInputWrapper extends HTMLElement {
         'input-disabled',
         'prefix',
         'suffix',
-        'input-width-xxs',
-        'input-width-xs',
-        'input-width-s',
-        'input-width-m',
-        'input-width-l',
-        'input-width-xl'
+        'maxwidth',
     ];
 
     /* --------------------------------------------------
@@ -228,7 +228,7 @@ class FDSInputWrapper extends HTMLElement {
         this.#applyRequiredOrOptional();
         this.#applyReadonly();
         this.#applyDisabled();
-        this.#applyInputWidth();
+        this.#applyMaxWidth();
         this.updateIdReferences();
 
         this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
@@ -269,8 +269,8 @@ class FDSInputWrapper extends HTMLElement {
             this.#setupPrefixSuffix();
         }
 
-        if (attribute.startsWith('input-width-')) {
-            this.#applyInputWidth();
+        if (attribute === 'maxwidth') {
+            this.#applyMaxWidth();
         }
     }
 }

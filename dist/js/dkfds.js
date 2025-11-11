@@ -6315,19 +6315,25 @@ class FDSInputWrapper extends HTMLElement {
       this.#label.classList.remove('disabled');
     }
   }
-  #applyInputWidth() {
+  #applyMaxWidth() {
     if (!this.#input) return;
-    const widthClasses = ['input-width-xxs', 'input-width-xs', 'input-width-s', 'input-width-m', 'input-width-l', 'input-width-xl'];
-    this.#input.classList.remove(...widthClasses);
-    const activeAttr = widthClasses.find(attr => this.hasAttribute(attr));
-    if (activeAttr) {
-      this.#input.classList.add(activeAttr);
+    this.#input.classList.forEach(cls => {
+      if (cls.startsWith('input-width-') || cls.startsWith('input-char-')) {
+        this.#input.classList.remove(cls);
+      }
+    });
+    const value = this.getAttribute('maxwidth');
+    if (!value) return;
+    if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
+      this.#input.classList.add(`input-width-${value}`);
+    } else if (/^\d+$/.test(value)) {
+      this.#input.classList.add(`input-char-${value}`);
     }
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'prefix', 'suffix', 'input-width-xxs', 'input-width-xs', 'input-width-s', 'input-width-m', 'input-width-l', 'input-width-xl'];
+  static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'prefix', 'suffix', 'maxwidth'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -6384,7 +6390,7 @@ class FDSInputWrapper extends HTMLElement {
     this.#applyRequiredOrOptional();
     this.#applyReadonly();
     this.#applyDisabled();
-    this.#applyInputWidth();
+    this.#applyMaxWidth();
     this.updateIdReferences();
     this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
   }
@@ -6418,8 +6424,8 @@ class FDSInputWrapper extends HTMLElement {
     if (attribute === 'prefix' || attribute === 'suffix') {
       this.#setupPrefixSuffix();
     }
-    if (attribute.startsWith('input-width-')) {
-      this.#applyInputWidth();
+    if (attribute === 'maxwidth') {
+      this.#applyMaxWidth();
     }
   }
 }
