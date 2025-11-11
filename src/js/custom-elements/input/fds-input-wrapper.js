@@ -160,15 +160,7 @@ class FDSInputWrapper extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = [
-        'input-required',
-        'input-optional',
-        'input-readonly',
-        'input-disabled',
-        'prefix',
-        'suffix',
-        'maxwidth',
-    ];
+    static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'prefix', 'suffix', 'maxwidth'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
