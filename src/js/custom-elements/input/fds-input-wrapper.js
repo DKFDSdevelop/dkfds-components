@@ -203,6 +203,16 @@ class FDSInputWrapper extends HTMLElement {
         }
     }
 
+    setClasses() {
+        this.#label = this.#getLabelElement();
+        this.#input = this.#getInputElement();
+
+        if (!this.#label || !this.#input) return;
+
+        this.#label.classList.add('form-label');
+        this.#input.classList.add('form-input');
+    }
+
     /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
     -------------------------------------------------- */
