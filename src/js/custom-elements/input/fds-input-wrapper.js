@@ -218,14 +218,7 @@ class FDSInputWrapper extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
-        this.#label = this.#getLabelElement();
-        this.#input = this.#getInputElement();
-
-        if (!this.#label || !this.#input) return;
-
-        this.#label.classList.add('form-label');
-        this.#input.classList.add('form-input');
-
+        this.setClasses();
         this.#setupPrefixSuffix();
         this.#applyRequiredOrOptional();
         this.#applyReadonly();
