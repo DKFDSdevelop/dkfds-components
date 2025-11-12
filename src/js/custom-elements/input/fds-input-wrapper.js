@@ -139,9 +139,28 @@ class FDSInputWrapper extends HTMLElement {
         }
     }
 
+    #applyMaxWidth() {
+        if (!this.#input) return;
+
+        this.#input.classList.forEach(cls => {
+            if (cls.startsWith('input-width-') || cls.startsWith('input-char-')) {
+                this.#input.classList.remove(cls);
+            }
+        });
+
+        const value = this.getAttribute('maxwidth');
+        if (!value) return;
+
+        if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
+            this.#input.classList.add(`input-width-${value}`);
+        } else if (/^\d+$/.test(value)) {
+            this.#input.classList.add(`input-char-${value}`);
+        }
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'prefix', 'suffix'];
+    static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'prefix', 'suffix', 'maxwidth'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -184,6 +203,16 @@ class FDSInputWrapper extends HTMLElement {
         }
     }
 
+    setClasses() {
+        this.#label = this.#getLabelElement();
+        this.#input = this.#getInputElement();
+
+        if (!this.#label || !this.#input) return;
+
+        this.#label.classList.add('form-label');
+        this.#input.classList.add('form-input');
+    }
+
     /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
     -------------------------------------------------- */
@@ -201,6 +230,7 @@ class FDSInputWrapper extends HTMLElement {
         this.#applyRequiredOrOptional();
         this.#applyReadonly();
         this.#applyDisabled();
+        this.#applyMaxWidth();
         this.updateIdReferences();
 
         this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
@@ -239,6 +269,10 @@ class FDSInputWrapper extends HTMLElement {
 
         if (attribute === 'prefix' || attribute === 'suffix') {
             this.#setupPrefixSuffix();
+        }
+
+        if (attribute === 'maxwidth') {
+            this.#applyMaxWidth();
         }
     }
 }
