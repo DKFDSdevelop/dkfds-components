@@ -11,6 +11,7 @@ class FDSInputWrapper extends HTMLElement {
     #wrapper;
 
     #handleHelpTextCallback;
+    #handleErrorMessageCallback;
 
     /* Private methods */
 
@@ -170,21 +171,25 @@ class FDSInputWrapper extends HTMLElement {
         super();
 
         this.#handleHelpTextCallback = () => { this.updateIdReferences(); };
+        this.#handleErrorMessageCallback = () => { this.updateIdReferences(); }
     }
 
     /* --------------------------------------------------
     CUSTOM ELEMENT METHODS
     -------------------------------------------------- */
 
+    //To be refactored into smaller more focused methods
     updateIdReferences() {
-        if (!this.#getInputElement()) return;
+        const input = this.#input;
+        const label = this.#label;
+        if (!input) return;
 
         // Set/remove 'for' on label
-        if (this.#getLabelElement()) {
-            if (!this.#getInputElement().id) {
-                this.#getInputElement().id = generateAndVerifyUniqueId('inp');
+        if (label) {
+            if (!input.id) {
+                input.id = generateAndVerifyUniqueId('inp');
             }
-            this.#getLabelElement().htmlFor = this.#getInputElement().id;
+            label.htmlFor = input.id;
         }
 
         // Set/remove aria-describedby on input
@@ -195,11 +200,28 @@ class FDSInputWrapper extends HTMLElement {
                 idsForAriaDescribedby.push(text.id);
             }
         });
+
+        // Collect ids from error messages
+        let hasError = false;
+        this.querySelectorAll('fds-error-message').forEach(errorText => {
+            const errSpan = errorText.querySelector(':scope > .form-error-message');
+            if (errSpan?.id) {
+                idsForAriaDescribedby.push(errSpan.id);
+                hasError = true;
+            }
+        });
+
         if (idsForAriaDescribedby.length > 0) {
-            this.#getInputElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
+            input.setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
+        } else {
+            input.removeAttribute('aria-describedby');
         }
-        else {
-            this.#getInputElement().removeAttribute('aria-describedby');
+
+        // aria-invalid
+        if (hasError) {
+            input.setAttribute('aria-invalid', 'true');
+        } else {
+            input.removeAttribute('aria-invalid');
         }
     }
 
@@ -227,6 +249,7 @@ class FDSInputWrapper extends HTMLElement {
         this.updateIdReferences();
 
         this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
+        this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
     }
 
     /* --------------------------------------------------
@@ -235,6 +258,7 @@ class FDSInputWrapper extends HTMLElement {
 
     disconnectedCallback() {
         this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
+        this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
     }
 
     /* --------------------------------------------------

@@ -3207,6 +3207,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerAccordion: () => (/* reexport */ registerAccordion),
   registerAccordionGroup: () => (/* reexport */ fds_accordion_group),
   registerCustomElements: () => (/* binding */ registerCustomElements),
+  registerErrorMessage: () => (/* reexport */ fds_error_message),
   registerHelpText: () => (/* reexport */ fds_help_text),
   registerInputWrapper: () => (/* reexport */ fds_input_wrapper),
   renderAccordionHTML: () => (/* reexport */ renderAccordionHTML),
@@ -6206,6 +6207,7 @@ class FDSInputWrapper extends HTMLElement {
   #label;
   #wrapper;
   #handleHelpTextCallback;
+  #handleErrorMessageCallback;
 
   /* Private methods */
 
@@ -6344,21 +6346,27 @@ class FDSInputWrapper extends HTMLElement {
     this.#handleHelpTextCallback = () => {
       this.updateIdReferences();
     };
+    this.#handleErrorMessageCallback = () => {
+      this.updateIdReferences();
+    };
   }
 
   /* --------------------------------------------------
   CUSTOM ELEMENT METHODS
   -------------------------------------------------- */
 
+  //To be refactored into smaller more focused methods
   updateIdReferences() {
-    if (!this.#getInputElement()) return;
+    const input = this.#input;
+    const label = this.#label;
+    if (!input) return;
 
     // Set/remove 'for' on label
-    if (this.#getLabelElement()) {
-      if (!this.#getInputElement().id) {
-        this.#getInputElement().id = generateAndVerifyUniqueId('inp');
+    if (label) {
+      if (!input.id) {
+        input.id = generateAndVerifyUniqueId('inp');
       }
-      this.#getLabelElement().htmlFor = this.#getInputElement().id;
+      label.htmlFor = input.id;
     }
 
     // Set/remove aria-describedby on input
@@ -6369,10 +6377,27 @@ class FDSInputWrapper extends HTMLElement {
         idsForAriaDescribedby.push(text.id);
       }
     });
+
+    // Collect ids from error messages
+    let hasError = false;
+    this.querySelectorAll('fds-error-message').forEach(errorText => {
+      const errSpan = errorText.querySelector(':scope > .form-error-message');
+      if (errSpan?.id) {
+        idsForAriaDescribedby.push(errSpan.id);
+        hasError = true;
+      }
+    });
     if (idsForAriaDescribedby.length > 0) {
-      this.#getInputElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
+      input.setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
     } else {
-      this.#getInputElement().removeAttribute('aria-describedby');
+      input.removeAttribute('aria-describedby');
+    }
+
+    // aria-invalid
+    if (hasError) {
+      input.setAttribute('aria-invalid', 'true');
+    } else {
+      input.removeAttribute('aria-invalid');
     }
   }
   setClasses() {
@@ -6396,6 +6421,7 @@ class FDSInputWrapper extends HTMLElement {
     this.#applyMaxWidth();
     this.updateIdReferences();
     this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
+    this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
   }
 
   /* --------------------------------------------------
@@ -6404,6 +6430,7 @@ class FDSInputWrapper extends HTMLElement {
 
   disconnectedCallback() {
     this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
+    this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
   }
 
   /* --------------------------------------------------
@@ -6546,6 +6573,126 @@ function registerHelpText() {
   }
 }
 /* harmony default export */ const fds_help_text = (registerHelpText);
+;// ./src/js/custom-elements/error/fds-error-message.js
+
+
+
+class FDSErrorMessage extends HTMLElement {
+  /* Private instance fields */
+
+  #rendered;
+  #errorText;
+  #parentWrapper;
+  #getErrorText() {
+    if (this.#errorText) return this.#errorText;
+    this.#errorText = this.querySelector(':scope > .form-error-message');
+    return this.#errorText;
+  }
+  #ensureSrOnlyPrefix() {
+    const span = this.#getErrorText();
+    if (!span) return;
+    const firstElement = span.firstElementChild;
+    if (!firstElement || !firstElement.classList.contains('sr-only')) {
+      const sr = document.createElement('span');
+      sr.className = 'sr-only';
+      sr.textContent = 'Fejl: ';
+      span.insertBefore(sr, span.firstChild);
+    }
+  }
+  #render() {
+    if (this.#rendered) return;
+    let span = this.#getErrorText();
+    if (!span) {
+      span = document.createElement('span');
+      span.className = 'form-error-message';
+
+      // Move existing child nodes into the span
+      while (this.firstChild) {
+        span.appendChild(this.firstChild);
+      }
+      this.appendChild(span);
+      this.#errorText = span;
+    }
+
+    // If explicit id attribute is set, use it
+    const attrValue = this.getAttribute('error-message-id');
+    if (attrValue !== null && attrValue !== '') {
+      span.id = attrValue;
+    }
+    this.#ensureSrOnlyPrefix();
+    this.#rendered = true;
+  }
+  #updateId(newValue) {
+    const span = this.#getErrorText();
+    if (!span) return;
+    if (newValue !== null && newValue !== '') {
+      span.id = newValue;
+    } else {
+      span.id = generateAndVerifyUniqueId('error');
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['error-message-id'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+    this.#rendered = false;
+    this.#errorText = null;
+    this.#parentWrapper = null;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.#rendered) return;
+    this.#render();
+    const span = this.#getErrorText();
+    if (span && !span.id) {
+      span.id = generateAndVerifyUniqueId('error');
+    }
+
+    // Save reference to input-wrapper (or other future wrappers)
+    this.#parentWrapper = this.closest('fds-input-wrapper');
+    this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
+    this.#errorText = null;
+    this.#parentWrapper = null;
+    this.#rendered = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (!this.#rendered) return;
+    if (name === 'error-message-id') {
+      this.#updateId(newValue);
+    }
+    this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
+  }
+}
+function registerErrorMessage() {
+  if (customElements.get('fds-error-message') === undefined) {
+    window.customElements.define('fds-error-message', FDSErrorMessage);
+  }
+}
+/* harmony default export */ const fds_error_message = (registerErrorMessage);
 ;// ./src/js/dkfds.js
 
 
@@ -6569,6 +6716,7 @@ function registerHelpText() {
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 // Custom elements
+
 
 
 
@@ -6763,7 +6911,9 @@ var init = function (options) {
 const registerCustomElements = () => {
   registerAccordion();
   fds_accordion_group();
-  fds_input_wrapper(), fds_help_text();
+  fds_input_wrapper();
+  fds_help_text();
+  fds_error_message();
 };
 
 })();
