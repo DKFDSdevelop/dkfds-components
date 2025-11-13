@@ -3206,6 +3206,7 @@ __webpack_require__.d(__webpack_exports__, {
   init: () => (/* binding */ init),
   registerAccordion: () => (/* reexport */ registerAccordion),
   registerAccordionGroup: () => (/* reexport */ fds_accordion_group),
+  registerCharacterLimit: () => (/* reexport */ fds_character_limit),
   registerCustomElements: () => (/* binding */ registerCustomElements),
   registerHelpText: () => (/* reexport */ fds_help_text),
   registerInputWrapper: () => (/* reexport */ fds_input_wrapper),
@@ -6546,6 +6547,50 @@ function registerHelpText() {
   }
 }
 /* harmony default export */ const fds_help_text = (registerHelpText);
+;// ./src/js/custom-elements/character-limit/fds-character-limit.js
+
+
+class FDSCharacterLimit extends HTMLElement {
+  /* Private instance fields */
+
+  /* Private methods */
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = [];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {}
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {}
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(name, oldValue, newValue) {}
+}
+function registerCharacterLimit() {
+  if (customElements.get('fds-character-limit') === undefined) {
+    window.customElements.define('fds-character-limit', FDSCharacterLimit);
+  }
+}
+/* harmony default export */ const fds_character_limit = (registerCharacterLimit);
 ;// ./src/js/dkfds.js
 
 
@@ -6569,6 +6614,7 @@ function registerHelpText() {
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 // Custom elements
+
 
 
 
@@ -6763,7 +6809,7 @@ var init = function (options) {
 const registerCustomElements = () => {
   registerAccordion();
   fds_accordion_group();
-  fds_input_wrapper(), fds_help_text();
+  fds_input_wrapper(), fds_help_text(), fds_character_limit();
 };
 
 })();

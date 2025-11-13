@@ -23,6 +23,7 @@ import { registerAccordion, renderAccordionHTML, validateAccordionHTML } from '.
 import registerAccordionGroup from './custom-elements/accordion/fds-accordion-group';
 import registerInputWrapper from './custom-elements/input/fds-input-wrapper';
 import registerHelpText from './custom-elements/help-text/fds-help-text';
+import registerCharacterLimit from './custom-elements/character-limit/fds-character-limit';
 
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
@@ -217,7 +218,8 @@ const registerCustomElements = () => {
   registerAccordion();
   registerAccordionGroup();
   registerInputWrapper(),
-  registerHelpText()
+  registerHelpText(),
+  registerCharacterLimit()
 };
 
-export { init, registerCustomElements, registerAccordion, renderAccordionHTML, validateAccordionHTML, registerAccordionGroup, registerInputWrapper, registerHelpText, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
+export { init, registerCustomElements, registerAccordion, renderAccordionHTML, validateAccordionHTML, registerAccordionGroup, registerInputWrapper, registerHelpText, registerCharacterLimit, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
