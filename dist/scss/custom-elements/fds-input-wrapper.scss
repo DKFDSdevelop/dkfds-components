@@ -134,3 +134,20 @@ fds-input-wrapper,
         }
     }
 }
+
+$input-top-bottom-padding-feedback: calc(8px - #{vars.$input-border-width-feedback});
+$input-left-right-padding-feedback: calc(16px - #{vars.$input-border-width-feedback});
+
+fds-input-wrapper:has(.form-error-message),
+.fds-input-wrapper:has(.form-error-message) {
+    border-left: vars.$form-group-error-border-width solid func.color(vars.$form-group-error-border-color);
+
+    padding-left: calc(#{func.units(4)} - 4px);
+
+    >.form-input,
+    >.form-input-wrapper>.form-input {
+        border: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
+
+        padding: $input-top-bottom-padding-feedback $input-left-right-padding-feedback;
+    }
+}

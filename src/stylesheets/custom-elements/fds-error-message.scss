@@ -1,0 +1,11 @@
+@use "../variables" as vars;
+@use "../functions" as func;
+@use "../mixins" as mixins;
+
+.form-error-message {
+    @include mixins.form-label-text;
+    display: block;
+    color: func.color('error');
+    margin-top: func.units(2);
+    max-width: vars.$typography-text-max-width;
+}

@@ -12794,6 +12794,19 @@ fds-input-wrapper .form-input-wrapper.readonly .form-input-prefix,
   border-color:#DCDCDC;
 }
 
+fds-input-wrapper:has(.form-error-message),
+.fds-input-wrapper:has(.form-error-message){
+  border-left:4px solid #CC0000;
+  padding-left:calc(16px - 4px);
+}
+fds-input-wrapper:has(.form-error-message) > .form-input,
+fds-input-wrapper:has(.form-error-message) > .form-input-wrapper > .form-input,
+.fds-input-wrapper:has(.form-error-message) > .form-input,
+.fds-input-wrapper:has(.form-error-message) > .form-input-wrapper > .form-input{
+  border:2px solid #CC0000;
+  padding:calc(8px - 2px) calc(16px - 2px);
+}
+
 fds-help-text,
 .fds-help-text{
   display:block;
