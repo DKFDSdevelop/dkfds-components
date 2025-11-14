@@ -9,8 +9,11 @@ class FDSInputWrapper extends HTMLElement {
     #input;
     #label;
     #wrapper;
+    #limit;
 
     #handleHelpTextCallback;
+    #handleCharacterLimitCallback;
+    #handleCharacterLimitConnection;
 
     /* Private methods */
 
@@ -20,6 +23,13 @@ class FDSInputWrapper extends HTMLElement {
 
     #getLabelElement() {
         return this.querySelector('label');
+    }
+
+    #getCharacterLimit() {
+        if (this.#limit) return this.#limit;
+
+        this.#limit = this.querySelector(':scope > fds-character-limit');
+        return this.#limit;
     }
 
     #setupPrefixSuffix() {
@@ -158,6 +168,18 @@ class FDSInputWrapper extends HTMLElement {
         }
     }
 
+    #handleKeyUp() {
+        this.#getCharacterLimit().setCharactersUsed(this.#input.value.length);
+        this.#getCharacterLimit().updateVisibleMessage();
+        //lastKeyUpTimestamp = Date.now();
+    }
+
+    #setKeyUpListener() {
+        this.#input.addEventListener('keyup', () => {
+            this.#handleKeyUp();
+        });
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'prefix', 'suffix', 'maxwidth'];
@@ -170,6 +192,8 @@ class FDSInputWrapper extends HTMLElement {
         super();
 
         this.#handleHelpTextCallback = () => { this.updateIdReferences(); };
+        this.#handleCharacterLimitCallback = () => { this.updateIdReferences(); };
+        this.#handleCharacterLimitConnection = () => { this.#setKeyUpListener() };
     }
 
     /* --------------------------------------------------
@@ -191,6 +215,12 @@ class FDSInputWrapper extends HTMLElement {
         const idsForAriaDescribedby = [];
         this.querySelectorAll('fds-help-text').forEach(helptext => {
             const text = helptext.querySelector(':scope > .help-text');
+            if (text?.hasAttribute('id')) {
+                idsForAriaDescribedby.push(text.id);
+            }
+        });
+        this.querySelectorAll('fds-character-limit').forEach(limit => {
+            const text = limit.querySelector(':scope > span[id]');
             if (text?.hasAttribute('id')) {
                 idsForAriaDescribedby.push(text.id);
             }
@@ -227,6 +257,8 @@ class FDSInputWrapper extends HTMLElement {
         this.updateIdReferences();
 
         this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
+        this.addEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
+        this.addEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
     }
 
     /* --------------------------------------------------
@@ -235,6 +267,7 @@ class FDSInputWrapper extends HTMLElement {
 
     disconnectedCallback() {
         this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
+        this.removeEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
     }
 
     /* --------------------------------------------------

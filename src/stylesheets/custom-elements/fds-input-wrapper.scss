@@ -44,6 +44,13 @@ fds-input-wrapper,
         }
     }
 
+    &:has(span.limit-exceeded) {
+        .form-input {
+            border: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
+            padding: calc(8px - #{vars.$input-border-width-feedback}) calc(16px - #{vars.$input-border-width-feedback});
+        }
+    }
+
     .form-input {
         @extend %basic-form-element;
         border: func.border(vars.$input-border);
@@ -57,6 +64,11 @@ fds-input-wrapper,
             font-style: italic;
             opacity: 1;
             font-weight: func.font-weight("normal");
+        }
+
+        & + fds-character-limit,
+        & + .fds-character-limit {
+            margin-top: func.units(2);
         }
     }
 

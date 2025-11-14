@@ -12708,6 +12708,11 @@ fds-input-wrapper input[type=url][readonly],
   border:1px solid #DCDCDC;
   cursor:default;
 }
+fds-input-wrapper:has(span.limit-exceeded) .form-input,
+.fds-input-wrapper:has(span.limit-exceeded) .form-input{
+  border:2px solid #CC0000;
+  padding:calc(8px - 2px) calc(16px - 2px);
+}
 fds-input-wrapper .form-input,
 .fds-input-wrapper .form-input{
   border:1px solid #8E8E8E;
@@ -12722,6 +12727,11 @@ fds-input-wrapper .form-input::placeholder,
   font-style:italic;
   opacity:1;
   font-weight:400;
+}
+fds-input-wrapper .form-input + fds-character-limit, fds-input-wrapper .form-input + .fds-character-limit,
+.fds-input-wrapper .form-input + fds-character-limit,
+.fds-input-wrapper .form-input + .fds-character-limit{
+  margin-top:4px;
 }
 fds-input-wrapper .form-input-wrapper,
 .fds-input-wrapper .form-input-wrapper{
@@ -12808,4 +12818,24 @@ fds-help-text .help-text,
   letter-spacing:normal;
   font-weight:400;
   overflow-wrap:break-word;
+}
+
+fds-character-limit,
+.fds-character-limit{
+  display:block;
+}
+fds-character-limit span[aria-hidden=true],
+.fds-character-limit span[aria-hidden=true]{
+  max-width:66ch;
+  display:block;
+  color:#707070;
+  font-size:1.6rem;
+  line-height:2.4rem;
+  letter-spacing:normal;
+  font-weight:400;
+  overflow-wrap:break-word;
+}
+fds-character-limit span[aria-hidden=true].limit-exceeded,
+.fds-character-limit span[aria-hidden=true].limit-exceeded{
+  color:#CC0000;
 }
