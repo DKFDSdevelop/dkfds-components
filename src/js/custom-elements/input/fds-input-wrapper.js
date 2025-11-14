@@ -26,8 +26,8 @@ class FDSInputWrapper extends HTMLElement {
     #setupPrefixSuffix() {
         if (!this.#input) return;
 
-        const hasPrefix = this.hasAttribute('prefix');
-        const hasSuffix = this.hasAttribute('suffix');
+        const hasPrefix = this.hasAttribute('input-prefix');
+        const hasSuffix = this.hasAttribute('input-suffix');
 
         // Remove wrapper if no prefix/suffix needed
         if (!hasPrefix && !hasSuffix) {
@@ -63,7 +63,7 @@ class FDSInputWrapper extends HTMLElement {
                 prefixEl.setAttribute('aria-hidden', 'true');
                 this.#wrapper.insertBefore(prefixEl, this.#input);
             }
-            prefixEl.textContent = this.getAttribute('prefix');
+            prefixEl.textContent = this.getAttribute('input-prefix');
         } else if (prefixEl) {
             prefixEl.remove();
         }
@@ -77,7 +77,7 @@ class FDSInputWrapper extends HTMLElement {
                 suffixEl.setAttribute('aria-hidden', 'true');
                 this.#wrapper.appendChild(suffixEl);
             }
-            suffixEl.textContent = this.getAttribute('suffix');
+            suffixEl.textContent = this.getAttribute('input-suffix');
         } else if (suffixEl) {
             suffixEl.remove();
         }
@@ -161,7 +161,7 @@ class FDSInputWrapper extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'prefix', 'suffix', 'maxwidth'];
+    static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'input-prefix', 'input-suffix', 'maxwidth'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -284,7 +284,7 @@ class FDSInputWrapper extends HTMLElement {
             this.#applyDisabled();
         }
 
-        if (attribute === 'prefix' || attribute === 'suffix') {
+        if (attribute === 'input-prefix' || attribute === 'input-suffix') {
             this.#setupPrefixSuffix();
         }
 
