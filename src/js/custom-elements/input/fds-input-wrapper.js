@@ -18,11 +18,17 @@ class FDSInputWrapper extends HTMLElement {
     /* Private methods */
 
     #getInputElement() {
-        return this.querySelector('input');
+        if (this.#input) return this.#input;
+
+        this.#input = this.querySelector('input');
+        return this.#input;
     }
 
     #getLabelElement() {
-        return this.querySelector('label');
+        if (this.#label) return this.#label;
+
+        this.#label = this.querySelector('label');
+        return this.#label;
     }
 
     #getCharacterLimit() {
@@ -33,14 +39,14 @@ class FDSInputWrapper extends HTMLElement {
     }
 
     #setupPrefixSuffix() {
-        if (!this.#input) return;
+        if (!this.#getInputElement()) return;
 
         const hasPrefix = this.hasAttribute('prefix');
         const hasSuffix = this.hasAttribute('suffix');
 
         // Remove wrapper if no prefix/suffix needed
         if (!hasPrefix && !hasSuffix) {
-            this.#wrapper?.replaceWith(this.#input);
+            this.#wrapper?.replaceWith(this.#getInputElement());
             this.#wrapper = null;
             return;
         }
@@ -48,8 +54,8 @@ class FDSInputWrapper extends HTMLElement {
         // Create wrapper if it doesn't exist
         if (!this.#wrapper) {
             this.#wrapper = document.createElement('div');
-            this.insertBefore(this.#wrapper, this.#input);
-            this.#wrapper.appendChild(this.#input);
+            this.insertBefore(this.#wrapper, this.#getInputElement());
+            this.#wrapper.appendChild(this.#getInputElement());
         }
 
         // Set wrapper classes
@@ -70,7 +76,7 @@ class FDSInputWrapper extends HTMLElement {
                 prefixEl = document.createElement('div');
                 prefixEl.className = 'form-input-prefix';
                 prefixEl.setAttribute('aria-hidden', 'true');
-                this.#wrapper.insertBefore(prefixEl, this.#input);
+                this.#wrapper.insertBefore(prefixEl, this.#getInputElement());
             }
             prefixEl.textContent = this.getAttribute('prefix');
         } else if (prefixEl) {
@@ -95,10 +101,10 @@ class FDSInputWrapper extends HTMLElement {
     #addLabelIndicator(attributeName, defaultText) {
         if (!(this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false')) return;
 
-        if (!this.#label) return;
+        if (!this.#getLabelElement()) return;
 
         // Remove an existing trailing indicator span if present
-        this.#label.querySelector(':scope > span.weight-normal')?.remove();
+        this.#getLabelElement().querySelector(':scope > span.weight-normal')?.remove();
 
         const attributeValue = this.getAttribute(attributeName);
         const span = document.createElement('span');
@@ -107,10 +113,10 @@ class FDSInputWrapper extends HTMLElement {
             ? ` (${attributeValue})`
             : ` (${defaultText})`;
 
-        this.#label.appendChild(span);
+        this.#getLabelElement().appendChild(span);
 
         if (attributeName === 'input-required') {
-            this.#input?.setAttribute('required', '');
+            this.#getInputElement()?.setAttribute('required', '');
         }
     }
 
@@ -128,33 +134,33 @@ class FDSInputWrapper extends HTMLElement {
     }
 
     #applyReadonly() {
-        if (!this.#input) return;
+        if (!this.#getInputElement()) return;
 
         if (this.hasAttribute('input-readonly') && this.getAttribute('input-readonly') !== 'false') {
-            this.#input.setAttribute('readonly', '');
+            this.#getInputElement().setAttribute('readonly', '');
         } else {
-            this.#input.removeAttribute('readonly');
+            this.#getInputElement().removeAttribute('readonly');
         }
     }
 
     #applyDisabled() {
-        if (!this.#input) return;
+        if (!this.#getInputElement()) return;
 
         if (this.hasAttribute('input-disabled') && this.getAttribute('input-disabled') !== 'false') {
-            this.#input.setAttribute('disabled', '');
-            this.#label.classList.add('disabled');
+            this.#getInputElement().setAttribute('disabled', '');
+            this.#getLabelElement().classList.add('disabled');
         } else {
-            this.#input.removeAttribute('disabled');
-            this.#label.classList.remove('disabled');
+            this.#getInputElement().removeAttribute('disabled');
+            this.#getLabelElement().classList.remove('disabled');
         }
     }
 
     #applyMaxWidth() {
-        if (!this.#input) return;
+        if (!this.#getInputElement()) return;
 
-        this.#input.classList.forEach(cls => {
+        this.#getInputElement().classList.forEach(cls => {
             if (cls.startsWith('input-width-') || cls.startsWith('input-char-')) {
-                this.#input.classList.remove(cls);
+                this.#getInputElement().classList.remove(cls);
             }
         });
 
@@ -162,20 +168,20 @@ class FDSInputWrapper extends HTMLElement {
         if (!value) return;
 
         if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
-            this.#input.classList.add(`input-width-${value}`);
+            this.#getInputElement().classList.add(`input-width-${value}`);
         } else if (/^\d+$/.test(value)) {
-            this.#input.classList.add(`input-char-${value}`);
+            this.#getInputElement().classList.add(`input-char-${value}`);
         }
     }
 
     #handleKeyUp() {
-        this.#getCharacterLimit().setCharactersUsed(this.#input.value.length);
+        this.#getCharacterLimit().setCharactersUsed(this.#getInputElement().value.length);
         this.#getCharacterLimit().updateVisibleMessage();
         //lastKeyUpTimestamp = Date.now();
     }
 
     #setKeyUpListener() {
-        this.#input.addEventListener('keyup', () => {
+        this.#getInputElement().addEventListener('keyup', () => {
             this.#handleKeyUp();
         });
     }
@@ -234,13 +240,10 @@ class FDSInputWrapper extends HTMLElement {
     }
 
     setClasses() {
-        this.#label = this.#getLabelElement();
-        this.#input = this.#getInputElement();
+        if (!this.#getLabelElement() || !this.#getInputElement()) return;
 
-        if (!this.#label || !this.#input) return;
-
-        this.#label.classList.add('form-label');
-        this.#input.classList.add('form-input');
+        this.#getLabelElement().classList.add('form-label');
+        this.#getInputElement().classList.add('form-input');
     }
 
     /* --------------------------------------------------
