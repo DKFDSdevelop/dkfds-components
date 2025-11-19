@@ -12820,6 +12820,11 @@ fds-help-text .help-text,
   overflow-wrap:break-word;
 }
 
+.form-group-checkbox fds-help-text{
+  padding-left:32px;
+  margin-top:-4px;
+}
+
 fds-character-limit,
 .fds-character-limit{
   display:block;
