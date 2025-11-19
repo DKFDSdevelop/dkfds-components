@@ -8,7 +8,6 @@ class FDSCheckbox extends HTMLElement {
 
     #input;
     #label;
-    #helpText;
 
     #handleHelpTextCallback;
 
@@ -22,34 +21,68 @@ class FDSCheckbox extends HTMLElement {
         return this.querySelector('label');
     }
 
-     #getHelpTextElement() {
-        return this.querySelector('fds-help-text');
+     #getHelpTextElements() {
+        return this.querySelectorAll('fds-help-text');
     }
 
      #wrapElements() {
         if (this.querySelector(':scope > .form-group-checkbox')) return;
 
-         const input = this.#getInputElement();
-         const label = this.#getLabelElement();
-         const helpText = this.#getHelpTextElement();
+        const input = this.#getInputElement();
+        const label = this.#getLabelElement();
+        const helpText = this.#getHelpTextElements();
 
-         if (!input || !label) {
-             console.warn('<fds-checkbox> requires exactly one <input type="checkbox"> and one <label>.');
-             return;
-         }
+        if (!input || !label) {
+            console.warn('<fds-checkbox> requires exactly one <input type="checkbox"> and one <label>.');
+            return;
+        }
 
-         const wrapper = document.createElement('div');
-         wrapper.className = 'form-group-checkbox';
+        const wrapper = document.createElement('div');
+        wrapper.className = 'form-group-checkbox';
 
         wrapper.append(input, label);
 
-        if (helpText) {
-            wrapper.append(helpText);
+        if (helpText.length > 0) {
+            wrapper.append(...helpText);
         }
 
         this.replaceChildren(wrapper);
     }
-    
+
+    #addLabelIndicator(attributeName, defaultText) {
+        if (!(this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false')) return;
+
+        if (!this.#label) return;
+
+        // Remove an existing trailing indicator span if present
+        this.#label.querySelector(':scope > span.weight-normal')?.remove();
+
+        const attributeValue = this.getAttribute(attributeName);
+        const span = document.createElement('span');
+        span.className = 'weight-normal';
+        span.textContent = attributeValue && attributeValue !== 'true' && attributeValue !== ''
+            ? ` (${attributeValue})`
+            : ` (${defaultText})`;
+
+        this.#label.appendChild(span);
+
+        if (attributeName === 'checkbox-required') {
+            this.#input?.setAttribute('required', '');
+        }
+    }
+
+    #applyRequiredOrOptional() {
+        if (this.hasAttribute('checkbox-required')) this.#updateRequired();
+        else if (this.hasAttribute('checkbox-optional')) this.#updateOptional();
+    }
+
+    #updateRequired() {
+        this.#addLabelIndicator('checkbox-required', '*skal udfyldes');
+    }
+
+    #updateOptional() {
+        this.#addLabelIndicator('checkbox-optional', 'frivilligt');
+    }
 
     /* Attributes which can invoke attributeChangedCallback() */
 
@@ -72,26 +105,26 @@ class FDSCheckbox extends HTMLElement {
     updateIdReferences() {
         if (!this.#input || !this.#label) return;
 
-        // Input ID
         if (!this.#input.id) {
             this.#input.id = generateAndVerifyUniqueId('chk');
         }
 
-        // Label for=""
         this.#label.htmlFor = this.#input.id;
 
-        // aria-describedby
-        const ids = [];
-
-        this.querySelectorAll('fds-help-text').forEach(help => {
-            const span = help.querySelector(':scope > .help-text');
-            if (span?.id) ids.push(span.id);
+        const idsForAriaDescribedby = [];
+        const helpTexts = this.#getHelpTextElements();
+        helpTexts.forEach(helptext => {
+            const text = helptext.querySelector(':scope > .help-text');
+            if (text?.hasAttribute('id')) {
+                idsForAriaDescribedby.push(text.id);
+            }
         });
 
-        if (ids.length > 0) {
-            this.#input.setAttribute('aria-describedby', ids.join(' '));
-        } else {
-            this.#input.removeAttribute('aria-describedby');
+        if (idsForAriaDescribedby.length > 0) {
+            this.#getInputElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
+        }
+        else {
+            this.#getInputElement().removeAttribute('aria-describedby');
         }
     }
 
@@ -111,11 +144,11 @@ class FDSCheckbox extends HTMLElement {
 
         this.#input = this.#getInputElement();
         this.#label = this.#getLabelElement();
-        this.#helpText = this.#getHelpTextElement();
 
+        this.#applyRequiredOrOptional();
         this.setClasses();
         this.updateIdReferences();
-        
+
         this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
     }
 
