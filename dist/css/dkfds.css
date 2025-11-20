@@ -12854,6 +12854,10 @@ fds-checkbox fds-help-text{
   margin-top:-4px;
 }
 
+legend + fds-checkbox:first-of-type{
+  margin-top:8px;
+}
+
 .form-checkbox + label{
   cursor:pointer;
   font-weight:400;
@@ -12951,4 +12955,12 @@ fds-checkbox fds-help-text{
 .table--selectable td:first-child fds-checkbox .form-checkbox + label::after,
 .table--selectable td:first-child fds-checkbox .form-radio + label::after{
   margin-top:calc(1.2rem - 12px);
+}
+
+fds-checkbox-group{
+  display:block;
+  margin-top:24px;
+}
+fds-checkbox-group:first-child{
+  margin-top:0;
 }

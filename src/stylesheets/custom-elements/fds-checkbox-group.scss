@@ -1,0 +1,12 @@
+@use "../variables" as vars;
+@use "../functions" as func;
+@use "../mixins" as mixins;
+
+fds-checkbox-group {
+    display: block;
+    margin-top: func.units(5); // 4
+
+    &:first-child {
+        margin-top: 0;
+    }
+}

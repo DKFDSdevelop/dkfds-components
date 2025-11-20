@@ -3208,6 +3208,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerAccordionGroup: () => (/* reexport */ fds_accordion_group),
   registerCharacterLimit: () => (/* reexport */ fds_character_limit),
   registerCheckbox: () => (/* reexport */ fds_checkbox),
+  registerCheckboxGroup: () => (/* reexport */ fds_checkbox_group),
   registerCustomElements: () => (/* binding */ registerCustomElements),
   registerHelpText: () => (/* reexport */ fds_help_text),
   registerInputWrapper: () => (/* reexport */ fds_input_wrapper),
@@ -6904,6 +6905,80 @@ function registerCheckbox() {
   }
 }
 /* harmony default export */ const fds_checkbox = (registerCheckbox);
+;// ./src/js/custom-elements/checkbox/fds-checkbox-group.js
+
+
+class FDSCheckboxGroup extends HTMLElement {
+  /* Private instance fields */
+
+  #fieldset;
+  #legend;
+
+  /* Private methods */
+
+  #ensureFieldset() {
+    if (this.querySelector(':scope > fieldset')) {
+      this.#fieldset = this.querySelector(':scope > fieldset');
+      this.#legend = this.#fieldset.querySelector('legend');
+      return;
+    }
+    const fieldset = document.createElement('fieldset');
+    const legend = document.createElement('legend');
+    legend.className = 'form-label';
+    fieldset.appendChild(legend);
+    this.prepend(fieldset);
+    this.#fieldset = fieldset;
+    this.#legend = legend;
+  }
+  #applyGroupLabel() {
+    if (!this.#legend) return;
+    this.#legend.textContent = this.getAttribute('group-label') ?? '';
+  }
+  #moveChildrenIntoFieldset() {
+    const children = Array.from(this.children).filter(el => el !== this.#fieldset);
+    children.forEach(child => {
+      this.#fieldset.appendChild(child);
+    });
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['group-label'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    this.#ensureFieldset();
+    this.#applyGroupLabel();
+    this.#moveChildrenIntoFieldset();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === 'group-label') {
+      this.#applyGroupLabel();
+    }
+  }
+}
+function registerCheckboxGroup() {
+  if (!customElements.get('fds-checkbox-group')) {
+    customElements.define('fds-checkbox-group', FDSCheckboxGroup);
+  }
+}
+/* harmony default export */ const fds_checkbox_group = (registerCheckboxGroup);
 ;// ./src/js/dkfds.js
 
 
@@ -6927,6 +7002,7 @@ function registerCheckbox() {
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 // Custom elements
+
 
 
 
@@ -7125,6 +7201,7 @@ const registerCustomElements = () => {
   fds_accordion_group();
   fds_input_wrapper(), fds_help_text(), fds_character_limit();
   fds_checkbox();
+  fds_checkbox_group();
 };
 
 })();

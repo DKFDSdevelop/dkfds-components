@@ -6,6 +6,7 @@ $checkbox-radio-size: func.units(vars.$input-checkbox-radio-size);
 $label-distance: func.units(vars.$input-checkbox-radio-label-distance);
 $checkmark-size: func.units(vars.$input-checkbox-checkmark-size);
 $expand-hit-area: func.units(2);
+$button-distance: func.units(3);
 
 
 fds-checkbox {
@@ -22,6 +23,10 @@ fds-checkbox {
 fds-checkbox fds-help-text {
     padding-left: 32px;
     margin-top: -4px;
+}
+
+legend + fds-checkbox:first-of-type {
+        margin-top: $button-distance;
 }
 
 // Radio and checkbox label/text
