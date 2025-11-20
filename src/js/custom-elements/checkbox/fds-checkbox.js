@@ -8,6 +8,7 @@ class FDSCheckbox extends HTMLElement {
 
     #input;
     #label;
+    #helpText;
 
     #handleHelpTextCallback;
 
@@ -25,28 +26,28 @@ class FDSCheckbox extends HTMLElement {
         return this.querySelectorAll('fds-help-text');
     }
 
-     #wrapElements() {
-        if (this.querySelector(':scope > .form-group-checkbox')) return;
+    #ensureStructure() {
+        if (this.#input && this.#label) {
+            // Remove elements from their current position
+            this.#input.remove();
+            this.#label.remove();
 
-        const input = this.#getInputElement();
-        const label = this.#getLabelElement();
-        const helpText = this.#getHelpTextElements();
 
-        if (!input || !label) {
+            // Add them back in the correct order
+            this.appendChild(this.#input);
+            this.appendChild(this.#label);
+
+            // Append help text elements if any
+            const helpTextElements = this.#getHelpTextElements();
+            if (helpTextElements.length > 0) {
+                helpTextElements.forEach(helpText => {
+                    helpText.remove();
+                    this.appendChild(helpText);
+                });
+            }
+        } else {
             console.warn('<fds-checkbox> requires exactly one <input type="checkbox"> and one <label>.');
-            return;
         }
-
-        const wrapper = document.createElement('div');
-        wrapper.className = 'form-group-checkbox';
-
-        wrapper.append(input, label);
-
-        if (helpText.length > 0) {
-            wrapper.append(...helpText);
-        }
-
-        this.replaceChildren(wrapper);
     }
 
     #addLabelIndicator(attributeName, defaultText) {
@@ -140,11 +141,13 @@ class FDSCheckbox extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
-        this.#wrapElements();
+        // this.#wrapElements();
 
         this.#input = this.#getInputElement();
         this.#label = this.#getLabelElement();
+        this.#helpText = this.#getHelpTextElements();
 
+        this.#ensureStructure();
         this.#applyRequiredOrOptional();
         this.setClasses();
         this.updateIdReferences();
