@@ -6916,12 +6916,22 @@ class FDSCheckboxGroup extends HTMLElement {
 
   /* Private methods */
 
-  #ensureFieldset() {
-    if (this.querySelector(':scope > fieldset')) {
-      this.#fieldset = this.querySelector(':scope > fieldset');
-      this.#legend = this.#fieldset.querySelector('legend');
+  #ensureStructure() {
+    // FIELDSET ALREADY EXISTS
+    const existingFieldset = this.querySelector(':scope > fieldset');
+    if (existingFieldset) {
+      this.#fieldset = existingFieldset;
+      let legend = existingFieldset.querySelector('legend');
+      if (!legend) {
+        legend = document.createElement('legend');
+        legend.className = 'form-label';
+        existingFieldset.prepend(legend);
+      }
+      this.#legend = legend;
       return;
     }
+
+    // NO FIELDSET 
     const fieldset = document.createElement('fieldset');
     const legend = document.createElement('legend');
     legend.className = 'form-label';
@@ -6932,7 +6942,10 @@ class FDSCheckboxGroup extends HTMLElement {
   }
   #applyGroupLabel() {
     if (!this.#legend) return;
-    this.#legend.textContent = this.getAttribute('group-label') ?? '';
+    const label = this.getAttribute('group-label');
+    if (label != null) {
+      this.#legend.textContent = label;
+    }
   }
   #moveChildrenIntoFieldset() {
     const children = Array.from(this.children).filter(el => el !== this.#fieldset);
@@ -6958,7 +6971,7 @@ class FDSCheckboxGroup extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
-    this.#ensureFieldset();
+    this.#ensureStructure();
     this.#applyGroupLabel();
     this.#moveChildrenIntoFieldset();
   }
