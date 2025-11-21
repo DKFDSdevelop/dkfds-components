@@ -8,7 +8,7 @@ class FDSCheckbox extends HTMLElement {
 
     #input;
     #label;
-    #helpText;
+    // #helpText;
 
     #handleHelpTextCallback;
 
@@ -22,7 +22,7 @@ class FDSCheckbox extends HTMLElement {
         return this.querySelector('label');
     }
 
-     #getHelpTextElements() {
+    #getHelpTextElements() {
         return this.querySelectorAll('fds-help-text');
     }
 
@@ -122,10 +122,9 @@ class FDSCheckbox extends HTMLElement {
         });
 
         if (idsForAriaDescribedby.length > 0) {
-            this.#getInputElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
-        }
-        else {
-            this.#getInputElement().removeAttribute('aria-describedby');
+            this.#input.setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
+        } else {
+            this.#input.removeAttribute('aria-describedby');
         }
     }
 
@@ -145,7 +144,7 @@ class FDSCheckbox extends HTMLElement {
 
         this.#input = this.#getInputElement();
         this.#label = this.#getLabelElement();
-        this.#helpText = this.#getHelpTextElements();
+        // this.#helpText = this.#getHelpTextElements();
 
         this.#ensureStructure();
         this.#applyRequiredOrOptional();
