@@ -27,17 +27,16 @@ class FDSCharacterLimit extends HTMLElement {
         this.innerHTML = '';
 
         this.#spanSrMaxLimit = document.createElement('span');
-        this.#spanSrUpdate = document.createElement('span');
-        this.#spanVisualUpdate = document.createElement('span');
-
         this.#spanSrMaxLimit.classList.add('sr-only');
         this.#spanSrMaxLimit.setAttribute('id', generateAndVerifyUniqueId('lim'));
+        this.#spanSrMaxLimit.textContent = this.#messages.max_limit.replace(/{value}/, this.#limit);
+
+        this.#spanSrUpdate = document.createElement('span');
         this.#spanSrUpdate.classList.add('sr-only');
         this.#spanSrUpdate.setAttribute('aria-live', 'polite');
-        this.#spanVisualUpdate.setAttribute('aria-hidden', 'true');
 
-        this.#spanSrMaxLimit.textContent = this.#messages.max_limit.replace(/{value}/, this.#limit);
-        this.#spanSrUpdate.textContent = this.#getMessage(this.charactersLeft());
+        this.#spanVisualUpdate = document.createElement('span');
+        this.#spanVisualUpdate.classList.add('visual-message');
         this.#spanVisualUpdate.textContent = this.#getMessage(this.charactersLeft());
 
         this.appendChild(this.#spanSrMaxLimit);
@@ -75,7 +74,7 @@ class FDSCharacterLimit extends HTMLElement {
             if (this.#spanSrMaxLimit) {
                 this.#spanSrMaxLimit.textContent = this.#messages.max_limit.replace(/{value}/, this.#limit);
             }
-            this.silentUpdateMessages();
+            this.updateVisibleMessage();
         }
     }
 
@@ -122,6 +121,10 @@ class FDSCharacterLimit extends HTMLElement {
         }
     }
 
+    hasMatchingMessages() {
+        return this.#spanSrUpdate.textContent === this.#spanVisualUpdate.textContent;
+    }
+
     updateVisibleMessage() {
         if (!this.#spanVisualUpdate) return;
 
@@ -142,16 +145,18 @@ class FDSCharacterLimit extends HTMLElement {
         this.#spanSrUpdate.textContent = this.#getMessage(this.charactersLeft());
     }
 
-    silentUpdateMessages() {
-        this.#spanSrUpdate?.removeAttribute('aria-live');
+    updateMessages() {
         this.updateVisibleMessage();
         this.updateScreenReaderMessage();
     }
 
-    updateMessages() {
-        this.#spanSrUpdate?.setAttribute('aria-live', 'polite');
-        this.updateVisibleMessage();
-        this.updateScreenReaderMessage();
+    silenceSrMessage() {
+        this.#spanSrUpdate.textContent = '';
+        this.#spanVisualUpdate.removeAttribute('aria-hidden');
+    }
+
+    silenceVisibleMessage() {
+        this.#spanVisualUpdate.setAttribute('aria-hidden', 'true');
     }
 
     /* --------------------------------------------------
@@ -166,7 +171,6 @@ class FDSCharacterLimit extends HTMLElement {
         // During disconnect, the custom element may lose connection to the input-wrapper.
         // Save the input-wrapper and use it to dispatch events - otherwise, the events may be lost.
         this.#parentWrapper = this.closest('fds-input-wrapper');
-
         this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
         this.#parentWrapper?.dispatchEvent(new Event('character-limit-connection'));
     }

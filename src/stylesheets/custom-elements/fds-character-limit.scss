@@ -6,7 +6,7 @@ fds-character-limit,
 .fds-character-limit {
     display: block;
 
-    span[aria-hidden="true"] {
+    span.visual-message {
         max-width: vars.$typography-text-max-width;
         display: block;
         color: func.color(vars.$form-hint-text-color);

@@ -14,6 +14,14 @@ class FDSInputWrapper extends HTMLElement {
     #handleHelpTextCallback;
     #handleCharacterLimitCallback;
     #handleCharacterLimitConnection;
+    #handleKeyUp;
+    #handlePageshow;
+    #handleFocus;
+    #handleBlur;
+
+    #lastKeyUpTimestamp;
+    #oldValue;
+    #intervalID;
 
     /* Private methods */
 
@@ -174,16 +182,57 @@ class FDSInputWrapper extends HTMLElement {
         }
     }
 
-    #handleKeyUp() {
-        this.#getCharacterLimit().setCharactersUsed(this.#getInputElement().value.length);
-        this.#getCharacterLimit().updateVisibleMessage();
-        //lastKeyUpTimestamp = Date.now();
+    /* Private methods for character limitation */
+
+    #callSilentUpdateMessages() {
+        this.#getCharacterLimit()?.setCharactersUsed(this.#getInputElement().value.length);
+        this.#getCharacterLimit()?.updateVisibleMessage();
     }
 
-    #setKeyUpListener() {
-        this.#getInputElement().addEventListener('keyup', () => {
-            this.#handleKeyUp();
-        });
+    #callUpdateVisibleMessage() {
+        this.#getCharacterLimit()?.setCharactersUsed(this.#getInputElement().value.length);
+        this.#getCharacterLimit()?.updateVisibleMessage();
+        this.#lastKeyUpTimestamp = Date.now();
+    }
+
+    #setCharacterLimitListeners() {
+        this.#getInputElement().addEventListener('keyup', this.#handleKeyUp);
+        this.#getInputElement().addEventListener('focus', this.#handleFocus);
+        this.#getInputElement().addEventListener('blur', this.#handleBlur);
+
+        /* If the browser supports the pageshow event, use it to update the character limit
+        message and sr-message once a page has loaded. Second best, use the DOMContentLoaded event. 
+        This ensures that if the user navigates to another page in the browser and goes back, the 
+        message and sr-message will show/tell the correct amount of characters left. */
+        if ('onpageshow' in window) {
+            window.addEventListener('pageshow', this.#handlePageshow);
+        }
+        else {
+            document.addEventListener('DOMContentLoaded', this.#handlePageshow);
+        }
+    }
+
+    #intervalSetup() {
+        if (this.#intervalID !== null) {
+            window.clearInterval(this.#intervalID);
+            this.#intervalID = null;
+        }
+
+        this.#getCharacterLimit().silenceVisibleMessage();
+
+        this.#intervalID = window.setInterval(() => {
+            /* Don't update the Screen Reader message unless it's been awhile
+            since the last key up event. Otherwise, the user will be spammed
+            with audio notifications while typing. */
+            if (this.#getCharacterLimit()) {
+                if (!this.#lastKeyUpTimestamp || (Date.now() - 500) >= this.#lastKeyUpTimestamp) {
+                    if (this.#oldValue !== this.#getInputElement().value || !this.#getCharacterLimit().hasMatchingMessages()) {
+                        this.#oldValue = this.#getInputElement().value;
+                        this.#getCharacterLimit().updateMessages();
+                    }
+                }
+            }
+        }, 1000);
     }
 
     /* Attributes which can invoke attributeChangedCallback() */
@@ -196,10 +245,26 @@ class FDSInputWrapper extends HTMLElement {
 
     constructor() {
         super();
+        this.#lastKeyUpTimestamp = null;
+        this.#oldValue = null;
+        this.#intervalID = null;
 
-        this.#handleHelpTextCallback = () => { this.updateIdReferences(); };
-        this.#handleCharacterLimitCallback = () => { this.updateIdReferences(); };
-        this.#handleCharacterLimitConnection = () => { this.#setKeyUpListener() };
+        this.#handleKeyUp = () => { this.#callUpdateVisibleMessage(); }
+        this.#handleFocus = () => { this.#intervalSetup(); }
+        this.#handleBlur = () => {
+            window.clearInterval(this.#intervalID);
+            this.#intervalID = null;
+            if (this.#oldValue !== this.#getInputElement().value) {
+                this.#oldValue = this.#getInputElement().value;
+                this.#getCharacterLimit().updateVisibleMessage();
+            }
+            this.#getCharacterLimit().silenceSrMessage();
+        }
+        this.#handlePageshow = () => { this.#callSilentUpdateMessages(); }
+
+        this.#handleHelpTextCallback = () => { this.updateIdReferences(); }
+        this.#handleCharacterLimitCallback = () => { this.updateIdReferences(); }
+        this.#handleCharacterLimitConnection = () => { this.#setCharacterLimitListeners(); }
     }
 
     /* --------------------------------------------------
@@ -271,6 +336,13 @@ class FDSInputWrapper extends HTMLElement {
     disconnectedCallback() {
         this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
         this.removeEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
+        this.removeEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
+
+        this.#getInputElement().removeEventListener('keyup', this.#handleKeyUp);
+        this.#getInputElement().removeEventListener('focus', this.#handleFocus);
+        this.#getInputElement().removeEventListener('blur', this.#handleBlur);
+        window.removeEventListener('pageshow', this.#handlePageshow);
+        document.removeEventListener('DOMContentLoaded', this.#handlePageshow);
     }
 
     /* --------------------------------------------------

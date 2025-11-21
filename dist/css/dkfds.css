@@ -12824,8 +12824,8 @@ fds-character-limit,
 .fds-character-limit{
   display:block;
 }
-fds-character-limit span[aria-hidden=true],
-.fds-character-limit span[aria-hidden=true]{
+fds-character-limit span.visual-message,
+.fds-character-limit span.visual-message{
   max-width:66ch;
   display:block;
   color:#707070;
@@ -12835,7 +12835,7 @@ fds-character-limit span[aria-hidden=true],
   font-weight:400;
   overflow-wrap:break-word;
 }
-fds-character-limit span[aria-hidden=true].limit-exceeded,
-.fds-character-limit span[aria-hidden=true].limit-exceeded{
+fds-character-limit span.visual-message.limit-exceeded,
+.fds-character-limit span.visual-message.limit-exceeded{
   color:#CC0000;
 }
