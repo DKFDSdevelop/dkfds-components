@@ -290,12 +290,12 @@ class FDSInputWrapper extends HTMLElement {
                 idsForAriaDescribedby.push(text.id);
             }
         });
-        this.querySelectorAll('fds-character-limit').forEach(limit => {
-            const text = limit.querySelector(':scope > span[id]');
-            if (text?.hasAttribute('id')) {
-                idsForAriaDescribedby.push(text.id);
+        if (this.#getCharacterLimit()) {
+            const spanId = this.#getCharacterLimit().querySelector(':scope > span[id]');
+            if (spanId?.hasAttribute('id')) {
+                idsForAriaDescribedby.push(spanId.id);
             }
-        });
+        }
         if (idsForAriaDescribedby.length > 0) {
             this.#getInputElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
         }

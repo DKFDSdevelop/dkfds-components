@@ -6463,12 +6463,12 @@ class FDSInputWrapper extends HTMLElement {
         idsForAriaDescribedby.push(text.id);
       }
     });
-    this.querySelectorAll('fds-character-limit').forEach(limit => {
-      const text = limit.querySelector(':scope > span[id]');
-      if (text?.hasAttribute('id')) {
-        idsForAriaDescribedby.push(text.id);
+    if (this.#getCharacterLimit()) {
+      const spanId = this.#getCharacterLimit().querySelector(':scope > span[id]');
+      if (spanId?.hasAttribute('id')) {
+        idsForAriaDescribedby.push(spanId.id);
       }
-    });
+    }
     if (idsForAriaDescribedby.length > 0) {
       this.#getInputElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
     } else {
@@ -6653,7 +6653,13 @@ function registerHelpText() {
   }
 }
 /* harmony default export */ const fds_help_text = (registerHelpText);
+;// ./src/js/custom-elements/character-limit/validateCharacterLimitHTML.js
+function validateCharacterLimitHTML(children) {
+  if (children.length !== 3) return false;
+  return true;
+}
 ;// ./src/js/custom-elements/character-limit/fds-character-limit.js
+
 
 
 
@@ -6674,20 +6680,27 @@ class FDSCharacterLimit extends HTMLElement {
   #render() {
     if (this.#rendered) return;
     this.#updateLimit(this.getAttribute('limit'));
-    this.innerHTML = '';
-    this.#spanSrMaxLimit = document.createElement('span');
-    this.#spanSrMaxLimit.classList.add('sr-only');
-    this.#spanSrMaxLimit.setAttribute('id', generateAndVerifyUniqueId('lim'));
-    this.#spanSrMaxLimit.textContent = this.#messages.max_limit.replace(/{value}/, this.#limit);
-    this.#spanSrUpdate = document.createElement('span');
-    this.#spanSrUpdate.classList.add('sr-only');
-    this.#spanSrUpdate.setAttribute('aria-live', 'polite');
-    this.#spanVisualUpdate = document.createElement('span');
-    this.#spanVisualUpdate.classList.add('visual-message');
-    this.#spanVisualUpdate.textContent = this.#getMessage(this.charactersLeft());
-    this.appendChild(this.#spanSrMaxLimit);
-    this.appendChild(this.#spanSrUpdate);
-    this.appendChild(this.#spanVisualUpdate);
+    const characterLimitRendered = validateCharacterLimitHTML(this.children);
+    if (!characterLimitRendered) {
+      this.innerHTML = '';
+      this.#spanSrMaxLimit = document.createElement('span');
+      this.#spanSrMaxLimit.classList.add('sr-only');
+      this.#spanSrMaxLimit.setAttribute('id', generateAndVerifyUniqueId('lim'));
+      this.#spanSrMaxLimit.textContent = this.#messages.max_limit.replace(/{value}/, this.#limit);
+      this.#spanSrUpdate = document.createElement('span');
+      this.#spanSrUpdate.classList.add('sr-only');
+      this.#spanSrUpdate.setAttribute('aria-live', 'polite');
+      this.#spanVisualUpdate = document.createElement('span');
+      this.#spanVisualUpdate.classList.add('visual-message');
+      this.#spanVisualUpdate.textContent = this.#getMessage(this.charactersLeft());
+      this.appendChild(this.#spanSrMaxLimit);
+      this.appendChild(this.#spanSrUpdate);
+      this.appendChild(this.#spanVisualUpdate);
+    } else {
+      this.#spanSrMaxLimit = this.children[0];
+      this.#spanSrUpdate = this.children[1];
+      this.#spanVisualUpdate = this.children[2];
+    }
     this.#rendered = true;
   }
   #getMessage(charactersLeft) {
@@ -6718,7 +6731,7 @@ class FDSCharacterLimit extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['limit'];
+  static observedAttributes = ['limit', 'one-character-remaining-text', 'several-characters-remaining-text', 'one-character-too-many-text', 'several-characters-too-many-text', 'max-limit-text'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -6791,6 +6804,22 @@ class FDSCharacterLimit extends HTMLElement {
   connectedCallback() {
     if (this.#rendered) return;
     this.#render();
+    if (this.hasAttribute('one-character-remaining-text')) {
+      this.#messages.one_character_remaining = this.getAttribute('one-character-remaining-text');
+    }
+    if (this.hasAttribute('several-characters-remaining-text')) {
+      this.#messages.several_characters_remaining = this.getAttribute('several-characters-remaining-text');
+    }
+    if (this.hasAttribute('one-character-too-many-text')) {
+      this.#messages.one_character_too_many = this.getAttribute('one-character-too-many-text');
+    }
+    if (this.hasAttribute('several-characters-too-many-text')) {
+      this.#messages.several_characters_too_many = this.getAttribute('several-characters-too-many-text');
+    }
+    if (this.hasAttribute('max-limit-text')) {
+      this.#messages.max_limit = this.getAttribute('max-limit-text');
+    }
+    this.updateVisibleMessage();
 
     // During disconnect, the custom element may lose connection to the input-wrapper.
     // Save the input-wrapper and use it to dispatch events - otherwise, the events may be lost.
@@ -6817,6 +6846,27 @@ class FDSCharacterLimit extends HTMLElement {
     if (!this.#rendered) return;
     if (name === 'limit') {
       this.#updateLimit(newValue);
+    }
+    if (name === 'one-character-remaining-text') {
+      console.log('one-character-remaining-text', newValue);
+      this.#messages.one_character_remaining = newValue;
+      this.updateMessages();
+    }
+    if (name === 'several-characters-remaining-text') {
+      this.#messages.several_characters_remaining = newValue;
+      this.updateMessages();
+    }
+    if (name === 'one-character-too-many-text') {
+      this.#messages.one_character_too_many = newValue;
+      this.updateMessages();
+    }
+    if (name === 'several-characters-too-many-text') {
+      this.#messages.several_characters_too_many = newValue;
+      this.updateMessages();
+    }
+    if (name === 'max-limit-text') {
+      this.#messages.max_limit = newValue;
+      this.updateMessages();
     }
     this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
   }
