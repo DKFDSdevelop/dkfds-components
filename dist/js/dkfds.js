@@ -3208,6 +3208,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerAccordionGroup: () => (/* reexport */ fds_accordion_group),
   registerCharacterLimit: () => (/* reexport */ fds_character_limit),
   registerCustomElements: () => (/* binding */ registerCustomElements),
+  registerErrorMessage: () => (/* reexport */ fds_error_message),
   registerHelpText: () => (/* reexport */ fds_help_text),
   registerInputWrapper: () => (/* reexport */ fds_input_wrapper),
   renderAccordionHTML: () => (/* reexport */ renderAccordionHTML),
@@ -6208,6 +6209,7 @@ class FDSInputWrapper extends HTMLElement {
   #wrapper;
   #limit;
   #handleHelpTextCallback;
+  #handleErrorMessageCallback;
   #handleCharacterLimitCallback;
   #handleCharacterLimitConnection;
   #handleKeyUp;
@@ -6237,8 +6239,8 @@ class FDSInputWrapper extends HTMLElement {
   }
   #setupPrefixSuffix() {
     if (!this.#getInputElement()) return;
-    const hasPrefix = this.hasAttribute('prefix');
-    const hasSuffix = this.hasAttribute('suffix');
+    const hasPrefix = this.hasAttribute('input-prefix');
+    const hasSuffix = this.hasAttribute('input-suffix');
 
     // Remove wrapper if no prefix/suffix needed
     if (!hasPrefix && !hasSuffix) {
@@ -6274,7 +6276,7 @@ class FDSInputWrapper extends HTMLElement {
         prefixEl.setAttribute('aria-hidden', 'true');
         this.#wrapper.insertBefore(prefixEl, this.#getInputElement());
       }
-      prefixEl.textContent = this.getAttribute('prefix');
+      prefixEl.textContent = this.getAttribute('input-prefix');
     } else if (prefixEl) {
       prefixEl.remove();
     }
@@ -6288,7 +6290,7 @@ class FDSInputWrapper extends HTMLElement {
         suffixEl.setAttribute('aria-hidden', 'true');
         this.#wrapper.appendChild(suffixEl);
       }
-      suffixEl.textContent = this.getAttribute('suffix');
+      suffixEl.textContent = this.getAttribute('input-suffix');
     } else if (suffixEl) {
       suffixEl.remove();
     }
@@ -6353,14 +6355,9 @@ class FDSInputWrapper extends HTMLElement {
 
   /* Private methods for character limitation */
 
-  #callSilentUpdateMessages() {
-    this.#getCharacterLimit()?.setCharactersUsed(this.#getInputElement().value.length);
-    this.#getCharacterLimit()?.updateVisibleMessage();
-  }
   #callUpdateVisibleMessage() {
     this.#getCharacterLimit()?.setCharactersUsed(this.#getInputElement().value.length);
     this.#getCharacterLimit()?.updateVisibleMessage();
-    this.#lastKeyUpTimestamp = Date.now();
   }
   #setCharacterLimitListeners() {
     this.#getInputElement().addEventListener('keyup', this.#handleKeyUp);
@@ -6400,7 +6397,7 @@ class FDSInputWrapper extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'prefix', 'suffix', 'maxwidth'];
+  static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'input-prefix', 'input-suffix', 'maxwidth'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -6413,6 +6410,7 @@ class FDSInputWrapper extends HTMLElement {
     this.#intervalID = null;
     this.#handleKeyUp = () => {
       this.#callUpdateVisibleMessage();
+      this.#lastKeyUpTimestamp = Date.now();
     };
     this.#handleFocus = () => {
       this.#intervalSetup();
@@ -6427,9 +6425,12 @@ class FDSInputWrapper extends HTMLElement {
       this.#getCharacterLimit().silenceSrMessage();
     };
     this.#handlePageshow = () => {
-      this.#callSilentUpdateMessages();
+      this.#callUpdateVisibleMessage();
     };
     this.#handleHelpTextCallback = () => {
+      this.updateIdReferences();
+    };
+    this.#handleErrorMessageCallback = () => {
       this.updateIdReferences();
     };
     this.#handleCharacterLimitCallback = () => {
@@ -6455,24 +6456,47 @@ class FDSInputWrapper extends HTMLElement {
       this.#getLabelElement().htmlFor = this.#getInputElement().id;
     }
 
-    // Set/remove aria-describedby on input
+    // IDs to be used in aria-describedby
     const idsForAriaDescribedby = [];
+
+    // Help text ID
     this.querySelectorAll('fds-help-text').forEach(helptext => {
       const text = helptext.querySelector(':scope > .help-text');
       if (text?.hasAttribute('id')) {
         idsForAriaDescribedby.push(text.id);
       }
     });
+
+    // Error message IDs
+    let hasError = false;
+    this.querySelectorAll('fds-error-message').forEach(errorText => {
+      const errSpan = errorText.querySelector(':scope > .form-error-message');
+      if (errSpan?.id) {
+        idsForAriaDescribedby.push(errSpan.id);
+        hasError = true;
+      }
+    });
+
+    // Character limit ID
     if (this.#getCharacterLimit()) {
       const spanId = this.#getCharacterLimit().querySelector(':scope > span[id]');
       if (spanId?.hasAttribute('id')) {
         idsForAriaDescribedby.push(spanId.id);
       }
     }
+
+    // Set/remove aria-describedby on input
     if (idsForAriaDescribedby.length > 0) {
       this.#getInputElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
     } else {
       this.#getInputElement().removeAttribute('aria-describedby');
+    }
+
+    // Set aria-invalid if wrapper has error messages
+    if (hasError) {
+      this.#getInputElement().setAttribute('aria-invalid', 'true');
+    } else {
+      this.#getInputElement().removeAttribute('aria-invalid');
     }
   }
   setClasses() {
@@ -6494,6 +6518,7 @@ class FDSInputWrapper extends HTMLElement {
     this.#applyMaxWidth();
     this.updateIdReferences();
     this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
+    this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
     this.addEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
     this.addEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
   }
@@ -6504,6 +6529,7 @@ class FDSInputWrapper extends HTMLElement {
 
   disconnectedCallback() {
     this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
+    this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
     this.removeEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
     this.removeEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
     this.#getInputElement().removeEventListener('keyup', this.#handleKeyUp);
@@ -6531,7 +6557,7 @@ class FDSInputWrapper extends HTMLElement {
     if (attribute === 'input-disabled') {
       this.#applyDisabled();
     }
-    if (attribute === 'prefix' || attribute === 'suffix') {
+    if (attribute === 'input-prefix' || attribute === 'input-suffix') {
       this.#setupPrefixSuffix();
     }
     if (attribute === 'maxwidth') {
@@ -6881,6 +6907,136 @@ function registerCharacterLimit() {
   }
 }
 /* harmony default export */ const fds_character_limit = (registerCharacterLimit);
+;// ./src/js/custom-elements/error-message/fds-error-message.js
+
+
+
+class FDSErrorMessage extends HTMLElement {
+  /* Private instance fields */
+
+  #rendered;
+  #errorText;
+  #srOnlyText;
+  #parentWrapper;
+  #getErrorText() {
+    if (this.#errorText) return this.#errorText;
+    this.#errorText = this.querySelector(':scope > .form-error-message');
+    return this.#errorText;
+  }
+  #ensureSrOnlyPrefix() {
+    const span = this.#getErrorText();
+    if (!span) return;
+    const firstElement = span.firstElementChild;
+    if (!firstElement || !firstElement.classList.contains('sr-only')) {
+      const srText = this.getAttribute('sr-text');
+      if (srText !== null && srText !== '') {
+        this.#srOnlyText = srText;
+      }
+      const sr = document.createElement('span');
+      sr.className = 'sr-only';
+      sr.textContent = `${this.#srOnlyText}: `;
+      span.insertBefore(sr, span.firstChild);
+    }
+  }
+  #render() {
+    if (this.#rendered) return;
+    let span = this.#getErrorText();
+    if (!span) {
+      span = document.createElement('span');
+      span.className = 'form-error-message';
+
+      // Move existing child nodes into the span
+      while (this.firstChild) {
+        span.appendChild(this.firstChild);
+      }
+      this.appendChild(span);
+      this.#errorText = span;
+    }
+
+    // If explicit id attribute is set, use it
+    const attrValue = this.getAttribute('error-message-id');
+    if (attrValue !== null && attrValue !== '') {
+      span.id = attrValue;
+    }
+    this.#ensureSrOnlyPrefix();
+    this.#rendered = true;
+  }
+  #updateId(newValue) {
+    const span = this.#getErrorText();
+    if (!span) return;
+    if (newValue !== null && newValue !== '') {
+      span.id = newValue;
+    } else {
+      span.id = generateAndVerifyUniqueId('error');
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['error-message-id', 'sr-text'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+    this.#rendered = false;
+    this.#errorText = null;
+    this.#srOnlyText = 'Fejl';
+    this.#parentWrapper = null;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.#rendered) return;
+    this.#render();
+    const span = this.#getErrorText();
+    if (span && !span.id) {
+      span.id = generateAndVerifyUniqueId('error');
+    }
+
+    // Save reference to parent wrapper
+    this.#parentWrapper = this.closest('fds-input-wrapper');
+    this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
+    this.#errorText = null;
+    this.#parentWrapper = null;
+    this.#rendered = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (!this.#rendered) return;
+    if (name === 'error-message-id') {
+      this.#updateId(newValue);
+    }
+    if (name === 'sr-text') {
+      this.#srOnlyText = newValue;
+      this.querySelector(':scope > .form-error-message > .sr-only').textContent = this.#srOnlyText;
+    }
+    this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
+  }
+}
+function registerErrorMessage() {
+  if (customElements.get('fds-error-message') === undefined) {
+    window.customElements.define('fds-error-message', FDSErrorMessage);
+  }
+}
+/* harmony default export */ const fds_error_message = (registerErrorMessage);
 ;// ./src/js/dkfds.js
 
 
@@ -6904,6 +7060,7 @@ function registerCharacterLimit() {
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 // Custom elements
+
 
 
 
@@ -7099,7 +7256,7 @@ var init = function (options) {
 const registerCustomElements = () => {
   registerAccordion();
   fds_accordion_group();
-  fds_input_wrapper(), fds_help_text(), fds_character_limit();
+  fds_input_wrapper(), fds_help_text(), fds_character_limit(), fds_error_message();
 };
 
 })();

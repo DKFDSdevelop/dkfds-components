@@ -12,6 +12,7 @@ class FDSInputWrapper extends HTMLElement {
     #limit;
 
     #handleHelpTextCallback;
+    #handleErrorMessageCallback;
     #handleCharacterLimitCallback;
     #handleCharacterLimitConnection;
     #handleKeyUp;
@@ -49,8 +50,8 @@ class FDSInputWrapper extends HTMLElement {
     #setupPrefixSuffix() {
         if (!this.#getInputElement()) return;
 
-        const hasPrefix = this.hasAttribute('prefix');
-        const hasSuffix = this.hasAttribute('suffix');
+        const hasPrefix = this.hasAttribute('input-prefix');
+        const hasSuffix = this.hasAttribute('input-suffix');
 
         // Remove wrapper if no prefix/suffix needed
         if (!hasPrefix && !hasSuffix) {
@@ -86,7 +87,7 @@ class FDSInputWrapper extends HTMLElement {
                 prefixEl.setAttribute('aria-hidden', 'true');
                 this.#wrapper.insertBefore(prefixEl, this.#getInputElement());
             }
-            prefixEl.textContent = this.getAttribute('prefix');
+            prefixEl.textContent = this.getAttribute('input-prefix');
         } else if (prefixEl) {
             prefixEl.remove();
         }
@@ -100,7 +101,7 @@ class FDSInputWrapper extends HTMLElement {
                 suffixEl.setAttribute('aria-hidden', 'true');
                 this.#wrapper.appendChild(suffixEl);
             }
-            suffixEl.textContent = this.getAttribute('suffix');
+            suffixEl.textContent = this.getAttribute('input-suffix');
         } else if (suffixEl) {
             suffixEl.remove();
         }
@@ -184,15 +185,9 @@ class FDSInputWrapper extends HTMLElement {
 
     /* Private methods for character limitation */
 
-    #callSilentUpdateMessages() {
-        this.#getCharacterLimit()?.setCharactersUsed(this.#getInputElement().value.length);
-        this.#getCharacterLimit()?.updateVisibleMessage();
-    }
-
     #callUpdateVisibleMessage() {
         this.#getCharacterLimit()?.setCharactersUsed(this.#getInputElement().value.length);
         this.#getCharacterLimit()?.updateVisibleMessage();
-        this.#lastKeyUpTimestamp = Date.now();
     }
 
     #setCharacterLimitListeners() {
@@ -237,7 +232,7 @@ class FDSInputWrapper extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'prefix', 'suffix', 'maxwidth'];
+    static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'input-prefix', 'input-suffix', 'maxwidth'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -249,8 +244,13 @@ class FDSInputWrapper extends HTMLElement {
         this.#oldValue = null;
         this.#intervalID = null;
 
-        this.#handleKeyUp = () => { this.#callUpdateVisibleMessage(); }
+        this.#handleKeyUp = () => { 
+            this.#callUpdateVisibleMessage();
+            this.#lastKeyUpTimestamp = Date.now();
+        }
+
         this.#handleFocus = () => { this.#intervalSetup(); }
+
         this.#handleBlur = () => {
             window.clearInterval(this.#intervalID);
             this.#intervalID = null;
@@ -260,9 +260,11 @@ class FDSInputWrapper extends HTMLElement {
             }
             this.#getCharacterLimit().silenceSrMessage();
         }
-        this.#handlePageshow = () => { this.#callSilentUpdateMessages(); }
+
+        this.#handlePageshow = () => { this.#callUpdateVisibleMessage(); }
 
         this.#handleHelpTextCallback = () => { this.updateIdReferences(); }
+        this.#handleErrorMessageCallback = () => { this.updateIdReferences(); }
         this.#handleCharacterLimitCallback = () => { this.updateIdReferences(); }
         this.#handleCharacterLimitConnection = () => { this.#setCharacterLimitListeners(); }
     }
@@ -282,25 +284,48 @@ class FDSInputWrapper extends HTMLElement {
             this.#getLabelElement().htmlFor = this.#getInputElement().id;
         }
 
-        // Set/remove aria-describedby on input
+        // IDs to be used in aria-describedby
         const idsForAriaDescribedby = [];
+
+        // Help text ID
         this.querySelectorAll('fds-help-text').forEach(helptext => {
             const text = helptext.querySelector(':scope > .help-text');
             if (text?.hasAttribute('id')) {
                 idsForAriaDescribedby.push(text.id);
             }
         });
+
+        // Error message IDs
+        let hasError = false;
+        this.querySelectorAll('fds-error-message').forEach(errorText => {
+            const errSpan = errorText.querySelector(':scope > .form-error-message');
+            if (errSpan?.id) {
+                idsForAriaDescribedby.push(errSpan.id);
+                hasError = true;
+            }
+        });
+
+        // Character limit ID
         if (this.#getCharacterLimit()) {
             const spanId = this.#getCharacterLimit().querySelector(':scope > span[id]');
             if (spanId?.hasAttribute('id')) {
                 idsForAriaDescribedby.push(spanId.id);
             }
         }
+
+        // Set/remove aria-describedby on input
         if (idsForAriaDescribedby.length > 0) {
             this.#getInputElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
         }
         else {
             this.#getInputElement().removeAttribute('aria-describedby');
+        }
+
+        // Set aria-invalid if wrapper has error messages
+        if (hasError) {
+            this.#getInputElement().setAttribute('aria-invalid', 'true');
+        } else {
+            this.#getInputElement().removeAttribute('aria-invalid');
         }
     }
 
@@ -325,6 +350,7 @@ class FDSInputWrapper extends HTMLElement {
         this.updateIdReferences();
 
         this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
+        this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
         this.addEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
         this.addEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
     }
@@ -335,6 +361,7 @@ class FDSInputWrapper extends HTMLElement {
 
     disconnectedCallback() {
         this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
+        this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
         this.removeEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
         this.removeEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
 
@@ -368,7 +395,7 @@ class FDSInputWrapper extends HTMLElement {
             this.#applyDisabled();
         }
 
-        if (attribute === 'prefix' || attribute === 'suffix') {
+        if (attribute === 'input-prefix' || attribute === 'input-suffix') {
             this.#setupPrefixSuffix();
         }
 
