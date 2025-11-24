@@ -17,7 +17,6 @@ fds-checkbox {
     &:first-of-type {
         margin-top: 0;
     }
-
 }
 
 fds-checkbox fds-help-text {
@@ -25,11 +24,7 @@ fds-checkbox fds-help-text {
     margin-top: -4px;
 }
 
-legend + fds-checkbox:first-of-type {
-        margin-top: $button-distance;
-}
-
-// Radio and checkbox label/text
+// Checkbox label/text
 .form-checkbox+label {
     cursor: pointer;
     font-weight: func.font-weight(vars.$input-checkbox-radio-label-font-weight);
@@ -48,7 +43,7 @@ legend + fds-checkbox:first-of-type {
     margin-left: func.units(1);
 }
 
-// Unchecked radio and checkbox button
+// Unchecked checkbox button
 .form-checkbox+label::before {
     content: '';
     position: absolute;

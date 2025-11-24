@@ -12865,10 +12865,6 @@ fds-checkbox fds-help-text{
   margin-top:-4px;
 }
 
-legend + fds-checkbox:first-of-type{
-  margin-top:8px;
-}
-
 .form-checkbox + label{
   cursor:pointer;
   font-weight:400;
@@ -12974,4 +12970,11 @@ fds-checkbox-group{
 }
 fds-checkbox-group:first-child{
   margin-top:0;
+}
+fds-checkbox-group > ::slotted(*) + ::slotted(fds-checkbox){
+  margin-top:8px;
+}
+fds-checkbox-group:has(fds-error-message){
+  border-left:4px solid #CC0000;
+  padding-left:calc(16px - 4px);
 }
