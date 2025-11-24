@@ -12,17 +12,32 @@ class FDSInputWrapper extends HTMLElement {
     #limit;
 
     #handleHelpTextCallback;
+    #handleErrorMessageCallback;
     #handleCharacterLimitCallback;
     #handleCharacterLimitConnection;
+    #handleKeyUp;
+    #handlePageshow;
+    #handleFocus;
+    #handleBlur;
+
+    #lastKeyUpTimestamp;
+    #oldValue;
+    #intervalID;
 
     /* Private methods */
 
     #getInputElement() {
-        return this.querySelector('input');
+        if (this.#input) return this.#input;
+
+        this.#input = this.querySelector('input');
+        return this.#input;
     }
 
     #getLabelElement() {
-        return this.querySelector('label');
+        if (this.#label) return this.#label;
+
+        this.#label = this.querySelector('label');
+        return this.#label;
     }
 
     #getCharacterLimit() {
@@ -33,14 +48,14 @@ class FDSInputWrapper extends HTMLElement {
     }
 
     #setupPrefixSuffix() {
-        if (!this.#input) return;
+        if (!this.#getInputElement()) return;
 
-        const hasPrefix = this.hasAttribute('prefix');
-        const hasSuffix = this.hasAttribute('suffix');
+        const hasPrefix = this.hasAttribute('input-prefix');
+        const hasSuffix = this.hasAttribute('input-suffix');
 
         // Remove wrapper if no prefix/suffix needed
         if (!hasPrefix && !hasSuffix) {
-            this.#wrapper?.replaceWith(this.#input);
+            this.#wrapper?.replaceWith(this.#getInputElement());
             this.#wrapper = null;
             return;
         }
@@ -48,8 +63,8 @@ class FDSInputWrapper extends HTMLElement {
         // Create wrapper if it doesn't exist
         if (!this.#wrapper) {
             this.#wrapper = document.createElement('div');
-            this.insertBefore(this.#wrapper, this.#input);
-            this.#wrapper.appendChild(this.#input);
+            this.insertBefore(this.#wrapper, this.#getInputElement());
+            this.#wrapper.appendChild(this.#getInputElement());
         }
 
         // Set wrapper classes
@@ -70,9 +85,9 @@ class FDSInputWrapper extends HTMLElement {
                 prefixEl = document.createElement('div');
                 prefixEl.className = 'form-input-prefix';
                 prefixEl.setAttribute('aria-hidden', 'true');
-                this.#wrapper.insertBefore(prefixEl, this.#input);
+                this.#wrapper.insertBefore(prefixEl, this.#getInputElement());
             }
-            prefixEl.textContent = this.getAttribute('prefix');
+            prefixEl.textContent = this.getAttribute('input-prefix');
         } else if (prefixEl) {
             prefixEl.remove();
         }
@@ -86,7 +101,7 @@ class FDSInputWrapper extends HTMLElement {
                 suffixEl.setAttribute('aria-hidden', 'true');
                 this.#wrapper.appendChild(suffixEl);
             }
-            suffixEl.textContent = this.getAttribute('suffix');
+            suffixEl.textContent = this.getAttribute('input-suffix');
         } else if (suffixEl) {
             suffixEl.remove();
         }
@@ -95,10 +110,10 @@ class FDSInputWrapper extends HTMLElement {
     #addLabelIndicator(attributeName, defaultText) {
         if (!(this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false')) return;
 
-        if (!this.#label) return;
+        if (!this.#getLabelElement()) return;
 
         // Remove an existing trailing indicator span if present
-        this.#label.querySelector(':scope > span.weight-normal')?.remove();
+        this.#getLabelElement().querySelector(':scope > span.weight-normal')?.remove();
 
         const attributeValue = this.getAttribute(attributeName);
         const span = document.createElement('span');
@@ -107,10 +122,10 @@ class FDSInputWrapper extends HTMLElement {
             ? ` (${attributeValue})`
             : ` (${defaultText})`;
 
-        this.#label.appendChild(span);
+        this.#getLabelElement().appendChild(span);
 
         if (attributeName === 'input-required') {
-            this.#input?.setAttribute('required', '');
+            this.#getInputElement()?.setAttribute('required', '');
         }
     }
 
@@ -128,33 +143,33 @@ class FDSInputWrapper extends HTMLElement {
     }
 
     #applyReadonly() {
-        if (!this.#input) return;
+        if (!this.#getInputElement()) return;
 
         if (this.hasAttribute('input-readonly') && this.getAttribute('input-readonly') !== 'false') {
-            this.#input.setAttribute('readonly', '');
+            this.#getInputElement().setAttribute('readonly', '');
         } else {
-            this.#input.removeAttribute('readonly');
+            this.#getInputElement().removeAttribute('readonly');
         }
     }
 
     #applyDisabled() {
-        if (!this.#input) return;
+        if (!this.#getInputElement()) return;
 
         if (this.hasAttribute('input-disabled') && this.getAttribute('input-disabled') !== 'false') {
-            this.#input.setAttribute('disabled', '');
-            this.#label.classList.add('disabled');
+            this.#getInputElement().setAttribute('disabled', '');
+            this.#getLabelElement().classList.add('disabled');
         } else {
-            this.#input.removeAttribute('disabled');
-            this.#label.classList.remove('disabled');
+            this.#getInputElement().removeAttribute('disabled');
+            this.#getLabelElement().classList.remove('disabled');
         }
     }
 
     #applyMaxWidth() {
-        if (!this.#input) return;
+        if (!this.#getInputElement()) return;
 
-        this.#input.classList.forEach(cls => {
+        this.#getInputElement().classList.forEach(cls => {
             if (cls.startsWith('input-width-') || cls.startsWith('input-char-')) {
-                this.#input.classList.remove(cls);
+                this.#getInputElement().classList.remove(cls);
             }
         });
 
@@ -162,27 +177,62 @@ class FDSInputWrapper extends HTMLElement {
         if (!value) return;
 
         if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
-            this.#input.classList.add(`input-width-${value}`);
+            this.#getInputElement().classList.add(`input-width-${value}`);
         } else if (/^\d+$/.test(value)) {
-            this.#input.classList.add(`input-char-${value}`);
+            this.#getInputElement().classList.add(`input-char-${value}`);
         }
     }
 
-    #handleKeyUp() {
-        this.#getCharacterLimit().setCharactersUsed(this.#input.value.length);
-        this.#getCharacterLimit().updateVisibleMessage();
-        //lastKeyUpTimestamp = Date.now();
+    /* Private methods for character limitation */
+
+    #callUpdateVisibleMessage() {
+        this.#getCharacterLimit()?.setCharactersUsed(this.#getInputElement().value.length);
+        this.#getCharacterLimit()?.updateVisibleMessage();
     }
 
-    #setKeyUpListener() {
-        this.#input.addEventListener('keyup', () => {
-            this.#handleKeyUp();
-        });
+    #setCharacterLimitListeners() {
+        this.#getInputElement().addEventListener('keyup', this.#handleKeyUp);
+        this.#getInputElement().addEventListener('focus', this.#handleFocus);
+        this.#getInputElement().addEventListener('blur', this.#handleBlur);
+
+        /* If the browser supports the pageshow event, use it to update the character limit
+        message and sr-message once a page has loaded. Second best, use the DOMContentLoaded event. 
+        This ensures that if the user navigates to another page in the browser and goes back, the 
+        message and sr-message will show/tell the correct amount of characters left. */
+        if ('onpageshow' in window) {
+            window.addEventListener('pageshow', this.#handlePageshow);
+        }
+        else {
+            document.addEventListener('DOMContentLoaded', this.#handlePageshow);
+        }
+    }
+
+    #intervalSetup() {
+        if (this.#intervalID !== null) {
+            window.clearInterval(this.#intervalID);
+            this.#intervalID = null;
+        }
+
+        this.#getCharacterLimit().silenceVisibleMessage();
+
+        this.#intervalID = window.setInterval(() => {
+            /* Don't update the Screen Reader message unless it's been awhile
+            since the last key up event. Otherwise, the user will be spammed
+            with audio notifications while typing. */
+            if (this.#getCharacterLimit()) {
+                if (!this.#lastKeyUpTimestamp || (Date.now() - 500) >= this.#lastKeyUpTimestamp) {
+                    if (this.#oldValue !== this.#getInputElement().value || !this.#getCharacterLimit().hasMatchingMessages()) {
+                        this.#oldValue = this.#getInputElement().value;
+                        this.#getCharacterLimit().updateMessages();
+                    }
+                }
+            }
+        }, 1000);
     }
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'prefix', 'suffix', 'maxwidth'];
+    static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'input-prefix', 'input-suffix', 'maxwidth'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -190,10 +240,33 @@ class FDSInputWrapper extends HTMLElement {
 
     constructor() {
         super();
+        this.#lastKeyUpTimestamp = null;
+        this.#oldValue = null;
+        this.#intervalID = null;
 
-        this.#handleHelpTextCallback = () => { this.updateIdReferences(); };
-        this.#handleCharacterLimitCallback = () => { this.updateIdReferences(); };
-        this.#handleCharacterLimitConnection = () => { this.#setKeyUpListener() };
+        this.#handleKeyUp = () => { 
+            this.#callUpdateVisibleMessage();
+            this.#lastKeyUpTimestamp = Date.now();
+        }
+
+        this.#handleFocus = () => { this.#intervalSetup(); }
+
+        this.#handleBlur = () => {
+            window.clearInterval(this.#intervalID);
+            this.#intervalID = null;
+            if (this.#oldValue !== this.#getInputElement().value) {
+                this.#oldValue = this.#getInputElement().value;
+                this.#getCharacterLimit().updateVisibleMessage();
+            }
+            this.#getCharacterLimit().silenceSrMessage();
+        }
+
+        this.#handlePageshow = () => { this.#callUpdateVisibleMessage(); }
+
+        this.#handleHelpTextCallback = () => { this.updateIdReferences(); }
+        this.#handleErrorMessageCallback = () => { this.updateIdReferences(); }
+        this.#handleCharacterLimitCallback = () => { this.updateIdReferences(); }
+        this.#handleCharacterLimitConnection = () => { this.#setCharacterLimitListeners(); }
     }
 
     /* --------------------------------------------------
@@ -211,36 +284,56 @@ class FDSInputWrapper extends HTMLElement {
             this.#getLabelElement().htmlFor = this.#getInputElement().id;
         }
 
-        // Set/remove aria-describedby on input
+        // IDs to be used in aria-describedby
         const idsForAriaDescribedby = [];
+
+        // Help text ID
         this.querySelectorAll('fds-help-text').forEach(helptext => {
             const text = helptext.querySelector(':scope > .help-text');
             if (text?.hasAttribute('id')) {
                 idsForAriaDescribedby.push(text.id);
             }
         });
-        this.querySelectorAll('fds-character-limit').forEach(limit => {
-            const text = limit.querySelector(':scope > span[id]');
-            if (text?.hasAttribute('id')) {
-                idsForAriaDescribedby.push(text.id);
+
+        // Error message IDs
+        let hasError = false;
+        this.querySelectorAll('fds-error-message').forEach(errorText => {
+            const errSpan = errorText.querySelector(':scope > .form-error-message');
+            if (errSpan?.id) {
+                idsForAriaDescribedby.push(errSpan.id);
+                hasError = true;
             }
         });
+
+        // Character limit ID
+        if (this.#getCharacterLimit()) {
+            const spanId = this.#getCharacterLimit().querySelector(':scope > span[id]');
+            if (spanId?.hasAttribute('id')) {
+                idsForAriaDescribedby.push(spanId.id);
+            }
+        }
+
+        // Set/remove aria-describedby on input
         if (idsForAriaDescribedby.length > 0) {
             this.#getInputElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
         }
         else {
             this.#getInputElement().removeAttribute('aria-describedby');
         }
+
+        // Set aria-invalid if wrapper has error messages
+        if (hasError) {
+            this.#getInputElement().setAttribute('aria-invalid', 'true');
+        } else {
+            this.#getInputElement().removeAttribute('aria-invalid');
+        }
     }
 
     setClasses() {
-        this.#label = this.#getLabelElement();
-        this.#input = this.#getInputElement();
+        if (!this.#getLabelElement() || !this.#getInputElement()) return;
 
-        if (!this.#label || !this.#input) return;
-
-        this.#label.classList.add('form-label');
-        this.#input.classList.add('form-input');
+        this.#getLabelElement().classList.add('form-label');
+        this.#getInputElement().classList.add('form-input');
     }
 
     /* --------------------------------------------------
@@ -257,6 +350,7 @@ class FDSInputWrapper extends HTMLElement {
         this.updateIdReferences();
 
         this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
+        this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
         this.addEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
         this.addEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
     }
@@ -267,7 +361,15 @@ class FDSInputWrapper extends HTMLElement {
 
     disconnectedCallback() {
         this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
+        this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
         this.removeEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
+        this.removeEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
+
+        this.#getInputElement().removeEventListener('keyup', this.#handleKeyUp);
+        this.#getInputElement().removeEventListener('focus', this.#handleFocus);
+        this.#getInputElement().removeEventListener('blur', this.#handleBlur);
+        window.removeEventListener('pageshow', this.#handlePageshow);
+        document.removeEventListener('DOMContentLoaded', this.#handlePageshow);
     }
 
     /* --------------------------------------------------
@@ -293,7 +395,7 @@ class FDSInputWrapper extends HTMLElement {
             this.#applyDisabled();
         }
 
-        if (attribute === 'prefix' || attribute === 'suffix') {
+        if (attribute === 'input-prefix' || attribute === 'input-suffix') {
             this.#setupPrefixSuffix();
         }
 

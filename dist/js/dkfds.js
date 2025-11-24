@@ -3210,6 +3210,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerCheckbox: () => (/* reexport */ fds_checkbox),
   registerCheckboxGroup: () => (/* reexport */ fds_checkbox_group),
   registerCustomElements: () => (/* binding */ registerCustomElements),
+  registerErrorMessage: () => (/* reexport */ fds_error_message),
   registerHelpText: () => (/* reexport */ fds_help_text),
   registerInputWrapper: () => (/* reexport */ fds_input_wrapper),
   renderAccordionHTML: () => (/* reexport */ renderAccordionHTML),
@@ -6210,16 +6211,28 @@ class FDSInputWrapper extends HTMLElement {
   #wrapper;
   #limit;
   #handleHelpTextCallback;
+  #handleErrorMessageCallback;
   #handleCharacterLimitCallback;
   #handleCharacterLimitConnection;
+  #handleKeyUp;
+  #handlePageshow;
+  #handleFocus;
+  #handleBlur;
+  #lastKeyUpTimestamp;
+  #oldValue;
+  #intervalID;
 
   /* Private methods */
 
   #getInputElement() {
-    return this.querySelector('input');
+    if (this.#input) return this.#input;
+    this.#input = this.querySelector('input');
+    return this.#input;
   }
   #getLabelElement() {
-    return this.querySelector('label');
+    if (this.#label) return this.#label;
+    this.#label = this.querySelector('label');
+    return this.#label;
   }
   #getCharacterLimit() {
     if (this.#limit) return this.#limit;
@@ -6227,13 +6240,13 @@ class FDSInputWrapper extends HTMLElement {
     return this.#limit;
   }
   #setupPrefixSuffix() {
-    if (!this.#input) return;
-    const hasPrefix = this.hasAttribute('prefix');
-    const hasSuffix = this.hasAttribute('suffix');
+    if (!this.#getInputElement()) return;
+    const hasPrefix = this.hasAttribute('input-prefix');
+    const hasSuffix = this.hasAttribute('input-suffix');
 
     // Remove wrapper if no prefix/suffix needed
     if (!hasPrefix && !hasSuffix) {
-      this.#wrapper?.replaceWith(this.#input);
+      this.#wrapper?.replaceWith(this.#getInputElement());
       this.#wrapper = null;
       return;
     }
@@ -6241,8 +6254,8 @@ class FDSInputWrapper extends HTMLElement {
     // Create wrapper if it doesn't exist
     if (!this.#wrapper) {
       this.#wrapper = document.createElement('div');
-      this.insertBefore(this.#wrapper, this.#input);
-      this.#wrapper.appendChild(this.#input);
+      this.insertBefore(this.#wrapper, this.#getInputElement());
+      this.#wrapper.appendChild(this.#getInputElement());
     }
 
     // Set wrapper classes
@@ -6263,9 +6276,9 @@ class FDSInputWrapper extends HTMLElement {
         prefixEl = document.createElement('div');
         prefixEl.className = 'form-input-prefix';
         prefixEl.setAttribute('aria-hidden', 'true');
-        this.#wrapper.insertBefore(prefixEl, this.#input);
+        this.#wrapper.insertBefore(prefixEl, this.#getInputElement());
       }
-      prefixEl.textContent = this.getAttribute('prefix');
+      prefixEl.textContent = this.getAttribute('input-prefix');
     } else if (prefixEl) {
       prefixEl.remove();
     }
@@ -6279,24 +6292,24 @@ class FDSInputWrapper extends HTMLElement {
         suffixEl.setAttribute('aria-hidden', 'true');
         this.#wrapper.appendChild(suffixEl);
       }
-      suffixEl.textContent = this.getAttribute('suffix');
+      suffixEl.textContent = this.getAttribute('input-suffix');
     } else if (suffixEl) {
       suffixEl.remove();
     }
   }
   #addLabelIndicator(attributeName, defaultText) {
     if (!(this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false')) return;
-    if (!this.#label) return;
+    if (!this.#getLabelElement()) return;
 
     // Remove an existing trailing indicator span if present
-    this.#label.querySelector(':scope > span.weight-normal')?.remove();
+    this.#getLabelElement().querySelector(':scope > span.weight-normal')?.remove();
     const attributeValue = this.getAttribute(attributeName);
     const span = document.createElement('span');
     span.className = 'weight-normal';
     span.textContent = attributeValue && attributeValue !== 'true' && attributeValue !== '' ? ` (${attributeValue})` : ` (${defaultText})`;
-    this.#label.appendChild(span);
+    this.#getLabelElement().appendChild(span);
     if (attributeName === 'input-required') {
-      this.#input?.setAttribute('required', '');
+      this.#getInputElement()?.setAttribute('required', '');
     }
   }
   #applyRequiredOrOptional() {
@@ -6309,52 +6322,84 @@ class FDSInputWrapper extends HTMLElement {
     this.#addLabelIndicator('input-optional', 'frivilligt');
   }
   #applyReadonly() {
-    if (!this.#input) return;
+    if (!this.#getInputElement()) return;
     if (this.hasAttribute('input-readonly') && this.getAttribute('input-readonly') !== 'false') {
-      this.#input.setAttribute('readonly', '');
+      this.#getInputElement().setAttribute('readonly', '');
     } else {
-      this.#input.removeAttribute('readonly');
+      this.#getInputElement().removeAttribute('readonly');
     }
   }
   #applyDisabled() {
-    if (!this.#input) return;
+    if (!this.#getInputElement()) return;
     if (this.hasAttribute('input-disabled') && this.getAttribute('input-disabled') !== 'false') {
-      this.#input.setAttribute('disabled', '');
-      this.#label.classList.add('disabled');
+      this.#getInputElement().setAttribute('disabled', '');
+      this.#getLabelElement().classList.add('disabled');
     } else {
-      this.#input.removeAttribute('disabled');
-      this.#label.classList.remove('disabled');
+      this.#getInputElement().removeAttribute('disabled');
+      this.#getLabelElement().classList.remove('disabled');
     }
   }
   #applyMaxWidth() {
-    if (!this.#input) return;
-    this.#input.classList.forEach(cls => {
+    if (!this.#getInputElement()) return;
+    this.#getInputElement().classList.forEach(cls => {
       if (cls.startsWith('input-width-') || cls.startsWith('input-char-')) {
-        this.#input.classList.remove(cls);
+        this.#getInputElement().classList.remove(cls);
       }
     });
     const value = this.getAttribute('maxwidth');
     if (!value) return;
     if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
-      this.#input.classList.add(`input-width-${value}`);
+      this.#getInputElement().classList.add(`input-width-${value}`);
     } else if (/^\d+$/.test(value)) {
-      this.#input.classList.add(`input-char-${value}`);
+      this.#getInputElement().classList.add(`input-char-${value}`);
     }
   }
-  #handleKeyUp() {
-    this.#getCharacterLimit().setCharactersUsed(this.#input.value.length);
-    this.#getCharacterLimit().updateVisibleMessage();
-    //lastKeyUpTimestamp = Date.now();
+
+  /* Private methods for character limitation */
+
+  #callUpdateVisibleMessage() {
+    this.#getCharacterLimit()?.setCharactersUsed(this.#getInputElement().value.length);
+    this.#getCharacterLimit()?.updateVisibleMessage();
   }
-  #setKeyUpListener() {
-    this.#input.addEventListener('keyup', () => {
-      this.#handleKeyUp();
-    });
+  #setCharacterLimitListeners() {
+    this.#getInputElement().addEventListener('keyup', this.#handleKeyUp);
+    this.#getInputElement().addEventListener('focus', this.#handleFocus);
+    this.#getInputElement().addEventListener('blur', this.#handleBlur);
+
+    /* If the browser supports the pageshow event, use it to update the character limit
+    message and sr-message once a page has loaded. Second best, use the DOMContentLoaded event. 
+    This ensures that if the user navigates to another page in the browser and goes back, the 
+    message and sr-message will show/tell the correct amount of characters left. */
+    if ('onpageshow' in window) {
+      window.addEventListener('pageshow', this.#handlePageshow);
+    } else {
+      document.addEventListener('DOMContentLoaded', this.#handlePageshow);
+    }
+  }
+  #intervalSetup() {
+    if (this.#intervalID !== null) {
+      window.clearInterval(this.#intervalID);
+      this.#intervalID = null;
+    }
+    this.#getCharacterLimit().silenceVisibleMessage();
+    this.#intervalID = window.setInterval(() => {
+      /* Don't update the Screen Reader message unless it's been awhile
+      since the last key up event. Otherwise, the user will be spammed
+      with audio notifications while typing. */
+      if (this.#getCharacterLimit()) {
+        if (!this.#lastKeyUpTimestamp || Date.now() - 500 >= this.#lastKeyUpTimestamp) {
+          if (this.#oldValue !== this.#getInputElement().value || !this.#getCharacterLimit().hasMatchingMessages()) {
+            this.#oldValue = this.#getInputElement().value;
+            this.#getCharacterLimit().updateMessages();
+          }
+        }
+      }
+    }, 1000);
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'prefix', 'suffix', 'maxwidth'];
+  static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'input-prefix', 'input-suffix', 'maxwidth'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -6362,14 +6407,39 @@ class FDSInputWrapper extends HTMLElement {
 
   constructor() {
     super();
+    this.#lastKeyUpTimestamp = null;
+    this.#oldValue = null;
+    this.#intervalID = null;
+    this.#handleKeyUp = () => {
+      this.#callUpdateVisibleMessage();
+      this.#lastKeyUpTimestamp = Date.now();
+    };
+    this.#handleFocus = () => {
+      this.#intervalSetup();
+    };
+    this.#handleBlur = () => {
+      window.clearInterval(this.#intervalID);
+      this.#intervalID = null;
+      if (this.#oldValue !== this.#getInputElement().value) {
+        this.#oldValue = this.#getInputElement().value;
+        this.#getCharacterLimit().updateVisibleMessage();
+      }
+      this.#getCharacterLimit().silenceSrMessage();
+    };
+    this.#handlePageshow = () => {
+      this.#callUpdateVisibleMessage();
+    };
     this.#handleHelpTextCallback = () => {
+      this.updateIdReferences();
+    };
+    this.#handleErrorMessageCallback = () => {
       this.updateIdReferences();
     };
     this.#handleCharacterLimitCallback = () => {
       this.updateIdReferences();
     };
     this.#handleCharacterLimitConnection = () => {
-      this.#setKeyUpListener();
+      this.#setCharacterLimitListeners();
     };
   }
 
@@ -6388,32 +6458,53 @@ class FDSInputWrapper extends HTMLElement {
       this.#getLabelElement().htmlFor = this.#getInputElement().id;
     }
 
-    // Set/remove aria-describedby on input
+    // IDs to be used in aria-describedby
     const idsForAriaDescribedby = [];
+
+    // Help text ID
     this.querySelectorAll('fds-help-text').forEach(helptext => {
       const text = helptext.querySelector(':scope > .help-text');
       if (text?.hasAttribute('id')) {
         idsForAriaDescribedby.push(text.id);
       }
     });
-    this.querySelectorAll('fds-character-limit').forEach(limit => {
-      const text = limit.querySelector(':scope > span[id]');
-      if (text?.hasAttribute('id')) {
-        idsForAriaDescribedby.push(text.id);
+
+    // Error message IDs
+    let hasError = false;
+    this.querySelectorAll('fds-error-message').forEach(errorText => {
+      const errSpan = errorText.querySelector(':scope > .form-error-message');
+      if (errSpan?.id) {
+        idsForAriaDescribedby.push(errSpan.id);
+        hasError = true;
       }
     });
+
+    // Character limit ID
+    if (this.#getCharacterLimit()) {
+      const spanId = this.#getCharacterLimit().querySelector(':scope > span[id]');
+      if (spanId?.hasAttribute('id')) {
+        idsForAriaDescribedby.push(spanId.id);
+      }
+    }
+
+    // Set/remove aria-describedby on input
     if (idsForAriaDescribedby.length > 0) {
       this.#getInputElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
     } else {
       this.#getInputElement().removeAttribute('aria-describedby');
     }
+
+    // Set aria-invalid if wrapper has error messages
+    if (hasError) {
+      this.#getInputElement().setAttribute('aria-invalid', 'true');
+    } else {
+      this.#getInputElement().removeAttribute('aria-invalid');
+    }
   }
   setClasses() {
-    this.#label = this.#getLabelElement();
-    this.#input = this.#getInputElement();
-    if (!this.#label || !this.#input) return;
-    this.#label.classList.add('form-label');
-    this.#input.classList.add('form-input');
+    if (!this.#getLabelElement() || !this.#getInputElement()) return;
+    this.#getLabelElement().classList.add('form-label');
+    this.#getInputElement().classList.add('form-input');
   }
 
   /* --------------------------------------------------
@@ -6429,6 +6520,7 @@ class FDSInputWrapper extends HTMLElement {
     this.#applyMaxWidth();
     this.updateIdReferences();
     this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
+    this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
     this.addEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
     this.addEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
   }
@@ -6439,7 +6531,14 @@ class FDSInputWrapper extends HTMLElement {
 
   disconnectedCallback() {
     this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
+    this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
     this.removeEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
+    this.removeEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
+    this.#getInputElement().removeEventListener('keyup', this.#handleKeyUp);
+    this.#getInputElement().removeEventListener('focus', this.#handleFocus);
+    this.#getInputElement().removeEventListener('blur', this.#handleBlur);
+    window.removeEventListener('pageshow', this.#handlePageshow);
+    document.removeEventListener('DOMContentLoaded', this.#handlePageshow);
   }
 
   /* --------------------------------------------------
@@ -6460,7 +6559,7 @@ class FDSInputWrapper extends HTMLElement {
     if (attribute === 'input-disabled') {
       this.#applyDisabled();
     }
-    if (attribute === 'prefix' || attribute === 'suffix') {
+    if (attribute === 'input-prefix' || attribute === 'input-suffix') {
       this.#setupPrefixSuffix();
     }
     if (attribute === 'maxwidth') {
@@ -6582,7 +6681,17 @@ function registerHelpText() {
   }
 }
 /* harmony default export */ const fds_help_text = (registerHelpText);
+;// ./src/js/custom-elements/character-limit/validateCharacterLimitHTML.js
+function validateCharacterLimitHTML(children) {
+  if (children.length !== 3) return false;
+  const [spanSrMaxLimit, spanSrUpdate, spanVisualUpdate] = children;
+  if (!spanSrMaxLimit.classList.contains('sr-only') || !spanSrMaxLimit.hasAttribute('id')) return false;
+  if (!spanSrUpdate.classList.contains('sr-only') || !spanSrUpdate.hasAttribute('aria-live')) return false;
+  if (!spanVisualUpdate.classList.contains('visual-message')) return false;
+  return true;
+}
 ;// ./src/js/custom-elements/character-limit/fds-character-limit.js
+
 
 
 
@@ -6603,21 +6712,27 @@ class FDSCharacterLimit extends HTMLElement {
   #render() {
     if (this.#rendered) return;
     this.#updateLimit(this.getAttribute('limit'));
-    this.innerHTML = '';
-    this.#spanSrMaxLimit = document.createElement('span');
-    this.#spanSrUpdate = document.createElement('span');
-    this.#spanVisualUpdate = document.createElement('span');
-    this.#spanSrMaxLimit.classList.add('sr-only');
-    this.#spanSrMaxLimit.setAttribute('id', generateAndVerifyUniqueId('lim'));
-    this.#spanSrUpdate.classList.add('sr-only');
-    this.#spanSrUpdate.setAttribute('aria-live', 'polite');
-    this.#spanVisualUpdate.setAttribute('aria-hidden', 'true');
-    this.#spanSrMaxLimit.textContent = this.#messages.max_limit.replace(/{value}/, this.#limit);
-    this.#spanSrUpdate.textContent = this.#getMessage(this.charactersLeft());
-    this.#spanVisualUpdate.textContent = this.#getMessage(this.charactersLeft());
-    this.appendChild(this.#spanSrMaxLimit);
-    this.appendChild(this.#spanSrUpdate);
-    this.appendChild(this.#spanVisualUpdate);
+    const characterLimitRendered = validateCharacterLimitHTML(this.children);
+    if (!characterLimitRendered) {
+      this.innerHTML = '';
+      this.#spanSrMaxLimit = document.createElement('span');
+      this.#spanSrMaxLimit.classList.add('sr-only');
+      this.#spanSrMaxLimit.setAttribute('id', generateAndVerifyUniqueId('lim'));
+      this.#spanSrMaxLimit.textContent = this.#messages.max_limit.replace(/{value}/, this.#limit);
+      this.#spanSrUpdate = document.createElement('span');
+      this.#spanSrUpdate.classList.add('sr-only');
+      this.#spanSrUpdate.setAttribute('aria-live', 'polite');
+      this.#spanVisualUpdate = document.createElement('span');
+      this.#spanVisualUpdate.classList.add('visual-message');
+      this.#spanVisualUpdate.textContent = this.#getMessage(this.charactersLeft());
+      this.appendChild(this.#spanSrMaxLimit);
+      this.appendChild(this.#spanSrUpdate);
+      this.appendChild(this.#spanVisualUpdate);
+    } else {
+      this.#spanSrMaxLimit = this.children[0];
+      this.#spanSrUpdate = this.children[1];
+      this.#spanVisualUpdate = this.children[2];
+    }
     this.#rendered = true;
   }
   #getMessage(charactersLeft) {
@@ -6642,13 +6757,13 @@ class FDSCharacterLimit extends HTMLElement {
       if (this.#spanSrMaxLimit) {
         this.#spanSrMaxLimit.textContent = this.#messages.max_limit.replace(/{value}/, this.#limit);
       }
-      this.silentUpdateMessages();
+      this.updateVisibleMessage();
     }
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['limit'];
+  static observedAttributes = ['limit', 'one-character-remaining-text', 'several-characters-remaining-text', 'one-character-too-many-text', 'several-characters-too-many-text', 'max-limit-text'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -6685,6 +6800,9 @@ class FDSCharacterLimit extends HTMLElement {
       this.#charactersUsed = parsed;
     }
   }
+  hasMatchingMessages() {
+    return this.#spanSrUpdate.textContent === this.#spanVisualUpdate.textContent;
+  }
   updateVisibleMessage() {
     if (!this.#spanVisualUpdate) return;
     const charsLeft = this.charactersLeft();
@@ -6699,15 +6817,16 @@ class FDSCharacterLimit extends HTMLElement {
     if (!this.#spanSrUpdate) return;
     this.#spanSrUpdate.textContent = this.#getMessage(this.charactersLeft());
   }
-  silentUpdateMessages() {
-    this.#spanSrUpdate?.removeAttribute('aria-live');
+  updateMessages() {
     this.updateVisibleMessage();
     this.updateScreenReaderMessage();
   }
-  updateMessages() {
-    this.#spanSrUpdate?.setAttribute('aria-live', 'polite');
-    this.updateVisibleMessage();
-    this.updateScreenReaderMessage();
+  silenceSrMessage() {
+    this.#spanSrUpdate.textContent = '';
+    this.#spanVisualUpdate.removeAttribute('aria-hidden');
+  }
+  silenceVisibleMessage() {
+    this.#spanVisualUpdate.setAttribute('aria-hidden', 'true');
   }
 
   /* --------------------------------------------------
@@ -6717,6 +6836,22 @@ class FDSCharacterLimit extends HTMLElement {
   connectedCallback() {
     if (this.#rendered) return;
     this.#render();
+    if (this.hasAttribute('one-character-remaining-text')) {
+      this.#messages.one_character_remaining = this.getAttribute('one-character-remaining-text');
+    }
+    if (this.hasAttribute('several-characters-remaining-text')) {
+      this.#messages.several_characters_remaining = this.getAttribute('several-characters-remaining-text');
+    }
+    if (this.hasAttribute('one-character-too-many-text')) {
+      this.#messages.one_character_too_many = this.getAttribute('one-character-too-many-text');
+    }
+    if (this.hasAttribute('several-characters-too-many-text')) {
+      this.#messages.several_characters_too_many = this.getAttribute('several-characters-too-many-text');
+    }
+    if (this.hasAttribute('max-limit-text')) {
+      this.#messages.max_limit = this.getAttribute('max-limit-text');
+    }
+    this.updateVisibleMessage();
 
     // During disconnect, the custom element may lose connection to the input-wrapper.
     // Save the input-wrapper and use it to dispatch events - otherwise, the events may be lost.
@@ -6744,6 +6879,27 @@ class FDSCharacterLimit extends HTMLElement {
     if (name === 'limit') {
       this.#updateLimit(newValue);
     }
+    if (name === 'one-character-remaining-text') {
+      console.log('one-character-remaining-text', newValue);
+      this.#messages.one_character_remaining = newValue;
+      this.updateMessages();
+    }
+    if (name === 'several-characters-remaining-text') {
+      this.#messages.several_characters_remaining = newValue;
+      this.updateMessages();
+    }
+    if (name === 'one-character-too-many-text') {
+      this.#messages.one_character_too_many = newValue;
+      this.updateMessages();
+    }
+    if (name === 'several-characters-too-many-text') {
+      this.#messages.several_characters_too_many = newValue;
+      this.updateMessages();
+    }
+    if (name === 'max-limit-text') {
+      this.#messages.max_limit = newValue;
+      this.updateMessages();
+    }
     this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
   }
 }
@@ -6753,6 +6909,136 @@ function registerCharacterLimit() {
   }
 }
 /* harmony default export */ const fds_character_limit = (registerCharacterLimit);
+;// ./src/js/custom-elements/error-message/fds-error-message.js
+
+
+
+class FDSErrorMessage extends HTMLElement {
+  /* Private instance fields */
+
+  #rendered;
+  #errorText;
+  #srOnlyText;
+  #parentWrapper;
+  #getErrorText() {
+    if (this.#errorText) return this.#errorText;
+    this.#errorText = this.querySelector(':scope > .form-error-message');
+    return this.#errorText;
+  }
+  #ensureSrOnlyPrefix() {
+    const span = this.#getErrorText();
+    if (!span) return;
+    const firstElement = span.firstElementChild;
+    if (!firstElement || !firstElement.classList.contains('sr-only')) {
+      const srText = this.getAttribute('sr-text');
+      if (srText !== null && srText !== '') {
+        this.#srOnlyText = srText;
+      }
+      const sr = document.createElement('span');
+      sr.className = 'sr-only';
+      sr.textContent = `${this.#srOnlyText}: `;
+      span.insertBefore(sr, span.firstChild);
+    }
+  }
+  #render() {
+    if (this.#rendered) return;
+    let span = this.#getErrorText();
+    if (!span) {
+      span = document.createElement('span');
+      span.className = 'form-error-message';
+
+      // Move existing child nodes into the span
+      while (this.firstChild) {
+        span.appendChild(this.firstChild);
+      }
+      this.appendChild(span);
+      this.#errorText = span;
+    }
+
+    // If explicit id attribute is set, use it
+    const attrValue = this.getAttribute('error-message-id');
+    if (attrValue !== null && attrValue !== '') {
+      span.id = attrValue;
+    }
+    this.#ensureSrOnlyPrefix();
+    this.#rendered = true;
+  }
+  #updateId(newValue) {
+    const span = this.#getErrorText();
+    if (!span) return;
+    if (newValue !== null && newValue !== '') {
+      span.id = newValue;
+    } else {
+      span.id = generateAndVerifyUniqueId('error');
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['error-message-id', 'sr-text'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+    this.#rendered = false;
+    this.#errorText = null;
+    this.#srOnlyText = 'Fejl';
+    this.#parentWrapper = null;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.#rendered) return;
+    this.#render();
+    const span = this.#getErrorText();
+    if (span && !span.id) {
+      span.id = generateAndVerifyUniqueId('error');
+    }
+
+    // Save reference to parent wrapper
+    this.#parentWrapper = this.closest('fds-input-wrapper');
+    this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
+    this.#errorText = null;
+    this.#parentWrapper = null;
+    this.#rendered = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (!this.#rendered) return;
+    if (name === 'error-message-id') {
+      this.#updateId(newValue);
+    }
+    if (name === 'sr-text') {
+      this.#srOnlyText = newValue;
+      this.querySelector(':scope > .form-error-message > .sr-only').textContent = this.#srOnlyText;
+    }
+    this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
+  }
+}
+function registerErrorMessage() {
+  if (customElements.get('fds-error-message') === undefined) {
+    window.customElements.define('fds-error-message', FDSErrorMessage);
+  }
+}
+/* harmony default export */ const fds_error_message = (registerErrorMessage);
 ;// ./src/js/custom-elements/checkbox/fds-checkbox.js
 
 
@@ -7053,6 +7339,7 @@ const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 
 
+
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
  * older browsers, so must be loaded first.
@@ -7242,7 +7529,7 @@ var init = function (options) {
 const registerCustomElements = () => {
   registerAccordion();
   fds_accordion_group();
-  fds_input_wrapper(), fds_help_text(), fds_character_limit();
+  fds_input_wrapper(), fds_help_text(), fds_character_limit(), fds_error_message();
   fds_checkbox();
   fds_checkbox_group();
 };

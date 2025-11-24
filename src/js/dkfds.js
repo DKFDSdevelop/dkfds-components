@@ -24,6 +24,7 @@ import registerAccordionGroup from './custom-elements/accordion/fds-accordion-gr
 import registerInputWrapper from './custom-elements/input/fds-input-wrapper';
 import registerHelpText from './custom-elements/help-text/fds-help-text';
 import registerCharacterLimit from './custom-elements/character-limit/fds-character-limit';
+import registerErrorMessage from './custom-elements/error-message/fds-error-message';
 import registerCheckbox from './custom-elements/checkbox/fds-checkbox';
 import registerCheckboxGroup from './custom-elements/checkbox/fds-checkbox-group';
 
@@ -221,9 +222,10 @@ const registerCustomElements = () => {
   registerAccordionGroup();
   registerInputWrapper(),
   registerHelpText(),
-  registerCharacterLimit()
+  registerCharacterLimit(),
+  registerErrorMessage()
   registerCheckbox();
   registerCheckboxGroup();
 };
 
-export { init, registerCustomElements, registerAccordion, renderAccordionHTML, validateAccordionHTML, registerAccordionGroup, registerInputWrapper, registerHelpText, registerCharacterLimit, registerCheckbox, registerCheckboxGroup, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
+export { init, registerCustomElements, registerAccordion, renderAccordionHTML, validateAccordionHTML, registerAccordionGroup, registerInputWrapper, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
