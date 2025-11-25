@@ -3207,6 +3207,8 @@ __webpack_require__.d(__webpack_exports__, {
   registerAccordion: () => (/* reexport */ registerAccordion),
   registerAccordionGroup: () => (/* reexport */ fds_accordion_group),
   registerCharacterLimit: () => (/* reexport */ fds_character_limit),
+  registerCheckbox: () => (/* reexport */ fds_checkbox),
+  registerCheckboxGroup: () => (/* reexport */ fds_checkbox_group),
   registerCustomElements: () => (/* binding */ registerCustomElements),
   registerErrorMessage: () => (/* reexport */ fds_error_message),
   registerHelpText: () => (/* reexport */ fds_help_text),
@@ -7037,6 +7039,273 @@ function registerErrorMessage() {
   }
 }
 /* harmony default export */ const fds_error_message = (registerErrorMessage);
+;// ./src/js/custom-elements/checkbox/fds-checkbox.js
+
+
+
+class FDSCheckbox extends HTMLElement {
+  /* Private instance fields */
+
+  #input;
+  #label;
+  // #helpText;
+
+  #handleHelpTextCallback;
+
+  /* Private methods */
+
+  #getInputElement() {
+    return this.querySelector('input[type="checkbox"]');
+  }
+  #getLabelElement() {
+    return this.querySelector('label');
+  }
+  #getHelpTextElements() {
+    return this.querySelectorAll('fds-help-text');
+  }
+  #ensureStructure() {
+    if (this.#input && this.#label) {
+      // Remove elements from their current position
+      this.#input.remove();
+      this.#label.remove();
+
+      // Add them back in the correct order
+      this.appendChild(this.#input);
+      this.appendChild(this.#label);
+
+      // Append help text elements if any
+      const helpTextElements = this.#getHelpTextElements();
+      if (helpTextElements.length > 0) {
+        helpTextElements.forEach(helpText => {
+          helpText.remove();
+          this.appendChild(helpText);
+        });
+      }
+    } else {
+      console.warn('<fds-checkbox> requires exactly one <input type="checkbox"> and one <label>.');
+    }
+  }
+  #addLabelIndicator(attributeName, defaultText) {
+    if (!(this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false')) return;
+    if (!this.#label) return;
+
+    // Remove an existing trailing indicator span if present
+    this.#label.querySelector(':scope > span.weight-normal')?.remove();
+    const attributeValue = this.getAttribute(attributeName);
+    const span = document.createElement('span');
+    span.className = 'weight-normal';
+    span.textContent = attributeValue && attributeValue !== 'true' && attributeValue !== '' ? ` (${attributeValue})` : ` (${defaultText})`;
+    this.#label.appendChild(span);
+    if (attributeName === 'checkbox-required') {
+      this.#input?.setAttribute('required', '');
+    }
+  }
+  #applyRequiredOrOptional() {
+    if (this.hasAttribute('checkbox-required')) this.#updateRequired();else if (this.hasAttribute('checkbox-optional')) this.#updateOptional();
+  }
+  #updateRequired() {
+    this.#addLabelIndicator('checkbox-required', '*skal udfyldes');
+  }
+  #updateOptional() {
+    this.#addLabelIndicator('checkbox-optional', 'frivilligt');
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = [];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+    this.#handleHelpTextCallback = () => {
+      this.updateIdReferences();
+    };
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  updateIdReferences() {
+    if (!this.#input || !this.#label) return;
+    if (!this.#input.id) {
+      this.#input.id = generateAndVerifyUniqueId('chk');
+    }
+    this.#label.htmlFor = this.#input.id;
+    const idsForAriaDescribedby = [];
+    const helpTexts = this.#getHelpTextElements();
+    helpTexts.forEach(helptext => {
+      const text = helptext.querySelector(':scope > .help-text');
+      if (text?.hasAttribute('id')) {
+        idsForAriaDescribedby.push(text.id);
+      }
+    });
+    if (idsForAriaDescribedby.length > 0) {
+      this.#input.setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
+    } else {
+      this.#input.removeAttribute('aria-describedby');
+    }
+  }
+  setClasses() {
+    if (!this.#label || !this.#input) return;
+    this.#label.classList.add('form-label');
+    this.#input.classList.add('form-checkbox');
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    // this.#wrapElements();
+
+    this.#input = this.#getInputElement();
+    this.#label = this.#getLabelElement();
+    // this.#helpText = this.#getHelpTextElements();
+
+    this.#ensureStructure();
+    this.#applyRequiredOrOptional();
+    this.setClasses();
+    this.updateIdReferences();
+    this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute) {}
+}
+function registerCheckbox() {
+  if (customElements.get('fds-checkbox') === undefined) {
+    window.customElements.define('fds-checkbox', FDSCheckbox);
+  }
+}
+/* harmony default export */ const fds_checkbox = (registerCheckbox);
+;// ./src/js/custom-elements/checkbox/fds-checkbox-group.js
+
+
+class FDSCheckboxGroup extends HTMLElement {
+  /* Private instance fields */
+
+  #fieldset;
+  #legend;
+
+  /* Private methods */
+
+  #findOrCreateLegend() {
+    let legend = this.#fieldset.querySelector('legend') || this.querySelector(':scope > legend');
+    if (legend && legend.parentNode !== this.#fieldset) {
+      legend.remove();
+      this.#fieldset.prepend(legend);
+    } else if (!legend) {
+      legend = document.createElement('legend');
+      this.#fieldset.prepend(legend);
+    }
+    legend.classList.add('form-label');
+    return legend;
+  }
+  #collectGroupHelpTexts() {
+    const direct = Array.from(this.querySelectorAll(':scope > fds-help-text'));
+    // Help-texts inside a manually written <fieldset>
+    const orphaned = Array.from(this.querySelectorAll(':scope > fieldset > fds-help-text'));
+    return [...direct, ...orphaned];
+  }
+  #collectErrorMessages() {
+    const directErrors = Array.from(this.querySelectorAll(':scope > fds-error-message'));
+    const orphanedErrors = Array.from(this.querySelectorAll(':scope > fieldset > fds-error-message'));
+    return [...directErrors, ...orphanedErrors];
+  }
+  #ensureFieldset() {
+    this.#fieldset = this.querySelector('fieldset') || (() => {
+      const fieldset = document.createElement('fieldset');
+      this.prepend(fieldset);
+      return fieldset;
+    })();
+    this.#legend = this.#findOrCreateLegend();
+  }
+  #normalizeHelpTexts(helpTexts) {
+    helpTexts.forEach(ht => {
+      ht.remove();
+      this.#fieldset.insertBefore(ht, this.#legend.nextSibling);
+    });
+  }
+  #moveChildrenIntoFieldset() {
+    const toMove = Array.from(this.children).filter(el => el !== this.#fieldset);
+    toMove.forEach(el => this.#fieldset.appendChild(el));
+  }
+  #applyGroupLabel() {
+    if (this.#legend) {
+      const label = this.getAttribute('group-label');
+      if (label != null) this.#legend.textContent = label;
+    }
+  }
+  #applyAriaDescribedBy(describers) {
+    if (!describers.length) {
+      this.#fieldset.removeAttribute('aria-describedby');
+      return;
+    }
+    const ids = describers.map(el => el.querySelector('[id]')?.id).filter(Boolean);
+    if (ids.length) {
+      this.#fieldset.setAttribute('aria-describedby', ids.join(' '));
+    } else {
+      this.#fieldset.removeAttribute('aria-describedby');
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['group-label'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    const helpTexts = this.#collectGroupHelpTexts();
+    const errors = this.#collectErrorMessages();
+    this.#ensureFieldset();
+    this.#normalizeHelpTexts(helpTexts);
+    this.#applyGroupLabel();
+    this.#moveChildrenIntoFieldset();
+    this.#applyAriaDescribedBy([...helpTexts, ...errors]);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === 'group-label') {
+      this.#applyGroupLabel();
+    }
+  }
+}
+function registerCheckboxGroup() {
+  if (!customElements.get('fds-checkbox-group')) {
+    customElements.define('fds-checkbox-group', FDSCheckboxGroup);
+  }
+}
+/* harmony default export */ const fds_checkbox_group = (registerCheckboxGroup);
 ;// ./src/js/dkfds.js
 
 
@@ -7060,6 +7329,8 @@ function registerErrorMessage() {
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 // Custom elements
+
+
 
 
 
@@ -7257,6 +7528,8 @@ const registerCustomElements = () => {
   registerAccordion();
   fds_accordion_group();
   fds_input_wrapper(), fds_help_text(), fds_character_limit(), fds_error_message();
+  fds_checkbox();
+  fds_checkbox_group();
 };
 
 })();
