@@ -2,7 +2,8 @@
 @use "../functions" as func;
 @use "../mixins" as mixins;
 
-.form-error-message {
+fds-error-message,
+.fds-error-message {
     @include mixins.form-label-text;
     display: block;
     color: func.color('error');

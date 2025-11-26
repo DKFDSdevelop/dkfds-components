@@ -298,9 +298,8 @@ class FDSInputWrapper extends HTMLElement {
         // Error message IDs
         let hasError = false;
         this.querySelectorAll('fds-error-message').forEach(errorText => {
-            const errSpan = errorText.querySelector(':scope > .form-error-message');
-            if (errSpan?.id) {
-                idsForAriaDescribedby.push(errSpan.id);
+            if (errorText?.id) {
+                idsForAriaDescribedby.push(errorText.id);
                 hasError = true;
             }
         });
