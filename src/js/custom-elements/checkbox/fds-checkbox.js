@@ -8,9 +8,9 @@ class FDSCheckbox extends HTMLElement {
 
     #input;
     #label;
-    // #helpText;
 
     #handleHelpTextCallback;
+    #onInputChange;
 
     /* Private methods */
 
@@ -19,7 +19,11 @@ class FDSCheckbox extends HTMLElement {
     }
 
     #getLabelElement() {
-        return this.querySelector('label');
+        // Only get direct child labels, not labels inside collapsible content
+        const directChildLabels = Array.from(this.children).filter(child =>
+            child.tagName.toLowerCase() === 'label'
+        );
+        return directChildLabels[0] || null;
     }
 
     #getHelpTextElements() {
@@ -27,28 +31,26 @@ class FDSCheckbox extends HTMLElement {
     }
 
     #ensureStructure() {
-        if (this.#input && this.#label) {
-            // Remove elements from their current position
-            this.#input.remove();
-            this.#label.remove();
-
-
-            // Add them back in the correct order
-            this.appendChild(this.#input);
-            this.appendChild(this.#label);
-
-            // Append help text elements if any
-            const helpTextElements = this.#getHelpTextElements();
-            if (helpTextElements.length > 0) {
-                helpTextElements.forEach(helpText => {
-                    helpText.remove();
-                    this.appendChild(helpText);
-                });
-            }
-        } else {
-            console.warn('<fds-checkbox> requires exactly one <input type="checkbox"> and one <label>.');
+    if (this.#input && this.#label) {
+        // Get all current children and their order
+        const children = Array.from(this.children);
+        const inputIndex = children.indexOf(this.#input);
+        const labelIndex = children.indexOf(this.#label);
+        
+        // Move input to come before label
+        if (inputIndex > labelIndex) {
+            this.insertBefore(this.#input, this.#label);
         }
+        
+        // Handle help text elements - move them to the end if they're not already there
+        const helpTextElements = this.#getHelpTextElements();
+        helpTextElements.forEach(helpText => {
+            this.appendChild(helpText);
+        });
+    } else {
+        console.warn('<fds-checkbox> requires exactly one <input type="checkbox"> and one <label>.');
     }
+}
 
     #addLabelIndicator(attributeName, defaultText) {
         if (!(this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false')) return;
@@ -135,6 +137,36 @@ class FDSCheckbox extends HTMLElement {
         this.#input.classList.add('form-checkbox');
     }
 
+    #handleCollapsibleCheckboxes() {
+    const input = this.querySelector(':scope > input[type="checkbox"]');
+    if (!input) return;
+
+    const possibleContent = this.querySelector('div');
+    if (!possibleContent) return;
+
+    // Ensure the div has the expected classes
+    possibleContent.classList.add('checkbox-content', 'collapsed');
+
+    // Ensure the content has an ID
+    const collapseId = `${input.id}-collapse`;
+    if (!possibleContent.id) {
+        possibleContent.id = collapseId;
+    }
+
+    possibleContent.setAttribute('aria-hidden', 'true');
+    input.setAttribute('data-aria-controls', possibleContent.id);
+    input.setAttribute('data-aria-expanded', 'false');
+
+    this.#onInputChange = () => {
+        const expanded = input.checked;
+        input.setAttribute('data-aria-expanded', String(expanded));
+        possibleContent.setAttribute('aria-hidden', String(!expanded));
+        possibleContent.classList.toggle('collapsed', !expanded);
+    };
+
+    input.addEventListener('change', this.#onInputChange);
+}
+
     /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
     -------------------------------------------------- */
@@ -150,6 +182,7 @@ class FDSCheckbox extends HTMLElement {
         this.#applyRequiredOrOptional();
         this.setClasses();
         this.updateIdReferences();
+        this.#handleCollapsibleCheckboxes()
 
         this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
     }
@@ -160,6 +193,10 @@ class FDSCheckbox extends HTMLElement {
 
     disconnectedCallback() {
         this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
+
+        if (this.#input) {
+            this.#input.removeEventListener('change', this.#onInputChange);
+        }
     }
 
     /* --------------------------------------------------

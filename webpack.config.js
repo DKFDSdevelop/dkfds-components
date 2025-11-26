@@ -112,6 +112,11 @@ const copyFilesAndCreateJavaScript = {
     name: 'copyFilesAndCreateJavaScript',
     mode: 'production',
     module: JS_BABEL,
+    /* Increased from the default 250000 for the non-minified stylesheets */
+    performance: {
+        maxAssetSize: 300000,
+        maxEntrypointSize: 300000
+    },
     optimization: {
         minimize: false
     },
