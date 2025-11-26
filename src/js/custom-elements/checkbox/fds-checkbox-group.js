@@ -39,29 +39,35 @@ class FDSCheckboxGroup extends HTMLElement {
         return [...directErrors, ...orphanedErrors];
     }
 
-    #ensureFieldset() {
-        this.#fieldset = this.querySelector('fieldset') || (() => {
-            const fieldset = document.createElement('fieldset');
-            this.prepend(fieldset);
-            return fieldset;
-        })();
-        
-        this.#legend = this.#findOrCreateLegend();
-    }
-
-    #normalizeHelpTexts(helpTexts) {
-        helpTexts.forEach(ht => {
-            ht.remove();
-            this.#fieldset.insertBefore(ht, this.#legend.nextSibling);
-        });
-    }
-
-    #moveChildrenIntoFieldset() {
-        const toMove = Array.from(this.children)
-            .filter(el => el !== this.#fieldset);
-
-        toMove.forEach(el => this.#fieldset.appendChild(el));
-    }
+    #ensureStructure() {
+    this.#fieldset = this.querySelector('fieldset') || (() => {
+        const fieldset = document.createElement('fieldset');
+        this.prepend(fieldset);
+        return fieldset;
+    })();
+    
+    this.#legend = this.#findOrCreateLegend();
+    
+    const helpTexts = this.#collectGroupHelpTexts();
+    const errors = this.#collectErrorMessages();
+    
+    [...helpTexts, ...errors].forEach(el => el.remove());
+    
+    let insertionPoint = this.#legend.nextSibling;
+    helpTexts.forEach(ht => {
+        this.#fieldset.insertBefore(ht, insertionPoint);
+    });
+    
+    errors.forEach(error => {
+        this.#fieldset.insertBefore(error, insertionPoint);
+    });
+    
+    // Move remaining children
+    const toMove = Array.from(this.children).filter(el => el !== this.#fieldset);
+    toMove.forEach(el => this.#fieldset.appendChild(el));
+    
+    return { helpTexts, errors };
+}
 
     #applyGroupLabel() {
         if (this.#legend) {
@@ -104,13 +110,8 @@ class FDSCheckboxGroup extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
-        const helpTexts = this.#collectGroupHelpTexts();
-        const errors = this.#collectErrorMessages();
-
-        this.#ensureFieldset();
-        this.#normalizeHelpTexts(helpTexts);
+        const { helpTexts, errors } = this.#ensureStructure();
         this.#applyGroupLabel();
-        this.#moveChildrenIntoFieldset();
         this.#applyAriaDescribedBy([...helpTexts, ...errors]);
     }
 

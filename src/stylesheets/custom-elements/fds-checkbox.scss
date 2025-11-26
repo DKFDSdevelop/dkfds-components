@@ -122,10 +122,6 @@ fds-checkbox:has(.checkbox-content) {
       top: $-content-wrapper-top-offset;
     }
   }
-  
-  &:first-of-type {
-    margin-top: 0;
-  }
 }
 
 // Special styling when radio/checkboxes are used to select table rows

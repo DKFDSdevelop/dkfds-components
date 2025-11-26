@@ -45,7 +45,7 @@ class FDSCheckbox extends HTMLElement {
         // Handle help text elements - move them to the end if they're not already there
         const helpTextElements = this.#getHelpTextElements();
         helpTextElements.forEach(helpText => {
-            this.appendChild(helpText);
+            this.insertBefore(helpText, this.#label.nextSibling);
         });
     } else {
         console.warn('<fds-checkbox> requires exactly one <input type="checkbox"> and one <label>.');
@@ -148,7 +148,7 @@ class FDSCheckbox extends HTMLElement {
     possibleContent.classList.add('checkbox-content', 'collapsed');
 
     // Ensure the content has an ID
-    const collapseId = `${input.id}-collapse`;
+    const collapseId = generateAndVerifyUniqueId('exp');
     if (!possibleContent.id) {
         possibleContent.id = collapseId;
     }
@@ -172,11 +172,8 @@ class FDSCheckbox extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
-        // this.#wrapElements();
-
         this.#input = this.#getInputElement();
         this.#label = this.#getLabelElement();
-        // this.#helpText = this.#getHelpTextElements();
 
         this.#ensureStructure();
         this.#applyRequiredOrOptional();
