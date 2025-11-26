@@ -149,7 +149,8 @@ fds-input-wrapper,
         }
     }
 
-    &:has(.form-error-message) {
+    &:has(fds-error-message),
+    &:has(.fds-error-message) {
         border-left: vars.$form-group-error-border-width solid func.color(vars.$form-group-error-border-color);
 
         padding-left: calc(#{func.units(4)} - 4px);
