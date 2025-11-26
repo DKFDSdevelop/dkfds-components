@@ -12872,9 +12872,6 @@ fds-checkbox{
   margin-top:8px;
   position:relative;
 }
-fds-checkbox:first-of-type{
-  margin-top:0;
-}
 
 fds-checkbox fds-help-text{
   padding-left:32px;
@@ -12912,9 +12909,6 @@ fds-checkbox fds-help-text{
   height:24px;
   width:24px;
   margin-top:calc(1.2rem - 12px + 4px);
-}
-
-.form-checkbox + label::before{
   border-radius:4px;
 }
 
@@ -12946,6 +12940,32 @@ fds-checkbox fds-help-text{
 .form-checkbox + label + .form-hint{
   padding-left:32px;
   margin-top:-4px;
+}
+
+fds-checkbox .checkbox-content{
+  margin-left:14px;
+  padding-left:18px;
+  padding-top:16px;
+  margin-top:4px;
+  margin-bottom:12px;
+  padding-bottom:28px;
+}
+fds-checkbox .checkbox-content[aria-hidden=true]{
+  display:none;
+}
+
+fds-checkbox:has(.checkbox-content){
+  margin-top:8px;
+  position:relative;
+}
+fds-checkbox:has(.checkbox-content):has(.checkbox-content[aria-hidden=false])::before{
+  content:"";
+  position:absolute;
+  display:block;
+  border-left:4px solid #BFBFBF;
+  height:calc(100% - (1.2rem - 12px + 4px + 24px + 4px + 4px));
+  left:10px;
+  top:calc(1.2rem - 12px + 4px + 24px + 4px + 4px);
 }
 
 .table--selectable th:first-child fds-checkbox,
@@ -12990,7 +13010,7 @@ fds-checkbox-group:first-child{
 fds-checkbox-group > ::slotted(*) + ::slotted(fds-checkbox){
   margin-top:8px;
 }
-fds-checkbox-group:has(fds-error-message){
+fds-checkbox-group:has(> fds-error-message){
   border-left:4px solid #CC0000;
   padding-left:calc(16px - 4px);
 }
