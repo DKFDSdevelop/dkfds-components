@@ -7052,7 +7052,7 @@ class FDSCheckbox extends HTMLElement {
         this.insertBefore(helpText, this.#label.nextSibling);
       });
     } else {
-      console.warn('<fds-checkbox> requires exactly one <input type="checkbox"> and one <label>.');
+      throw new Error('<fds-checkbox> requires exactly one <input type="checkbox"> and one <label>.');
     }
   }
   #addLabelIndicator(attributeName, defaultText) {

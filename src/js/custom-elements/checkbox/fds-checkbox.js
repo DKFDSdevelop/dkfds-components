@@ -31,26 +31,26 @@ class FDSCheckbox extends HTMLElement {
     }
 
     #ensureStructure() {
-    if (this.#input && this.#label) {
-        // Get all current children and their order
-        const children = Array.from(this.children);
-        const inputIndex = children.indexOf(this.#input);
-        const labelIndex = children.indexOf(this.#label);
-        
-        // Move input to come before label
-        if (inputIndex > labelIndex) {
-            this.insertBefore(this.#input, this.#label);
+        if (this.#input && this.#label) {
+            // Get all current children and their order
+            const children = Array.from(this.children);
+            const inputIndex = children.indexOf(this.#input);
+            const labelIndex = children.indexOf(this.#label);
+
+            // Move input to come before label
+            if (inputIndex > labelIndex) {
+                this.insertBefore(this.#input, this.#label);
+            }
+
+            // Handle help text elements - move them to the end if they're not already there
+            const helpTextElements = this.#getHelpTextElements();
+            helpTextElements.forEach(helpText => {
+                this.insertBefore(helpText, this.#label.nextSibling);
+            });
+        } else {
+            throw new Error('<fds-checkbox> requires exactly one <input type="checkbox"> and one <label>.');
         }
-        
-        // Handle help text elements - move them to the end if they're not already there
-        const helpTextElements = this.#getHelpTextElements();
-        helpTextElements.forEach(helpText => {
-            this.insertBefore(helpText, this.#label.nextSibling);
-        });
-    } else {
-        console.warn('<fds-checkbox> requires exactly one <input type="checkbox"> and one <label>.');
     }
-}
 
     #addLabelIndicator(attributeName, defaultText) {
         if (!(this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false')) return;
@@ -76,7 +76,7 @@ class FDSCheckbox extends HTMLElement {
     }
 
     #updateRequired() {
-         if (this.hasAttribute('checkbox-required') && this.getAttribute('checkbox-required') !== 'false') {
+        if (this.hasAttribute('checkbox-required') && this.getAttribute('checkbox-required') !== 'false') {
             this.#addLabelIndicator('checkbox-required', '*skal udfyldes');
             this.#input?.setAttribute('required', '');
         } else {
@@ -148,34 +148,34 @@ class FDSCheckbox extends HTMLElement {
     }
 
     #handleCollapsibleCheckboxes() {
-    const input = this.querySelector(':scope > input[type="checkbox"]');
-    if (!input) return;
+        const input = this.querySelector(':scope > input[type="checkbox"]');
+        if (!input) return;
 
-    const possibleContent = this.querySelector('div');
-    if (!possibleContent) return;
+        const possibleContent = this.querySelector('div');
+        if (!possibleContent) return;
 
-    // Ensure the div has the expected classes
-    possibleContent.classList.add('checkbox-content', 'collapsed');
+        // Ensure the div has the expected classes
+        possibleContent.classList.add('checkbox-content', 'collapsed');
 
-    // Ensure the content has an ID
-    const collapseId = generateAndVerifyUniqueId('exp');
-    if (!possibleContent.id) {
-        possibleContent.id = collapseId;
+        // Ensure the content has an ID
+        const collapseId = generateAndVerifyUniqueId('exp');
+        if (!possibleContent.id) {
+            possibleContent.id = collapseId;
+        }
+
+        possibleContent.setAttribute('aria-hidden', 'true');
+        input.setAttribute('data-aria-controls', possibleContent.id);
+        input.setAttribute('data-aria-expanded', 'false');
+
+        this.#onInputChange = () => {
+            const expanded = input.checked;
+            input.setAttribute('data-aria-expanded', String(expanded));
+            possibleContent.setAttribute('aria-hidden', String(!expanded));
+            possibleContent.classList.toggle('collapsed', !expanded);
+        };
+
+        input.addEventListener('change', this.#onInputChange);
     }
-
-    possibleContent.setAttribute('aria-hidden', 'true');
-    input.setAttribute('data-aria-controls', possibleContent.id);
-    input.setAttribute('data-aria-expanded', 'false');
-
-    this.#onInputChange = () => {
-        const expanded = input.checked;
-        input.setAttribute('data-aria-expanded', String(expanded));
-        possibleContent.setAttribute('aria-hidden', String(!expanded));
-        possibleContent.classList.toggle('collapsed', !expanded);
-    };
-
-    input.addEventListener('change', this.#onInputChange);
-}
 
     /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
