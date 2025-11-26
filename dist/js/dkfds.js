@@ -6308,18 +6308,28 @@ class FDSInputWrapper extends HTMLElement {
     span.className = 'weight-normal';
     span.textContent = attributeValue && attributeValue !== 'true' && attributeValue !== '' ? ` (${attributeValue})` : ` (${defaultText})`;
     this.#getLabelElement().appendChild(span);
-    if (attributeName === 'input-required') {
-      this.#getInputElement()?.setAttribute('required', '');
-    }
   }
   #applyRequiredOrOptional() {
     if (this.hasAttribute('input-required')) this.#updateRequired();else if (this.hasAttribute('input-optional')) this.#updateOptional();
   }
   #updateRequired() {
-    this.#addLabelIndicator('input-required', '*skal udfyldes');
+    if (this.hasAttribute('input-required') && this.getAttribute('input-required') !== 'false') {
+      this.#addLabelIndicator('input-required', '*skal udfyldes');
+      this.#getInputElement()?.setAttribute('required', '');
+    } else {
+      this.#removeLabelIndicator();
+      this.#getInputElement()?.removeAttribute('required');
+    }
   }
   #updateOptional() {
-    this.#addLabelIndicator('input-optional', 'frivilligt');
+    if (this.hasAttribute('input-optional') && this.getAttribute('input-optional') !== 'false') {
+      this.#addLabelIndicator('input-optional', 'frivilligt');
+    } else {
+      this.#removeLabelIndicator();
+    }
+  }
+  #removeLabelIndicator() {
+    this.#getLabelElement()?.querySelector(':scope > span.weight-normal')?.remove();
   }
   #applyReadonly() {
     if (!this.#getInputElement()) return;
@@ -7056,23 +7066,33 @@ class FDSCheckbox extends HTMLElement {
     span.className = 'weight-normal';
     span.textContent = attributeValue && attributeValue !== 'true' && attributeValue !== '' ? ` (${attributeValue})` : ` (${defaultText})`;
     this.#label.appendChild(span);
-    if (attributeName === 'checkbox-required') {
-      this.#input?.setAttribute('required', '');
-    }
   }
   #applyRequiredOrOptional() {
     if (this.hasAttribute('checkbox-required')) this.#updateRequired();else if (this.hasAttribute('checkbox-optional')) this.#updateOptional();
   }
   #updateRequired() {
-    this.#addLabelIndicator('checkbox-required', '*skal udfyldes');
+    if (this.hasAttribute('checkbox-required') && this.getAttribute('checkbox-required') !== 'false') {
+      this.#addLabelIndicator('checkbox-required', '*skal udfyldes');
+      this.#input?.setAttribute('required', '');
+    } else {
+      this.#removeLabelIndicator();
+      this.#input?.removeAttribute('required');
+    }
   }
   #updateOptional() {
-    this.#addLabelIndicator('checkbox-optional', 'frivilligt');
+    if (this.hasAttribute('checkbox-optional') && this.getAttribute('checkbox-optional') !== 'false') {
+      this.#addLabelIndicator('checkbox-optional', 'frivilligt');
+    } else {
+      this.#removeLabelIndicator();
+    }
+  }
+  #removeLabelIndicator() {
+    this.#label?.querySelector(':scope > span.weight-normal')?.remove();
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = [];
+  static observedAttributes = ['checkbox-required', 'checkbox-optional'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -7170,7 +7190,15 @@ class FDSCheckbox extends HTMLElement {
   CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
   -------------------------------------------------- */
 
-  attributeChangedCallback(attribute) {}
+  attributeChangedCallback(attribute) {
+    if (!this.isConnected) return;
+    if (attribute === 'checkbox-required') {
+      this.#updateRequired();
+    }
+    if (attribute === 'checkbox-optional') {
+      this.#updateOptional();
+    }
+  }
 }
 function registerCheckbox() {
   if (customElements.get('fds-checkbox') === undefined) {

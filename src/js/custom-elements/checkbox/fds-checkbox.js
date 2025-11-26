@@ -68,10 +68,6 @@ class FDSCheckbox extends HTMLElement {
             : ` (${defaultText})`;
 
         this.#label.appendChild(span);
-
-        if (attributeName === 'checkbox-required') {
-            this.#input?.setAttribute('required', '');
-        }
     }
 
     #applyRequiredOrOptional() {
@@ -80,16 +76,30 @@ class FDSCheckbox extends HTMLElement {
     }
 
     #updateRequired() {
-        this.#addLabelIndicator('checkbox-required', '*skal udfyldes');
+         if (this.hasAttribute('checkbox-required') && this.getAttribute('checkbox-required') !== 'false') {
+            this.#addLabelIndicator('checkbox-required', '*skal udfyldes');
+            this.#input?.setAttribute('required', '');
+        } else {
+            this.#removeLabelIndicator();
+            this.#input?.removeAttribute('required');
+        }
     }
 
     #updateOptional() {
-        this.#addLabelIndicator('checkbox-optional', 'frivilligt');
+        if (this.hasAttribute('checkbox-optional') && this.getAttribute('checkbox-optional') !== 'false') {
+            this.#addLabelIndicator('checkbox-optional', 'frivilligt');
+        } else {
+            this.#removeLabelIndicator();
+        }
+    }
+
+    #removeLabelIndicator() {
+        this.#label?.querySelector(':scope > span.weight-normal')?.remove();
     }
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = [];
+    static observedAttributes = ['checkbox-required', 'checkbox-optional'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -201,7 +211,15 @@ class FDSCheckbox extends HTMLElement {
     -------------------------------------------------- */
 
     attributeChangedCallback(attribute) {
-    
+        if (!this.isConnected) return;
+
+        if (attribute === 'checkbox-required') {
+            this.#updateRequired();
+        }
+
+        if (attribute === 'checkbox-optional') {
+            this.#updateOptional();
+        }
     }
 }
 

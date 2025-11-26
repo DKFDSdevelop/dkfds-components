@@ -123,10 +123,6 @@ class FDSInputWrapper extends HTMLElement {
             : ` (${defaultText})`;
 
         this.#getLabelElement().appendChild(span);
-
-        if (attributeName === 'input-required') {
-            this.#getInputElement()?.setAttribute('required', '');
-        }
     }
 
     #applyRequiredOrOptional() {
@@ -135,11 +131,25 @@ class FDSInputWrapper extends HTMLElement {
     }
 
     #updateRequired() {
-        this.#addLabelIndicator('input-required', '*skal udfyldes');
+        if (this.hasAttribute('input-required') && this.getAttribute('input-required') !== 'false') {
+            this.#addLabelIndicator('input-required', '*skal udfyldes');
+            this.#getInputElement()?.setAttribute('required', '');
+        } else {
+            this.#removeLabelIndicator();
+            this.#getInputElement()?.removeAttribute('required');
+        }
     }
 
     #updateOptional() {
-        this.#addLabelIndicator('input-optional', 'frivilligt');
+        if (this.hasAttribute('input-optional') && this.getAttribute('input-optional') !== 'false') {
+            this.#addLabelIndicator('input-optional', 'frivilligt');
+        } else {
+            this.#removeLabelIndicator();
+        }
+    }
+
+    #removeLabelIndicator() {
+        this.#getLabelElement()?.querySelector(':scope > span.weight-normal')?.remove();
     }
 
     #applyReadonly() {
