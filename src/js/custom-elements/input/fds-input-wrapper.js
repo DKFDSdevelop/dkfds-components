@@ -11,6 +11,9 @@ class FDSInputWrapper extends HTMLElement {
     #wrapper;
     #limit;
 
+    #readonlyApplied;
+    #disabledApplied;
+
     #handleHelpTextCallback;
     #handleErrorMessageCallback;
     #handleCharacterLimitCallback;
@@ -152,23 +155,31 @@ class FDSInputWrapper extends HTMLElement {
         this.#getLabelElement()?.querySelector(':scope > span.weight-normal')?.remove();
     }
 
-    #applyReadonly() {
+    #updateReadonly() {
         if (!this.#getInputElement()) return;
 
         if (this.hasAttribute('input-readonly') && this.getAttribute('input-readonly') !== 'false') {
+            this.#readonlyApplied = true;
             this.#getInputElement().setAttribute('readonly', '');
-        } else {
+        }
+        /* Only remove readonly if it at some point was updated as a custom element attribute. Otherwise, 
+        readonly will always be removed even if another source added the attribute to the input field. */
+        else if (this.#readonlyApplied) {
             this.#getInputElement().removeAttribute('readonly');
         }
     }
 
-    #applyDisabled() {
+    #updateDisabled() {
         if (!this.#getInputElement()) return;
 
         if (this.hasAttribute('input-disabled') && this.getAttribute('input-disabled') !== 'false') {
+            this.#disabledApplied = true;
             this.#getInputElement().setAttribute('disabled', '');
             this.#getLabelElement().classList.add('disabled');
-        } else {
+        }
+        /* Only remove disabled if it at some point was updated as a custom element attribute. Otherwise, 
+        disabled will always be removed even if another source updated the elements. */
+        else if (this.#disabledApplied) {
             this.#getInputElement().removeAttribute('disabled');
             this.#getLabelElement().classList.remove('disabled');
         }
@@ -183,7 +194,7 @@ class FDSInputWrapper extends HTMLElement {
             }
         });
 
-        const value = this.getAttribute('maxwidth');
+        const value = this.getAttribute('input-maxwidth');
         if (!value) return;
 
         if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
@@ -242,7 +253,7 @@ class FDSInputWrapper extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'input-prefix', 'input-suffix', 'maxwidth'];
+    static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'input-prefix', 'input-suffix', 'input-maxwidth'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -250,6 +261,9 @@ class FDSInputWrapper extends HTMLElement {
 
     constructor() {
         super();
+        this.#readonlyApplied = false;
+        this.#disabledApplied = false;
+
         this.#lastKeyUpTimestamp = null;
         this.#oldValue = null;
         this.#intervalID = null;
@@ -353,8 +367,8 @@ class FDSInputWrapper extends HTMLElement {
         this.setClasses();
         this.#setupPrefixSuffix();
         this.#applyRequiredOrOptional();
-        this.#applyReadonly();
-        this.#applyDisabled();
+        this.#updateReadonly();
+        this.#updateDisabled();
         this.#applyMaxWidth();
         this.updateIdReferences();
 
@@ -397,18 +411,18 @@ class FDSInputWrapper extends HTMLElement {
         }
 
         if (attribute === 'input-readonly') {
-            this.#applyReadonly();
+            this.#updateReadonly();
         }
 
         if (attribute === 'input-disabled') {
-            this.#applyDisabled();
+            this.#updateDisabled();
         }
 
         if (attribute === 'input-prefix' || attribute === 'input-suffix') {
             this.#setupPrefixSuffix();
         }
 
-        if (attribute === 'maxwidth') {
+        if (attribute === 'input-maxwidth') {
             this.#applyMaxWidth();
         }
     }
