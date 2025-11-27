@@ -7044,7 +7044,7 @@ class FDSCheckbox extends HTMLElement {
   #getHelpTextElements() {
     return this.querySelectorAll('fds-help-text');
   }
-  #ensureStructure() {
+  #setStructure() {
     if (this.#input && this.#label) {
       // Get all current children and their order
       const children = Array.from(this.children);
@@ -7065,7 +7065,7 @@ class FDSCheckbox extends HTMLElement {
       throw new Error('<fds-checkbox> requires exactly one <input type="checkbox"> and one <label>.');
     }
   }
-  #addLabelIndicator(attributeName, defaultText) {
+  #setLabelIndicator(attributeName, defaultText) {
     if (!(this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false')) return;
     if (!this.#label) return;
 
@@ -7077,21 +7077,21 @@ class FDSCheckbox extends HTMLElement {
     span.textContent = attributeValue && attributeValue !== 'true' && attributeValue !== '' ? ` (${attributeValue})` : ` (${defaultText})`;
     this.#label.appendChild(span);
   }
-  #applyRequiredOrOptional() {
-    if (this.hasAttribute('checkbox-required')) this.#updateRequired();else if (this.hasAttribute('checkbox-optional')) this.#updateOptional();
+  #setRequiredOrOptional() {
+    if (this.hasAttribute('checkbox-required')) this.#handleRequired();else if (this.hasAttribute('checkbox-optional')) this.#handleOptional();
   }
-  #updateRequired() {
+  #handleRequired() {
     if (this.hasAttribute('checkbox-required') && this.getAttribute('checkbox-required') !== 'false') {
-      this.#addLabelIndicator('checkbox-required', '*skal udfyldes');
+      this.#setLabelIndicator('checkbox-required', '*skal udfyldes');
       this.#input?.setAttribute('required', '');
     } else {
       this.#removeLabelIndicator();
       this.#input?.removeAttribute('required');
     }
   }
-  #updateOptional() {
+  #handleOptional() {
     if (this.hasAttribute('checkbox-optional') && this.getAttribute('checkbox-optional') !== 'false') {
-      this.#addLabelIndicator('checkbox-optional', 'frivilligt');
+      this.#setLabelIndicator('checkbox-optional', 'frivilligt');
     } else {
       this.#removeLabelIndicator();
     }
@@ -7111,7 +7111,7 @@ class FDSCheckbox extends HTMLElement {
   constructor() {
     super();
     this.#handleHelpTextCallback = () => {
-      this.updateIdReferences();
+      this.handleIdReferences();
     };
   }
 
@@ -7119,7 +7119,7 @@ class FDSCheckbox extends HTMLElement {
   CUSTOM ELEMENT METHODS
   -------------------------------------------------- */
 
-  updateIdReferences() {
+  handleIdReferences() {
     if (!this.#input || !this.#label) return;
     if (!this.#input.id) {
       this.#input.id = generateAndVerifyUniqueId('chk');
@@ -7177,10 +7177,10 @@ class FDSCheckbox extends HTMLElement {
   connectedCallback() {
     this.#input = this.#getInputElement();
     this.#label = this.#getLabelElement();
-    this.#ensureStructure();
-    this.#applyRequiredOrOptional();
+    this.#setStructure();
+    this.#setRequiredOrOptional();
     this.setClasses();
-    this.updateIdReferences();
+    this.handleIdReferences();
     this.#handleCollapsibleCheckboxes();
     this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
   }
@@ -7203,10 +7203,10 @@ class FDSCheckbox extends HTMLElement {
   attributeChangedCallback(attribute) {
     if (!this.isConnected) return;
     if (attribute === 'checkbox-required') {
-      this.#updateRequired();
+      this.#handleRequired();
     }
     if (attribute === 'checkbox-optional') {
-      this.#updateOptional();
+      this.#handleOptional();
     }
   }
 }
@@ -7227,7 +7227,7 @@ class FDSCheckboxGroup extends HTMLElement {
 
   /* Private methods */
 
-  #findOrCreateLegend() {
+  #handleLegend() {
     let legend = this.#fieldset.querySelector('legend') || this.querySelector(':scope > legend');
     if (legend && legend.parentNode !== this.#fieldset) {
       legend.remove();
@@ -7239,26 +7239,26 @@ class FDSCheckboxGroup extends HTMLElement {
     legend.classList.add('form-label');
     return legend;
   }
-  #collectGroupHelpTexts() {
+  #getGroupHelpTexts() {
     const direct = Array.from(this.querySelectorAll(':scope > fds-help-text'));
     // Help-texts inside a manually written <fieldset>
     const orphaned = Array.from(this.querySelectorAll(':scope > fieldset > fds-help-text'));
     return [...direct, ...orphaned];
   }
-  #collectErrorMessages() {
+  #getErrorMessages() {
     const directErrors = Array.from(this.querySelectorAll(':scope > fds-error-message'));
     const orphanedErrors = Array.from(this.querySelectorAll(':scope > fieldset > fds-error-message'));
     return [...directErrors, ...orphanedErrors];
   }
-  #ensureStructure() {
+  #setStructure() {
     this.#fieldset = this.querySelector('fieldset') || (() => {
       const fieldset = document.createElement('fieldset');
       this.prepend(fieldset);
       return fieldset;
     })();
-    this.#legend = this.#findOrCreateLegend();
-    const helpTexts = this.#collectGroupHelpTexts();
-    const errors = this.#collectErrorMessages();
+    this.#legend = this.#handleLegend();
+    const helpTexts = this.#getGroupHelpTexts();
+    const errors = this.#getErrorMessages();
     [...helpTexts, ...errors].forEach(el => el.remove());
     let insertionPoint = this.#legend.nextSibling;
     helpTexts.forEach(ht => {
@@ -7276,18 +7276,20 @@ class FDSCheckboxGroup extends HTMLElement {
       errors
     };
   }
-  #applyGroupLabel() {
+  #setGroupLabel() {
     if (this.#legend) {
       const label = this.getAttribute('group-label');
       if (label != null) this.#legend.textContent = label;
     }
   }
-  #applyAriaDescribedBy(describers) {
+  #setAriaDescribedBy(describers) {
     if (!describers.length) {
       this.#fieldset.removeAttribute('aria-describedby');
       return;
     }
-    const ids = describers.map(el => el.querySelector('[id]')?.id).filter(Boolean);
+    const ids = describers.map(el => {
+      return el.id || el.querySelector('[id]')?.id;
+    }).filter(Boolean);
     if (ids.length) {
       this.#fieldset.setAttribute('aria-describedby', ids.join(' '));
     } else {
@@ -7315,9 +7317,9 @@ class FDSCheckboxGroup extends HTMLElement {
     const {
       helpTexts,
       errors
-    } = this.#ensureStructure();
-    this.#applyGroupLabel();
-    this.#applyAriaDescribedBy([...helpTexts, ...errors]);
+    } = this.#setStructure();
+    this.#setGroupLabel();
+    this.#setAriaDescribedBy([...helpTexts, ...errors]);
   }
 
   /* --------------------------------------------------
@@ -7326,7 +7328,7 @@ class FDSCheckboxGroup extends HTMLElement {
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (name === 'group-label') {
-      this.#applyGroupLabel();
+      this.#setGroupLabel();
     }
   }
 }
