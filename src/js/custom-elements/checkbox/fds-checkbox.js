@@ -30,7 +30,7 @@ class FDSCheckbox extends HTMLElement {
         return this.querySelectorAll('fds-help-text');
     }
 
-    #ensureStructure() {
+    #setStructure() {
         if (this.#input && this.#label) {
             // Get all current children and their order
             const children = Array.from(this.children);
@@ -52,7 +52,7 @@ class FDSCheckbox extends HTMLElement {
         }
     }
 
-    #addLabelIndicator(attributeName, defaultText) {
+    #setLabelIndicator(attributeName, defaultText) {
         if (!(this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false')) return;
 
         if (!this.#label) return;
@@ -70,14 +70,14 @@ class FDSCheckbox extends HTMLElement {
         this.#label.appendChild(span);
     }
 
-    #applyRequiredOrOptional() {
-        if (this.hasAttribute('checkbox-required')) this.#updateRequired();
-        else if (this.hasAttribute('checkbox-optional')) this.#updateOptional();
+    #setRequiredOrOptional() {
+        if (this.hasAttribute('checkbox-required')) this.#handleRequired();
+        else if (this.hasAttribute('checkbox-optional')) this.#handleOptional();
     }
 
-    #updateRequired() {
+    #handleRequired() {
         if (this.hasAttribute('checkbox-required') && this.getAttribute('checkbox-required') !== 'false') {
-            this.#addLabelIndicator('checkbox-required', '*skal udfyldes');
+            this.#setLabelIndicator('checkbox-required', '*skal udfyldes');
             this.#input?.setAttribute('required', '');
         } else {
             this.#removeLabelIndicator();
@@ -85,9 +85,9 @@ class FDSCheckbox extends HTMLElement {
         }
     }
 
-    #updateOptional() {
+    #handleOptional() {
         if (this.hasAttribute('checkbox-optional') && this.getAttribute('checkbox-optional') !== 'false') {
-            this.#addLabelIndicator('checkbox-optional', 'frivilligt');
+            this.#setLabelIndicator('checkbox-optional', 'frivilligt');
         } else {
             this.#removeLabelIndicator();
         }
@@ -108,14 +108,14 @@ class FDSCheckbox extends HTMLElement {
     constructor() {
         super();
 
-        this.#handleHelpTextCallback = () => { this.updateIdReferences(); };
+        this.#handleHelpTextCallback = () => { this.handleIdReferences(); };
     }
 
     /* --------------------------------------------------
     CUSTOM ELEMENT METHODS
     -------------------------------------------------- */
 
-    updateIdReferences() {
+    handleIdReferences() {
         if (!this.#input || !this.#label) return;
 
         if (!this.#input.id) {
@@ -185,10 +185,10 @@ class FDSCheckbox extends HTMLElement {
         this.#input = this.#getInputElement();
         this.#label = this.#getLabelElement();
 
-        this.#ensureStructure();
-        this.#applyRequiredOrOptional();
+        this.#setStructure();
+        this.#setRequiredOrOptional();
         this.setClasses();
-        this.updateIdReferences();
+        this.handleIdReferences();
         this.#handleCollapsibleCheckboxes()
 
         this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
@@ -214,11 +214,11 @@ class FDSCheckbox extends HTMLElement {
         if (!this.isConnected) return;
 
         if (attribute === 'checkbox-required') {
-            this.#updateRequired();
+            this.#handleRequired();
         }
 
         if (attribute === 'checkbox-optional') {
-            this.#updateOptional();
+            this.#handleOptional();
         }
     }
 }

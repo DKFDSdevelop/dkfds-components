@@ -9,7 +9,7 @@ class FDSCheckboxGroup extends HTMLElement {
 
     /* Private methods */
 
-     #findOrCreateLegend() {
+     #handleLegend() {
         let legend = this.#fieldset.querySelector('legend') || this.querySelector(':scope > legend');
         
         if (legend && legend.parentNode !== this.#fieldset) {
@@ -24,7 +24,7 @@ class FDSCheckboxGroup extends HTMLElement {
         return legend;
     }
 
-    #collectGroupHelpTexts() {
+    #getGroupHelpTexts() {
         const direct = Array.from(this.querySelectorAll(':scope > fds-help-text'));
         // Help-texts inside a manually written <fieldset>
         const orphaned = Array.from(this.querySelectorAll(':scope > fieldset > fds-help-text'));
@@ -32,24 +32,24 @@ class FDSCheckboxGroup extends HTMLElement {
         return [...direct, ...orphaned];
     }
 
-    #collectErrorMessages() {
+    #getErrorMessages() {
         const directErrors = Array.from(this.querySelectorAll(':scope > fds-error-message'));
         const orphanedErrors = Array.from(this.querySelectorAll(':scope > fieldset > fds-error-message'));
 
         return [...directErrors, ...orphanedErrors];
     }
 
-    #ensureStructure() {
+    #setStructure() {
     this.#fieldset = this.querySelector('fieldset') || (() => {
         const fieldset = document.createElement('fieldset');
         this.prepend(fieldset);
         return fieldset;
     })();
     
-    this.#legend = this.#findOrCreateLegend();
+    this.#legend = this.#handleLegend();
     
-    const helpTexts = this.#collectGroupHelpTexts();
-    const errors = this.#collectErrorMessages();
+    const helpTexts = this.#getGroupHelpTexts();
+    const errors = this.#getErrorMessages();
     
     [...helpTexts, ...errors].forEach(el => el.remove());
     
@@ -69,21 +69,23 @@ class FDSCheckboxGroup extends HTMLElement {
     return { helpTexts, errors };
 }
 
-    #applyGroupLabel() {
+    #setGroupLabel() {
         if (this.#legend) {
             const label = this.getAttribute('group-label');
             if (label != null) this.#legend.textContent = label;
         }
     }
 
-    #applyAriaDescribedBy(describers) {
+    #setAriaDescribedBy(describers) {
         if (!describers.length) {
             this.#fieldset.removeAttribute('aria-describedby');
             return;
         }
 
         const ids = describers
-            .map(el => el.querySelector('[id]')?.id)
+            .map(el => {
+                return el.id || el.querySelector('[id]')?.id;
+            })
             .filter(Boolean);
 
         if (ids.length) {
@@ -110,9 +112,9 @@ class FDSCheckboxGroup extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
-        const { helpTexts, errors } = this.#ensureStructure();
-        this.#applyGroupLabel();
-        this.#applyAriaDescribedBy([...helpTexts, ...errors]);
+        const { helpTexts, errors } = this.#setStructure();
+        this.#setGroupLabel();
+        this.#setAriaDescribedBy([...helpTexts, ...errors]);
     }
 
         /* --------------------------------------------------
@@ -121,7 +123,7 @@ class FDSCheckboxGroup extends HTMLElement {
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (name === 'group-label') {
-            this.#applyGroupLabel();
+            this.#setGroupLabel();
         }
     }
 }
