@@ -211,7 +211,7 @@ const createCSS = {
             },
         ],
     },
-    /* Increased from the default 250000 for the non-minified stylesheets */
+    /* Increased from the default 250000 */
     performance: {
         maxAssetSize: 300000,
         maxEntrypointSize: 300000
