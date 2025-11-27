@@ -6208,10 +6208,7 @@ class FDSInputWrapper extends HTMLElement {
 
   #input;
   #label;
-  #wrapper;
   #limit;
-  #readonlyApplied;
-  #disabledApplied;
   #handleHelpTextCallback;
   #handleErrorMessageCallback;
   #handleCharacterLimitCallback;
@@ -6240,64 +6237,6 @@ class FDSInputWrapper extends HTMLElement {
     if (this.#limit) return this.#limit;
     this.#limit = this.querySelector(':scope > fds-character-limit');
     return this.#limit;
-  }
-  #setupPrefixSuffix() {
-    if (!this.#getInputElement()) return;
-    const hasPrefix = this.hasAttribute('input-prefix');
-    const hasSuffix = this.hasAttribute('input-suffix');
-
-    // Remove wrapper if no prefix/suffix needed
-    if (!hasPrefix && !hasSuffix) {
-      this.#wrapper?.replaceWith(this.#getInputElement());
-      this.#wrapper = null;
-      return;
-    }
-
-    // Create wrapper if it doesn't exist
-    if (!this.#wrapper) {
-      this.#wrapper = document.createElement('div');
-      this.insertBefore(this.#wrapper, this.#getInputElement());
-      this.#wrapper.appendChild(this.#getInputElement());
-    }
-
-    // Set wrapper classes
-    this.#wrapper.className = 'form-input-wrapper';
-    if (hasPrefix) this.#wrapper.classList.add('form-input-wrapper--prefix');
-    if (hasSuffix) this.#wrapper.classList.add('form-input-wrapper--suffix');
-    if (this.hasAttribute('input-disabled') && this.getAttribute('input-disabled') !== 'false') {
-      this.#wrapper.classList.add('disabled');
-    }
-    if (this.hasAttribute('input-readonly') && this.getAttribute('input-readonly') !== 'false') {
-      this.#wrapper.classList.add('readonly');
-    }
-
-    // Handle prefix
-    let prefixEl = this.#wrapper.querySelector('.form-input-prefix');
-    if (hasPrefix) {
-      if (!prefixEl) {
-        prefixEl = document.createElement('div');
-        prefixEl.className = 'form-input-prefix';
-        prefixEl.setAttribute('aria-hidden', 'true');
-        this.#wrapper.insertBefore(prefixEl, this.#getInputElement());
-      }
-      prefixEl.textContent = this.getAttribute('input-prefix');
-    } else if (prefixEl) {
-      prefixEl.remove();
-    }
-
-    // Handle suffix
-    let suffixEl = this.#wrapper.querySelector('.form-input-suffix');
-    if (hasSuffix) {
-      if (!suffixEl) {
-        suffixEl = document.createElement('div');
-        suffixEl.className = 'form-input-suffix';
-        suffixEl.setAttribute('aria-hidden', 'true');
-        this.#wrapper.appendChild(suffixEl);
-      }
-      suffixEl.textContent = this.getAttribute('input-suffix');
-    } else if (suffixEl) {
-      suffixEl.remove();
-    }
   }
   #addLabelIndicator(attributeName, defaultText) {
     if (!(this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false')) return;
@@ -6333,30 +6272,111 @@ class FDSInputWrapper extends HTMLElement {
   #removeLabelIndicator() {
     this.#getLabelElement()?.querySelector(':scope > span.weight-normal')?.remove();
   }
-  #updateReadonly() {
+
+  /* Readonly */
+
+  #shouldHaveReadonly(value) {
+    return value !== null && value !== 'false' && value !== false;
+  }
+  #setReadonly() {
+    this.#getInputElement()?.setAttribute('readonly', '');
+    this.querySelector(':scope > .form-input-wrapper')?.classList.add('readonly');
+  }
+  #removeReadonly() {
+    this.#getInputElement()?.removeAttribute('readonly');
+    this.querySelector(':scope > .form-input-wrapper')?.classList.remove('readonly');
+  }
+
+  /* Disabled */
+
+  #shouldHaveDisabled(value) {
+    return value !== null && value !== 'false' && value !== false;
+  }
+  #setDisabled() {
+    this.#getInputElement()?.setAttribute('disabled', '');
+    this.#getLabelElement()?.classList.add('disabled');
+    this.querySelector(':scope > .form-input-wrapper')?.classList.add('disabled');
+  }
+  #removeDisabled() {
+    this.#getInputElement()?.removeAttribute('disabled');
+    this.#getLabelElement()?.classList.remove('disabled');
+    this.querySelector(':scope > .form-input-wrapper')?.classList.remove('disabled');
+  }
+
+  /* Prefix */
+
+  #shouldHavePrefix(value) {
+    return value !== null && value !== '';
+  }
+  #setPrefix(value) {
     if (!this.#getInputElement()) return;
-    if (this.hasAttribute('input-readonly') && this.getAttribute('input-readonly') !== 'false') {
-      this.#readonlyApplied = true;
-      this.#getInputElement().setAttribute('readonly', '');
+    let wrapper = this.querySelector(':scope > .form-input-wrapper');
+    if (!wrapper) {
+      wrapper = document.createElement('div');
+      this.insertBefore(wrapper, this.#getInputElement());
+      wrapper.appendChild(this.#getInputElement());
     }
-    /* Only remove readonly if it at some point was updated as a custom element attribute. Otherwise, 
-    readonly will always be removed even if another source added the attribute to the input field. */else if (this.#readonlyApplied) {
-      this.#getInputElement().removeAttribute('readonly');
+    wrapper.classList.add('form-input-wrapper', 'form-input-wrapper--prefix');
+    this.#shouldHaveDisabled(this.#getInputElement()?.hasAttribute('disabled')) ? wrapper.classList.add('disabled') : wrapper.classList.remove('disabled');
+    this.#shouldHaveReadonly(this.#getInputElement()?.hasAttribute('readonly')) ? wrapper.classList.add('readonly') : wrapper.classList.remove('readonly');
+    let prefixEl = wrapper.querySelector('.form-input-prefix');
+    if (!prefixEl) {
+      prefixEl = document.createElement('div');
+      prefixEl.className = 'form-input-prefix';
+      prefixEl.setAttribute('aria-hidden', 'true');
+      wrapper.insertBefore(prefixEl, this.#getInputElement());
+    }
+    prefixEl.textContent = value;
+  }
+  #removePrefix() {
+    let wrapper = this.querySelector(':scope > .form-input-wrapper');
+    if (!wrapper || !this.#getInputElement()) return;
+    let prefixEl = wrapper.querySelector('.form-input-prefix');
+    prefixEl?.remove();
+    wrapper.classList.remove('form-input-wrapper--prefix');
+    if (!wrapper.classList.contains('form-input-wrapper--prefix') && !wrapper.classList.contains('form-input-wrapper--suffix')) {
+      wrapper.replaceWith(this.#getInputElement());
     }
   }
-  #updateDisabled() {
+
+  /* Suffix */
+
+  #shouldHaveSuffix(value) {
+    return value !== null && value !== '';
+  }
+  #setSuffix(value) {
     if (!this.#getInputElement()) return;
-    if (this.hasAttribute('input-disabled') && this.getAttribute('input-disabled') !== 'false') {
-      this.#disabledApplied = true;
-      this.#getInputElement().setAttribute('disabled', '');
-      this.#getLabelElement().classList.add('disabled');
+    let wrapper = this.querySelector(':scope > .form-input-wrapper');
+    if (!wrapper) {
+      wrapper = document.createElement('div');
+      this.insertBefore(wrapper, this.#getInputElement());
+      wrapper.appendChild(this.#getInputElement());
     }
-    /* Only remove disabled if it at some point was updated as a custom element attribute. Otherwise, 
-    disabled will always be removed even if another source updated the elements. */else if (this.#disabledApplied) {
-      this.#getInputElement().removeAttribute('disabled');
-      this.#getLabelElement().classList.remove('disabled');
+    wrapper.classList.add('form-input-wrapper', 'form-input-wrapper--suffix');
+    this.#shouldHaveDisabled(this.#getInputElement()?.hasAttribute('disabled')) ? wrapper.classList.add('disabled') : wrapper.classList.remove('disabled');
+    this.#shouldHaveReadonly(this.#getInputElement()?.hasAttribute('readonly')) ? wrapper.classList.add('readonly') : wrapper.classList.remove('readonly');
+    let suffixEl = wrapper.querySelector('.form-input-suffix');
+    if (!suffixEl) {
+      suffixEl = document.createElement('div');
+      suffixEl.className = 'form-input-suffix';
+      suffixEl.setAttribute('aria-hidden', 'true');
+      wrapper.appendChild(suffixEl);
+    }
+    suffixEl.textContent = value;
+  }
+  #removeSuffix() {
+    let wrapper = this.querySelector(':scope > .form-input-wrapper');
+    if (!wrapper || !this.#getInputElement()) return;
+    let suffixEl = wrapper.querySelector('.form-input-suffix');
+    suffixEl?.remove();
+    wrapper.classList.remove('form-input-wrapper--suffix');
+    if (!wrapper.classList.contains('form-input-wrapper--prefix') && !wrapper.classList.contains('form-input-wrapper--suffix')) {
+      wrapper.replaceWith(this.#getInputElement());
     }
   }
+
+  /* Maxwidth */
+
   #applyMaxWidth() {
     if (!this.#getInputElement()) return;
     this.#getInputElement().classList.forEach(cls => {
@@ -6373,7 +6393,7 @@ class FDSInputWrapper extends HTMLElement {
     }
   }
 
-  /* Private methods for character limitation */
+  /* Character limitation */
 
   #callUpdateVisibleMessage() {
     this.#getCharacterLimit()?.setCharactersUsed(this.#getInputElement().value.length);
@@ -6425,8 +6445,6 @@ class FDSInputWrapper extends HTMLElement {
 
   constructor() {
     super();
-    this.#readonlyApplied = false;
-    this.#disabledApplied = false;
     this.#lastKeyUpTimestamp = null;
     this.#oldValue = null;
     this.#intervalID = null;
@@ -6532,10 +6550,11 @@ class FDSInputWrapper extends HTMLElement {
 
   connectedCallback() {
     this.setClasses();
-    this.#setupPrefixSuffix();
     this.#applyRequiredOrOptional();
-    this.#updateReadonly();
-    this.#updateDisabled();
+    if (this.#shouldHaveReadonly(this.getAttribute('input-readonly'))) this.#setReadonly();
+    if (this.#shouldHaveDisabled(this.getAttribute('input-disabled'))) this.#setDisabled();
+    if (this.#shouldHavePrefix(this.getAttribute('input-prefix'))) this.#setPrefix(this.getAttribute('input-prefix'));
+    if (this.#shouldHaveSuffix(this.getAttribute('input-suffix'))) this.#setSuffix(this.getAttribute('input-suffix'));
     this.#applyMaxWidth();
     this.updateIdReferences();
     this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
@@ -6564,7 +6583,7 @@ class FDSInputWrapper extends HTMLElement {
   CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
   -------------------------------------------------- */
 
-  attributeChangedCallback(attribute) {
+  attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.isConnected) return;
     if (attribute === 'input-required') {
       this.#updateRequired();
@@ -6572,14 +6591,17 @@ class FDSInputWrapper extends HTMLElement {
     if (attribute === 'input-optional') {
       this.#updateOptional();
     }
-    if (attribute === 'input-readonly') {
-      this.#updateReadonly();
+    if (attribute === 'input-readonly' && oldValue !== newValue) {
+      this.#shouldHaveReadonly(newValue) ? this.#setReadonly() : this.#removeReadonly();
     }
-    if (attribute === 'input-disabled') {
-      this.#updateDisabled();
+    if (attribute === 'input-disabled' && oldValue !== newValue) {
+      this.#shouldHaveDisabled(newValue) ? this.#setDisabled() : this.#removeDisabled();
     }
-    if (attribute === 'input-prefix' || attribute === 'input-suffix') {
-      this.#setupPrefixSuffix();
+    if (attribute === 'input-prefix' && oldValue !== newValue) {
+      this.#shouldHavePrefix(newValue) ? this.#setPrefix(newValue) : this.#removePrefix();
+    }
+    if (attribute === 'input-suffix' && oldValue !== newValue) {
+      this.#shouldHaveSuffix(newValue) ? this.#setSuffix(newValue) : this.#removeSuffix();
     }
     if (attribute === 'input-maxwidth') {
       this.#applyMaxWidth();
