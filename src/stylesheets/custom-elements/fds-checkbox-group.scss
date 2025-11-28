@@ -17,7 +17,7 @@ fds-checkbox-group {
         margin-top: $button-distance;
     }
 
-    &:has(> fds-error-message) {
+    &:has(fieldset > fds-error-message) {
         border-left: vars.$form-group-error-border-width solid func.color(vars.$form-group-error-border-color);
         padding-left: calc(#{func.units(4)} - #{vars.$form-group-error-border-width});
     }
