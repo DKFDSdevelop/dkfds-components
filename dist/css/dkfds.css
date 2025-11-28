@@ -13010,7 +13010,7 @@ fds-checkbox-group:first-child{
 fds-checkbox-group > ::slotted(*) + ::slotted(fds-checkbox){
   margin-top:8px;
 }
-fds-checkbox-group:has(> fds-error-message){
+fds-checkbox-group:has(fieldset > fds-error-message){
   border-left:4px solid #CC0000;
   padding-left:calc(16px - 4px);
 }
