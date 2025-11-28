@@ -6238,38 +6238,31 @@ class FDSInputWrapper extends HTMLElement {
     this.#limit = this.querySelector(':scope > fds-character-limit');
     return this.#limit;
   }
-  #addLabelIndicator(attributeName, defaultText) {
-    if (!(this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false')) return;
-    if (!this.#getLabelElement()) return;
 
-    // Remove an existing trailing indicator span if present
-    this.#getLabelElement().querySelector(':scope > span.weight-normal')?.remove();
-    const attributeValue = this.getAttribute(attributeName);
-    const span = document.createElement('span');
-    span.className = 'weight-normal';
-    span.textContent = attributeValue && attributeValue !== 'true' && attributeValue !== '' ? ` (${attributeValue})` : ` (${defaultText})`;
-    this.#getLabelElement().appendChild(span);
+  /* Indicator */
+
+  #shouldHaveIndicator(value) {
+    return value !== null;
   }
-  #applyRequiredOrOptional() {
-    if (this.hasAttribute('input-required')) this.#updateRequired();else if (this.hasAttribute('input-optional')) this.#updateOptional();
-  }
-  #updateRequired() {
-    if (this.hasAttribute('input-required') && this.getAttribute('input-required') !== 'false') {
-      this.#addLabelIndicator('input-required', '*skal udfyldes');
-      this.#getInputElement()?.setAttribute('required', '');
+  #setIndicator() {
+    let value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+    if (!this.#getLabelElement() || !this.#getInputElement()) return;
+    if (!this.#getLabelElement().querySelector(':scope > span.weight-normal')) {
+      const span = document.createElement('span');
+      span.className = 'weight-normal';
+      this.#getLabelElement().appendChild(span);
+    }
+    const isRequired = this.#getInputElement().hasAttribute('required') || this.#getInputElement().hasAttribute('aria-required') && this.#getInputElement().getAttribute('aria-required') !== 'false';
+    let text = value;
+    if (value === '' && isRequired) text = 'skal udfyldes';
+    if (value === '' && !isRequired) text = 'frivilligt';
+    if (isRequired) {
+      this.#getLabelElement().querySelector(':scope > span.weight-normal').textContent = ` (*${text})`;
     } else {
-      this.#removeLabelIndicator();
-      this.#getInputElement()?.removeAttribute('required');
+      this.#getLabelElement().querySelector(':scope > span.weight-normal').textContent = ` (${text})`;
     }
   }
-  #updateOptional() {
-    if (this.hasAttribute('input-optional') && this.getAttribute('input-optional') !== 'false') {
-      this.#addLabelIndicator('input-optional', 'frivilligt');
-    } else {
-      this.#removeLabelIndicator();
-    }
-  }
-  #removeLabelIndicator() {
+  #removeIndicator() {
     this.#getLabelElement()?.querySelector(':scope > span.weight-normal')?.remove();
   }
 
@@ -6377,20 +6370,23 @@ class FDSInputWrapper extends HTMLElement {
 
   /* Maxwidth */
 
-  #applyMaxWidth() {
+  #shouldHaveMaxwidth(value) {
+    return value !== null && value !== '';
+  }
+  #setMaxwidth(value) {
     if (!this.#getInputElement()) return;
-    this.#getInputElement().classList.forEach(cls => {
-      if (cls.startsWith('input-width-') || cls.startsWith('input-char-')) {
-        this.#getInputElement().classList.remove(cls);
-      }
-    });
-    const value = this.getAttribute('input-maxwidth');
-    if (!value) return;
+    const maxwidthClass = [...this.#getInputElement().classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
+    this.#getInputElement().classList.remove(maxwidthClass);
     if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
       this.#getInputElement().classList.add(`input-width-${value}`);
     } else if (/^\d+$/.test(value)) {
       this.#getInputElement().classList.add(`input-char-${value}`);
     }
+  }
+  #removeMaxwidth() {
+    if (!this.#getInputElement()) return;
+    const maxwidthClass = [...this.#getInputElement().classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
+    this.#getInputElement().classList.remove(maxwidthClass);
   }
 
   /* Character limitation */
@@ -6437,7 +6433,7 @@ class FDSInputWrapper extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['input-required', 'input-optional', 'input-readonly', 'input-disabled', 'input-prefix', 'input-suffix', 'input-maxwidth'];
+  static observedAttributes = ['input-indicator', 'input-readonly', 'input-disabled', 'input-prefix', 'input-suffix', 'input-maxwidth'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -6550,12 +6546,12 @@ class FDSInputWrapper extends HTMLElement {
 
   connectedCallback() {
     this.setClasses();
-    this.#applyRequiredOrOptional();
+    if (this.#shouldHaveIndicator(this.getAttribute('input-indicator'))) this.#setIndicator(this.getAttribute('input-indicator'));
     if (this.#shouldHaveReadonly(this.getAttribute('input-readonly'))) this.#setReadonly();
     if (this.#shouldHaveDisabled(this.getAttribute('input-disabled'))) this.#setDisabled();
     if (this.#shouldHavePrefix(this.getAttribute('input-prefix'))) this.#setPrefix(this.getAttribute('input-prefix'));
     if (this.#shouldHaveSuffix(this.getAttribute('input-suffix'))) this.#setSuffix(this.getAttribute('input-suffix'));
-    this.#applyMaxWidth();
+    if (this.#shouldHaveMaxwidth(this.getAttribute('input-maxwidth'))) this.#setMaxwidth(this.getAttribute('input-maxwidth'));
     this.updateIdReferences();
     this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
     this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
@@ -6585,11 +6581,8 @@ class FDSInputWrapper extends HTMLElement {
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.isConnected) return;
-    if (attribute === 'input-required') {
-      this.#updateRequired();
-    }
-    if (attribute === 'input-optional') {
-      this.#updateOptional();
+    if (attribute === 'input-indicator') {
+      this.#shouldHaveIndicator(newValue) ? this.#setIndicator(newValue) : this.#removeIndicator();
     }
     if (attribute === 'input-readonly' && oldValue !== newValue) {
       this.#shouldHaveReadonly(newValue) ? this.#setReadonly() : this.#removeReadonly();
@@ -6603,8 +6596,8 @@ class FDSInputWrapper extends HTMLElement {
     if (attribute === 'input-suffix' && oldValue !== newValue) {
       this.#shouldHaveSuffix(newValue) ? this.#setSuffix(newValue) : this.#removeSuffix();
     }
-    if (attribute === 'input-maxwidth') {
-      this.#applyMaxWidth();
+    if (attribute === 'input-maxwidth' && oldValue !== newValue) {
+      this.#shouldHaveMaxwidth(newValue) ? this.#setMaxwidth(newValue) : this.#removeMaxwidth();
     }
   }
 }
