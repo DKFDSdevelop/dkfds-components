@@ -12872,7 +12872,13 @@ fds-checkbox{
   margin-top:8px;
   position:relative;
 }
-
+fds-checkbox:has(fds-error-message), fds-checkbox:has(.fds-error-message){
+  border-left:4px solid #CC0000;
+  padding-left:calc(16px - 4px);
+}
+fds-checkbox:has(fds-error-message) label.form-label::before, fds-checkbox:has(.fds-error-message) label.form-label::before{
+  left:calc(16px - 4px);
+}
 fds-checkbox fds-help-text{
   padding-left:32px;
   margin-top:-4px;
@@ -13000,17 +13006,21 @@ fds-checkbox:has(.checkbox-content):has(.checkbox-content[aria-hidden=false])::b
   margin-top:calc(1.2rem - 12px);
 }
 
-fds-checkbox-group{
+fds-checkbox-group,
+.fds-checkbox-group{
   display:block;
   margin-top:24px;
 }
-fds-checkbox-group:first-child{
+fds-checkbox-group:first-child,
+.fds-checkbox-group:first-child{
   margin-top:0;
 }
-fds-checkbox-group > ::slotted(*) + ::slotted(fds-checkbox){
+fds-checkbox-group > ::slotted(*) + ::slotted(fds-checkbox),
+.fds-checkbox-group > ::slotted(*) + ::slotted(fds-checkbox){
   margin-top:8px;
 }
-fds-checkbox-group:has(fieldset > fds-error-message){
+fds-checkbox-group:has(fieldset > fds-error-message),
+.fds-checkbox-group:has(fieldset > fds-error-message){
   border-left:4px solid #CC0000;
   padding-left:calc(16px - 4px);
 }
