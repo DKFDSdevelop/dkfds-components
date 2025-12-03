@@ -17,14 +17,11 @@ fds-checkbox,
     margin-top: func.units(3);
     position: relative; // Needed for the nested input buttons using absolute position
 
-    &:has(fds-error-message),
-    &:has(.fds-error-message) {
+    &:has(> fds-error-message, > .form-group-checkbox ~ fds-error-message),
+    &:has(> .fds-error-message,
+        >.form-group-checkbox~.fds-error-message) {
         border-left: vars.$form-group-error-border-width solid func.color(vars.$form-group-error-border-color);
         padding-left: calc(#{func.units(4)} - 4px);
-
-        // label.form-label::before {
-        //     left: calc(#{func.units(4)} - 4px);
-        // }
     }
 
     fds-help-text {

@@ -7059,6 +7059,9 @@ class FDSCheckbox extends HTMLElement {
   #getHelpTextElements() {
     return this.querySelectorAll(':scope > fds-help-text, :scope > .form-group-checkbox > fds-help-text');
   }
+  #getErrorMessages() {
+    return this.querySelectorAll(':scope > fds-error-message, :scope > .form-group-checkbox > fds-error-message');
+  }
   #setStructure() {
     if (this.#input && this.#label) {
       if (this.#input.closest('.form-group-checkbox')) {
@@ -7111,6 +7114,29 @@ class FDSCheckbox extends HTMLElement {
   #removeLabelIndicator() {
     this.#label?.querySelector(':scope > span.weight-normal')?.remove();
   }
+  #handleCollapsibleCheckboxes() {
+    const input = this.#input;
+    const possibleContent = this.querySelector(':scope > div.checkbox-content');
+    if (!input || !possibleContent) return;
+
+    // Ensure the div has the expected classes
+    possibleContent.classList.add('checkbox-content', 'collapsed');
+
+    // Ensure the content has an ID
+    if (!possibleContent.id) {
+      possibleContent.id = generateAndVerifyUniqueId('exp');
+    }
+    possibleContent.setAttribute('aria-hidden', 'true');
+    input.setAttribute('data-aria-controls', possibleContent.id);
+    input.setAttribute('data-aria-expanded', 'false');
+    this.#onInputChange = () => {
+      const expanded = input.checked;
+      input.setAttribute('data-aria-expanded', String(expanded));
+      possibleContent.setAttribute('aria-hidden', String(!expanded));
+      possibleContent.classList.toggle('collapsed', !expanded);
+    };
+    input.addEventListener('change', this.#onInputChange);
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -7138,6 +7164,8 @@ class FDSCheckbox extends HTMLElement {
     }
     this.#label.htmlFor = this.#input.id;
     const idsForAriaDescribedby = [];
+
+    // Add help text IDs
     const helpTexts = this.#getHelpTextElements();
     helpTexts.forEach(helptext => {
       const text = helptext.querySelector(':scope > .help-text');
@@ -7145,6 +7173,17 @@ class FDSCheckbox extends HTMLElement {
         idsForAriaDescribedby.push(text.id);
       }
     });
+
+    // Add error message IDs
+    const errorMessages = this.#getErrorMessages();
+    errorMessages.forEach(error => {
+      const errorId = error.id || error.querySelector('[id]')?.id;
+      if (errorId) {
+        idsForAriaDescribedby.push(errorId);
+      }
+    });
+
+    // Set or remove aria-describedby
     if (idsForAriaDescribedby.length > 0) {
       this.#input.setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
     } else {
@@ -7155,31 +7194,6 @@ class FDSCheckbox extends HTMLElement {
     if (!this.#label || !this.#input) return;
     this.#label.classList.add('form-label');
     this.#input.classList.add('form-checkbox');
-  }
-  #handleCollapsibleCheckboxes() {
-    const input = this.#input;
-    if (!input) return;
-    const possibleContent = this.querySelector('div.checkbox-content');
-    if (!possibleContent) return;
-
-    // Ensure the div has the expected classes
-    possibleContent.classList.add('checkbox-content', 'collapsed');
-
-    // Ensure the content has an ID
-    const collapseId = generateAndVerifyUniqueId('exp');
-    if (!possibleContent.id) {
-      possibleContent.id = collapseId;
-    }
-    possibleContent.setAttribute('aria-hidden', 'true');
-    input.setAttribute('data-aria-controls', possibleContent.id);
-    input.setAttribute('data-aria-expanded', 'false');
-    this.#onInputChange = () => {
-      const expanded = input.checked;
-      input.setAttribute('data-aria-expanded', String(expanded));
-      possibleContent.setAttribute('aria-hidden', String(!expanded));
-      possibleContent.classList.toggle('collapsed', !expanded);
-    };
-    input.addEventListener('change', this.#onInputChange);
   }
 
   /* --------------------------------------------------
