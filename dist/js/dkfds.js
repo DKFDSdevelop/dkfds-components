@@ -7049,35 +7049,32 @@ class FDSCheckbox extends HTMLElement {
   /* Private methods */
 
   #getInputElement() {
-    return this.querySelector('input[type="checkbox"]');
+    // Look for input as direct child first, then in wrapper
+    return this.querySelector(':scope > input[type="checkbox"], :scope > .form-group-checkbox > input[type="checkbox"]');
   }
   #getLabelElement() {
-    // Only get direct child labels, not labels inside collapsible content
-    const directChildLabels = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'label');
-    return directChildLabels[0] || null;
+    // Look for label as direct child first, then in wrapper  
+    return this.querySelector(':scope > label, :scope > .form-group-checkbox > label');
   }
   #getHelpTextElements() {
-    return this.querySelectorAll('fds-help-text');
+    return this.querySelectorAll(':scope > fds-help-text, :scope > .form-group-checkbox > fds-help-text');
   }
   #setStructure() {
     if (this.#input && this.#label) {
-      // Get all current children and their order
-      const children = Array.from(this.children);
-      const inputIndex = children.indexOf(this.#input);
-      const labelIndex = children.indexOf(this.#label);
-
-      // Move input to come before label
-      if (inputIndex > labelIndex) {
-        this.insertBefore(this.#input, this.#label);
+      if (this.#input.closest('.form-group-checkbox')) {
+        return;
       }
+      const wrapper = document.createElement('div');
+      wrapper.className = "form-group-checkbox";
+      this.insertBefore(wrapper, this.#input);
 
-      // Handle help text elements - move them to the end if they're not already there
+      // Ensure input comes before label
+      wrapper.appendChild(this.#input);
+      wrapper.appendChild(this.#label);
       const helpTextElements = this.#getHelpTextElements();
       helpTextElements.forEach(helpText => {
-        this.insertBefore(helpText, this.#label.nextSibling);
+        wrapper.appendChild(helpText);
       });
-    } else {
-      throw new Error('<fds-checkbox> requires exactly one <input type="checkbox"> and one <label>.');
     }
   }
   #setLabelIndicator(attributeName, defaultText) {
@@ -7160,9 +7157,9 @@ class FDSCheckbox extends HTMLElement {
     this.#input.classList.add('form-checkbox');
   }
   #handleCollapsibleCheckboxes() {
-    const input = this.querySelector(':scope > input[type="checkbox"]');
+    const input = this.#input;
     if (!input) return;
-    const possibleContent = this.querySelector('div');
+    const possibleContent = this.querySelector('div.checkbox-content');
     if (!possibleContent) return;
 
     // Ensure the div has the expected classes
