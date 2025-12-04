@@ -7080,40 +7080,36 @@ class FDSCheckbox extends HTMLElement {
       });
     }
   }
-  #setLabelIndicator(attributeName, defaultText) {
-    if (!(this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false')) return;
-    if (!this.#label) return;
 
-    // Remove an existing trailing indicator span if present
-    this.#label.querySelector(':scope > span.weight-normal')?.remove();
-    const attributeValue = this.getAttribute(attributeName);
-    const span = document.createElement('span');
-    span.className = 'weight-normal';
-    span.textContent = attributeValue && attributeValue !== 'true' && attributeValue !== '' ? ` (${attributeValue})` : ` (${defaultText})`;
-    this.#label.appendChild(span);
+  /* Indicator */
+
+  #shouldHaveIndicator(value) {
+    return value !== null;
   }
-  #setRequiredOrOptional() {
-    if (this.hasAttribute('checkbox-required')) this.#handleRequired();else if (this.hasAttribute('checkbox-optional')) this.#handleOptional();
-  }
-  #handleRequired() {
-    if (this.hasAttribute('checkbox-required') && this.getAttribute('checkbox-required') !== 'false') {
-      this.#setLabelIndicator('checkbox-required', '*skal udfyldes');
-      this.#input?.setAttribute('required', '');
+  #setIndicator() {
+    let value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+    if (!this.#getLabelElement() || !this.#getInputElement()) return;
+    if (!this.#getLabelElement().querySelector(':scope > span.weight-normal')) {
+      const span = document.createElement('span');
+      span.className = 'weight-normal';
+      this.#getLabelElement().appendChild(span);
+    }
+    const isRequired = this.#getInputElement().hasAttribute('required') || this.#getInputElement().hasAttribute('aria-required') && this.#getInputElement().getAttribute('aria-required') !== 'false';
+    let text = value;
+    if (value === '' && isRequired) text = 'skal udfyldes';
+    if (value === '' && !isRequired) text = 'frivilligt';
+    if (isRequired) {
+      this.#getLabelElement().querySelector(':scope > span.weight-normal').textContent = ` (*${text})`;
     } else {
-      this.#removeLabelIndicator();
-      this.#input?.removeAttribute('required');
+      this.#getLabelElement().querySelector(':scope > span.weight-normal').textContent = ` (${text})`;
     }
   }
-  #handleOptional() {
-    if (this.hasAttribute('checkbox-optional') && this.getAttribute('checkbox-optional') !== 'false') {
-      this.#setLabelIndicator('checkbox-optional', 'frivilligt');
-    } else {
-      this.#removeLabelIndicator();
-    }
+  #removeIndicator() {
+    this.#getLabelElement()?.querySelector(':scope > span.weight-normal')?.remove();
   }
-  #removeLabelIndicator() {
-    this.#label?.querySelector(':scope > span.weight-normal')?.remove();
-  }
+
+  /* Collapsible content */
+
   #handleCollapsibleCheckboxes() {
     const input = this.#input;
     const possibleContent = this.querySelector(':scope > div.checkbox-content');
@@ -7140,7 +7136,7 @@ class FDSCheckbox extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['checkbox-required', 'checkbox-optional'];
+  static observedAttributes = ['checkbox-indicator'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -7204,7 +7200,7 @@ class FDSCheckbox extends HTMLElement {
     this.#input = this.#getInputElement();
     this.#label = this.#getLabelElement();
     this.#setStructure();
-    this.#setRequiredOrOptional();
+    if (this.#shouldHaveIndicator(this.getAttribute('checkbox-indicator'))) this.#setIndicator(this.getAttribute('checkbox-indicator'));
     this.setClasses();
     this.handleIdReferences();
     this.#handleCollapsibleCheckboxes();
@@ -7226,13 +7222,10 @@ class FDSCheckbox extends HTMLElement {
   CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
   -------------------------------------------------- */
 
-  attributeChangedCallback(attribute) {
+  attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.isConnected) return;
-    if (attribute === 'checkbox-required') {
-      this.#handleRequired();
-    }
-    if (attribute === 'checkbox-optional') {
-      this.#handleOptional();
+    if (attribute === 'checkbox-indicator') {
+      this.#shouldHaveIndicator(newValue) ? this.#setIndicator(newValue) : this.#removeIndicator();
     }
   }
 }
