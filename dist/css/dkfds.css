@@ -12867,24 +12867,27 @@ fds-character-limit span.visual-message.limit-exceeded,
   color:#CC0000;
 }
 
-fds-checkbox{
+fds-checkbox,
+.fds-checkbox{
   display:block;
   margin-top:8px;
   position:relative;
 }
-fds-checkbox:has(fds-error-message), fds-checkbox:has(.fds-error-message){
+fds-checkbox:has(> fds-error-message, > .form-group-checkbox ~ fds-error-message), fds-checkbox:has(> .fds-error-message,
+> .form-group-checkbox ~ .fds-error-message),
+.fds-checkbox:has(> fds-error-message, > .form-group-checkbox ~ fds-error-message),
+.fds-checkbox:has(> .fds-error-message,
+> .form-group-checkbox ~ .fds-error-message){
   border-left:4px solid #CC0000;
   padding-left:calc(16px - 4px);
 }
-fds-checkbox:has(fds-error-message) label.form-label::before, fds-checkbox:has(.fds-error-message) label.form-label::before{
-  left:calc(16px - 4px);
-}
-fds-checkbox fds-help-text{
+fds-checkbox fds-help-text,
+.fds-checkbox fds-help-text{
   padding-left:32px;
   margin-top:-4px;
 }
-
-.form-checkbox + label{
+fds-checkbox .form-checkbox + label,
+.fds-checkbox .form-checkbox + label{
   cursor:pointer;
   font-weight:400;
   line-height:2.4rem;
@@ -12895,14 +12898,14 @@ fds-checkbox fds-help-text{
   padding-top:4px;
   padding-bottom:4px;
 }
-
-.form-checkbox + label + .tooltip-wrapper{
+fds-checkbox .form-checkbox + label + .tooltip-wrapper,
+.fds-checkbox .form-checkbox + label + .tooltip-wrapper{
   margin-top:4px;
   margin-bottom:4px;
   margin-left:2px;
 }
-
-.form-checkbox + label::before{
+fds-checkbox .form-checkbox + label::before,
+.fds-checkbox .form-checkbox + label::before{
   content:"";
   position:absolute;
   left:0;
@@ -12917,38 +12920,42 @@ fds-checkbox fds-help-text{
   margin-top:calc(1.2rem - 12px + 4px);
   border-radius:4px;
 }
-
-.form-checkbox:checked + label::before,
-.form-checkbox[aria-checked=mixed] + label::before,
-.form-checkbox.mixed + label::before{
+fds-checkbox .form-checkbox:checked + label::before,
+fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
+fds-checkbox .form-checkbox.mixed + label::before,
+.fds-checkbox .form-checkbox:checked + label::before,
+.fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
+.fds-checkbox .form-checkbox.mixed + label::before{
   background-color:#1a1a1a;
   border:2px solid #1a1a1a;
   background-size:24px;
   background-repeat:no-repeat;
   background-position:center;
 }
-
-.form-checkbox:checked + label::before{
+fds-checkbox .form-checkbox:checked + label::before,
+.fds-checkbox .form-checkbox:checked + label::before{
   background-image:url("../img/svg-icons/check-white.svg");
 }
-
-.form-checkbox[aria-checked=mixed] + label::before,
-.form-checkbox.mixed + label::before{
+fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
+fds-checkbox .form-checkbox.mixed + label::before,
+.fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
+.fds-checkbox .form-checkbox.mixed + label::before{
   background-image:url("../img/svg-icons/minus-white.svg");
 }
-
-.form-checkbox:focus + label::before,
-.form-checkbox.focus + label::before{
+fds-checkbox .form-checkbox:focus + label::before,
+fds-checkbox .form-checkbox.focus + label::before,
+.fds-checkbox .form-checkbox:focus + label::before,
+.fds-checkbox .form-checkbox.focus + label::before{
   outline:3px solid #454545;
   outline-offset:1px;
 }
-
-.form-checkbox + label + .form-hint{
+fds-checkbox .form-checkbox + label + .form-hint,
+.fds-checkbox .form-checkbox + label + .form-hint{
   padding-left:32px;
   margin-top:-4px;
 }
-
-fds-checkbox .checkbox-content{
+fds-checkbox .checkbox-content,
+.fds-checkbox .checkbox-content{
   margin-left:14px;
   padding-left:18px;
   padding-top:16px;
@@ -12956,15 +12963,17 @@ fds-checkbox .checkbox-content{
   margin-bottom:12px;
   padding-bottom:28px;
 }
-fds-checkbox .checkbox-content[aria-hidden=true]{
+fds-checkbox .checkbox-content[aria-hidden=true],
+.fds-checkbox .checkbox-content[aria-hidden=true]{
   display:none;
 }
-
-fds-checkbox:has(.checkbox-content){
+fds-checkbox:has(.checkbox-content),
+.fds-checkbox:has(.checkbox-content){
   margin-top:8px;
   position:relative;
 }
-fds-checkbox:has(.checkbox-content):has(.checkbox-content[aria-hidden=false])::before{
+fds-checkbox:has(.checkbox-content):has(.checkbox-content[aria-hidden=false])::before,
+.fds-checkbox:has(.checkbox-content):has(.checkbox-content[aria-hidden=false])::before{
   content:"";
   position:absolute;
   display:block;
@@ -12973,36 +12982,53 @@ fds-checkbox:has(.checkbox-content):has(.checkbox-content[aria-hidden=false])::b
   left:10px;
   top:calc(1.2rem - 12px + 4px + 24px + 4px + 4px);
 }
-
-.table--selectable th:first-child fds-checkbox,
-.table--selectable td:first-child fds-checkbox{
+fds-checkbox .table--selectable th:first-child fds-checkbox,
+fds-checkbox .table--selectable td:first-child fds-checkbox,
+.fds-checkbox .table--selectable th:first-child fds-checkbox,
+.fds-checkbox .table--selectable td:first-child fds-checkbox{
   margin-top:0;
   width:24px;
   height:24px;
 }
-.table--selectable th:first-child fds-checkbox .form-checkbox,
-.table--selectable th:first-child fds-checkbox .form-radio,
-.table--selectable td:first-child fds-checkbox .form-checkbox,
-.table--selectable td:first-child fds-checkbox .form-radio{
+fds-checkbox .table--selectable th:first-child fds-checkbox .form-checkbox,
+fds-checkbox .table--selectable th:first-child fds-checkbox .form-radio,
+fds-checkbox .table--selectable td:first-child fds-checkbox .form-checkbox,
+fds-checkbox .table--selectable td:first-child fds-checkbox .form-radio,
+.fds-checkbox .table--selectable th:first-child fds-checkbox .form-checkbox,
+.fds-checkbox .table--selectable th:first-child fds-checkbox .form-radio,
+.fds-checkbox .table--selectable td:first-child fds-checkbox .form-checkbox,
+.fds-checkbox .table--selectable td:first-child fds-checkbox .form-radio{
   margin-top:0;
 }
-.table--selectable th:first-child fds-checkbox .form-checkbox + label,
-.table--selectable th:first-child fds-checkbox .form-radio + label,
-.table--selectable td:first-child fds-checkbox .form-checkbox + label,
-.table--selectable td:first-child fds-checkbox .form-radio + label{
+fds-checkbox .table--selectable th:first-child fds-checkbox .form-checkbox + label,
+fds-checkbox .table--selectable th:first-child fds-checkbox .form-radio + label,
+fds-checkbox .table--selectable td:first-child fds-checkbox .form-checkbox + label,
+fds-checkbox .table--selectable td:first-child fds-checkbox .form-radio + label,
+.fds-checkbox .table--selectable th:first-child fds-checkbox .form-checkbox + label,
+.fds-checkbox .table--selectable th:first-child fds-checkbox .form-radio + label,
+.fds-checkbox .table--selectable td:first-child fds-checkbox .form-checkbox + label,
+.fds-checkbox .table--selectable td:first-child fds-checkbox .form-radio + label{
   padding-left:0;
 }
-.table--selectable th:first-child fds-checkbox .form-checkbox + label::before,
-.table--selectable th:first-child fds-checkbox .form-radio + label::before,
-.table--selectable td:first-child fds-checkbox .form-checkbox + label::before,
-.table--selectable td:first-child fds-checkbox .form-radio + label::before{
+fds-checkbox .table--selectable th:first-child fds-checkbox .form-checkbox + label::before,
+fds-checkbox .table--selectable th:first-child fds-checkbox .form-radio + label::before,
+fds-checkbox .table--selectable td:first-child fds-checkbox .form-checkbox + label::before,
+fds-checkbox .table--selectable td:first-child fds-checkbox .form-radio + label::before,
+.fds-checkbox .table--selectable th:first-child fds-checkbox .form-checkbox + label::before,
+.fds-checkbox .table--selectable th:first-child fds-checkbox .form-radio + label::before,
+.fds-checkbox .table--selectable td:first-child fds-checkbox .form-checkbox + label::before,
+.fds-checkbox .table--selectable td:first-child fds-checkbox .form-radio + label::before{
   margin-right:0;
   margin-top:calc(1.2rem - 12px);
 }
-.table--selectable th:first-child fds-checkbox .form-checkbox + label::after,
-.table--selectable th:first-child fds-checkbox .form-radio + label::after,
-.table--selectable td:first-child fds-checkbox .form-checkbox + label::after,
-.table--selectable td:first-child fds-checkbox .form-radio + label::after{
+fds-checkbox .table--selectable th:first-child fds-checkbox .form-checkbox + label::after,
+fds-checkbox .table--selectable th:first-child fds-checkbox .form-radio + label::after,
+fds-checkbox .table--selectable td:first-child fds-checkbox .form-checkbox + label::after,
+fds-checkbox .table--selectable td:first-child fds-checkbox .form-radio + label::after,
+.fds-checkbox .table--selectable th:first-child fds-checkbox .form-checkbox + label::after,
+.fds-checkbox .table--selectable th:first-child fds-checkbox .form-radio + label::after,
+.fds-checkbox .table--selectable td:first-child fds-checkbox .form-checkbox + label::after,
+.fds-checkbox .table--selectable td:first-child fds-checkbox .form-radio + label::after{
   margin-top:calc(1.2rem - 12px);
 }
 
