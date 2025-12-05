@@ -6497,9 +6497,8 @@ class FDSInputWrapper extends HTMLElement {
 
     // Help text ID
     this.querySelectorAll('fds-help-text').forEach(helptext => {
-      const text = helptext.querySelector(':scope > .help-text');
-      if (text?.hasAttribute('id')) {
-        idsForAriaDescribedby.push(text.id);
+      if (helptext?.id) {
+        idsForAriaDescribedby.push(helptext.id);
       }
     });
 
@@ -7193,9 +7192,8 @@ class FDSCheckbox extends HTMLElement {
     // Add help text IDs
     const helpTexts = this.#getHelpTextElements();
     helpTexts.forEach(helptext => {
-      const text = helptext.querySelector(':scope > .help-text');
-      if (text?.hasAttribute('id')) {
-        idsForAriaDescribedby.push(text.id);
+      if (helptext?.hasAttribute('id')) {
+        idsForAriaDescribedby.push(helptext.id);
       }
     });
 
@@ -7340,9 +7338,7 @@ class FDSCheckboxGroup extends HTMLElement {
       this.#fieldset.removeAttribute('aria-describedby');
       return;
     }
-    const ids = describers.map(el => {
-      return el.id || el.querySelector('[id]')?.id;
-    }).filter(Boolean);
+    const ids = describers.map(el => el.id).filter(Boolean);
     if (ids.length) {
       this.#fieldset.setAttribute('aria-describedby', ids.join(' '));
     } else {

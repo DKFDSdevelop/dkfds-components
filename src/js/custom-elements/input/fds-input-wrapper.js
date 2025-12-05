@@ -335,9 +335,8 @@ class FDSInputWrapper extends HTMLElement {
 
         // Help text ID
         this.querySelectorAll('fds-help-text').forEach(helptext => {
-            const text = helptext.querySelector(':scope > .help-text');
-            if (text?.hasAttribute('id')) {
-                idsForAriaDescribedby.push(text.id);
+            if (helptext?.id) {
+                idsForAriaDescribedby.push(helptext.id);
             }
         });
 
