@@ -12,46 +12,72 @@ class FDSHelpText extends HTMLElement {
 
     /* Private methods */
 
-    #getHelpText() {
-        if (this.#helpText) return this.#helpText;
+    // #getHelpText() {
+    //     if (this.#helpText) return this.#helpText;
 
-        this.#helpText = this.querySelector(':scope > .help-text');
-        return this.#helpText;
-    }
+    //     this.#helpText = this.querySelector(':scope > .help-text');
+    //     return this.#helpText;
+    // }
+
+    #getHelpText() {
+    // Return the custom element itself instead of looking for a child
+    return this;
+}
+
+    // #render() {
+    //     if (this.#rendered) return;
+
+    //     let span = this.#getHelpText();
+    //     if (!span) {
+    //         span = document.createElement('span');
+    //         span.className = 'help-text';
+
+    //         // Move existing child nodes into the span
+    //         while (this.firstChild) {
+    //             span.appendChild(this.firstChild);
+    //         }
+
+    //         this.appendChild(span);
+    //     }
+
+    //     if (this.getAttribute('help-text-id') !== null && this.getAttribute('help-text-id') !== '') {
+    //         this.#getHelpText().id = this.getAttribute('help-text-id');
+    //     }
+
+    //     this.#rendered = true;
+    // }
 
     #render() {
-        if (this.#rendered) return;
+    if (this.#rendered) return;
 
-        let span = this.#getHelpText();
-        if (!span) {
-            span = document.createElement('span');
-            span.className = 'help-text';
+    // Apply the help-text class directly to the custom element
+    this.classList.add('help-text');
 
-            // Move existing child nodes into the span
-            while (this.firstChild) {
-                span.appendChild(this.firstChild);
-            }
-
-            this.appendChild(span);
-        }
-
-        if (this.getAttribute('help-text-id') !== null && this.getAttribute('help-text-id') !== '') {
-            this.#getHelpText().id = this.getAttribute('help-text-id');
-        }
-
-        this.#rendered = true;
+    if (this.getAttribute('help-text-id') !== null && this.getAttribute('help-text-id') !== '') {
+        this.id = this.getAttribute('help-text-id');
     }
+
+    this.#rendered = true;
+}
+
+    // #updateId(newValue) {
+    //     const span = this.#getHelpText();
+    //     if (!span) return;
+
+    //     if (newValue !== null && newValue !== '') {
+    //         span.id = newValue;
+    //     } else {
+    //         span.id = generateAndVerifyUniqueId('help');
+    //     }
+    // }
 
     #updateId(newValue) {
-        const span = this.#getHelpText();
-        if (!span) return;
-
-        if (newValue !== null && newValue !== '') {
-            span.id = newValue;
-        } else {
-            span.id = generateAndVerifyUniqueId('help');
-        }
+    if (newValue !== null && newValue !== '') {
+        this.id = newValue;
+    } else {
+        this.id = generateAndVerifyUniqueId('help');
     }
+}
 
     /* Attributes which can invoke attributeChangedCallback() */
 
