@@ -15,91 +15,107 @@ class FDSCheckbox extends HTMLElement {
     /* Private methods */
 
     #getInputElement() {
-        return this.querySelector('input[type="checkbox"]');
+        // Look for input as direct child first, then in wrapper
+        return this.querySelector(':scope > input[type="checkbox"], :scope > .form-group-checkbox > input[type="checkbox"]');
     }
 
     #getLabelElement() {
-        // Only get direct child labels, not labels inside collapsible content
-        const directChildLabels = Array.from(this.children).filter(child =>
-            child.tagName.toLowerCase() === 'label'
-        );
-        return directChildLabels[0] || null;
+        // Look for label as direct child first, then in wrapper  
+        return this.querySelector(':scope > label, :scope > .form-group-checkbox > label');
     }
 
     #getHelpTextElements() {
-        return this.querySelectorAll('fds-help-text');
+        return this.querySelectorAll(':scope > fds-help-text, :scope > .form-group-checkbox > fds-help-text');
+    }
+
+    #getErrorMessages() {
+        return this.querySelectorAll(':scope > fds-error-message, :scope > .form-group-checkbox > fds-error-message');
     }
 
     #setStructure() {
         if (this.#input && this.#label) {
-            // Get all current children and their order
-            const children = Array.from(this.children);
-            const inputIndex = children.indexOf(this.#input);
-            const labelIndex = children.indexOf(this.#label);
-
-            // Move input to come before label
-            if (inputIndex > labelIndex) {
-                this.insertBefore(this.#input, this.#label);
+            if (this.#input.closest('.form-group-checkbox')) {
+                return;
             }
+            const wrapper = document.createElement('div');
+            wrapper.className = "form-group-checkbox";
 
-            // Handle help text elements - move them to the end if they're not already there
+            this.insertBefore(wrapper, this.#input);
+
+            // Ensure input comes before label
+            wrapper.appendChild(this.#input);
+            wrapper.appendChild(this.#label);
+
             const helpTextElements = this.#getHelpTextElements();
             helpTextElements.forEach(helpText => {
-                this.insertBefore(helpText, this.#label.nextSibling);
+                wrapper.appendChild(helpText);
             });
-        } else {
-            throw new Error('<fds-checkbox> requires exactly one <input type="checkbox"> and one <label>.');
         }
     }
 
-    #setLabelIndicator(attributeName, defaultText) {
-        if (!(this.hasAttribute(attributeName) && this.getAttribute(attributeName) !== 'false')) return;
+    /* Indicator */
 
-        if (!this.#label) return;
+    #setIndicator(value = '') {
+        if (!this.#getLabelElement() || !this.#getInputElement()) return;
 
-        // Remove an existing trailing indicator span if present
-        this.#label.querySelector(':scope > span.weight-normal')?.remove();
+        if (!this.#getLabelElement().querySelector(':scope > span.weight-normal')) {
+            const span = document.createElement('span');
+            span.className = 'weight-normal';
+            this.#getLabelElement().appendChild(span);
+        }
 
-        const attributeValue = this.getAttribute(attributeName);
-        const span = document.createElement('span');
-        span.className = 'weight-normal';
-        span.textContent = attributeValue && attributeValue !== 'true' && attributeValue !== ''
-            ? ` (${attributeValue})`
-            : ` (${defaultText})`;
+        const isRequired = 
+            this.#getInputElement().hasAttribute('required') || 
+            (this.#getInputElement().hasAttribute('aria-required') && this.#getInputElement().getAttribute('aria-required') !== 'false');
 
-        this.#label.appendChild(span);
-    }
+        let text = value;
+        if (value === '' && isRequired) text = 'skal udfyldes';
+        if (value === '' && !isRequired) text = 'frivilligt';
 
-    #setRequiredOrOptional() {
-        if (this.hasAttribute('checkbox-required')) this.#handleRequired();
-        else if (this.hasAttribute('checkbox-optional')) this.#handleOptional();
-    }
-
-    #handleRequired() {
-        if (this.hasAttribute('checkbox-required') && this.getAttribute('checkbox-required') !== 'false') {
-            this.#setLabelIndicator('checkbox-required', '*skal udfyldes');
-            this.#input?.setAttribute('required', '');
-        } else {
-            this.#removeLabelIndicator();
-            this.#input?.removeAttribute('required');
+        if (isRequired) {
+            this.#getLabelElement().querySelector(':scope > span.weight-normal').textContent = ` (*${text})`;
+        }
+        else {
+            this.#getLabelElement().querySelector(':scope > span.weight-normal').textContent = ` (${text})`;
         }
     }
 
-    #handleOptional() {
-        if (this.hasAttribute('checkbox-optional') && this.getAttribute('checkbox-optional') !== 'false') {
-            this.#setLabelIndicator('checkbox-optional', 'frivilligt');
-        } else {
-            this.#removeLabelIndicator();
-        }
+    #removeIndicator() {
+        this.#getLabelElement()?.querySelector(':scope > span.weight-normal')?.remove();
     }
 
-    #removeLabelIndicator() {
-        this.#label?.querySelector(':scope > span.weight-normal')?.remove();
+    /* Collapsible content */
+
+    #handleCollapsibleCheckboxes() {
+        const input = this.#input;
+        const possibleContent = this.querySelector(':scope > div.checkbox-content');
+        if (!input || !possibleContent) return;
+
+        // Ensure the div has the expected classes
+        possibleContent.classList.add('checkbox-content', 'collapsed');
+
+        // Ensure the content has an ID
+        if (!possibleContent.id) {
+            possibleContent.id = generateAndVerifyUniqueId('exp');
+        }
+
+        possibleContent.setAttribute('aria-hidden', 'true');
+        input.setAttribute('data-aria-controls', possibleContent.id);
+        input.setAttribute('data-aria-expanded', 'false');
+
+        this.#onInputChange = () => {
+            const expanded = input.checked;
+            input.setAttribute('data-aria-expanded', String(expanded));
+            possibleContent.setAttribute('aria-hidden', String(!expanded));
+            possibleContent.classList.toggle('collapsed', !expanded);
+        };
+
+        input.addEventListener('change', this.#onInputChange);
     }
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['checkbox-required', 'checkbox-optional'];
+    static observedAttributes = ['checkbox-indicator'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -125,6 +141,8 @@ class FDSCheckbox extends HTMLElement {
         this.#label.htmlFor = this.#input.id;
 
         const idsForAriaDescribedby = [];
+
+        // Add help text IDs
         const helpTexts = this.#getHelpTextElements();
         helpTexts.forEach(helptext => {
             const text = helptext.querySelector(':scope > .help-text');
@@ -133,6 +151,16 @@ class FDSCheckbox extends HTMLElement {
             }
         });
 
+        // Add error message IDs
+        const errorMessages = this.#getErrorMessages();
+        errorMessages.forEach(error => {
+            const errorId = error.id || error.querySelector('[id]')?.id;
+            if (errorId) {
+                idsForAriaDescribedby.push(errorId);
+            }
+        });
+
+        // Set or remove aria-describedby
         if (idsForAriaDescribedby.length > 0) {
             this.#input.setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
         } else {
@@ -147,36 +175,6 @@ class FDSCheckbox extends HTMLElement {
         this.#input.classList.add('form-checkbox');
     }
 
-    #handleCollapsibleCheckboxes() {
-        const input = this.querySelector(':scope > input[type="checkbox"]');
-        if (!input) return;
-
-        const possibleContent = this.querySelector('div');
-        if (!possibleContent) return;
-
-        // Ensure the div has the expected classes
-        possibleContent.classList.add('checkbox-content', 'collapsed');
-
-        // Ensure the content has an ID
-        const collapseId = generateAndVerifyUniqueId('exp');
-        if (!possibleContent.id) {
-            possibleContent.id = collapseId;
-        }
-
-        possibleContent.setAttribute('aria-hidden', 'true');
-        input.setAttribute('data-aria-controls', possibleContent.id);
-        input.setAttribute('data-aria-expanded', 'false');
-
-        this.#onInputChange = () => {
-            const expanded = input.checked;
-            input.setAttribute('data-aria-expanded', String(expanded));
-            possibleContent.setAttribute('aria-hidden', String(!expanded));
-            possibleContent.classList.toggle('collapsed', !expanded);
-        };
-
-        input.addEventListener('change', this.#onInputChange);
-    }
-
     /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
     -------------------------------------------------- */
@@ -186,7 +184,7 @@ class FDSCheckbox extends HTMLElement {
         this.#label = this.#getLabelElement();
 
         this.#setStructure();
-        this.#setRequiredOrOptional();
+        if (this.hasAttribute('checkbox-indicator')) this.#setIndicator(this.getAttribute('checkbox-indicator'));
         this.setClasses();
         this.handleIdReferences();
         this.#handleCollapsibleCheckboxes()
@@ -210,15 +208,11 @@ class FDSCheckbox extends HTMLElement {
     CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
     -------------------------------------------------- */
 
-    attributeChangedCallback(attribute) {
+    attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.isConnected) return;
 
-        if (attribute === 'checkbox-required') {
-            this.#handleRequired();
-        }
-
-        if (attribute === 'checkbox-optional') {
-            this.#handleOptional();
+        if (attribute === 'checkbox-indicator') {
+            newValue !== null ? this.#setIndicator(newValue) : this.#removeIndicator();
         }
     }
 }
