@@ -55,10 +55,6 @@ class FDSCheckbox extends HTMLElement {
 
     /* Indicator */
 
-    #shouldHaveIndicator(value) {
-        return value !== null;
-    }
-
     #setIndicator(value = '') {
         if (!this.#getLabelElement() || !this.#getInputElement()) return;
 
@@ -188,7 +184,7 @@ class FDSCheckbox extends HTMLElement {
         this.#label = this.#getLabelElement();
 
         this.#setStructure();
-        if (this.#shouldHaveIndicator(this.getAttribute('checkbox-indicator'))) this.#setIndicator(this.getAttribute('checkbox-indicator'));
+        if (this.hasAttribute('checkbox-indicator')) this.#setIndicator(this.getAttribute('checkbox-indicator'));
         this.setClasses();
         this.handleIdReferences();
         this.#handleCollapsibleCheckboxes()
@@ -216,7 +212,7 @@ class FDSCheckbox extends HTMLElement {
         if (!this.isConnected) return;
 
         if (attribute === 'checkbox-indicator') {
-            this.#shouldHaveIndicator(newValue) ? this.#setIndicator(newValue) : this.#removeIndicator();
+            newValue !== null ? this.#setIndicator(newValue) : this.#removeIndicator();
         }
     }
 }
