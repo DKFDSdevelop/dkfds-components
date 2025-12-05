@@ -7334,7 +7334,7 @@ class FDSCheckboxGroup extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['group-label', 'checkbox-disabled'];
+  static observedAttributes = ['group-label', 'group-disabled'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -7354,7 +7354,7 @@ class FDSCheckboxGroup extends HTMLElement {
       errors
     } = this.#setStructure();
     this.#setGroupLabel();
-    if (this.#shouldHaveDisabled(this.getAttribute('checkbox-disabled'))) this.#setDisabled();
+    if (this.#shouldHaveDisabled(this.getAttribute('group-disabled'))) this.#setDisabled();
     this.#setAriaDescribedBy([...helpTexts, ...errors]);
   }
 
@@ -7366,7 +7366,7 @@ class FDSCheckboxGroup extends HTMLElement {
     if (name === 'group-label') {
       this.#setGroupLabel();
     }
-    if (name === 'checkbox-disabled' && oldValue !== newValue) {
+    if (name === 'group-disabled' && oldValue !== newValue) {
       this.#shouldHaveDisabled(newValue) ? this.#setDisabled() : this.#removeDisabled();
     }
   }
