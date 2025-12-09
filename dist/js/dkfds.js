@@ -7006,6 +7006,7 @@ class FDSErrorMessage extends HTMLElement {
   }
   #notifyParent() {
     this.#parentWrapper?.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+      bubbles: true,
       detail: {
         errorId: this.id,
         isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
@@ -7040,7 +7041,7 @@ class FDSErrorMessage extends HTMLElement {
     }
 
     // Save reference to parent wrapper
-    this.#parentWrapper = this.closest('fds-input-wrapper');
+    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox');
 
     // Handle initial hidden state
     if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
@@ -7096,6 +7097,8 @@ class FDSCheckbox extends HTMLElement {
   #input;
   #label;
   #handleHelpTextCallback;
+  #handleErrorMessageCallback;
+  #handleErrorVisibilityChange;
   #onInputChange;
 
   /* Private methods */
@@ -7182,6 +7185,17 @@ class FDSCheckbox extends HTMLElement {
     };
     input.addEventListener('change', this.#onInputChange);
   }
+  #processErrorVisibilityChange(event) {
+    const {
+      errorId,
+      isHidden
+    } = event.detail;
+    const errorEl = this.querySelector(`#${errorId}`);
+    if (errorEl) {
+      errorEl.hiddenStatus = isHidden;
+    }
+    this.handleIdReferences();
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -7195,6 +7209,12 @@ class FDSCheckbox extends HTMLElement {
     super();
     this.#handleHelpTextCallback = () => {
       this.handleIdReferences();
+    };
+    this.#handleErrorMessageCallback = () => {
+      this.handleIdReferences();
+    };
+    this.#handleErrorVisibilityChange = event => {
+      this.#processErrorVisibilityChange(event);
     };
   }
 
@@ -7220,11 +7240,17 @@ class FDSCheckbox extends HTMLElement {
     });
 
     // Add error message IDs
+    let hasError = false;
+    let hasVisibleError = false;
     const errorMessages = this.#getErrorMessages();
-    errorMessages.forEach(error => {
-      const errorId = error.id || error.querySelector('[id]')?.id;
-      if (errorId) {
-        idsForAriaDescribedby.push(errorId);
+    errorMessages.forEach(errorText => {
+      if (errorText?.id) {
+        hasError = true;
+        const isHidden = errorText.hiddenStatus !== undefined ? errorText.hiddenStatus : errorText.hasAttribute('hidden') && errorText.getAttribute('hidden') !== 'false';
+        if (!isHidden) {
+          idsForAriaDescribedby.push(errorText.id);
+          hasVisibleError = true;
+        }
       }
     });
 
@@ -7254,6 +7280,8 @@ class FDSCheckbox extends HTMLElement {
     this.handleIdReferences();
     this.#handleCollapsibleCheckboxes();
     this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
+    this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
+    this.addEventListener('error-message-visibility-changed', this.#handleErrorVisibilityChange);
   }
 
   /* --------------------------------------------------
@@ -7262,6 +7290,8 @@ class FDSCheckbox extends HTMLElement {
 
   disconnectedCallback() {
     this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
+    this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
+    this.removeEventListener('error-message-visibility-changed', this.#handleErrorVisibilityChange);
     if (this.#input) {
       this.#input.removeEventListener('change', this.#onInputChange);
     }

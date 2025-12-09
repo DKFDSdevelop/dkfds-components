@@ -12803,17 +12803,17 @@ fds-input-wrapper .form-input-wrapper.readonly .form-input-prefix,
 .fds-input-wrapper .form-input-wrapper.readonly .form-input-prefix{
   border-color:#DCDCDC;
 }
-fds-input-wrapper:has(fds-error-message), fds-input-wrapper:has(.fds-error-message),
-.fds-input-wrapper:has(fds-error-message),
-.fds-input-wrapper:has(.fds-error-message){
+fds-input-wrapper:has(fds-error-message:not([hidden])), fds-input-wrapper:has(.fds-error-message:not([hidden])),
+.fds-input-wrapper:has(fds-error-message:not([hidden])),
+.fds-input-wrapper:has(.fds-error-message:not([hidden])){
   border-left:4px solid #CC0000;
   padding-left:calc(16px - 4px);
 }
-fds-input-wrapper:has(fds-error-message) > .form-input, fds-input-wrapper:has(fds-error-message) > .form-input-wrapper > .form-input, fds-input-wrapper:has(.fds-error-message) > .form-input, fds-input-wrapper:has(.fds-error-message) > .form-input-wrapper > .form-input,
-.fds-input-wrapper:has(fds-error-message) > .form-input,
-.fds-input-wrapper:has(fds-error-message) > .form-input-wrapper > .form-input,
-.fds-input-wrapper:has(.fds-error-message) > .form-input,
-.fds-input-wrapper:has(.fds-error-message) > .form-input-wrapper > .form-input{
+fds-input-wrapper:has(fds-error-message:not([hidden])) > .form-input, fds-input-wrapper:has(fds-error-message:not([hidden])) > .form-input-wrapper > .form-input, fds-input-wrapper:has(.fds-error-message:not([hidden])) > .form-input, fds-input-wrapper:has(.fds-error-message:not([hidden])) > .form-input-wrapper > .form-input,
+.fds-input-wrapper:has(fds-error-message:not([hidden])) > .form-input,
+.fds-input-wrapper:has(fds-error-message:not([hidden])) > .form-input-wrapper > .form-input,
+.fds-input-wrapper:has(.fds-error-message:not([hidden])) > .form-input,
+.fds-input-wrapper:has(.fds-error-message:not([hidden])) > .form-input-wrapper > .form-input{
   border:2px solid #CC0000;
   padding:calc(8px - 2px) calc(16px - 2px);
 }
@@ -12877,10 +12877,10 @@ fds-checkbox,
   margin-top:8px;
   position:relative;
 }
-fds-checkbox:has(> fds-error-message, > .form-group-checkbox ~ fds-error-message), fds-checkbox:has(> .fds-error-message,
+fds-checkbox:has(> fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message:not([hidden])), fds-checkbox:has(> .fds-error-message:not([hidden]),
 > .form-group-checkbox ~ .fds-error-message),
-.fds-checkbox:has(> fds-error-message, > .form-group-checkbox ~ fds-error-message),
-.fds-checkbox:has(> .fds-error-message,
+.fds-checkbox:has(> fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message:not([hidden])),
+.fds-checkbox:has(> .fds-error-message:not([hidden]),
 > .form-group-checkbox ~ .fds-error-message){
   border-left:4px solid #CC0000;
   padding-left:calc(16px - 4px);

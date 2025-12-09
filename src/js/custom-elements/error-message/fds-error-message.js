@@ -51,6 +51,7 @@ class FDSErrorMessage extends HTMLElement {
 
     #notifyParent() {
         this.#parentWrapper?.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+            bubbles: true,
             detail: {
                 errorId: this.id,
                 isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
@@ -87,7 +88,7 @@ class FDSErrorMessage extends HTMLElement {
         }
 
         // Save reference to parent wrapper
-        this.#parentWrapper = this.closest('fds-input-wrapper');
+        this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox');
 
         // Handle initial hidden state
         if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
