@@ -18,6 +18,7 @@ class FDSInputWrapper extends HTMLElement {
     #handlePageshow;
     #handleFocus;
     #handleBlur;
+    #handleErrorVisibilityChange;
 
     #lastKeyUpTimestamp;
     #oldValue;
@@ -276,6 +277,16 @@ class FDSInputWrapper extends HTMLElement {
         }, 1000);
     }
 
+    #processErrorVisibilityChange(event) {
+        const { errorId, isHidden } = event.detail;
+
+        const errorEl = this.querySelector(`#${errorId}`);
+        if (errorEl) {
+            errorEl.hiddenStatus = isHidden;
+        }
+        this.updateIdReferences();
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = ['input-indicator', 'input-readonly', 'input-disabled', 'input-prefix', 'input-suffix', 'input-maxwidth'];
@@ -313,6 +324,7 @@ class FDSInputWrapper extends HTMLElement {
         this.#handleErrorMessageCallback = () => { this.updateIdReferences(); }
         this.#handleCharacterLimitCallback = () => { this.updateIdReferences(); }
         this.#handleCharacterLimitConnection = () => { this.#setCharacterLimitListeners(); }
+        this.#handleErrorVisibilityChange = (event) => { this.#processErrorVisibilityChange(event); };
     }
 
     /* --------------------------------------------------
@@ -343,10 +355,20 @@ class FDSInputWrapper extends HTMLElement {
 
         // Error message IDs
         let hasError = false;
+        let hasVisibleError = false;
         this.querySelectorAll('fds-error-message').forEach(errorText => {
             if (errorText?.id) {
-                idsForAriaDescribedby.push(errorText.id);
                 hasError = true;
+
+                const isHidden = errorText.hiddenStatus !== undefined
+                    ? errorText.hiddenStatus
+                    : (errorText.hasAttribute('hidden') &&
+                        errorText.getAttribute('hidden') !== 'false');
+
+                if (!isHidden) {
+                    idsForAriaDescribedby.push(errorText.id);
+                    hasVisibleError = true;
+                }
             }
         });
 
@@ -367,7 +389,7 @@ class FDSInputWrapper extends HTMLElement {
         }
 
         // Set aria-invalid if wrapper has error messages
-        if (hasError) {
+        if (hasError && hasVisibleError) {
             this.#getInputElement().setAttribute('aria-invalid', 'true');
         } else {
             this.#getInputElement().removeAttribute('aria-invalid');
@@ -399,6 +421,7 @@ class FDSInputWrapper extends HTMLElement {
         this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
         this.addEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
         this.addEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
+        this.addEventListener('error-message-visibility-changed', this.#handleErrorVisibilityChange);
     }
 
     /* --------------------------------------------------
@@ -416,6 +439,7 @@ class FDSInputWrapper extends HTMLElement {
         this.#getInputElement().removeEventListener('blur', this.#handleBlur);
         window.removeEventListener('pageshow', this.#handlePageshow);
         document.removeEventListener('DOMContentLoaded', this.#handlePageshow);
+        this.removeEventListener('error-message-visibility-changed', this.#handleErrorVisibilityChange);
     }
 
     /* --------------------------------------------------

@@ -12846,6 +12846,10 @@ fds-error-message,
   margin-top:4px;
   max-width:66ch;
 }
+fds-error-message[aria-hidden=true],
+.fds-error-message[aria-hidden=true]{
+  display:none;
+}
 
 fds-character-limit,
 .fds-character-limit{
