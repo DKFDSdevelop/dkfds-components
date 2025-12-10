@@ -6235,7 +6235,6 @@ class FDSInputWrapper extends HTMLElement {
     return this.#label;
   }
   #getCharacterLimit() {
-    // if (this.#limit) return this.#limit;
     return this.querySelector(':scope > fds-character-limit');
   }
 
