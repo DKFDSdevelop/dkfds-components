@@ -121,7 +121,7 @@ class FDSErrorMessage extends HTMLElement {
             this.querySelector(':scope > .sr-only').textContent = this.#srOnlyText;
         }
 
-        if (name === 'error-hidden' && oldValue !== newValue) {
+        if (name === 'hidden' && oldValue !== newValue) {
             if (this.#shouldBeHidden(newValue)) {
                 this.#setAriaHidden();
             } else {

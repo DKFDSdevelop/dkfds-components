@@ -8,7 +8,8 @@ class FDSCheckboxGroup extends HTMLElement {
     #legend;
 
     #handleErrorMessageCallback;
-    #handleHelpTextCallback
+    #handleHelpTextCallback;
+    #handleErrorVisibilityChange;
 
     /* Private methods */
 
@@ -86,25 +87,6 @@ class FDSCheckboxGroup extends HTMLElement {
         }
     }
 
-    // #setAriaDescribedBy(describers) {
-    //     if (!describers.length) {
-    //         this.#fieldset.removeAttribute('aria-describedby');
-    //         return;
-    //     }
-
-    //     const ids = describers
-    //         .map(el => {
-    //             return el.id || el.querySelector('[id]')?.id;
-    //         })
-    //         .filter(Boolean);
-
-    //     if (ids.length) {
-    //         this.#fieldset.setAttribute('aria-describedby', ids.join(' '));
-    //     } else {
-    //         this.#fieldset.removeAttribute('aria-describedby');
-    //     }
-    // }
-
     /* Disabled */
 
     #shouldHaveDisabled(value) {
@@ -121,6 +103,16 @@ class FDSCheckboxGroup extends HTMLElement {
         this.#getFieldsetElement()?.classList.remove('disabled');
     }
 
+    #processErrorVisibilityChange(event) {
+        const { errorId, isHidden } = event.detail;
+
+        const errorEl = this.querySelector(`#${errorId}`);
+        if (errorEl) {
+            errorEl.hiddenStatus = isHidden;
+        }
+        this.handleIdReferences();
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = ['group-label', 'group-disabled'];
@@ -134,6 +126,7 @@ class FDSCheckboxGroup extends HTMLElement {
 
         this.#handleErrorMessageCallback = () => { this.handleIdReferences(); };
         this.#handleHelpTextCallback = () => { this.handleIdReferences(); };
+        this.#handleErrorVisibilityChange = (event) => { this.#processErrorVisibilityChange(event); };
     }
 
     /* --------------------------------------------------
@@ -155,10 +148,22 @@ class FDSCheckboxGroup extends HTMLElement {
         });
 
         // Add error message IDs
+        let hasError = false;
+        let hasVisibleError = false;
         const errorMessages = this.#getErrorMessages();
         errorMessages.forEach(errorText => {
+
             if (errorText?.id) {
-                idsForAriaDescribedby.push(errorText.id);
+                hasError = true;
+                const isHidden = errorText.hiddenStatus !== undefined
+                    ? errorText.hiddenStatus
+                    : (errorText.hasAttribute('hidden') &&
+                        errorText.getAttribute('hidden') !== 'false');
+
+                if (!isHidden) {
+                    idsForAriaDescribedby.push(errorText.id);
+                    hasVisibleError = true;
+                }
             }
         });
 
@@ -182,7 +187,7 @@ CUSTOM ELEMENT ADDED TO DOCUMENT
 
         this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
         this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
-        // this.addEventListener('error-message-visibility-changed', this.#handleErrorVisibilityChange);
+        this.addEventListener('error-message-visibility-changed', this.#handleErrorVisibilityChange);
     }
 
     /* --------------------------------------------------
@@ -192,11 +197,7 @@ CUSTOM ELEMENT ADDED TO DOCUMENT
     disconnectedCallback() {
         this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
         this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
-        // this.removeEventListener('error-message-visibility-changed', this.#handleErrorVisibilityChange);
-
-        // if (this.#input) {
-        //     this.#input.removeEventListener('change', this.#onInputChange);
-        // }
+        this.removeEventListener('error-message-visibility-changed', this.#handleErrorVisibilityChange);
     }
 
     /* --------------------------------------------------

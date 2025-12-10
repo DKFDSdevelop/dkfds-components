@@ -13049,8 +13049,8 @@ fds-checkbox-group > ::slotted(*) + ::slotted(fds-checkbox),
 .fds-checkbox-group > ::slotted(*) + ::slotted(fds-checkbox){
   margin-top:8px;
 }
-fds-checkbox-group:has(fieldset > fds-error-message),
-.fds-checkbox-group:has(fieldset > fds-error-message){
+fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])),
+.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])){
   border-left:4px solid #CC0000;
   padding-left:calc(16px - 4px);
 }
