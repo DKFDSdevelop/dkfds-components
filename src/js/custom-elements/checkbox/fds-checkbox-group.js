@@ -7,6 +7,9 @@ class FDSCheckboxGroup extends HTMLElement {
     #fieldset;
     #legend;
 
+    #handleErrorMessageCallback;
+    #handleHelpTextCallback
+
     /* Private methods */
 
     #getFieldsetElement() {
@@ -83,24 +86,24 @@ class FDSCheckboxGroup extends HTMLElement {
         }
     }
 
-    #setAriaDescribedBy(describers) {
-        if (!describers.length) {
-            this.#fieldset.removeAttribute('aria-describedby');
-            return;
-        }
+    // #setAriaDescribedBy(describers) {
+    //     if (!describers.length) {
+    //         this.#fieldset.removeAttribute('aria-describedby');
+    //         return;
+    //     }
 
-        const ids = describers
-            .map(el => {
-                return el.id || el.querySelector('[id]')?.id;
-            })
-            .filter(Boolean);
+    //     const ids = describers
+    //         .map(el => {
+    //             return el.id || el.querySelector('[id]')?.id;
+    //         })
+    //         .filter(Boolean);
 
-        if (ids.length) {
-            this.#fieldset.setAttribute('aria-describedby', ids.join(' '));
-        } else {
-            this.#fieldset.removeAttribute('aria-describedby');
-        }
-    }
+    //     if (ids.length) {
+    //         this.#fieldset.setAttribute('aria-describedby', ids.join(' '));
+    //     } else {
+    //         this.#fieldset.removeAttribute('aria-describedby');
+    //     }
+    // }
 
     /* Disabled */
 
@@ -123,11 +126,48 @@ class FDSCheckboxGroup extends HTMLElement {
     static observedAttributes = ['group-label', 'group-disabled'];
 
     /* --------------------------------------------------
-CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
--------------------------------------------------- */
+    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+    -------------------------------------------------- */
 
     constructor() {
         super();
+
+        this.#handleErrorMessageCallback = () => { this.handleIdReferences(); };
+        this.#handleHelpTextCallback = () => { this.handleIdReferences(); };
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT METHODS
+    -------------------------------------------------- */
+
+    handleIdReferences() {
+        if (!this.#fieldset) return;
+
+        const idsForAriaDescribedby = [];
+
+        // Add help text IDs
+        const helpTexts = this.#getGroupHelpTexts();
+        helpTexts.forEach(helptext => {
+            const text = helptext.querySelector(':scope > .help-text');
+            if (text?.hasAttribute('id')) {
+                idsForAriaDescribedby.push(text.id);
+            }
+        });
+
+        // Add error message IDs
+        const errorMessages = this.#getErrorMessages();
+        errorMessages.forEach(errorText => {
+            if (errorText?.id) {
+                idsForAriaDescribedby.push(errorText.id);
+            }
+        });
+
+        // Set or remove aria-describedby
+        if (idsForAriaDescribedby.length > 0) {
+            this.#fieldset.setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
+        } else {
+            this.#fieldset.removeAttribute('aria-describedby');
+        }
     }
 
     /* --------------------------------------------------
@@ -138,7 +178,25 @@ CUSTOM ELEMENT ADDED TO DOCUMENT
         const { helpTexts, errors } = this.#setStructure();
         this.#setGroupLabel();
         if (this.#shouldHaveDisabled(this.getAttribute('group-disabled'))) this.#setDisabled();
-        this.#setAriaDescribedBy([...helpTexts, ...errors]);
+        this.handleIdReferences();
+
+        this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
+        this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
+        // this.addEventListener('error-message-visibility-changed', this.#handleErrorVisibilityChange);
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT REMOVED FROM DOCUMENT
+    -------------------------------------------------- */
+
+    disconnectedCallback() {
+        this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
+        this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
+        // this.removeEventListener('error-message-visibility-changed', this.#handleErrorVisibilityChange);
+
+        // if (this.#input) {
+        //     this.#input.removeEventListener('change', this.#onInputChange);
+        // }
     }
 
     /* --------------------------------------------------
@@ -146,6 +204,8 @@ CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
 -------------------------------------------------- */
 
     attributeChangedCallback(name, oldValue, newValue) {
+        if (!this.isConnected) return;
+
         if (name === 'group-label') {
             this.#setGroupLabel();
         }

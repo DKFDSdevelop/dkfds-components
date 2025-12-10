@@ -6702,9 +6702,9 @@ class FDSHelpText extends HTMLElement {
       helpText.id = generateAndVerifyUniqueId('help');
     }
 
-    // During disconnect, the custom element may lose connection to the input-wrapper.
-    // Save the input-wrapper and use it to dispatch events - otherwise, the events may be lost.
-    this.#parentWrapper = this.closest('fds-input-wrapper');
+    // During disconnect, the custom element may lose connection to the wrapper.
+    // Save the wrapper and use it to dispatch events - otherwise, the events may be lost.
+    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group');
     this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
   }
 
@@ -7041,7 +7041,7 @@ class FDSErrorMessage extends HTMLElement {
     }
 
     // Save reference to parent wrapper
-    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox');
+    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group');
 
     // Handle initial hidden state
     if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
@@ -7322,6 +7322,8 @@ class FDSCheckboxGroup extends HTMLElement {
 
   #fieldset;
   #legend;
+  #handleErrorMessageCallback;
+  #handleHelpTextCallback;
 
   /* Private methods */
 
@@ -7385,20 +7387,25 @@ class FDSCheckboxGroup extends HTMLElement {
       if (label != null) this.#legend.textContent = label;
     }
   }
-  #setAriaDescribedBy(describers) {
-    if (!describers.length) {
-      this.#fieldset.removeAttribute('aria-describedby');
-      return;
-    }
-    const ids = describers.map(el => {
-      return el.id || el.querySelector('[id]')?.id;
-    }).filter(Boolean);
-    if (ids.length) {
-      this.#fieldset.setAttribute('aria-describedby', ids.join(' '));
-    } else {
-      this.#fieldset.removeAttribute('aria-describedby');
-    }
-  }
+
+  // #setAriaDescribedBy(describers) {
+  //     if (!describers.length) {
+  //         this.#fieldset.removeAttribute('aria-describedby');
+  //         return;
+  //     }
+
+  //     const ids = describers
+  //         .map(el => {
+  //             return el.id || el.querySelector('[id]')?.id;
+  //         })
+  //         .filter(Boolean);
+
+  //     if (ids.length) {
+  //         this.#fieldset.setAttribute('aria-describedby', ids.join(' '));
+  //     } else {
+  //         this.#fieldset.removeAttribute('aria-describedby');
+  //     }
+  // }
 
   /* Disabled */
 
@@ -7424,6 +7431,45 @@ class FDSCheckboxGroup extends HTMLElement {
 
   constructor() {
     super();
+    this.#handleErrorMessageCallback = () => {
+      this.handleIdReferences();
+    };
+    this.#handleHelpTextCallback = () => {
+      this.handleIdReferences();
+    };
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  handleIdReferences() {
+    if (!this.#fieldset) return;
+    const idsForAriaDescribedby = [];
+
+    // Add help text IDs
+    const helpTexts = this.#getGroupHelpTexts();
+    helpTexts.forEach(helptext => {
+      const text = helptext.querySelector(':scope > .help-text');
+      if (text?.hasAttribute('id')) {
+        idsForAriaDescribedby.push(text.id);
+      }
+    });
+
+    // Add error message IDs
+    const errorMessages = this.#getErrorMessages();
+    errorMessages.forEach(errorText => {
+      if (errorText?.id) {
+        idsForAriaDescribedby.push(errorText.id);
+      }
+    });
+
+    // Set or remove aria-describedby
+    if (idsForAriaDescribedby.length > 0) {
+      this.#fieldset.setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
+    } else {
+      this.#fieldset.removeAttribute('aria-describedby');
+    }
   }
 
   /* --------------------------------------------------
@@ -7437,7 +7483,24 @@ class FDSCheckboxGroup extends HTMLElement {
     } = this.#setStructure();
     this.#setGroupLabel();
     if (this.#shouldHaveDisabled(this.getAttribute('group-disabled'))) this.#setDisabled();
-    this.#setAriaDescribedBy([...helpTexts, ...errors]);
+    this.handleIdReferences();
+    this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
+    this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
+    // this.addEventListener('error-message-visibility-changed', this.#handleErrorVisibilityChange);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
+    this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
+    // this.removeEventListener('error-message-visibility-changed', this.#handleErrorVisibilityChange);
+
+    // if (this.#input) {
+    //     this.#input.removeEventListener('change', this.#onInputChange);
+    // }
   }
 
   /* --------------------------------------------------
@@ -7445,6 +7508,7 @@ class FDSCheckboxGroup extends HTMLElement {
   -------------------------------------------------- */
 
   attributeChangedCallback(name, oldValue, newValue) {
+    if (!this.isConnected) return;
     if (name === 'group-label') {
       this.#setGroupLabel();
     }

@@ -88,7 +88,7 @@ class FDSErrorMessage extends HTMLElement {
         }
 
         // Save reference to parent wrapper
-        this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox');
+        this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group');
 
         // Handle initial hidden state
         if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
