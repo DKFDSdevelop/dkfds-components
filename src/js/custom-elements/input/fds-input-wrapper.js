@@ -18,7 +18,7 @@ class FDSInputWrapper extends HTMLElement {
     #handlePageshow;
     #handleFocus;
     #handleBlur;
-    #handleErrorVisibilityChange;
+    #handleVisibilityChange;
 
     #lastKeyUpTimestamp;
     #oldValue;
@@ -277,15 +277,25 @@ class FDSInputWrapper extends HTMLElement {
         }, 1000);
     }
 
-    #processErrorVisibilityChange(event) {
-        const { errorId, isHidden } = event.detail;
+    #processVisibilityChange(event) {
+        const { detail } = event;
 
-        const errorEl = this.querySelector(`#${errorId}`);
-        if (errorEl) {
-            errorEl.hiddenStatus = isHidden;
+        // Extract ID and hidden status - works for both error and help-text events
+        const elementId = detail.errorId || detail.helptextId;
+        const isHidden = detail.isHidden;
+
+        const element = this.querySelector(`#${elementId}`);
+        if (element) {
+            element.hiddenStatus = isHidden;
         }
         this.updateIdReferences();
     }
+
+    #isElementHidden = (element) => {
+    return element.hiddenStatus !== undefined
+        ? element.hiddenStatus
+        : (element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'false');
+};
 
     /* Attributes which can invoke attributeChangedCallback() */
 
@@ -324,7 +334,7 @@ class FDSInputWrapper extends HTMLElement {
         this.#handleErrorMessageCallback = () => { this.updateIdReferences(); }
         this.#handleCharacterLimitCallback = () => { this.updateIdReferences(); }
         this.#handleCharacterLimitConnection = () => { this.#setCharacterLimitListeners(); }
-        this.#handleErrorVisibilityChange = (event) => { this.#processErrorVisibilityChange(event); };
+        this.#handleVisibilityChange = (event) => { this.#processVisibilityChange(event); };
     }
 
     /* --------------------------------------------------
@@ -349,7 +359,10 @@ class FDSInputWrapper extends HTMLElement {
         this.querySelectorAll('fds-help-text').forEach(helptext => {
             const text = helptext.querySelector(':scope > .help-text');
             if (text?.hasAttribute('id')) {
-                idsForAriaDescribedby.push(text.id);
+                const isHidden = this.#isElementHidden(helptext);
+                if (!isHidden) {
+                    idsForAriaDescribedby.push(text.id);
+                }
             }
         });
 
@@ -359,11 +372,7 @@ class FDSInputWrapper extends HTMLElement {
         this.querySelectorAll('fds-error-message').forEach(errorText => {
             if (errorText?.id) {
                 hasError = true;
-
-                const isHidden = errorText.hiddenStatus !== undefined
-                    ? errorText.hiddenStatus
-                    : (errorText.hasAttribute('hidden') &&
-                        errorText.getAttribute('hidden') !== 'false');
+                const isHidden = this.#isElementHidden(errorText);
 
                 if (!isHidden) {
                     idsForAriaDescribedby.push(errorText.id);
@@ -421,7 +430,8 @@ class FDSInputWrapper extends HTMLElement {
         this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
         this.addEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
         this.addEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
-        this.addEventListener('error-message-visibility-changed', this.#handleErrorVisibilityChange);
+        this.addEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
+        this.addEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
     }
 
     /* --------------------------------------------------
@@ -439,7 +449,8 @@ class FDSInputWrapper extends HTMLElement {
         this.#getInputElement().removeEventListener('blur', this.#handleBlur);
         window.removeEventListener('pageshow', this.#handlePageshow);
         document.removeEventListener('DOMContentLoaded', this.#handlePageshow);
-        this.removeEventListener('error-message-visibility-changed', this.#handleErrorVisibilityChange);
+        this.removeEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
+        this.removeEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
     }
 
     /* --------------------------------------------------

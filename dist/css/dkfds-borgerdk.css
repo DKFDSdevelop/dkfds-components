@@ -12833,6 +12833,10 @@ fds-help-text .help-text,
   font-weight:400;
   overflow-wrap:break-word;
 }
+fds-help-text[aria-hidden=true],
+.fds-help-text[aria-hidden=true]{
+  display:none;
+}
 
 fds-error-message,
 .fds-error-message{

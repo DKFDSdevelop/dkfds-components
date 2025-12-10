@@ -6217,7 +6217,7 @@ class FDSInputWrapper extends HTMLElement {
   #handlePageshow;
   #handleFocus;
   #handleBlur;
-  #handleErrorVisibilityChange;
+  #handleVisibilityChange;
   #lastKeyUpTimestamp;
   #oldValue;
   #intervalID;
@@ -6431,17 +6431,23 @@ class FDSInputWrapper extends HTMLElement {
       }
     }, 1000);
   }
-  #processErrorVisibilityChange(event) {
+  #processVisibilityChange(event) {
     const {
-      errorId,
-      isHidden
-    } = event.detail;
-    const errorEl = this.querySelector(`#${errorId}`);
-    if (errorEl) {
-      errorEl.hiddenStatus = isHidden;
+      detail
+    } = event;
+
+    // Extract ID and hidden status - works for both error and help-text events
+    const elementId = detail.errorId || detail.helptextId;
+    const isHidden = detail.isHidden;
+    const element = this.querySelector(`#${elementId}`);
+    if (element) {
+      element.hiddenStatus = isHidden;
     }
     this.updateIdReferences();
   }
+  #isElementHidden = element => {
+    return element.hiddenStatus !== undefined ? element.hiddenStatus : element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'false';
+  };
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -6487,8 +6493,8 @@ class FDSInputWrapper extends HTMLElement {
     this.#handleCharacterLimitConnection = () => {
       this.#setCharacterLimitListeners();
     };
-    this.#handleErrorVisibilityChange = event => {
-      this.#processErrorVisibilityChange(event);
+    this.#handleVisibilityChange = event => {
+      this.#processVisibilityChange(event);
     };
   }
 
@@ -6514,7 +6520,10 @@ class FDSInputWrapper extends HTMLElement {
     this.querySelectorAll('fds-help-text').forEach(helptext => {
       const text = helptext.querySelector(':scope > .help-text');
       if (text?.hasAttribute('id')) {
-        idsForAriaDescribedby.push(text.id);
+        const isHidden = this.#isElementHidden(helptext);
+        if (!isHidden) {
+          idsForAriaDescribedby.push(text.id);
+        }
       }
     });
 
@@ -6524,7 +6533,7 @@ class FDSInputWrapper extends HTMLElement {
     this.querySelectorAll('fds-error-message').forEach(errorText => {
       if (errorText?.id) {
         hasError = true;
-        const isHidden = errorText.hiddenStatus !== undefined ? errorText.hiddenStatus : errorText.hasAttribute('hidden') && errorText.getAttribute('hidden') !== 'false';
+        const isHidden = this.#isElementHidden(errorText);
         if (!isHidden) {
           idsForAriaDescribedby.push(errorText.id);
           hasVisibleError = true;
@@ -6577,7 +6586,8 @@ class FDSInputWrapper extends HTMLElement {
     this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
     this.addEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
     this.addEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
-    this.addEventListener('error-message-visibility-changed', this.#handleErrorVisibilityChange);
+    this.addEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
+    this.addEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
   }
 
   /* --------------------------------------------------
@@ -6594,7 +6604,8 @@ class FDSInputWrapper extends HTMLElement {
     this.#getInputElement().removeEventListener('blur', this.#handleBlur);
     window.removeEventListener('pageshow', this.#handlePageshow);
     document.removeEventListener('DOMContentLoaded', this.#handlePageshow);
-    this.removeEventListener('error-message-visibility-changed', this.#handleErrorVisibilityChange);
+    this.removeEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
+    this.removeEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
   }
 
   /* --------------------------------------------------
@@ -6674,10 +6685,28 @@ class FDSHelpText extends HTMLElement {
       span.id = generateAndVerifyUniqueId('help');
     }
   }
+  #shouldBeHidden(hiddenValue) {
+    return hiddenValue === 'true' || hiddenValue === '';
+  }
+  #setAriaHidden() {
+    this.setAttribute('aria-hidden', 'true');
+  }
+  #removeAriaHidden() {
+    this.removeAttribute('aria-hidden');
+  }
+  #notifyParent() {
+    this.#parentWrapper?.dispatchEvent(new CustomEvent('help-text-visibility-changed', {
+      bubbles: true,
+      detail: {
+        helptextId: this.id,
+        isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
+      }
+    }));
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['help-text-id'];
+  static observedAttributes = ['help-text-id', 'hidden'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -6705,6 +6734,11 @@ class FDSHelpText extends HTMLElement {
     // During disconnect, the custom element may lose connection to the wrapper.
     // Save the wrapper and use it to dispatch events - otherwise, the events may be lost.
     this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group');
+
+    // Handle initial hidden state
+    if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
+      this.#setAriaHidden();
+    }
     this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
   }
 
@@ -6727,6 +6761,14 @@ class FDSHelpText extends HTMLElement {
     if (!this.#rendered) return;
     if (name === 'help-text-id') {
       this.#updateId(newValue);
+    }
+    if (name === 'hidden' && oldValue !== newValue) {
+      if (this.#shouldBeHidden(newValue)) {
+        this.#setAriaHidden();
+      } else {
+        this.#removeAriaHidden();
+      }
+      this.#notifyParent();
     }
     this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
   }

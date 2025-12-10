@@ -16,4 +16,9 @@ fds-help-text,
         font-weight: func.font-weight(vars.$form-hint-font-weight);
         overflow-wrap: break-word;
     }
+
+    //Hidden help-texts
+    &[aria-hidden="true"] {
+        display: none;
+    }
 }
