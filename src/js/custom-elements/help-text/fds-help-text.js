@@ -104,15 +104,14 @@ class FDSHelpText extends HTMLElement {
             helpText.id = generateAndVerifyUniqueId('help');
         }
 
-        // During disconnect, the custom element may lose connection to the wrapper.
-        // Save the wrapper and use it to dispatch events - otherwise, the events may be lost.
-        this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group');
-
         // Handle initial hidden state
         if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
             this.#setAriaHidden();
         }
 
+        // During disconnect, the custom element may lose connection to the wrapper.
+        // Save the wrapper and use it to dispatch events - otherwise, the events may be lost.
+        this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group');
         this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
     }
 

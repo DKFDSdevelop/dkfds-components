@@ -12874,6 +12874,10 @@ fds-character-limit span.visual-message.limit-exceeded,
 .fds-character-limit span.visual-message.limit-exceeded{
   color:#CC0000;
 }
+fds-character-limit[aria-hidden=true],
+.fds-character-limit[aria-hidden=true]{
+  display:none;
+}
 
 fds-checkbox,
 .fds-checkbox{

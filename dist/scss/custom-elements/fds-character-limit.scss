@@ -20,4 +20,9 @@ fds-character-limit,
             color: func.color(vars.$input-text-character-limit-exceeded-color);
         }
     }
+
+    //Hidden character limit
+    &[aria-hidden="true"] {
+        display: none;
+    }
 }

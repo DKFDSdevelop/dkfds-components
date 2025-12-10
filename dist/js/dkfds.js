@@ -6235,9 +6235,8 @@ class FDSInputWrapper extends HTMLElement {
     return this.#label;
   }
   #getCharacterLimit() {
-    if (this.#limit) return this.#limit;
-    this.#limit = this.querySelector(':scope > fds-character-limit');
-    return this.#limit;
+    // if (this.#limit) return this.#limit;
+    return this.querySelector(':scope > fds-character-limit');
   }
 
   /* Indicator */
@@ -6437,7 +6436,7 @@ class FDSInputWrapper extends HTMLElement {
     } = event;
 
     // Extract ID and hidden status - works for both error and help-text events
-    const elementId = detail.errorId || detail.helptextId;
+    const elementId = detail.errorId || detail.helptextId || detail.characterLimitId;
     const isHidden = detail.isHidden;
     const element = this.querySelector(`#${elementId}`);
     if (element) {
@@ -6542,10 +6541,14 @@ class FDSInputWrapper extends HTMLElement {
     });
 
     // Character limit ID
-    if (this.#getCharacterLimit()) {
-      const spanId = this.#getCharacterLimit().querySelector(':scope > span[id]');
+    const characterLimit = this.#getCharacterLimit();
+    if (characterLimit) {
+      const spanId = characterLimit.querySelector(':scope > span');
       if (spanId?.hasAttribute('id')) {
-        idsForAriaDescribedby.push(spanId.id);
+        const isHidden = this.#isElementHidden(characterLimit);
+        if (!isHidden) {
+          idsForAriaDescribedby.push(spanId.id);
+        }
       }
     }
 
@@ -6588,6 +6591,7 @@ class FDSInputWrapper extends HTMLElement {
     this.addEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
     this.addEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
     this.addEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
+    this.addEventListener('character-limit-visibility-changed', this.#handleVisibilityChange);
   }
 
   /* --------------------------------------------------
@@ -6606,6 +6610,7 @@ class FDSInputWrapper extends HTMLElement {
     document.removeEventListener('DOMContentLoaded', this.#handlePageshow);
     this.removeEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
     this.removeEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
+    this.removeEventListener('character-limit-visibility-changed', this.#handleVisibilityChange);
   }
 
   /* --------------------------------------------------
@@ -6731,14 +6736,14 @@ class FDSHelpText extends HTMLElement {
       helpText.id = generateAndVerifyUniqueId('help');
     }
 
-    // During disconnect, the custom element may lose connection to the wrapper.
-    // Save the wrapper and use it to dispatch events - otherwise, the events may be lost.
-    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group');
-
     // Handle initial hidden state
     if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
       this.#setAriaHidden();
     }
+
+    // During disconnect, the custom element may lose connection to the wrapper.
+    // Save the wrapper and use it to dispatch events - otherwise, the events may be lost.
+    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group');
     this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
   }
 
@@ -6858,10 +6863,28 @@ class FDSCharacterLimit extends HTMLElement {
       this.updateVisibleMessage();
     }
   }
+  #shouldBeHidden(hiddenValue) {
+    return hiddenValue === 'true' || hiddenValue === '';
+  }
+  #setAriaHidden() {
+    this.setAttribute('aria-hidden', 'true');
+  }
+  #removeAriaHidden() {
+    this.removeAttribute('aria-hidden');
+  }
+  #notifyParent() {
+    this.#parentWrapper?.dispatchEvent(new CustomEvent('character-limit-visibility-changed', {
+      bubbles: true,
+      detail: {
+        characterLimitId: this.id,
+        isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
+      }
+    }));
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['limit', 'one-character-remaining-text', 'several-characters-remaining-text', 'one-character-too-many-text', 'several-characters-too-many-text', 'max-limit-text'];
+  static observedAttributes = ['limit', 'one-character-remaining-text', 'several-characters-remaining-text', 'one-character-too-many-text', 'several-characters-too-many-text', 'max-limit-text', 'hidden'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -6951,6 +6974,11 @@ class FDSCharacterLimit extends HTMLElement {
     }
     this.updateVisibleMessage();
 
+    // Handle initial hidden state
+    if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
+      this.#setAriaHidden();
+    }
+
     // During disconnect, the custom element may lose connection to the input-wrapper.
     // Save the input-wrapper and use it to dispatch events - otherwise, the events may be lost.
     this.#parentWrapper = this.closest('fds-input-wrapper');
@@ -6997,6 +7025,14 @@ class FDSCharacterLimit extends HTMLElement {
     if (name === 'max-limit-text') {
       this.#messages.max_limit = newValue;
       this.updateMessages();
+    }
+    if (name === 'hidden' && oldValue !== newValue) {
+      if (this.#shouldBeHidden(newValue)) {
+        this.#setAriaHidden();
+      } else {
+        this.#removeAriaHidden();
+      }
+      this.#notifyParent();
     }
     this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
   }
@@ -7082,13 +7118,13 @@ class FDSErrorMessage extends HTMLElement {
       this.id = generateAndVerifyUniqueId('error');
     }
 
-    // Save reference to parent wrapper
-    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group');
-
     // Handle initial hidden state
     if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
       this.#setAriaHidden();
     }
+
+    // Save reference to parent wrapper
+    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group');
     this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
   }
 

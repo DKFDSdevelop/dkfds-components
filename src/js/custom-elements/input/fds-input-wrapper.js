@@ -41,10 +41,8 @@ class FDSInputWrapper extends HTMLElement {
     }
 
     #getCharacterLimit() {
-        if (this.#limit) return this.#limit;
-
-        this.#limit = this.querySelector(':scope > fds-character-limit');
-        return this.#limit;
+        // if (this.#limit) return this.#limit;
+        return this.querySelector(':scope > fds-character-limit');
     }
 
     /* Indicator */
@@ -281,7 +279,7 @@ class FDSInputWrapper extends HTMLElement {
         const { detail } = event;
 
         // Extract ID and hidden status - works for both error and help-text events
-        const elementId = detail.errorId || detail.helptextId;
+        const elementId = detail.errorId || detail.helptextId || detail.characterLimitId;
         const isHidden = detail.isHidden;
 
         const element = this.querySelector(`#${elementId}`);
@@ -381,10 +379,14 @@ class FDSInputWrapper extends HTMLElement {
         });
 
         // Character limit ID
-        if (this.#getCharacterLimit()) {
-            const spanId = this.#getCharacterLimit().querySelector(':scope > span[id]');
+        const characterLimit = this.#getCharacterLimit();
+        if (characterLimit) {
+            const spanId = characterLimit.querySelector(':scope > span');
             if (spanId?.hasAttribute('id')) {
-                idsForAriaDescribedby.push(spanId.id);
+                const isHidden = this.#isElementHidden(characterLimit);
+                if (!isHidden) {
+                    idsForAriaDescribedby.push(spanId.id);
+                }
             }
         }
 
@@ -431,6 +433,7 @@ class FDSInputWrapper extends HTMLElement {
         this.addEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
         this.addEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
         this.addEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
+        this.addEventListener('character-limit-visibility-changed', this.#handleVisibilityChange);
     }
 
     /* --------------------------------------------------
@@ -450,6 +453,7 @@ class FDSInputWrapper extends HTMLElement {
         document.removeEventListener('DOMContentLoaded', this.#handlePageshow);
         this.removeEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
         this.removeEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
+        this.removeEventListener('character-limit-visibility-changed', this.#handleVisibilityChange);
     }
 
     /* --------------------------------------------------
