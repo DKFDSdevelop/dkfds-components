@@ -62,8 +62,8 @@ class FDSInputWrapper extends HTMLElement {
             this.#getLabelElement().appendChild(span);
         }
 
-        const isRequired = 
-            this.#getInputElement().hasAttribute('required') || 
+        const isRequired =
+            this.#getInputElement().hasAttribute('required') ||
             (this.#getInputElement().hasAttribute('aria-required') && this.#getInputElement().getAttribute('aria-required') !== 'false');
 
         let text = value;
@@ -81,7 +81,7 @@ class FDSInputWrapper extends HTMLElement {
     #removeIndicator() {
         this.#getLabelElement()?.querySelector(':scope > span.weight-normal')?.remove();
     }
-    
+
     /* Readonly */
 
     #shouldHaveReadonly(value) {
@@ -292,10 +292,10 @@ class FDSInputWrapper extends HTMLElement {
     }
 
     #isElementHidden = (element) => {
-    return element.hiddenStatus !== undefined
-        ? element.hiddenStatus
-        : (element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'false');
-};
+        return element.hiddenStatus !== undefined
+            ? element.hiddenStatus
+            : (element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'false');
+    };
 
     /* Attributes which can invoke attributeChangedCallback() */
 
@@ -373,7 +373,6 @@ class FDSInputWrapper extends HTMLElement {
             if (errorText?.id) {
                 hasError = true;
                 const isHidden = this.#isElementHidden(errorText);
-
                 if (!isHidden) {
                     idsForAriaDescribedby.push(errorText.id);
                     hasVisibleError = true;
