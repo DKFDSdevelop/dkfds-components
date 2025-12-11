@@ -12821,9 +12821,6 @@ fds-input-wrapper:has(fds-error-message:not([hidden])) > .form-input, fds-input-
 fds-help-text,
 .fds-help-text{
   display:block;
-}
-fds-help-text .help-text,
-.fds-help-text .help-text{
   max-width:66ch;
   display:block;
   color:#707070;
