@@ -145,9 +145,8 @@ class FDSCheckbox extends HTMLElement {
         // Add help text IDs
         const helpTexts = this.#getHelpTextElements();
         helpTexts.forEach(helptext => {
-            const text = helptext.querySelector(':scope > .help-text');
-            if (text?.hasAttribute('id')) {
-                idsForAriaDescribedby.push(text.id);
+            if (helptext?.hasAttribute('id')) {
+                idsForAriaDescribedby.push(helptext.id);
             }
         });
 

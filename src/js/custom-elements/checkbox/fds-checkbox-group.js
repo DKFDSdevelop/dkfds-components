@@ -90,9 +90,7 @@ class FDSCheckboxGroup extends HTMLElement {
         }
 
         const ids = describers
-            .map(el => {
-                return el.id || el.querySelector('[id]')?.id;
-            })
+            .map(el => el.id)
             .filter(Boolean);
 
         if (ids.length) {
