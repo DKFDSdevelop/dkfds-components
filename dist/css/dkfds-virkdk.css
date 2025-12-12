@@ -12839,9 +12839,10 @@ fds-error-message,
 .fds-error-message{
   font-size:1.6rem;
   line-height:2.4rem;
-  font-weight:600;
+  font-weight:400;
   color:#1a1a1a;
   text-transform:none;
+  letter-spacing:normal;
   display:block;
   color:#CC0000;
   margin-top:4px;
