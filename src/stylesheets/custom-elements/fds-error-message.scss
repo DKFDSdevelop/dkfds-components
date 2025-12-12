@@ -9,4 +9,9 @@ fds-error-message,
     color: func.color('error');
     margin-top: func.units(2);
     max-width: vars.$typography-text-max-width;
+
+    //Hidden errors
+    &[aria-hidden="true"] {
+        display: none;
+    }
 }

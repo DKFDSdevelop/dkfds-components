@@ -36,9 +36,31 @@ class FDSHelpText extends HTMLElement {
         }
     }
 
+    #shouldBeHidden(hiddenValue) {
+        return hiddenValue === 'true' || hiddenValue === '';
+    }
+
+    #setAriaHidden() {
+        this.setAttribute('aria-hidden', 'true');
+    }
+
+    #removeAriaHidden() {
+        this.removeAttribute('aria-hidden');
+    }
+
+    #notifyParent() {
+        this.#parentWrapper?.dispatchEvent(new CustomEvent('help-text-visibility-changed', {
+            bubbles: true,
+            detail: {
+                helptextId: this.id,
+                isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
+            }
+        }));
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['help-text-id'];
+    static observedAttributes = ['help-text-id', 'hidden'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -65,10 +87,14 @@ class FDSHelpText extends HTMLElement {
             helpText.id = generateAndVerifyUniqueId('help');
         }
 
-        // During disconnect, the custom element may lose connection to the input-wrapper.
-        // Save the input-wrapper and use it to dispatch events - otherwise, the events may be lost.
-        this.#parentWrapper = this.closest('fds-input-wrapper');
+        // Handle initial hidden state
+        if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
+            this.#setAriaHidden();
+        }
 
+        // During disconnect, the custom element may lose connection to the wrapper.
+        // Save the wrapper and use it to dispatch events - otherwise, the events may be lost.
+        this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group');
         this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
     }
 
@@ -93,6 +119,15 @@ class FDSHelpText extends HTMLElement {
 
         if (name === 'help-text-id') {
             this.#updateId(newValue);
+        }
+
+        if (name === 'hidden' && oldValue !== newValue) {
+            if (this.#shouldBeHidden(newValue)) {
+                this.#setAriaHidden();
+            } else {
+                this.#removeAriaHidden();
+            }
+            this.#notifyParent();
         }
 
         this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));

@@ -7,6 +7,10 @@ class FDSCheckboxGroup extends HTMLElement {
     #fieldset;
     #legend;
 
+    #handleErrorMessageCallback;
+    #handleHelpTextCallback;
+    #handleVisibilityChange;
+
     /* Private methods */
 
     #getFieldsetElement() {
@@ -83,23 +87,6 @@ class FDSCheckboxGroup extends HTMLElement {
         }
     }
 
-    #setAriaDescribedBy(describers) {
-        if (!describers.length) {
-            this.#fieldset.removeAttribute('aria-describedby');
-            return;
-        }
-
-        const ids = describers
-            .map(el => el.id)
-            .filter(Boolean);
-
-        if (ids.length) {
-            this.#fieldset.setAttribute('aria-describedby', ids.join(' '));
-        } else {
-            this.#fieldset.removeAttribute('aria-describedby');
-        }
-    }
-
     /* Disabled */
 
     #shouldHaveDisabled(value) {
@@ -116,16 +103,84 @@ class FDSCheckboxGroup extends HTMLElement {
         this.#getFieldsetElement()?.classList.remove('disabled');
     }
 
+    #processVisibilityChange(event) {
+        const { detail } = event;
+
+        // Extract ID and hidden status - works for both error and help-text events
+        const elementId = detail.errorId || detail.helptextId;
+        const isHidden = detail.isHidden;
+
+        const element = this.querySelector(`#${elementId}`);
+        if (element) {
+            element.hiddenStatus = isHidden;
+        }
+        this.updateIdReferences();
+    }
+
+    #isElementHidden = (element) => {
+        return element.hiddenStatus !== undefined
+            ? element.hiddenStatus
+            : (element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'false');
+    };
+
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = ['group-label', 'group-disabled'];
 
     /* --------------------------------------------------
-CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
--------------------------------------------------- */
+    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+    -------------------------------------------------- */
 
     constructor() {
         super();
+
+        this.#handleErrorMessageCallback = () => { this.handleIdReferences(); };
+        this.#handleHelpTextCallback = () => { this.handleIdReferences(); };
+        this.#handleVisibilityChange = (event) => { this.#processVisibilityChange(event); };
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT METHODS
+    -------------------------------------------------- */
+
+    handleIdReferences() {
+        if (!this.#fieldset) return;
+
+        const idsForAriaDescribedby = [];
+
+        // Add help text IDs
+        const helpTexts = this.#getGroupHelpTexts();
+        helpTexts.forEach(helptext => {
+            const text = helptext.querySelector(':scope > .help-text');
+            if (text?.hasAttribute('id')) {
+                const isHidden = this.#isElementHidden(helptext);
+                if (!isHidden) {
+                    idsForAriaDescribedby.push(text.id);
+                }
+            }
+        });
+
+        // Add error message IDs
+        let hasError = false;
+        let hasVisibleError = false;
+        const errorMessages = this.#getErrorMessages();
+        errorMessages.forEach(errorText => {
+            if (errorText?.id) {
+                hasError = true;
+                const isHidden = this.#isElementHidden(errorText);
+                if (!isHidden) {
+                    idsForAriaDescribedby.push(errorText.id);
+                    hasVisibleError = true;
+                }
+            }
+        });
+
+        // Set or remove aria-describedby
+        if (idsForAriaDescribedby.length > 0) {
+            this.#fieldset.setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
+        } else {
+            this.#fieldset.removeAttribute('aria-describedby');
+        }
     }
 
     /* --------------------------------------------------
@@ -136,7 +191,23 @@ CUSTOM ELEMENT ADDED TO DOCUMENT
         const { helpTexts, errors } = this.#setStructure();
         this.#setGroupLabel();
         if (this.#shouldHaveDisabled(this.getAttribute('group-disabled'))) this.#setDisabled();
-        this.#setAriaDescribedBy([...helpTexts, ...errors]);
+        this.handleIdReferences();
+
+        this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
+        this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
+        this.addEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
+        this.addEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT REMOVED FROM DOCUMENT
+    -------------------------------------------------- */
+
+    disconnectedCallback() {
+        this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
+        this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
+        this.removeEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
+        this.removeEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
     }
 
     /* --------------------------------------------------
@@ -144,6 +215,8 @@ CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
 -------------------------------------------------- */
 
     attributeChangedCallback(name, oldValue, newValue) {
+        if (!this.isConnected) return;
+
         if (name === 'group-label') {
             this.#setGroupLabel();
         }

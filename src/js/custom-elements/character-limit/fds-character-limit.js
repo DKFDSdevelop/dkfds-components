@@ -88,6 +88,28 @@ class FDSCharacterLimit extends HTMLElement {
         }
     }
 
+    #shouldBeHidden(hiddenValue) {
+        return hiddenValue === 'true' || hiddenValue === '';
+    }
+
+    #setAriaHidden() {
+        this.setAttribute('aria-hidden', 'true');
+    }
+
+    #removeAriaHidden() {
+        this.removeAttribute('aria-hidden');
+    }
+
+    #notifyParent() {
+        this.#parentWrapper?.dispatchEvent(new CustomEvent('character-limit-visibility-changed', {
+            bubbles: true,
+            detail: {
+                characterLimitId: this.id,
+                isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
+            }
+        }));
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = [
@@ -96,7 +118,8 @@ class FDSCharacterLimit extends HTMLElement {
         'several-characters-remaining-text', 
         'one-character-too-many-text', 
         'several-characters-too-many-text', 
-        'max-limit-text'
+        'max-limit-text',
+        'hidden'
     ];
 
     /* --------------------------------------------------
@@ -207,6 +230,11 @@ class FDSCharacterLimit extends HTMLElement {
 
         this.updateVisibleMessage();
 
+        // Handle initial hidden state
+        if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
+            this.#setAriaHidden();
+        }
+
         // During disconnect, the custom element may lose connection to the input-wrapper.
         // Save the input-wrapper and use it to dispatch events - otherwise, the events may be lost.
         this.#parentWrapper = this.closest('fds-input-wrapper');
@@ -260,6 +288,15 @@ class FDSCharacterLimit extends HTMLElement {
         if (name === 'max-limit-text') {
             this.#messages.max_limit = newValue;
             this.updateMessages();
+        }
+
+        if (name === 'hidden' && oldValue !== newValue) {
+            if (this.#shouldBeHidden(newValue)) {
+                this.#setAriaHidden();
+            } else {
+                this.#removeAriaHidden();
+            }
+            this.#notifyParent();
         }
 
         this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));

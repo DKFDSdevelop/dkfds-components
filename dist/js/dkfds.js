@@ -6217,6 +6217,7 @@ class FDSInputWrapper extends HTMLElement {
   #handlePageshow;
   #handleFocus;
   #handleBlur;
+  #handleVisibilityChange;
   #lastKeyUpTimestamp;
   #oldValue;
   #intervalID;
@@ -6234,9 +6235,7 @@ class FDSInputWrapper extends HTMLElement {
     return this.#label;
   }
   #getCharacterLimit() {
-    if (this.#limit) return this.#limit;
-    this.#limit = this.querySelector(':scope > fds-character-limit');
-    return this.#limit;
+    return this.querySelector(':scope > fds-character-limit');
   }
 
   /* Indicator */
@@ -6430,6 +6429,23 @@ class FDSInputWrapper extends HTMLElement {
       }
     }, 1000);
   }
+  #processVisibilityChange(event) {
+    const {
+      detail
+    } = event;
+
+    // Extract ID and hidden status - works for both error and help-text events
+    const elementId = detail.errorId || detail.helptextId || detail.characterLimitId;
+    const isHidden = detail.isHidden;
+    const element = this.querySelector(`#${elementId}`);
+    if (element) {
+      element.hiddenStatus = isHidden;
+    }
+    this.updateIdReferences();
+  }
+  #isElementHidden = element => {
+    return element.hiddenStatus !== undefined ? element.hiddenStatus : element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'false';
+  };
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -6475,6 +6491,9 @@ class FDSInputWrapper extends HTMLElement {
     this.#handleCharacterLimitConnection = () => {
       this.#setCharacterLimitListeners();
     };
+    this.#handleVisibilityChange = event => {
+      this.#processVisibilityChange(event);
+    };
   }
 
   /* --------------------------------------------------
@@ -6497,25 +6516,38 @@ class FDSInputWrapper extends HTMLElement {
 
     // Help text ID
     this.querySelectorAll('fds-help-text').forEach(helptext => {
-      if (helptext?.id) {
-        idsForAriaDescribedby.push(helptext.id);
+      const text = helptext.querySelector(':scope > .help-text');
+      if (text?.hasAttribute('id')) {
+        const isHidden = this.#isElementHidden(helptext);
+        if (!isHidden) {
+          idsForAriaDescribedby.push(text.id);
+        }
       }
     });
 
     // Error message IDs
     let hasError = false;
+    let hasVisibleError = false;
     this.querySelectorAll('fds-error-message').forEach(errorText => {
       if (errorText?.id) {
-        idsForAriaDescribedby.push(errorText.id);
         hasError = true;
+        const isHidden = this.#isElementHidden(errorText);
+        if (!isHidden) {
+          idsForAriaDescribedby.push(errorText.id);
+          hasVisibleError = true;
+        }
       }
     });
 
     // Character limit ID
-    if (this.#getCharacterLimit()) {
-      const spanId = this.#getCharacterLimit().querySelector(':scope > span[id]');
+    const characterLimit = this.#getCharacterLimit();
+    if (characterLimit) {
+      const spanId = characterLimit.querySelector(':scope > span');
       if (spanId?.hasAttribute('id')) {
-        idsForAriaDescribedby.push(spanId.id);
+        const isHidden = this.#isElementHidden(characterLimit);
+        if (!isHidden) {
+          idsForAriaDescribedby.push(spanId.id);
+        }
       }
     }
 
@@ -6527,7 +6559,7 @@ class FDSInputWrapper extends HTMLElement {
     }
 
     // Set aria-invalid if wrapper has error messages
-    if (hasError) {
+    if (hasError && hasVisibleError) {
       this.#getInputElement().setAttribute('aria-invalid', 'true');
     } else {
       this.#getInputElement().removeAttribute('aria-invalid');
@@ -6556,6 +6588,9 @@ class FDSInputWrapper extends HTMLElement {
     this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
     this.addEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
     this.addEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
+    this.addEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
+    this.addEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
+    this.addEventListener('character-limit-visibility-changed', this.#handleVisibilityChange);
   }
 
   /* --------------------------------------------------
@@ -6572,6 +6607,9 @@ class FDSInputWrapper extends HTMLElement {
     this.#getInputElement().removeEventListener('blur', this.#handleBlur);
     window.removeEventListener('pageshow', this.#handlePageshow);
     document.removeEventListener('DOMContentLoaded', this.#handlePageshow);
+    this.removeEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
+    this.removeEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
+    this.removeEventListener('character-limit-visibility-changed', this.#handleVisibilityChange);
   }
 
   /* --------------------------------------------------
@@ -6637,10 +6675,28 @@ class FDSHelpText extends HTMLElement {
       this.id = generateAndVerifyUniqueId('help');
     }
   }
+  #shouldBeHidden(hiddenValue) {
+    return hiddenValue === 'true' || hiddenValue === '';
+  }
+  #setAriaHidden() {
+    this.setAttribute('aria-hidden', 'true');
+  }
+  #removeAriaHidden() {
+    this.removeAttribute('aria-hidden');
+  }
+  #notifyParent() {
+    this.#parentWrapper?.dispatchEvent(new CustomEvent('help-text-visibility-changed', {
+      bubbles: true,
+      detail: {
+        helptextId: this.id,
+        isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
+      }
+    }));
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['help-text-id'];
+  static observedAttributes = ['help-text-id', 'hidden'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -6665,9 +6721,14 @@ class FDSHelpText extends HTMLElement {
       helpText.id = generateAndVerifyUniqueId('help');
     }
 
-    // During disconnect, the custom element may lose connection to the input-wrapper.
-    // Save the input-wrapper and use it to dispatch events - otherwise, the events may be lost.
-    this.#parentWrapper = this.closest('fds-input-wrapper');
+    // Handle initial hidden state
+    if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
+      this.#setAriaHidden();
+    }
+
+    // During disconnect, the custom element may lose connection to the wrapper.
+    // Save the wrapper and use it to dispatch events - otherwise, the events may be lost.
+    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group');
     this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
   }
 
@@ -6690,6 +6751,14 @@ class FDSHelpText extends HTMLElement {
     if (!this.#rendered) return;
     if (name === 'help-text-id') {
       this.#updateId(newValue);
+    }
+    if (name === 'hidden' && oldValue !== newValue) {
+      if (this.#shouldBeHidden(newValue)) {
+        this.#setAriaHidden();
+      } else {
+        this.#removeAriaHidden();
+      }
+      this.#notifyParent();
     }
     this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
   }
@@ -6779,10 +6848,28 @@ class FDSCharacterLimit extends HTMLElement {
       this.updateVisibleMessage();
     }
   }
+  #shouldBeHidden(hiddenValue) {
+    return hiddenValue === 'true' || hiddenValue === '';
+  }
+  #setAriaHidden() {
+    this.setAttribute('aria-hidden', 'true');
+  }
+  #removeAriaHidden() {
+    this.removeAttribute('aria-hidden');
+  }
+  #notifyParent() {
+    this.#parentWrapper?.dispatchEvent(new CustomEvent('character-limit-visibility-changed', {
+      bubbles: true,
+      detail: {
+        characterLimitId: this.id,
+        isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
+      }
+    }));
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['limit', 'one-character-remaining-text', 'several-characters-remaining-text', 'one-character-too-many-text', 'several-characters-too-many-text', 'max-limit-text'];
+  static observedAttributes = ['limit', 'one-character-remaining-text', 'several-characters-remaining-text', 'one-character-too-many-text', 'several-characters-too-many-text', 'max-limit-text', 'hidden'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -6872,6 +6959,11 @@ class FDSCharacterLimit extends HTMLElement {
     }
     this.updateVisibleMessage();
 
+    // Handle initial hidden state
+    if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
+      this.#setAriaHidden();
+    }
+
     // During disconnect, the custom element may lose connection to the input-wrapper.
     // Save the input-wrapper and use it to dispatch events - otherwise, the events may be lost.
     this.#parentWrapper = this.closest('fds-input-wrapper');
@@ -6919,6 +7011,14 @@ class FDSCharacterLimit extends HTMLElement {
       this.#messages.max_limit = newValue;
       this.updateMessages();
     }
+    if (name === 'hidden' && oldValue !== newValue) {
+      if (this.#shouldBeHidden(newValue)) {
+        this.#setAriaHidden();
+      } else {
+        this.#removeAriaHidden();
+      }
+      this.#notifyParent();
+    }
     this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
   }
 }
@@ -6958,10 +7058,28 @@ class FDSErrorMessage extends HTMLElement {
     }
     this.#rendered = true;
   }
+  #shouldBeHidden(hiddenValue) {
+    return hiddenValue === 'true' || hiddenValue === '';
+  }
+  #setAriaHidden() {
+    this.setAttribute('aria-hidden', 'true');
+  }
+  #removeAriaHidden() {
+    this.removeAttribute('aria-hidden');
+  }
+  #notifyParent() {
+    this.#parentWrapper?.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+      bubbles: true,
+      detail: {
+        errorId: this.id,
+        isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
+      }
+    }));
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['id', 'sr-text'];
+  static observedAttributes = ['id', 'sr-text', 'hidden'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -6985,8 +7103,13 @@ class FDSErrorMessage extends HTMLElement {
       this.id = generateAndVerifyUniqueId('error');
     }
 
+    // Handle initial hidden state
+    if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
+      this.#setAriaHidden();
+    }
+
     // Save reference to parent wrapper
-    this.#parentWrapper = this.closest('fds-input-wrapper');
+    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group');
     this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
   }
 
@@ -7008,7 +7131,15 @@ class FDSErrorMessage extends HTMLElement {
     if (!this.#rendered) return;
     if (name === 'sr-text') {
       this.#srOnlyText = newValue;
-      this.querySelector(':scope > .form-error-message > .sr-only').textContent = this.#srOnlyText;
+      this.querySelector(':scope > .sr-only').textContent = this.#srOnlyText;
+    }
+    if (name === 'hidden' && oldValue !== newValue) {
+      if (this.#shouldBeHidden(newValue)) {
+        this.#setAriaHidden();
+      } else {
+        this.#removeAriaHidden();
+      }
+      this.#notifyParent();
     }
     this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
   }
@@ -7029,6 +7160,8 @@ class FDSCheckbox extends HTMLElement {
   #input;
   #label;
   #handleHelpTextCallback;
+  #handleErrorMessageCallback;
+  #handleVisibilityChange;
   #onInputChange;
 
   /* Private methods */
@@ -7122,6 +7255,23 @@ class FDSCheckbox extends HTMLElement {
     };
     input.addEventListener('change', this.#onInputChange);
   }
+  #processVisibilityChange(event) {
+    const {
+      detail
+    } = event;
+
+    // Extract ID and hidden status - works for both error and help-text events
+    const elementId = detail.errorId || detail.helptextId;
+    const isHidden = detail.isHidden;
+    const element = this.querySelector(`#${elementId}`);
+    if (element) {
+      element.hiddenStatus = isHidden;
+    }
+    this.updateIdReferences();
+  }
+  #isElementHidden = element => {
+    return element.hiddenStatus !== undefined ? element.hiddenStatus : element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'false';
+  };
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -7135,6 +7285,12 @@ class FDSCheckbox extends HTMLElement {
     super();
     this.#handleHelpTextCallback = () => {
       this.handleIdReferences();
+    };
+    this.#handleErrorMessageCallback = () => {
+      this.handleIdReferences();
+    };
+    this.#handleVisibilityChange = event => {
+      this.#processVisibilityChange(event);
     };
   }
 
@@ -7153,17 +7309,27 @@ class FDSCheckbox extends HTMLElement {
     // Add help text IDs
     const helpTexts = this.#getHelpTextElements();
     helpTexts.forEach(helptext => {
-      if (helptext?.hasAttribute('id')) {
-        idsForAriaDescribedby.push(helptext.id);
+      const text = helptext.querySelector(':scope > .help-text');
+      if (text?.hasAttribute('id')) {
+        const isHidden = this.#isElementHidden(helptext);
+        if (!isHidden) {
+          idsForAriaDescribedby.push(text.id);
+        }
       }
     });
 
     // Add error message IDs
+    let hasError = false;
+    let hasVisibleError = false;
     const errorMessages = this.#getErrorMessages();
-    errorMessages.forEach(error => {
-      const errorId = error.id || error.querySelector('[id]')?.id;
-      if (errorId) {
-        idsForAriaDescribedby.push(errorId);
+    errorMessages.forEach(errorText => {
+      if (errorText?.id) {
+        hasError = true;
+        const isHidden = this.#isElementHidden(errorText);
+        if (!isHidden) {
+          idsForAriaDescribedby.push(errorText.id);
+          hasVisibleError = true;
+        }
       }
     });
 
@@ -7193,6 +7359,9 @@ class FDSCheckbox extends HTMLElement {
     this.handleIdReferences();
     this.#handleCollapsibleCheckboxes();
     this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
+    this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
+    this.addEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
+    this.addEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
   }
 
   /* --------------------------------------------------
@@ -7201,6 +7370,9 @@ class FDSCheckbox extends HTMLElement {
 
   disconnectedCallback() {
     this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
+    this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
+    this.removeEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
+    this.removeEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
     if (this.#input) {
       this.#input.removeEventListener('change', this.#onInputChange);
     }
@@ -7231,6 +7403,9 @@ class FDSCheckboxGroup extends HTMLElement {
 
   #fieldset;
   #legend;
+  #handleErrorMessageCallback;
+  #handleHelpTextCallback;
+  #handleVisibilityChange;
 
   /* Private methods */
 
@@ -7294,18 +7469,6 @@ class FDSCheckboxGroup extends HTMLElement {
       if (label != null) this.#legend.textContent = label;
     }
   }
-  #setAriaDescribedBy(describers) {
-    if (!describers.length) {
-      this.#fieldset.removeAttribute('aria-describedby');
-      return;
-    }
-    const ids = describers.map(el => el.id).filter(Boolean);
-    if (ids.length) {
-      this.#fieldset.setAttribute('aria-describedby', ids.join(' '));
-    } else {
-      this.#fieldset.removeAttribute('aria-describedby');
-    }
-  }
 
   /* Disabled */
 
@@ -7320,6 +7483,23 @@ class FDSCheckboxGroup extends HTMLElement {
     this.#getFieldsetElement()?.removeAttribute('disabled');
     this.#getFieldsetElement()?.classList.remove('disabled');
   }
+  #processVisibilityChange(event) {
+    const {
+      detail
+    } = event;
+
+    // Extract ID and hidden status - works for both error and help-text events
+    const elementId = detail.errorId || detail.helptextId;
+    const isHidden = detail.isHidden;
+    const element = this.querySelector(`#${elementId}`);
+    if (element) {
+      element.hiddenStatus = isHidden;
+    }
+    this.updateIdReferences();
+  }
+  #isElementHidden = element => {
+    return element.hiddenStatus !== undefined ? element.hiddenStatus : element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'false';
+  };
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -7331,6 +7511,58 @@ class FDSCheckboxGroup extends HTMLElement {
 
   constructor() {
     super();
+    this.#handleErrorMessageCallback = () => {
+      this.handleIdReferences();
+    };
+    this.#handleHelpTextCallback = () => {
+      this.handleIdReferences();
+    };
+    this.#handleVisibilityChange = event => {
+      this.#processVisibilityChange(event);
+    };
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  handleIdReferences() {
+    if (!this.#fieldset) return;
+    const idsForAriaDescribedby = [];
+
+    // Add help text IDs
+    const helpTexts = this.#getGroupHelpTexts();
+    helpTexts.forEach(helptext => {
+      const text = helptext.querySelector(':scope > .help-text');
+      if (text?.hasAttribute('id')) {
+        const isHidden = this.#isElementHidden(helptext);
+        if (!isHidden) {
+          idsForAriaDescribedby.push(text.id);
+        }
+      }
+    });
+
+    // Add error message IDs
+    let hasError = false;
+    let hasVisibleError = false;
+    const errorMessages = this.#getErrorMessages();
+    errorMessages.forEach(errorText => {
+      if (errorText?.id) {
+        hasError = true;
+        const isHidden = this.#isElementHidden(errorText);
+        if (!isHidden) {
+          idsForAriaDescribedby.push(errorText.id);
+          hasVisibleError = true;
+        }
+      }
+    });
+
+    // Set or remove aria-describedby
+    if (idsForAriaDescribedby.length > 0) {
+      this.#fieldset.setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
+    } else {
+      this.#fieldset.removeAttribute('aria-describedby');
+    }
   }
 
   /* --------------------------------------------------
@@ -7344,7 +7576,22 @@ class FDSCheckboxGroup extends HTMLElement {
     } = this.#setStructure();
     this.#setGroupLabel();
     if (this.#shouldHaveDisabled(this.getAttribute('group-disabled'))) this.#setDisabled();
-    this.#setAriaDescribedBy([...helpTexts, ...errors]);
+    this.handleIdReferences();
+    this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
+    this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
+    this.addEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
+    this.addEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
+    this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
+    this.removeEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
+    this.removeEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
   }
 
   /* --------------------------------------------------
@@ -7352,6 +7599,7 @@ class FDSCheckboxGroup extends HTMLElement {
   -------------------------------------------------- */
 
   attributeChangedCallback(name, oldValue, newValue) {
+    if (!this.isConnected) return;
     if (name === 'group-label') {
       this.#setGroupLabel();
     }

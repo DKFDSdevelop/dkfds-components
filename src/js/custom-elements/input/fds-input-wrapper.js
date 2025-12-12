@@ -18,6 +18,7 @@ class FDSInputWrapper extends HTMLElement {
     #handlePageshow;
     #handleFocus;
     #handleBlur;
+    #handleVisibilityChange;
 
     #lastKeyUpTimestamp;
     #oldValue;
@@ -40,10 +41,7 @@ class FDSInputWrapper extends HTMLElement {
     }
 
     #getCharacterLimit() {
-        if (this.#limit) return this.#limit;
-
-        this.#limit = this.querySelector(':scope > fds-character-limit');
-        return this.#limit;
+        return this.querySelector(':scope > fds-character-limit');
     }
 
     /* Indicator */
@@ -61,8 +59,8 @@ class FDSInputWrapper extends HTMLElement {
             this.#getLabelElement().appendChild(span);
         }
 
-        const isRequired = 
-            this.#getInputElement().hasAttribute('required') || 
+        const isRequired =
+            this.#getInputElement().hasAttribute('required') ||
             (this.#getInputElement().hasAttribute('aria-required') && this.#getInputElement().getAttribute('aria-required') !== 'false');
 
         let text = value;
@@ -80,7 +78,7 @@ class FDSInputWrapper extends HTMLElement {
     #removeIndicator() {
         this.#getLabelElement()?.querySelector(':scope > span.weight-normal')?.remove();
     }
-    
+
     /* Readonly */
 
     #shouldHaveReadonly(value) {
@@ -276,6 +274,26 @@ class FDSInputWrapper extends HTMLElement {
         }, 1000);
     }
 
+    #processVisibilityChange(event) {
+        const { detail } = event;
+
+        // Extract ID and hidden status - works for both error and help-text events
+        const elementId = detail.errorId || detail.helptextId || detail.characterLimitId;
+        const isHidden = detail.isHidden;
+
+        const element = this.querySelector(`#${elementId}`);
+        if (element) {
+            element.hiddenStatus = isHidden;
+        }
+        this.updateIdReferences();
+    }
+
+    #isElementHidden = (element) => {
+        return element.hiddenStatus !== undefined
+            ? element.hiddenStatus
+            : (element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'false');
+    };
+
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = ['input-indicator', 'input-readonly', 'input-disabled', 'input-prefix', 'input-suffix', 'input-maxwidth'];
@@ -313,6 +331,7 @@ class FDSInputWrapper extends HTMLElement {
         this.#handleErrorMessageCallback = () => { this.updateIdReferences(); }
         this.#handleCharacterLimitCallback = () => { this.updateIdReferences(); }
         this.#handleCharacterLimitConnection = () => { this.#setCharacterLimitListeners(); }
+        this.#handleVisibilityChange = (event) => { this.#processVisibilityChange(event); };
     }
 
     /* --------------------------------------------------
@@ -335,25 +354,38 @@ class FDSInputWrapper extends HTMLElement {
 
         // Help text ID
         this.querySelectorAll('fds-help-text').forEach(helptext => {
-            if (helptext?.id) {
-                idsForAriaDescribedby.push(helptext.id);
+            const text = helptext.querySelector(':scope > .help-text');
+            if (text?.hasAttribute('id')) {
+                const isHidden = this.#isElementHidden(helptext);
+                if (!isHidden) {
+                    idsForAriaDescribedby.push(text.id);
+                }
             }
         });
 
         // Error message IDs
         let hasError = false;
+        let hasVisibleError = false;
         this.querySelectorAll('fds-error-message').forEach(errorText => {
             if (errorText?.id) {
-                idsForAriaDescribedby.push(errorText.id);
                 hasError = true;
+                const isHidden = this.#isElementHidden(errorText);
+                if (!isHidden) {
+                    idsForAriaDescribedby.push(errorText.id);
+                    hasVisibleError = true;
+                }
             }
         });
 
         // Character limit ID
-        if (this.#getCharacterLimit()) {
-            const spanId = this.#getCharacterLimit().querySelector(':scope > span[id]');
+        const characterLimit = this.#getCharacterLimit();
+        if (characterLimit) {
+            const spanId = characterLimit.querySelector(':scope > span');
             if (spanId?.hasAttribute('id')) {
-                idsForAriaDescribedby.push(spanId.id);
+                const isHidden = this.#isElementHidden(characterLimit);
+                if (!isHidden) {
+                    idsForAriaDescribedby.push(spanId.id);
+                }
             }
         }
 
@@ -366,7 +398,7 @@ class FDSInputWrapper extends HTMLElement {
         }
 
         // Set aria-invalid if wrapper has error messages
-        if (hasError) {
+        if (hasError && hasVisibleError) {
             this.#getInputElement().setAttribute('aria-invalid', 'true');
         } else {
             this.#getInputElement().removeAttribute('aria-invalid');
@@ -398,6 +430,9 @@ class FDSInputWrapper extends HTMLElement {
         this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
         this.addEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
         this.addEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
+        this.addEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
+        this.addEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
+        this.addEventListener('character-limit-visibility-changed', this.#handleVisibilityChange);
     }
 
     /* --------------------------------------------------
@@ -415,6 +450,9 @@ class FDSInputWrapper extends HTMLElement {
         this.#getInputElement().removeEventListener('blur', this.#handleBlur);
         window.removeEventListener('pageshow', this.#handlePageshow);
         document.removeEventListener('DOMContentLoaded', this.#handlePageshow);
+        this.removeEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
+        this.removeEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
+        this.removeEventListener('character-limit-visibility-changed', this.#handleVisibilityChange);
     }
 
     /* --------------------------------------------------

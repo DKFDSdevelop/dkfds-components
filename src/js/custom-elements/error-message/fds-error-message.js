@@ -37,9 +37,31 @@ class FDSErrorMessage extends HTMLElement {
         this.#rendered = true;
     }
 
+    #shouldBeHidden(hiddenValue) {
+        return hiddenValue === 'true' || hiddenValue === '';
+    }
+
+    #setAriaHidden() {
+        this.setAttribute('aria-hidden', 'true');
+    }
+
+    #removeAriaHidden() {
+        this.removeAttribute('aria-hidden');
+    }
+
+    #notifyParent() {
+        this.#parentWrapper?.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+            bubbles: true,
+            detail: {
+                errorId: this.id,
+                isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
+            }
+        }));
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['id', 'sr-text'];
+    static observedAttributes = ['id', 'sr-text', 'hidden'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -65,9 +87,13 @@ class FDSErrorMessage extends HTMLElement {
             this.id = generateAndVerifyUniqueId('error');
         }
 
-        // Save reference to parent wrapper
-        this.#parentWrapper = this.closest('fds-input-wrapper');
+        // Handle initial hidden state
+        if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
+            this.#setAriaHidden();
+        }
 
+        // Save reference to parent wrapper
+        this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group');
         this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
     }
 
@@ -91,7 +117,16 @@ class FDSErrorMessage extends HTMLElement {
 
         if (name === 'sr-text') {
             this.#srOnlyText = newValue;
-            this.querySelector(':scope > .form-error-message > .sr-only').textContent = this.#srOnlyText;
+            this.querySelector(':scope > .sr-only').textContent = this.#srOnlyText;
+        }
+
+        if (name === 'hidden' && oldValue !== newValue) {
+            if (this.#shouldBeHidden(newValue)) {
+                this.#setAriaHidden();
+            } else {
+                this.#removeAriaHidden();
+            }
+            this.#notifyParent();
         }
 
         this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
