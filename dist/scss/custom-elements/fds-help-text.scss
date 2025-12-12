@@ -13,4 +13,9 @@ fds-help-text,
     letter-spacing: vars.$form-hint-letter-spacing;
     font-weight: func.font-weight(vars.$form-hint-font-weight);
     overflow-wrap: break-word;    
+
+    //Hidden help-texts
+    &[aria-hidden="true"] {
+        display: none;
+    }
 }

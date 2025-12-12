@@ -12803,17 +12803,17 @@ fds-input-wrapper .form-input-wrapper.readonly .form-input-prefix,
 .fds-input-wrapper .form-input-wrapper.readonly .form-input-prefix{
   border-color:#DCDCDC;
 }
-fds-input-wrapper:has(fds-error-message), fds-input-wrapper:has(.fds-error-message),
-.fds-input-wrapper:has(fds-error-message),
-.fds-input-wrapper:has(.fds-error-message){
+fds-input-wrapper:has(fds-error-message:not([hidden])), fds-input-wrapper:has(.fds-error-message:not([hidden])),
+.fds-input-wrapper:has(fds-error-message:not([hidden])),
+.fds-input-wrapper:has(.fds-error-message:not([hidden])){
   border-left:4px solid #CC0000;
   padding-left:calc(16px - 4px);
 }
-fds-input-wrapper:has(fds-error-message) > .form-input, fds-input-wrapper:has(fds-error-message) > .form-input-wrapper > .form-input, fds-input-wrapper:has(.fds-error-message) > .form-input, fds-input-wrapper:has(.fds-error-message) > .form-input-wrapper > .form-input,
-.fds-input-wrapper:has(fds-error-message) > .form-input,
-.fds-input-wrapper:has(fds-error-message) > .form-input-wrapper > .form-input,
-.fds-input-wrapper:has(.fds-error-message) > .form-input,
-.fds-input-wrapper:has(.fds-error-message) > .form-input-wrapper > .form-input{
+fds-input-wrapper:has(fds-error-message:not([hidden])) > .form-input, fds-input-wrapper:has(fds-error-message:not([hidden])) > .form-input-wrapper > .form-input, fds-input-wrapper:has(.fds-error-message:not([hidden])) > .form-input, fds-input-wrapper:has(.fds-error-message:not([hidden])) > .form-input-wrapper > .form-input,
+.fds-input-wrapper:has(fds-error-message:not([hidden])) > .form-input,
+.fds-input-wrapper:has(fds-error-message:not([hidden])) > .form-input-wrapper > .form-input,
+.fds-input-wrapper:has(.fds-error-message:not([hidden])) > .form-input,
+.fds-input-wrapper:has(.fds-error-message:not([hidden])) > .form-input-wrapper > .form-input{
   border:2px solid #CC0000;
   padding:calc(8px - 2px) calc(16px - 2px);
 }
@@ -12830,6 +12830,10 @@ fds-help-text,
   font-weight:400;
   overflow-wrap:break-word;
 }
+fds-help-text[aria-hidden=true],
+.fds-help-text[aria-hidden=true]{
+  display:none;
+}
 
 fds-error-message,
 .fds-error-message{
@@ -12842,6 +12846,10 @@ fds-error-message,
   color:#CC0000;
   margin-top:4px;
   max-width:66ch;
+}
+fds-error-message[aria-hidden=true],
+.fds-error-message[aria-hidden=true]{
+  display:none;
 }
 
 fds-character-limit,
@@ -12863,6 +12871,10 @@ fds-character-limit span.visual-message.limit-exceeded,
 .fds-character-limit span.visual-message.limit-exceeded{
   color:#CC0000;
 }
+fds-character-limit[aria-hidden=true],
+.fds-character-limit[aria-hidden=true]{
+  display:none;
+}
 
 fds-checkbox,
 .fds-checkbox{
@@ -12870,10 +12882,10 @@ fds-checkbox,
   margin-top:8px;
   position:relative;
 }
-fds-checkbox:has(> fds-error-message, > .form-group-checkbox ~ fds-error-message), fds-checkbox:has(> .fds-error-message,
+fds-checkbox:has(> fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message:not([hidden])), fds-checkbox:has(> .fds-error-message:not([hidden]),
 > .form-group-checkbox ~ .fds-error-message),
-.fds-checkbox:has(> fds-error-message, > .form-group-checkbox ~ fds-error-message),
-.fds-checkbox:has(> .fds-error-message,
+.fds-checkbox:has(> fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message:not([hidden])),
+.fds-checkbox:has(> .fds-error-message:not([hidden]),
 > .form-group-checkbox ~ .fds-error-message){
   border-left:4px solid #CC0000;
   padding-left:calc(16px - 4px);
@@ -13042,8 +13054,8 @@ fds-checkbox-group > ::slotted(*) + ::slotted(fds-checkbox),
 .fds-checkbox-group > ::slotted(*) + ::slotted(fds-checkbox){
   margin-top:8px;
 }
-fds-checkbox-group:has(fieldset > fds-error-message),
-.fds-checkbox-group:has(fieldset > fds-error-message){
+fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])),
+.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])){
   border-left:4px solid #CC0000;
   padding-left:calc(16px - 4px);
 }
