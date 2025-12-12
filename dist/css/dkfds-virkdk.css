@@ -12848,6 +12848,11 @@ fds-error-message,
   margin-top:4px;
   max-width:66ch;
 }
+fds-error-message .icon-svg.alert-icon,
+.fds-error-message .icon-svg.alert-icon{
+  margin-right:8px;
+  vertical-align:bottom;
+}
 fds-error-message[aria-hidden=true],
 .fds-error-message[aria-hidden=true]{
   display:none;
