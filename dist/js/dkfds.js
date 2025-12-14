@@ -7266,7 +7266,7 @@ class FDSCheckbox extends HTMLElement {
     if (element) {
       element.hiddenStatus = isHidden;
     }
-    this.updateIdReferences();
+    this.handleIdReferences();
   }
   #isElementHidden = element => {
     return element.hiddenStatus !== undefined ? element.hiddenStatus : element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'false';
@@ -7494,7 +7494,7 @@ class FDSCheckboxGroup extends HTMLElement {
     if (element) {
       element.hiddenStatus = isHidden;
     }
-    this.updateIdReferences();
+    this.handleIdReferences();
   }
   #isElementHidden = element => {
     return element.hiddenStatus !== undefined ? element.hiddenStatus : element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'false';
