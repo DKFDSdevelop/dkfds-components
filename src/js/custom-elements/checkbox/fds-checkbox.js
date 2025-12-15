@@ -34,6 +34,10 @@ class FDSCheckbox extends HTMLElement {
         return this.querySelectorAll(':scope > fds-error-message, :scope > .form-group-checkbox > fds-error-message');
     }
 
+    #getTooltipElement() {
+        return this.querySelector('span.tooltip-wrapper');
+    }
+
     #setStructure() {
         if (this.#input && this.#label) {
             if (this.#input.closest('.form-group-checkbox')) {
@@ -47,6 +51,11 @@ class FDSCheckbox extends HTMLElement {
             // Ensure input comes before label
             wrapper.appendChild(this.#input);
             wrapper.appendChild(this.#label);
+
+            const tooltipElement = this.#getTooltipElement();
+            if (tooltipElement) {
+                wrapper.appendChild(tooltipElement);
+            }
 
             const helpTextElements = this.#getHelpTextElements();
             helpTextElements.forEach(helpText => {
@@ -126,7 +135,7 @@ class FDSCheckbox extends HTMLElement {
         if (element) {
             element.hiddenStatus = isHidden;
         }
-        this.updateIdReferences();
+        this.handleIdReferences();
     }
 
     #isElementHidden = (element) => {

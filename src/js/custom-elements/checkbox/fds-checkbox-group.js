@@ -114,7 +114,7 @@ class FDSCheckboxGroup extends HTMLElement {
         if (element) {
             element.hiddenStatus = isHidden;
         }
-        this.updateIdReferences();
+        this.handleIdReferences();
     }
 
     #isElementHidden = (element) => {
