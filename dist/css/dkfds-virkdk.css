@@ -80,7 +80,7 @@ body{
   margin:0;
 }
 
-[hidden]{
+[hidden]:not([hidden=false]){
   display:none !important;
 }
 
@@ -12836,7 +12836,7 @@ fds-error-message,
   color:#1a1a1a;
   text-transform:none;
   letter-spacing:normal;
-  display:block;
+  display:flex;
   color:#CC0000;
   margin-top:8px;
   max-width:66ch;
@@ -12844,11 +12844,8 @@ fds-error-message,
 fds-error-message .icon-svg.alert-icon,
 .fds-error-message .icon-svg.alert-icon{
   margin-right:8px;
+  min-width:24px;
   vertical-align:bottom;
-}
-fds-error-message[aria-hidden=true],
-.fds-error-message[aria-hidden=true]{
-  display:none;
 }
 
 fds-character-limit,
@@ -13290,6 +13287,16 @@ fds-date-input:has(fds-error-message[targets*=year]:not([hidden])) .form-group[d
 .fds-date-input:has(fds-error-message[targets*=year]:not([hidden])) .form-group[data-attribute=year] input,
 .fds-date-input:has(fds-error-message[targets*=month]:not([hidden])) .form-group[data-attribute=month] input,
 .fds-date-input:has(fds-error-message[targets*=day]:not([hidden])) .form-group[data-attribute=day] input{
+  border:2px solid #CC0000;
+  padding:calc(8px - 2px) calc(16px - 2px);
+}
+
+fds-select,
+.fds-select{
+  display:block;
+}
+fds-select .form-select[aria-invalid=true],
+.fds-select .form-select[aria-invalid=true]{
   border:2px solid #CC0000;
   padding:calc(8px - 2px) calc(16px - 2px);
 }

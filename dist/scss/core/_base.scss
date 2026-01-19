@@ -24,7 +24,7 @@ body {
     margin: 0;
 }
 
-[hidden] {
+[hidden]:not([hidden="false"]) {
     display: none !important;
 }
 

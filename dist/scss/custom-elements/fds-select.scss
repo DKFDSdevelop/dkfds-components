@@ -1,0 +1,16 @@
+@use "../variables" as vars;
+@use "../functions" as func;
+@use "../mixins" as mixins;
+
+$input-top-bottom-padding-feedback: calc(8px - #{vars.$input-border-width-feedback});
+$input-left-right-padding-feedback: calc(16px - #{vars.$input-border-width-feedback});
+
+fds-select,
+.fds-select {
+    display: block;
+
+    .form-select[aria-invalid="true"] {
+        border: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
+        padding: $input-top-bottom-padding-feedback $input-left-right-padding-feedback;
+    }
+}

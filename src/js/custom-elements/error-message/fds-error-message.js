@@ -14,7 +14,7 @@ class FDSErrorMessage extends HTMLElement {
         if (this.#rendered) return;
 
         const hasElements = this.children.length > 0;
-
+        
         if (!hasElements) {
             const iconText = this.getAttribute('icon-text');
             if (iconText !== null && iconText !== '') {
@@ -104,11 +104,6 @@ class FDSErrorMessage extends HTMLElement {
             this.id = generateAndVerifyUniqueId('error');
         }
 
-        // Handle initial hidden state
-        if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
-            this.#setAriaHidden();
-        }
-
         // Save reference to parent wrapper
         this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input');
         this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
@@ -138,16 +133,7 @@ class FDSErrorMessage extends HTMLElement {
         }
 
         if (name === 'hidden' && oldValue !== newValue) {
-            if (this.#shouldBeHidden(newValue)) {
-                this.#setAriaHidden();
-            } else {
-                this.#removeAriaHidden();
-            }
             this.#notifyParent();
-        }
-
-        if (name === 'targets' && oldValue !== newValue) {
-            this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
         }
 
         this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));

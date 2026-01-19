@@ -114,8 +114,8 @@ const copyFilesAndCreateJavaScript = {
     module: JS_BABEL,
     /* Increased from the default 250000 for the non-minified stylesheets */
     performance: {
-        maxAssetSize: 300000,
-        maxEntrypointSize: 300000
+        maxAssetSize: 350000,
+        maxEntrypointSize: 350000
     },
     optimization: {
         minimize: false
@@ -213,8 +213,8 @@ const createCSS = {
     },
     /* Increased from the default 250000 */
     performance: {
-        maxAssetSize: 300000,
-        maxEntrypointSize: 300000
+        maxAssetSize: 350000,
+        maxEntrypointSize: 350000
     },
     optimization: {
         /* File is not minified - this step just remove comments. List of options: https://cssnano.co/docs/what-are-optimisations/ */
@@ -294,6 +294,11 @@ const createMinifiedCSS = {
                 ],
             },
         ],
+    },
+    /* Increased from the default 250000 */
+    performance: {
+        maxAssetSize: 350000,
+        maxEntrypointSize: 350000
     },
     optimization: {
         minimize: true,
