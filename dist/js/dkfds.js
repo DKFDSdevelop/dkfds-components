@@ -8406,57 +8406,61 @@ class FDSSelect extends HTMLElement {
     return this.querySelectorAll('fds-help-text');
   }
   #setupLabel() {
-    if (this.#getLabelElement()) {
-      const labelHasFor = this.#getLabelElement().htmlFor;
-      const labelHasClass = this.#getLabelElement().classList.contains('form-label');
-      if (!labelHasFor && this.#getSelectElement()?.id) {
-        this.#getLabelElement().htmlFor = this.#getSelectElement()?.id;
-      }
-      if (!labelHasClass) {
-        this.#getLabelElement().classList.add('form-label');
-      }
+    const label = this.#getLabelElement();
+    if (!label) return;
+    label.classList.add('form-label');
+
+    // Additional setup if a select element is present
+    if (this.#getSelectElement()) {
+      label.htmlFor = this.#getSelectElement().id;
+      label.classList.toggle('disabled', this.#getSelectElement().hasAttribute('disabled'));
+    }
+    // Remove unnecessary attributes if select element is missing
+    else {
+      label.classList.remove('disabled');
+      label.removeAttribute('for');
     }
   }
   #setupSelect() {
-    if (this.#getSelectElement()) {
-      /* Set id and classes */
+    if (!this.#getSelectElement()) return;
 
-      const selectHasId = this.#getSelectElement().id;
-      const selectHasClass = this.#getSelectElement().classList.contains('form-select');
-      if (!selectHasId) {
-        this.#getSelectElement().id = generateAndVerifyUniqueId('sel');
-      }
-      if (!selectHasClass) {
-        this.#getSelectElement().classList.add('form-select');
-      }
+    /* Set id and classes */
 
-      /* Add or remove aria-describedby */
+    const selectHasId = this.#getSelectElement().id;
+    const selectHasClass = this.#getSelectElement().classList.contains('form-select');
+    if (!selectHasId) {
+      this.#getSelectElement().id = generateAndVerifyUniqueId('sel');
+    }
+    if (!selectHasClass) {
+      this.#getSelectElement().classList.add('form-select');
+    }
 
-      this.#getSelectElement().removeAttribute('aria-describedby');
-      const idsForAriaDescribedby = [];
-      let isInvalid = false;
-      const ariaDescribedbyElements = [...this.#getErrorMessages(), ...this.#getHelpTexts()];
-      for (const element of ariaDescribedbyElements) {
-        const notDisplayNone = window.getComputedStyle(element).display !== 'none';
-        const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
-        const visibleToScreenReaders = notDisplayNone && notAriaHidden;
-        if (element.id && visibleToScreenReaders) {
-          idsForAriaDescribedby.push(element.id);
-          if (element.tagName === 'FDS-ERROR-MESSAGE') {
-            isInvalid = true;
-          }
+    /* Add or remove aria-describedby */
+
+    this.#getSelectElement().removeAttribute('aria-describedby');
+    const idsForAriaDescribedby = [];
+    let isInvalid = false;
+    const ariaDescribedbyElements = [...this.#getErrorMessages(), ...this.#getHelpTexts()];
+    for (const element of ariaDescribedbyElements) {
+      const notDisplayNone = window.getComputedStyle(element).display !== 'none';
+      const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
+      const visibleToScreenReaders = notDisplayNone && notAriaHidden;
+      if (element.id && visibleToScreenReaders) {
+        idsForAriaDescribedby.push(element.id);
+        if (element.tagName === 'FDS-ERROR-MESSAGE') {
+          isInvalid = true;
         }
       }
-      if (idsForAriaDescribedby.length > 0) {
-        this.#getSelectElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
-      } else {
-        this.#getSelectElement().removeAttribute('aria-describedby');
-      }
-      if (isInvalid) {
-        this.#getSelectElement().setAttribute('aria-invalid', 'true');
-      } else {
-        this.#getSelectElement().removeAttribute('aria-invalid');
-      }
+    }
+    if (idsForAriaDescribedby.length > 0) {
+      this.#getSelectElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
+    } else {
+      this.#getSelectElement().removeAttribute('aria-describedby');
+    }
+    if (isInvalid) {
+      this.#getSelectElement().setAttribute('aria-invalid', 'true');
+    } else {
+      this.#getSelectElement().removeAttribute('aria-invalid');
     }
   }
   #init() {
@@ -8466,13 +8470,32 @@ class FDSSelect extends HTMLElement {
     this.#setupLabel();
     this.#initialized = true;
   }
+  #showRequiredStatus(value) {
+    if (!this.#getLabelElement() || !this.#getSelectElement()) return;
+    let statusIndicator = this.#getLabelElement().querySelector(':scope > span.weight-normal');
+    if (value === null && statusIndicator) {
+      statusIndicator.remove();
+      return;
+    }
+    if (!statusIndicator) {
+      const span = document.createElement('span');
+      span.className = 'weight-normal';
+      this.#getLabelElement().appendChild(span);
+      statusIndicator = span;
+    }
+    const isRequired = this.#getSelectElement().hasAttribute('required') || this.#getSelectElement().hasAttribute('aria-required') && this.#getSelectElement().getAttribute('aria-required') !== 'false';
+    let text = value;
+    if (value === '' && isRequired) text = 'skal udfyldes';
+    if (value === '' && !isRequired) text = 'frivilligt';
+    statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
+  }
   #setupObserver() {
     this.#selectObserver = new MutationObserver(this.#handleMutations);
     const config = {
       subtree: true,
       childList: true,
       attributes: true,
-      attributeFilter: ['hidden', 'aria-hidden', 'id', 'class'],
+      attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required'],
       attributeOldValue: false,
       characterData: false,
       characterDataOldValue: false
@@ -8480,25 +8503,27 @@ class FDSSelect extends HTMLElement {
     this.#selectObserver.observe(this, config);
   }
   #handleMutations = (records, observer) => {
-    console.log(`${this.tagName} with id ${this.id} had mutations at ${Date.now()}`);
-    const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target));
+    //console.log(`${this.tagName} had mutations at ${Date.now()}`, records);
+
+    const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
     if (shouldUpdate) {
       this.#setupSelect();
       this.#setupLabel();
+      if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
     }
   };
-  #hasRelevantMutationHappened(addedNodes, removedNodes, target) {
-    const relevantTagNames = ['LABEL', 'SELECT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
-    if (relevantTagNames.includes(target?.tagName)) {
+  #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
+    if (attributeName === 'disabled' && target?.tagName === 'SELECT' || attributeName === 'required' && target?.tagName === 'SELECT' || attributeName === 'class' && target?.tagName !== 'LABEL' || attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
       return true;
     }
+    const relevantTagNames = ['LABEL', 'SELECT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
     const allNodes = [...addedNodes, ...removedNodes];
     return allNodes.some(node => relevantTagNames.includes(node?.tagName));
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = [];
+  static observedAttributes = ['show-required-status'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -8516,6 +8541,7 @@ class FDSSelect extends HTMLElement {
   connectedCallback() {
     if (this.#initialized) return;
     this.#init();
+    if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
   }
 
   /* --------------------------------------------------
@@ -8527,6 +8553,17 @@ class FDSSelect extends HTMLElement {
     if (this.#selectObserver) {
       this.#selectObserver.disconnect();
       this.#selectObserver = null;
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (attribute === 'show-required-status' && oldValue !== newValue) {
+      this.#showRequiredStatus(newValue);
     }
   }
 }
