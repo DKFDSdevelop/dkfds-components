@@ -34,10 +34,6 @@ class FDSRadioButtonGroup extends HTMLElement {
             this.#fieldset.prepend(legend);
         }
 
-        if (!legend.id) {
-            legend.id = generateAndVerifyUniqueId('leg');
-        }
-
         legend.classList.add('form-label');
 
         // Move tooltip into the legend
