@@ -6788,7 +6788,7 @@ class FDSCharacterLimit extends HTMLElement {
       this.innerHTML = '';
       this.#spanSrMaxLimit = document.createElement('span');
       this.#spanSrMaxLimit.classList.add('sr-only');
-      this.#spanSrMaxLimit.setAttribute('id', generateAndVerifyUniqueId('lim'));
+      this.#updateId(this.getAttribute('limit-id'));
       this.#spanSrMaxLimit.textContent = this.#messages.max_limit.replace(/{value}/, this.#limit);
       this.#spanSrUpdate = document.createElement('span');
       this.#spanSrUpdate.classList.add('sr-only');
@@ -6849,10 +6849,17 @@ class FDSCharacterLimit extends HTMLElement {
       }
     }));
   }
+  #updateId(value) {
+    if (value) {
+      this.#spanSrMaxLimit.id = value;
+    } else {
+      this.#spanSrMaxLimit.id = generateAndVerifyUniqueId('lim');
+    }
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['limit', 'one-character-remaining-text', 'several-characters-remaining-text', 'one-character-too-many-text', 'several-characters-too-many-text', 'max-limit-text', 'hidden'];
+  static observedAttributes = ['limit', 'one-character-remaining-text', 'several-characters-remaining-text', 'one-character-too-many-text', 'several-characters-too-many-text', 'max-limit-text', 'hidden', 'limit-id'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -7001,6 +7008,9 @@ class FDSCharacterLimit extends HTMLElement {
         this.#removeAriaHidden();
       }
       this.#notifyParent();
+    }
+    if (name === 'limit-id') {
+      this.#updateId(newValue);
     }
     this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
   }
@@ -8422,22 +8432,23 @@ class FDSSelect extends HTMLElement {
     }
   }
   #setupSelect() {
-    if (!this.#getSelectElement()) return;
+    const select = this.#getSelectElement();
+    if (!select) return;
 
     /* Set id and classes */
 
-    const selectHasId = this.#getSelectElement().id;
-    const selectHasClass = this.#getSelectElement().classList.contains('form-select');
-    if (!selectHasId) {
-      this.#getSelectElement().id = generateAndVerifyUniqueId('sel');
+    if (!select.id) {
+      select.id = generateAndVerifyUniqueId('sel');
     }
-    if (!selectHasClass) {
-      this.#getSelectElement().classList.add('form-select');
+
+    // Prevent infinite mutation loops by checking before adding the class
+    if (!select.classList.contains('form-select')) {
+      select.classList.add('form-select');
     }
 
     /* Add or remove aria-describedby */
 
-    this.#getSelectElement().removeAttribute('aria-describedby');
+    select.removeAttribute('aria-describedby');
     const idsForAriaDescribedby = [];
     let isInvalid = false;
     const ariaDescribedbyElements = [...this.#getErrorMessages(), ...this.#getHelpTexts()];
@@ -8452,16 +8463,8 @@ class FDSSelect extends HTMLElement {
         }
       }
     }
-    if (idsForAriaDescribedby.length > 0) {
-      this.#getSelectElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
-    } else {
-      this.#getSelectElement().removeAttribute('aria-describedby');
-    }
-    if (isInvalid) {
-      this.#getSelectElement().setAttribute('aria-invalid', 'true');
-    } else {
-      this.#getSelectElement().removeAttribute('aria-invalid');
-    }
+    idsForAriaDescribedby.length > 0 ? select.setAttribute('aria-describedby', idsForAriaDescribedby.join(' ')) : select.removeAttribute('aria-describedby');
+    isInvalid ? select.setAttribute('aria-invalid', 'true') : select.removeAttribute('aria-invalid');
   }
   #init() {
     if (this.#initialized) return;

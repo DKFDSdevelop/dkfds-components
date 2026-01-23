@@ -45,24 +45,24 @@ class FDSSelect extends HTMLElement {
     }
 
     #setupSelect() {
-        if (!this.#getSelectElement()) return;
+        const select = this.#getSelectElement();
+
+        if (!select) return;
 
         /* Set id and classes */
 
-        const selectHasId = this.#getSelectElement().id;
-        const selectHasClass = this.#getSelectElement().classList.contains('form-select');
-
-        if (!selectHasId) {
-            this.#getSelectElement().id = generateAndVerifyUniqueId('sel');
+        if (!select.id) {
+            select.id = generateAndVerifyUniqueId('sel');
         }
 
-        if (!selectHasClass) {
-            this.#getSelectElement().classList.add('form-select');
+        // Prevent infinite mutation loops by checking before adding the class
+        if (!select.classList.contains('form-select')) {
+            select.classList.add('form-select');
         }
 
         /* Add or remove aria-describedby */
 
-        this.#getSelectElement().removeAttribute('aria-describedby');
+        select.removeAttribute('aria-describedby');
         const idsForAriaDescribedby = [];
         let isInvalid = false;
 
@@ -81,19 +81,8 @@ class FDSSelect extends HTMLElement {
             }
         }
 
-        if (idsForAriaDescribedby.length > 0) {
-            this.#getSelectElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
-        }
-        else {
-            this.#getSelectElement().removeAttribute('aria-describedby');
-        }
-
-        if (isInvalid) {
-            this.#getSelectElement().setAttribute('aria-invalid', 'true');
-        }
-        else {
-            this.#getSelectElement().removeAttribute('aria-invalid');
-        }
+        idsForAriaDescribedby.length > 0 ? select.setAttribute('aria-describedby', idsForAriaDescribedby.join(' ')) : select.removeAttribute('aria-describedby');
+        isInvalid ? select.setAttribute('aria-invalid', 'true') : select.removeAttribute('aria-invalid');
     }
 
     #init() {

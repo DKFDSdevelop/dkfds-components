@@ -32,7 +32,7 @@ class FDSCharacterLimit extends HTMLElement {
 
             this.#spanSrMaxLimit = document.createElement('span');
             this.#spanSrMaxLimit.classList.add('sr-only');
-            this.#spanSrMaxLimit.setAttribute('id', generateAndVerifyUniqueId('lim'));
+            this.#updateId(this.getAttribute('limit-id'));
             this.#spanSrMaxLimit.textContent = this.#messages.max_limit.replace(/{value}/, this.#limit);
 
             this.#spanSrUpdate = document.createElement('span');
@@ -110,6 +110,15 @@ class FDSCharacterLimit extends HTMLElement {
         }));
     }
 
+    #updateId(value) {
+        if (value) {
+            this.#spanSrMaxLimit.id = value;
+        }
+        else {
+            this.#spanSrMaxLimit.id = generateAndVerifyUniqueId('lim');
+        }
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = [
@@ -119,7 +128,8 @@ class FDSCharacterLimit extends HTMLElement {
         'one-character-too-many-text', 
         'several-characters-too-many-text', 
         'max-limit-text',
-        'hidden'
+        'hidden',
+        'limit-id'
     ];
 
     /* --------------------------------------------------
@@ -297,6 +307,10 @@ class FDSCharacterLimit extends HTMLElement {
                 this.#removeAriaHidden();
             }
             this.#notifyParent();
+        }
+
+        if (name === 'limit-id') {
+            this.#updateId(newValue);
         }
 
         this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
