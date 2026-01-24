@@ -6617,7 +6617,8 @@ figure{
 .hide-base-svg{
   display:none;
 }
-fds-input-wrapper .form-input,
+fds-select select,
+.fds-select select, fds-input-wrapper .form-input,
 .fds-input-wrapper .form-input, .form-select, .form-input{
   appearance:none;
   display:block;
@@ -6627,7 +6628,9 @@ fds-input-wrapper .form-input,
   margin-top:8px;
   text-align:left;
 }
-.form-select:focus, .form-input:focus, .focus.form-select, .focus.form-input{
+fds-select select:focus,
+.fds-select select:focus, .form-select:focus, .form-input:focus, fds-select select.focus,
+.fds-select select.focus, .focus.form-select, .focus.form-input{
   outline:3px solid #454545;
   outline-offset:1px;
 }
@@ -13294,9 +13297,60 @@ fds-date-input:has(fds-error-message[targets*=year]:not([hidden])) .form-group[d
 fds-select,
 .fds-select{
   display:block;
+  margin-top:24px;
 }
-fds-select .form-select[aria-invalid=true],
-.fds-select .form-select[aria-invalid=true]{
+fds-select:first-child,
+.fds-select:first-child{
+  margin-top:0;
+}
+fds-select label,
+.fds-select label{
+  font-size:1.6rem;
+  line-height:2.4rem;
+  font-weight:600;
+  color:#1a1a1a;
+  text-transform:none;
+  max-width:66ch;
+  display:inline-block;
+}
+fds-select label.disabled,
+.fds-select label.disabled{
+  color:#707070;
+  font-weight:500;
+}
+fds-select select,
+.fds-select select{
+  background-color:white;
+  background-image:url("../img/svg-icons/chevron-down.svg");
+  background-size:2.4rem;
+  background-repeat:no-repeat;
+  background-position:calc(100% - 10px);
+  background-size:2.4rem;
+  border:1px solid #8E8E8E;
+  color:#1a1a1a;
+  font-size:1.6rem;
+  line-height:2.4rem;
+  height:calc(2.4rem + 16px);
+  padding:calc(8px - 1px) calc(16px - 1px);
+  padding-right:32px;
+}
+fds-select select::-ms-expand,
+.fds-select select::-ms-expand{
+  display:none;
+}
+fds-select select:disabled,
+.fds-select select:disabled{
+  opacity:1;
+  background-image:url("../img/svg-icons/chevron-down-gray-200.svg");
+  background-size:2.4rem;
+  background-repeat:no-repeat;
+  background-color:transparent;
+  color:#707070;
+  cursor:not-allowed;
+}
+fds-select:has(select[aria-invalid=true]) select,
+.fds-select:has(select[aria-invalid=true]) select{
   border:2px solid #CC0000;
   padding:calc(8px - 2px) calc(16px - 2px);
+  padding-right:32px;
 }

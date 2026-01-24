@@ -9,55 +9,31 @@ class FDSSelect extends HTMLElement {
 
     /* Private methods */
 
-    #getSelectElement() {
-        return this.querySelector('select');
-    }
-
-    #getLabelElement() {
-        return this.querySelector('label');
-    }
-
-    #getErrorMessages() {
-        return this.querySelectorAll('fds-error-message');
-    }
-
-    #getHelpTexts() {
-        return this.querySelectorAll('fds-help-text');
-    }
-
     #setupLabel() {
-        const label = this.#getLabelElement();
+        const label = this.querySelector('label');
 
         if (!label) return;
 
-        label.classList.add('form-label');
+        const select = this.querySelector('select');
 
-        // Additional setup if a select element is present
-        if (this.#getSelectElement()) {
-            label.htmlFor = this.#getSelectElement().id;
-            label.classList.toggle('disabled', this.#getSelectElement().hasAttribute('disabled'));
+        if (select) {
+            label.htmlFor = select.id;
+            label.classList.toggle('disabled', select.hasAttribute('disabled'));
         }
-        // Remove unnecessary attributes if select element is missing
         else {
-            label.classList.remove('disabled');
             label.removeAttribute('for');
         }
     }
 
     #setupSelect() {
-        const select = this.#getSelectElement();
+        const select = this.querySelector('select');
 
         if (!select) return;
 
-        /* Set id and classes */
+        /* Set id */
 
         if (!select.id) {
             select.id = generateAndVerifyUniqueId('sel');
-        }
-
-        // Prevent infinite mutation loops by checking before adding the class
-        if (!select.classList.contains('form-select')) {
-            select.classList.add('form-select');
         }
 
         /* Add or remove aria-describedby */
@@ -65,8 +41,10 @@ class FDSSelect extends HTMLElement {
         select.removeAttribute('aria-describedby');
         const idsForAriaDescribedby = [];
         let isInvalid = false;
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
 
-        const ariaDescribedbyElements = [...this.#getErrorMessages(), ...this.#getHelpTexts()];
+        const ariaDescribedbyElements = [...errorMessages, ...helpTexts];
         for (const element of ariaDescribedbyElements) {
             const notDisplayNone = window.getComputedStyle(element).display !== 'none';
             const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
@@ -97,9 +75,12 @@ class FDSSelect extends HTMLElement {
     }
 
     #showRequiredStatus(value) {
-        if (!this.#getLabelElement() || !this.#getSelectElement()) return;
+        const label = this.querySelector('label');
+        const select = this.querySelector('select');
 
-        let statusIndicator = this.#getLabelElement().querySelector(':scope > span.weight-normal');
+        if (!label || !select) return;
+
+        let statusIndicator = label.querySelector(':scope > span.weight-normal');
 
         if (value === null && statusIndicator) {
             statusIndicator.remove();
@@ -109,13 +90,11 @@ class FDSSelect extends HTMLElement {
         if (!statusIndicator) {
             const span = document.createElement('span');
             span.className = 'weight-normal';
-            this.#getLabelElement().appendChild(span);
+            label.appendChild(span);
             statusIndicator = span;
         }
 
-        const isRequired =
-            this.#getSelectElement().hasAttribute('required') ||
-            (this.#getSelectElement().hasAttribute('aria-required') && this.#getSelectElement().getAttribute('aria-required') !== 'false');
+        const isRequired = select.hasAttribute('required') || (select.hasAttribute('aria-required') && select.getAttribute('aria-required') !== 'false');
 
         let text = value;
         if (value === '' && isRequired) text = 'skal udfyldes';
