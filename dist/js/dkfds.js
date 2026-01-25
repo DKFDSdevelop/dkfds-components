@@ -8229,9 +8229,23 @@ class FDSDateInput extends HTMLElement {
   }
   #setDisabled() {
     this.#getFieldsetElement()?.setAttribute('disabled', '');
+    this.#getFieldsetElement()?.querySelector('legend').classList.add('disabled');
+    const labels = this.#getFieldsetElement()?.querySelectorAll('label');
+    if (labels?.length === 3) {
+      labels[0]?.classList.add('disabled');
+      labels[1]?.classList.add('disabled');
+      labels[2]?.classList.add('disabled');
+    }
   }
   #removeDisabled() {
     this.#getFieldsetElement()?.removeAttribute('disabled');
+    this.#getFieldsetElement()?.querySelector('legend').classList.remove('disabled');
+    const labels = this.#getFieldsetElement()?.querySelectorAll('label');
+    if (labels?.length === 3) {
+      labels[0]?.classList.remove('disabled');
+      labels[1]?.classList.remove('disabled');
+      labels[2]?.classList.remove('disabled');
+    }
   }
   #processVisibilityChange(event) {
     const {

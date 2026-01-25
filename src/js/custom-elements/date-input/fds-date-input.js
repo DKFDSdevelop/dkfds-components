@@ -169,7 +169,7 @@ class FDSDateInput extends HTMLElement {
 
     #removeInputRequired() {
         if (!this.#fieldset) return;
-        
+
         const inputs = this.#fieldset.querySelectorAll('input');
         inputs.forEach(input => {
             input.removeAttribute('required');
@@ -189,9 +189,9 @@ class FDSDateInput extends HTMLElement {
         }
 
         const isRequired =
-        this.hasAttribute('required') ||
-        this.hasAttribute('input-required') ||
-        (this.hasAttribute('aria-required') && this.getAttribute('aria-required') !== 'false');
+            this.hasAttribute('required') ||
+            this.hasAttribute('input-required') ||
+            (this.hasAttribute('aria-required') && this.getAttribute('aria-required') !== 'false');
 
         let text = value;
         if (value === '' && isRequired) text = 'skal udfyldes';
@@ -218,10 +218,24 @@ class FDSDateInput extends HTMLElement {
 
     #setDisabled() {
         this.#getFieldsetElement()?.setAttribute('disabled', '');
+        this.#getFieldsetElement()?.querySelector('legend').classList.add('disabled');
+        const labels = this.#getFieldsetElement()?.querySelectorAll('label');
+        if (labels?.length === 3) {
+            labels[0]?.classList.add('disabled');
+            labels[1]?.classList.add('disabled');
+            labels[2]?.classList.add('disabled');
+        }
     }
 
     #removeDisabled() {
         this.#getFieldsetElement()?.removeAttribute('disabled');
+        this.#getFieldsetElement()?.querySelector('legend').classList.remove('disabled');
+        const labels = this.#getFieldsetElement()?.querySelectorAll('label');
+        if (labels?.length === 3) {
+            labels[0]?.classList.remove('disabled');
+            labels[1]?.classList.remove('disabled');
+            labels[2]?.classList.remove('disabled');
+        }
     }
 
     #processVisibilityChange(event) {
@@ -382,14 +396,14 @@ class FDSDateInput extends HTMLElement {
         }
 
         if (name === 'input-required' && (oldValue !== newValue)) {
-        if (newValue !== null) {
-            this.#setInputRequired();
-            this.#setIndicator(this.getAttribute('input-indicator') || '');
-        } else {
-            this.#removeInputRequired();
-            this.#setIndicator(this.getAttribute('input-indicator') || '');
+            if (newValue !== null) {
+                this.#setInputRequired();
+                this.#setIndicator(this.getAttribute('input-indicator') || '');
+            } else {
+                this.#removeInputRequired();
+                this.#setIndicator(this.getAttribute('input-indicator') || '');
+            }
         }
-    }
     }
 }
 
