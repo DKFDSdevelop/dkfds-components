@@ -7058,12 +7058,6 @@ class FDSErrorMessage extends HTMLElement {
   #shouldBeHidden(hiddenValue) {
     return hiddenValue === 'true' || hiddenValue === '';
   }
-  #setAriaHidden() {
-    this.setAttribute('aria-hidden', 'true');
-  }
-  #removeAriaHidden() {
-    this.removeAttribute('aria-hidden');
-  }
   #notifyParent() {
     this.#parentWrapper?.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
       bubbles: true,
@@ -7121,7 +7115,13 @@ class FDSErrorMessage extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
-    this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
+    this.#parentWrapper?.dispatchEvent(new CustomEvent('error-message-callback', {
+      bubbles: true,
+      detail: {
+        errorId: this.id,
+        targets: this.getTargets()
+      }
+    }));
     this.#parentWrapper = null;
     this.#rendered = false;
   }
@@ -8178,6 +8178,31 @@ class FDSDateInput extends HTMLElement {
       });
     });
   }
+  #cleanupRemovedError(_ref) {
+    let {
+      errorId,
+      targets
+    } = _ref;
+    if (!errorId) return;
+    if (Array.isArray(targets) && targets.length > 0) {
+      targets.forEach(target => {
+        const group = this.#fieldset.querySelector(`[data-attribute="${target}"]`);
+        const input = group?.querySelector('input');
+        if (!input) return;
+        const describedBy = input.getAttribute('aria-describedby');
+        if (!describedBy) return;
+        const remaining = describedBy.split(' ').filter(id => id !== errorId);
+        if (remaining.length) {
+          input.setAttribute('aria-describedby', remaining.join(' '));
+        } else {
+          input.removeAttribute('aria-describedby');
+          input.removeAttribute('aria-invalid');
+        }
+      });
+      return;
+    }
+    this.handleIdReferences();
+  }
 
   /* Mandatory/optional */
 
@@ -8268,7 +8293,6 @@ class FDSDateInput extends HTMLElement {
   -------------------------------------------------- */
 
   handleIdReferences() {
-    // Find all form-group containers within the fieldset
     const formGroups = this.#fieldset.querySelectorAll('.form-group');
     formGroups.forEach(formGroup => {
       const input = formGroup.querySelector('input');
@@ -8296,15 +8320,12 @@ class FDSDateInput extends HTMLElement {
     // Add error message IDs (fieldset level only)
     const errorMessages = this.#getErrorMessages();
     errorMessages.forEach(errorText => {
-      if (!errorText?.id) return;
-      if (this.#isElementHidden(errorText)) return;
-      const hasTargets = errorText.hasAttribute('targets');
-      if (hasTargets) return;
+      if (!errorText?.id || this.#isElementHidden(errorText) || errorText.hasAttribute('targets')) {
+        return;
+      }
       idsForAriaDescribedby.push(errorText.id);
     });
     this.#connectErrorsToInputs();
-
-    // Set or remove aria-describedby
     if (idsForAriaDescribedby.length > 0) {
       this.#fieldset.setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
     } else {
@@ -8338,8 +8359,12 @@ class FDSDateInput extends HTMLElement {
     this.#handleVisibilityChange = event => {
       this.#processVisibilityChange(event);
     };
-    this.#handleErrorMessageCallback = () => {
-      this.handleIdReferences();
+    this.#handleErrorMessageCallback = event => {
+      if (event.detail?.errorId) {
+        this.#cleanupRemovedError(event.detail);
+      } else {
+        this.handleIdReferences();
+      }
     };
   }
 

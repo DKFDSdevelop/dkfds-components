@@ -46,14 +46,6 @@ class FDSErrorMessage extends HTMLElement {
         return hiddenValue === 'true' || hiddenValue === '';
     }
 
-    #setAriaHidden() {
-        this.setAttribute('aria-hidden', 'true');
-    }
-
-    #removeAriaHidden() {
-        this.removeAttribute('aria-hidden');
-    }
-
     #notifyParent() {
         this.#parentWrapper?.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
             bubbles: true,
@@ -114,7 +106,15 @@ class FDSErrorMessage extends HTMLElement {
     -------------------------------------------------- */
 
     disconnectedCallback() {
-        this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
+        this.#parentWrapper?.dispatchEvent(new CustomEvent('error-message-callback',
+            {
+                bubbles: true,
+                detail: {
+                    errorId: this.id,
+                    targets: this.getTargets()
+                }
+            }
+        ));
 
         this.#parentWrapper = null;
         this.#rendered = false;
