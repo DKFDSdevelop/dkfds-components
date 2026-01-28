@@ -6446,6 +6446,10 @@ figure{
   background-image:url("../img/svg-icons/plus.svg");
 }
 
+.icon-plus-circle:not(a){
+  background-image:url("../img/svg-icons/plus-circle.svg");
+}
+
 .icon-print:not(a){
   background-image:url("../img/svg-icons/print.svg");
 }
@@ -13353,4 +13357,50 @@ fds-select:has(select[aria-invalid=true]) select,
   border:2px solid #CC0000;
   padding:calc(8px - 2px) calc(16px - 2px);
   padding-right:32px;
+}
+
+fds-upload-file{
+  display:block;
+  max-width:66ch;
+}
+fds-upload-file .fds-upload-title{
+  margin-bottom:8px;
+}
+fds-upload-file .fds-upload-dropzone{
+  border:1px dashed #707070;
+  border-radius:4px;
+  text-align:center;
+}
+fds-upload-file .fds-upload-input{
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0, 0, 0, 0);
+  white-space:nowrap;
+  border:0;
+}
+fds-upload-file .fds-upload-dropzone-content{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:24px;
+}
+fds-upload-file .fds-upload-dropzone-content p{
+  margin:0;
+}
+fds-upload-file .icon-svg{
+  display:block;
+}
+fds-upload-file .fds-upload-choose{
+  color:#004D99;
+  text-decoration:underline;
+  cursor:pointer;
+}
+fds-upload-file .fds-upload-choose:hover{
+  color:#1a1a1a;
 }

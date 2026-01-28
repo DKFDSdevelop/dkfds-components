@@ -1,0 +1,57 @@
+@use "../variables" as vars;
+@use "../functions" as func;
+@use "../mixins" as mixins;
+
+fds-upload-file {
+    display: block;
+    max-width: vars.$typography-text-max-width;
+
+    .fds-upload-title {
+        margin-bottom: func.units(3);
+    }
+
+    .fds-upload-dropzone {
+        border: 1px dashed #707070;
+        border-radius: 4px;
+        text-align: center;
+    }
+
+    .fds-upload-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .fds-upload-dropzone-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: func.units(3);
+        padding: func.units(5);
+    }
+
+    .fds-upload-dropzone-content p {
+        margin: 0;
+    }
+
+    .icon-svg {
+        display: block;
+    }
+
+    .fds-upload-choose {
+        color: func.color(vars.$theme-color-link);
+        text-decoration: underline;
+        cursor: pointer;
+        
+        &:hover {
+            color: func.color(vars.$theme-color-link-hover);
+        }
+    }
+}
