@@ -41,6 +41,11 @@ fds-upload-file {
         margin: 0;
     }
 
+    .fds-upload-dropzone--highlight {
+        border-color: #707070;
+        background-color: #F5F5F5;
+    }
+
     .icon-svg {
         display: block;
     }
@@ -49,9 +54,36 @@ fds-upload-file {
         color: func.color(vars.$theme-color-link);
         text-decoration: underline;
         cursor: pointer;
-        
+
         &:hover {
             color: func.color(vars.$theme-color-link-hover);
         }
+    }
+
+    .fds-upload-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .fds-upload-file-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .fds-upload-file-name {
+        flex-grow: 1;
+    }
+
+    .fds-upload-remove {
+        background: none;
+        border: none;
+        color: #007bff;
+        cursor: pointer;
+        text-decoration: underline;
     }
 }

@@ -13393,6 +13393,10 @@ fds-upload-file .fds-upload-dropzone-content{
 fds-upload-file .fds-upload-dropzone-content p{
   margin:0;
 }
+fds-upload-file .fds-upload-dropzone--highlight{
+  border-color:#707070;
+  background-color:#F5F5F5;
+}
 fds-upload-file .icon-svg{
   display:block;
 }
@@ -13403,4 +13407,27 @@ fds-upload-file .fds-upload-choose{
 }
 fds-upload-file .fds-upload-choose:hover{
   color:#1a1a1a;
+}
+fds-upload-file .fds-upload-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:1rem;
+}
+fds-upload-file .fds-upload-file-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0.5rem;
+  border-bottom:1px solid #eee;
+}
+fds-upload-file .fds-upload-file-name{
+  flex-grow:1;
+}
+fds-upload-file .fds-upload-remove{
+  background:none;
+  border:none;
+  color:#007bff;
+  cursor:pointer;
+  text-decoration:underline;
 }
