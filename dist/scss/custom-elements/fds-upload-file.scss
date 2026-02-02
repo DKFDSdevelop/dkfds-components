@@ -5,6 +5,7 @@
 fds-upload-file {
     display: block;
     max-width: vars.$typography-text-max-width;
+    margin-top: func.units(5);
 
     .fds-upload-title {
         margin-bottom: func.units(3);
@@ -14,6 +15,11 @@ fds-upload-file {
         border: 1px dashed #707070;
         border-radius: 4px;
         text-align: center;
+    }
+
+    .fds-upload-file-list {
+        border: 1px dashed #707070;
+        border-radius: 4px;
     }
 
     .fds-upload-input {
@@ -50,10 +56,12 @@ fds-upload-file {
         display: block;
     }
 
-    .fds-upload-choose {
+    .fds-upload-choose,
+    .fds-upload-add-more {
         color: func.color(vars.$theme-color-link);
         text-decoration: underline;
         cursor: pointer;
+        background-color: transparent;
 
         &:hover {
             color: func.color(vars.$theme-color-link-hover);
@@ -64,15 +72,26 @@ fds-upload-file {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1rem;
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+
+        .fds-upload-title {
+        margin: 0px;
     }
+    }
+
 
     .fds-upload-file-item {
         display: flex;
         justify-content: space-between;
+        gap: 1rem;
         align-items: center;
-        padding: 0.5rem;
+        padding: 1rem;
         border-bottom: 1px solid #eee;
+    }
+
+    .fds-upload-file-item:last-child {
+        border-bottom: none;
     }
 
     .fds-upload-file-name {
@@ -80,9 +99,11 @@ fds-upload-file {
     }
 
     .fds-upload-remove {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
         background: none;
         border: none;
-        color: #007bff;
         cursor: pointer;
         text-decoration: underline;
     }

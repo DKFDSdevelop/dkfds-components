@@ -13362,6 +13362,7 @@ fds-select:has(select[aria-invalid=true]) select,
 fds-upload-file{
   display:block;
   max-width:66ch;
+  margin-top:24px;
 }
 fds-upload-file .fds-upload-title{
   margin-bottom:8px;
@@ -13370,6 +13371,10 @@ fds-upload-file .fds-upload-dropzone{
   border:1px dashed #707070;
   border-radius:4px;
   text-align:center;
+}
+fds-upload-file .fds-upload-file-list{
+  border:1px dashed #707070;
+  border-radius:4px;
 }
 fds-upload-file .fds-upload-input{
   position:absolute;
@@ -13400,34 +13405,47 @@ fds-upload-file .fds-upload-dropzone--highlight{
 fds-upload-file .icon-svg{
   display:block;
 }
-fds-upload-file .fds-upload-choose{
+fds-upload-file .fds-upload-choose,
+fds-upload-file .fds-upload-add-more{
   color:#004D99;
   text-decoration:underline;
   cursor:pointer;
+  background-color:transparent;
 }
-fds-upload-file .fds-upload-choose:hover{
+fds-upload-file .fds-upload-choose:hover,
+fds-upload-file .fds-upload-add-more:hover{
   color:#1a1a1a;
 }
 fds-upload-file .fds-upload-header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:1rem;
+  padding:1rem;
+  border-bottom:1px solid #eee;
+}
+fds-upload-file .fds-upload-header .fds-upload-title{
+  margin:0px;
 }
 fds-upload-file .fds-upload-file-item{
   display:flex;
   justify-content:space-between;
+  gap:1rem;
   align-items:center;
-  padding:0.5rem;
+  padding:1rem;
   border-bottom:1px solid #eee;
+}
+fds-upload-file .fds-upload-file-item:last-child{
+  border-bottom:none;
 }
 fds-upload-file .fds-upload-file-name{
   flex-grow:1;
 }
 fds-upload-file .fds-upload-remove{
+  display:flex;
+  align-items:center;
+  gap:1rem;
   background:none;
   border:none;
-  color:#007bff;
   cursor:pointer;
   text-decoration:underline;
 }
