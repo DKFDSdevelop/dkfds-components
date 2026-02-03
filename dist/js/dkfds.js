@@ -8571,21 +8571,30 @@ function registerSelect() {
 }
 /* harmony default export */ const fds_select = (registerSelect);
 ;// ./src/js/custom-elements/upload-file/fds-upload-file.js
+
 class FDSUploadFile extends HTMLElement {
   #initialized = false;
   #files = [];
-
-  // Bound listeners (so we can remove them)
-  #onInputChange;
-  #onDrop;
+  #onClick;
+  #onKeydown;
   #onDragOver;
   #onDragLeave;
-  #onAddMoreClick;
+  #onDrop;
+  #onInputChange;
 
   /* Private methods */
 
   #getLabel() {
     return this.getAttribute('upload-label') ?? 'Vedhæft filer';
+  }
+  #getDropzonePrefix() {
+    return this.getAttribute('dropzone-prefix') ?? 'Træk dine filer herhen eller';
+  }
+  #getDropzoneLink() {
+    return this.getAttribute('dropzone-link') ?? 'vælg filer';
+  }
+  #getDropzoneSuffix() {
+    return this.getAttribute('dropzone-suffix') ?? '';
   }
   #fileKey(file) {
     return `${file.name}-${file.size}-${file.lastModified}`;
@@ -8608,15 +8617,15 @@ class FDSUploadFile extends HTMLElement {
     return svg;
   }
   #setUploadLabel() {
-    let title = this.querySelector('.fds-upload-title');
-    if (title) {
-      title.textContent = this.#getLabel();
-    } else {
-      title = document.createElement('h5');
-      title.className = 'fds-upload-title';
-      title.textContent = this.#getLabel();
-      this.prepend(title);
+    let label = this.querySelector('.fds-upload-label');
+    if (!label) {
+      label = document.createElement('label');
+      label.className = 'fds-upload-label';
+      label.id = generateAndVerifyUniqueId('upl');
+      this.prepend(label);
     }
+    label.textContent = this.#getLabel();
+    return label;
   }
 
   /* -----------------------------
@@ -8635,8 +8644,24 @@ class FDSUploadFile extends HTMLElement {
   #renderDropzone() {
     const dropzone = document.createElement('div');
     dropzone.className = 'fds-upload-dropzone';
+
+    // Input
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.id = generateAndVerifyUniqueId('file-input');
+    input.className = 'fds-upload-input';
+    input.addEventListener('change', this.#onInputChange);
+    const mainLabel = this.querySelector('.fds-upload-label');
+    if (mainLabel) {
+      mainLabel.setAttribute('for', input.id);
+    }
+
+    // Dropzone content
     const content = document.createElement('div');
     content.className = 'fds-upload-dropzone-content';
+    content.setAttribute('tabindex', '0');
+    content.setAttribute('role', 'button');
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.classList.add('icon-svg');
     svg.setAttribute('aria-hidden', 'true');
@@ -8644,24 +8669,22 @@ class FDSUploadFile extends HTMLElement {
     use.setAttribute('href', '#plus-circle');
     svg.appendChild(use);
     const p = document.createElement('p');
-    p.append('Træk dine filer herhen eller ');
-    const label = document.createElement('label');
-    label.className = 'fds-upload-choose';
-    label.textContent = 'vælg filer';
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.multiple = true;
-    input.className = 'fds-upload-input';
-    input.addEventListener('change', this.#onInputChange);
-    label.appendChild(input);
-    p.appendChild(label);
-    content.append(svg, p);
-    dropzone.appendChild(content);
 
-    // Drag events
-    dropzone.addEventListener('dragover', this.#onDragOver);
-    dropzone.addEventListener('dragleave', this.#onDragLeave);
-    dropzone.addEventListener('drop', this.#onDrop);
+    // Text content
+    const prefix = this.#getDropzonePrefix();
+    if (prefix) {
+      p.append(prefix + ' ');
+    }
+    const linkText = document.createElement('span');
+    linkText.className = 'fds-upload-choose';
+    linkText.textContent = this.#getDropzoneLink();
+    p.appendChild(linkText);
+    const suffix = this.#getDropzoneSuffix();
+    if (suffix) {
+      p.append(' ' + suffix);
+    }
+    content.append(svg, p);
+    dropzone.append(input, content);
     return dropzone;
   }
   #renderFileList() {
@@ -8676,7 +8699,6 @@ class FDSUploadFile extends HTMLElement {
     addMore.type = 'button';
     addMore.className = 'fds-upload-add-more';
     addMore.textContent = 'Vælg flere filer';
-    addMore.addEventListener('click', this.#onAddMoreClick);
     header.append(title, addMore);
     const filesContainer = document.createElement('div');
     filesContainer.className = 'fds-upload-files';
@@ -8690,6 +8712,8 @@ class FDSUploadFile extends HTMLElement {
     const item = document.createElement('div');
     item.className = 'fds-upload-file-item';
     item.dataset.fileKey = this.#fileKey(file);
+    item.setAttribute('tabindex', '0');
+    item.setAttribute('role', 'listitem');
     const name = document.createElement('span');
     name.className = 'fds-upload-file-name';
     name.textContent = file.name;
@@ -8705,7 +8729,8 @@ class FDSUploadFile extends HTMLElement {
     svg.appendChild(use);
     remove.appendChild(svg);
     remove.appendChild(document.createTextNode(' Fjern'));
-    remove.addEventListener('click', () => this.#removeFile(file));
+    remove.setAttribute('aria-label', `Fjern ${file.name}`);
+    remove.addEventListener('click', () => this.#removeFileByKey(file));
     item.append(fileIcon, name, remove);
     return item;
   }
@@ -8723,15 +8748,14 @@ class FDSUploadFile extends HTMLElement {
     });
     this.#render();
   }
-  #removeFile(file) {
-    const key = this.#fileKey(file);
+  #removeFileByKey(key) {
     this.#files = this.#files.filter(f => this.#fileKey(f) !== key);
     this.#render();
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['upload-label'];
+  static observedAttributes = ['upload-label', 'dropzone-prefix', 'dropzone-link', 'dropzone-suffix'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -8740,28 +8764,52 @@ class FDSUploadFile extends HTMLElement {
   constructor() {
     super();
     this.#onInputChange = e => this.#addFiles(e.target.files);
-    this.#onAddMoreClick = () => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.multiple = true;
-      input.style.display = 'none';
-      input.addEventListener('change', e => {
-        this.#addFiles(e.target.files);
-        input.remove();
-      });
-      document.body.appendChild(input);
-      input.click();
+    this.#onClick = e => {
+      const dropzoneContent = e.target.closest('.fds-upload-dropzone-content');
+      if (dropzoneContent) {
+        this.querySelector('.fds-upload-input')?.click();
+        return;
+      }
+      const removeBtn = e.target.closest('.fds-upload-remove');
+      if (removeBtn) {
+        const item = removeBtn.closest('.fds-upload-file-item');
+        if (item) this.#removeFileByKey(item.dataset.fileKey);
+        return;
+      }
+      const addMore = e.target.closest('.fds-upload-add-more');
+      if (addMore) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = true;
+        input.style.display = 'none';
+        input.addEventListener('change', e => {
+          this.#addFiles(e.target.files);
+          input.remove();
+        });
+        document.body.appendChild(input);
+        input.click();
+      }
+    };
+    this.#onKeydown = e => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.fds-upload-dropzone-content')) {
+        e.preventDefault();
+        this.querySelector('.fds-upload-input')?.click();
+      }
     };
     this.#onDragOver = e => {
+      if (!e.target.closest('.fds-upload-dropzone')) return;
       e.preventDefault();
-      e.currentTarget.classList.add('fds-upload-dropzone--highlight');
+      e.target.closest('.fds-upload-dropzone').classList.add('fds-upload-dropzone--highlight');
     };
     this.#onDragLeave = e => {
-      e.currentTarget.classList.remove('fds-upload-dropzone--highlight');
+      const dz = e.target.closest('.fds-upload-dropzone');
+      if (dz) dz.classList.remove('fds-upload-dropzone--highlight');
     };
     this.#onDrop = e => {
+      const dz = e.target.closest('.fds-upload-dropzone');
+      if (!dz) return;
       e.preventDefault();
-      e.currentTarget.classList.remove('fds-upload-dropzone--highlight');
+      dz.classList.remove('fds-upload-dropzone--highlight');
       this.#addFiles(e.dataTransfer.files);
     };
   }
@@ -8772,6 +8820,12 @@ class FDSUploadFile extends HTMLElement {
 
   connectedCallback() {
     if (this.#initialized) return;
+    this.addEventListener('click', this.#onClick);
+    this.addEventListener('keydown', this.#onKeydown);
+    this.addEventListener('dragover', this.#onDragOver);
+    this.addEventListener('dragleave', this.#onDragLeave);
+    this.addEventListener('drop', this.#onDrop);
+    this.addEventListener('change', this.#onInputChange);
     this.#render();
     this.#initialized = true;
   }
@@ -8782,6 +8836,12 @@ class FDSUploadFile extends HTMLElement {
 
   disconnectedCallback() {
     this.#initialized = false;
+    this.removeEventListener('click', this.#onClick);
+    this.removeEventListener('keydown', this.#onKeydown);
+    this.removeEventListener('dragover', this.#onDragOver);
+    this.removeEventListener('dragleave', this.#onDragLeave);
+    this.removeEventListener('drop', this.#onDrop);
+    this.removeEventListener('change', this.#onInputChange);
   }
 
   /* --------------------------------------------------
@@ -8792,6 +8852,11 @@ class FDSUploadFile extends HTMLElement {
     if (!this.#initialized) return;
     if (name === 'upload-label' && oldValue !== newValue) {
       this.#setUploadLabel();
+    }
+    if (['dropzone-prefix', 'dropzone-link', 'dropzone-suffix'].includes(name) && oldValue !== newValue) {
+      if (this.#files.length === 0) {
+        this.#render();
+      }
     }
   }
 }

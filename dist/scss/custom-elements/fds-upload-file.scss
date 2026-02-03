@@ -7,14 +7,23 @@ fds-upload-file {
     max-width: vars.$typography-text-max-width;
     margin-top: func.units(5);
 
-    .fds-upload-title {
+    .fds-upload-label {
+        display: block;
         margin-bottom: func.units(3);
+        font-weight: func.font-weight('medium');
+        cursor: pointer;
+        
+        &:focus {
+            outline: 2px solid #0066cc;
+            outline-offset: 2px;
+        }
     }
 
     .fds-upload-dropzone {
         border: 1px dashed #707070;
         border-radius: 4px;
         text-align: center;
+        position: relative;
     }
 
     .fds-upload-file-list {
@@ -41,6 +50,7 @@ fds-upload-file {
         justify-content: center;
         gap: func.units(3);
         padding: func.units(5);
+        cursor: pointer;
     }
 
     .fds-upload-dropzone-content p {

@@ -13364,13 +13364,21 @@ fds-upload-file{
   max-width:66ch;
   margin-top:24px;
 }
-fds-upload-file .fds-upload-title{
+fds-upload-file .fds-upload-label{
+  display:block;
   margin-bottom:8px;
+  font-weight:500;
+  cursor:pointer;
+}
+fds-upload-file .fds-upload-label:focus{
+  outline:2px solid #0066cc;
+  outline-offset:2px;
 }
 fds-upload-file .fds-upload-dropzone{
   border:1px dashed #707070;
   border-radius:4px;
   text-align:center;
+  position:relative;
 }
 fds-upload-file .fds-upload-file-list{
   border:1px dashed #707070;
@@ -13394,6 +13402,7 @@ fds-upload-file .fds-upload-dropzone-content{
   justify-content:center;
   gap:8px;
   padding:24px;
+  cursor:pointer;
 }
 fds-upload-file .fds-upload-dropzone-content p{
   margin:0;
