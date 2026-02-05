@@ -8,46 +8,52 @@ fds-upload-file {
     margin-top: func.units(5);
 
     .fds-upload-label {
-        display: block;
-        margin-bottom: func.units(3);
-        font-weight: func.font-weight('medium');
-        cursor: pointer;
-        
-        &:focus {
-            outline: 2px solid #0066cc;
-            outline-offset: 2px;
+            display: block;
+            margin-bottom: func.units(3);
+            font-weight: func.font-weight('medium');
         }
-    }
-
-    .fds-upload-dropzone {
-        border: 1px dashed #707070;
-        border-radius: 4px;
-        text-align: center;
-        position: relative;
-    }
-
-    .fds-upload-file-list {
-        border: 1px dashed #707070;
-        border-radius: 4px;
-    }
-
-    .fds-upload-input {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-    }
-
-    .fds-upload-dropzone-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+    
+        .fds-upload-dropzone {
+            border: 1px dashed #707070;
+            border-radius: 4px;
+            text-align: center;
+            position: relative;
+        }
+    
+        .fds-upload-file-list {
+            border: 1px dashed #707070;
+            border-radius: 4px;
+        }
+    
+        // .fds-upload-input {
+        //     position: absolute;
+        //     top: 0;
+        //     left: 0;
+        //     width: 100%;
+        //     height: 100%;
+        //     opacity: 0;
+        //     cursor: pointer;
+        //     z-index: 1;
+        // }
+    
+    
+        .fds-upload-input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+    
+        .fds-upload-dropzone-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         gap: func.units(3);
         padding: func.units(5);
         cursor: pointer;

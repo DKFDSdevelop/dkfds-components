@@ -71,7 +71,6 @@ class FDSUploadFile extends HTMLElement {
         return label;
     }
 
-
     /* -----------------------------
        Rendering
     ----------------------------- */
@@ -97,7 +96,7 @@ class FDSUploadFile extends HTMLElement {
         input.multiple = true;
         input.id = generateAndVerifyUniqueId('file-input');
         input.className = 'fds-upload-input';
-        input.addEventListener('change', this.#onInputChange);
+        input.setAttribute('tabindex', '-1');
 
         const mainLabel = this.querySelector('.fds-upload-label');
         if (mainLabel) {
@@ -107,8 +106,14 @@ class FDSUploadFile extends HTMLElement {
         // Dropzone content
         const content = document.createElement('div');
         content.className = 'fds-upload-dropzone-content';
-        content.setAttribute('tabindex', '0');
+        content.id = generateAndVerifyUniqueId('dropzone-desc');
         content.setAttribute('role', 'button');
+        content.setAttribute('tabindex', '0');
+        content.setAttribute('aria-labelledby', mainLabel.id); 
+        content.setAttribute('aria-describedby', content.id)
+
+        // Connect the input to the dropzone description
+        input.setAttribute('aria-describedby', content.id);
 
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.classList.add('icon-svg');
@@ -161,6 +166,7 @@ class FDSUploadFile extends HTMLElement {
         header.append(title, addMore);
 
         const filesContainer = document.createElement('div');
+        filesContainer.setAttribute('role', 'list');
         filesContainer.className = 'fds-upload-files';
 
         this.#files.forEach(file => {
@@ -175,7 +181,6 @@ class FDSUploadFile extends HTMLElement {
         const item = document.createElement('div');
         item.className = 'fds-upload-file-item';
         item.dataset.fileKey = this.#fileKey(file);
-        item.setAttribute('tabindex', '0');
         item.setAttribute('role', 'listitem');
 
         const name = document.createElement('span');
@@ -269,7 +274,10 @@ class FDSUploadFile extends HTMLElement {
         };
 
         this.#onKeydown = e => {
-            if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.fds-upload-dropzone-content')) {
+            const dropzoneContent = e.target.closest('.fds-upload-dropzone-content');
+            const label = e.target.closest('.fds-upload-label');
+
+            if ((e.key === 'Enter' || e.key === ' ') && (dropzoneContent || label)) {
                 e.preventDefault();
                 this.querySelector('.fds-upload-input')?.click();
             }
