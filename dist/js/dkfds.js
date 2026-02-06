@@ -8628,6 +8628,26 @@ class FDSUploadFile extends HTMLElement {
     return label;
   }
 
+  /* Disabled */
+
+  #shouldHaveDisabled(value) {
+    return value !== null && value !== 'false' && value !== false;
+  }
+  #setDisabled() {
+    this.classList.add('fds-upload-file-disabled');
+    const input = this.querySelector('.fds-upload-input');
+    if (input) {
+      input.disabled = true;
+    }
+  }
+  #removeDisabled() {
+    this.classList.remove('fds-upload-file-disabled');
+    const input = this.querySelector('.fds-upload-input');
+    if (input) {
+      input.disabled = false;
+    }
+  }
+
   /* -----------------------------
      Rendering
   ----------------------------- */
@@ -8652,6 +8672,10 @@ class FDSUploadFile extends HTMLElement {
     input.id = generateAndVerifyUniqueId('file-input');
     input.className = 'fds-upload-input';
     input.setAttribute('tabindex', '-1');
+    const isDisabled = this.#shouldHaveDisabled(this.getAttribute('upload-disabled'));
+    if (isDisabled) {
+      input.disabled = true;
+    }
     const mainLabel = this.querySelector('.fds-upload-label');
     if (mainLabel) {
       mainLabel.setAttribute('for', input.id);
@@ -8761,7 +8785,7 @@ class FDSUploadFile extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['upload-label', 'dropzone-prefix', 'dropzone-link', 'dropzone-suffix'];
+  static observedAttributes = ['upload-label', 'dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'upload-disabled'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -8771,6 +8795,7 @@ class FDSUploadFile extends HTMLElement {
     super();
     this.#onInputChange = e => this.#addFiles(e.target.files);
     this.#onClick = e => {
+      if (this.#shouldHaveDisabled(this.getAttribute('upload-disabled'))) return;
       const dropzoneContent = e.target.closest('.fds-upload-dropzone-content');
       if (dropzoneContent) {
         this.querySelector('.fds-upload-input')?.click();
@@ -8797,6 +8822,7 @@ class FDSUploadFile extends HTMLElement {
       }
     };
     this.#onKeydown = e => {
+      if (this.#shouldHaveDisabled(this.getAttribute('upload-disabled'))) return;
       const dropzoneContent = e.target.closest('.fds-upload-dropzone-content');
       const label = e.target.closest('.fds-upload-label');
       if ((e.key === 'Enter' || e.key === ' ') && (dropzoneContent || label)) {
@@ -8805,15 +8831,18 @@ class FDSUploadFile extends HTMLElement {
       }
     };
     this.#onDragOver = e => {
+      if (this.#shouldHaveDisabled(this.getAttribute('upload-disabled'))) return;
       if (!e.target.closest('.fds-upload-dropzone')) return;
       e.preventDefault();
       e.target.closest('.fds-upload-dropzone').classList.add('fds-upload-dropzone--highlight');
     };
     this.#onDragLeave = e => {
+      if (this.#shouldHaveDisabled(this.getAttribute('upload-disabled'))) return;
       const dz = e.target.closest('.fds-upload-dropzone');
       if (dz) dz.classList.remove('fds-upload-dropzone--highlight');
     };
     this.#onDrop = e => {
+      if (this.#shouldHaveDisabled(this.getAttribute('upload-disabled'))) return;
       const dz = e.target.closest('.fds-upload-dropzone');
       if (!dz) return;
       e.preventDefault();
@@ -8834,6 +8863,9 @@ class FDSUploadFile extends HTMLElement {
     this.addEventListener('dragleave', this.#onDragLeave);
     this.addEventListener('drop', this.#onDrop);
     this.addEventListener('change', this.#onInputChange);
+    if (this.#shouldHaveDisabled(this.getAttribute('upload-disabled'))) {
+      this.#setDisabled();
+    }
     this.#render();
     this.#initialized = true;
   }
@@ -8860,6 +8892,9 @@ class FDSUploadFile extends HTMLElement {
     if (!this.#initialized) return;
     if (name === 'upload-label' && oldValue !== newValue) {
       this.#setUploadLabel();
+    }
+    if (name === 'upload-disabled' && oldValue !== newValue) {
+      this.#shouldHaveDisabled(newValue) ? this.#setDisabled() : this.#removeDisabled();
     }
     if (['dropzone-prefix', 'dropzone-link', 'dropzone-suffix'].includes(name) && oldValue !== newValue) {
       if (this.#files.length === 0) {

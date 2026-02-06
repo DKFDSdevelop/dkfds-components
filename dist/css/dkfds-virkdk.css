@@ -13453,3 +13453,15 @@ fds-upload-file .fds-upload-remove{
   cursor:pointer;
   text-decoration:underline;
 }
+fds-upload-file.fds-upload-file-disabled .fds-upload-dropzone{
+  cursor:not-allowed;
+  opacity:0.6;
+  border-color:#ccc;
+  background-color:#f9f9f9;
+}
+fds-upload-file.fds-upload-file-disabled .fds-upload-dropzone-content{
+  cursor:not-allowed;
+}
+fds-upload-file.fds-upload-file-disabled .fds-upload-input{
+  pointer-events:none;
+}
