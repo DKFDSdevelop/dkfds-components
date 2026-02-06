@@ -8639,12 +8639,22 @@ class FDSUploadFile extends HTMLElement {
     if (input) {
       input.disabled = true;
     }
+    const content = this.querySelector('.fds-upload-dropzone-content');
+    if (content) {
+      content.removeAttribute('tabindex');
+      content.setAttribute('aria-disabled', 'true');
+    }
   }
   #removeDisabled() {
     this.classList.remove('fds-upload-file-disabled');
     const input = this.querySelector('.fds-upload-input');
     if (input) {
       input.disabled = false;
+    }
+    const content = this.querySelector('.fds-upload-dropzone-content');
+    if (content) {
+      content.setAttribute('tabindex', '0');
+      content.removeAttribute('aria-disabled');
     }
   }
 
@@ -8863,10 +8873,10 @@ class FDSUploadFile extends HTMLElement {
     this.addEventListener('dragleave', this.#onDragLeave);
     this.addEventListener('drop', this.#onDrop);
     this.addEventListener('change', this.#onInputChange);
+    this.#render();
     if (this.#shouldHaveDisabled(this.getAttribute('upload-disabled'))) {
       this.#setDisabled();
     }
-    this.#render();
     this.#initialized = true;
   }
 

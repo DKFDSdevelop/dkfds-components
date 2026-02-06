@@ -13400,7 +13400,7 @@ fds-upload-file .fds-upload-dropzone-content{
   cursor:pointer;
 }
 fds-upload-file .fds-upload-dropzone-content p{
-  margin:0;
+  margin:0px;
 }
 fds-upload-file .fds-upload-dropzone--highlight{
   border-color:#707070;
@@ -13462,6 +13462,8 @@ fds-upload-file.fds-upload-file-disabled .fds-upload-dropzone{
 fds-upload-file.fds-upload-file-disabled .fds-upload-dropzone-content,
 fds-upload-file.fds-upload-file-disabled .fds-upload-choose{
   cursor:not-allowed;
+  color:#1a1a1a;
+  pointer-events:none;
 }
 fds-upload-file.fds-upload-file-disabled .fds-upload-input{
   pointer-events:none;

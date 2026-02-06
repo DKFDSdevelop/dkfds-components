@@ -48,7 +48,7 @@ fds-upload-file {
     }
 
     .fds-upload-dropzone-content p {
-        margin: 0;
+        margin: 0px;
     }
 
     .fds-upload-dropzone--highlight {
@@ -91,10 +91,10 @@ fds-upload-file {
         align-items: center;
         padding: 1rem;
         border-bottom: 1px solid #eee;
-    }
 
-    .fds-upload-file-item:last-child {
+        &:last-child {
         border-bottom: none;
+    }
     }
 
     .fds-upload-file-name {
@@ -122,6 +122,8 @@ fds-upload-file {
             .fds-upload-dropzone-content,
             .fds-upload-choose {
                 cursor: not-allowed;
+                color: func.color(vars.$typography-body-text-color);
+                pointer-events: none;
             }
     
             .fds-upload-input {
