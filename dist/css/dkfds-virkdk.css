@@ -13359,27 +13359,42 @@ fds-select:has(select[aria-invalid=true]) select,
   padding-right:32px;
 }
 
-fds-upload-file{
+fds-upload-file,
+.fds-upload-file{
   display:block;
   max-width:66ch;
-  margin-top:24px;
 }
-fds-upload-file .fds-upload-label{
+fds-upload-file .fds-upload-label,
+.fds-upload-file .fds-upload-label{
   display:block;
   margin-bottom:8px;
   font-weight:500;
 }
-fds-upload-file .fds-upload-dropzone{
-  border:1px dashed #707070;
+fds-upload-file:has(fds-help-text) .fds-upload-label,
+.fds-upload-file:has(fds-help-text) .fds-upload-label{
+  margin-bottom:0;
+}
+fds-upload-file .fds-upload-dropzone,
+.fds-upload-file .fds-upload-dropzone{
+  border:2px dashed #8E8E8E;
   border-radius:4px;
   text-align:center;
   position:relative;
+  margin-top:8px;
 }
-fds-upload-file .fds-upload-file-list{
-  border:1px dashed #707070;
+fds-upload-file .fds-upload-file-list,
+.fds-upload-file .fds-upload-file-list{
+  border:2px dashed #8E8E8E;
   border-radius:4px;
 }
-fds-upload-file .fds-upload-input{
+fds-upload-file:has(fds-error-message) .fds-upload-dropzone,
+fds-upload-file:has(fds-error-message) .fds-upload-file-list,
+.fds-upload-file:has(fds-error-message) .fds-upload-dropzone,
+.fds-upload-file:has(fds-error-message) .fds-upload-file-list{
+  border:2px dashed #CC0000;
+}
+fds-upload-file .fds-upload-input,
+.fds-upload-file .fds-upload-input{
   position:absolute;
   width:1px;
   height:1px;
@@ -13390,7 +13405,8 @@ fds-upload-file .fds-upload-input{
   white-space:nowrap;
   border:0;
 }
-fds-upload-file .fds-upload-dropzone-content{
+fds-upload-file .fds-upload-dropzone-content,
+.fds-upload-file .fds-upload-dropzone-content{
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -13399,38 +13415,48 @@ fds-upload-file .fds-upload-dropzone-content{
   padding:24px;
   cursor:pointer;
 }
-fds-upload-file .fds-upload-dropzone-content p{
+fds-upload-file .fds-upload-dropzone-content p,
+.fds-upload-file .fds-upload-dropzone-content p{
   margin:0px;
 }
-fds-upload-file .fds-upload-dropzone--highlight{
+fds-upload-file .fds-upload-dropzone--highlight,
+.fds-upload-file .fds-upload-dropzone--highlight{
   border-color:#707070;
   background-color:#F5F5F5;
 }
-fds-upload-file .icon-svg{
+fds-upload-file .icon-svg,
+.fds-upload-file .icon-svg{
   display:block;
 }
 fds-upload-file .fds-upload-choose,
-fds-upload-file .fds-upload-add-more{
+fds-upload-file .fds-upload-add-more,
+.fds-upload-file .fds-upload-choose,
+.fds-upload-file .fds-upload-add-more{
   color:#004D99;
   text-decoration:underline;
   cursor:pointer;
   background-color:transparent;
 }
 fds-upload-file .fds-upload-choose:hover,
-fds-upload-file .fds-upload-add-more:hover{
+fds-upload-file .fds-upload-add-more:hover,
+.fds-upload-file .fds-upload-choose:hover,
+.fds-upload-file .fds-upload-add-more:hover{
   color:#1a1a1a;
 }
-fds-upload-file .fds-upload-header{
+fds-upload-file .fds-upload-header,
+.fds-upload-file .fds-upload-header{
   display:flex;
   justify-content:space-between;
   align-items:center;
   padding:1rem;
   border-bottom:1px solid #eee;
 }
-fds-upload-file .fds-upload-header .fds-upload-title{
+fds-upload-file .fds-upload-header .fds-upload-title,
+.fds-upload-file .fds-upload-header .fds-upload-title{
   margin:0px;
 }
-fds-upload-file .fds-upload-file-item{
+fds-upload-file .fds-upload-file-item,
+.fds-upload-file .fds-upload-file-item{
   display:flex;
   justify-content:space-between;
   gap:1rem;
@@ -13438,13 +13464,16 @@ fds-upload-file .fds-upload-file-item{
   padding:1rem;
   border-bottom:1px solid #eee;
 }
-fds-upload-file .fds-upload-file-item:last-child{
+fds-upload-file .fds-upload-file-item:last-child,
+.fds-upload-file .fds-upload-file-item:last-child{
   border-bottom:none;
 }
-fds-upload-file .fds-upload-file-name{
+fds-upload-file .fds-upload-file-name,
+.fds-upload-file .fds-upload-file-name{
   flex-grow:1;
 }
-fds-upload-file .fds-upload-remove{
+fds-upload-file .fds-upload-remove,
+.fds-upload-file .fds-upload-remove{
   display:flex;
   align-items:center;
   gap:1rem;
@@ -13453,18 +13482,22 @@ fds-upload-file .fds-upload-remove{
   cursor:pointer;
   text-decoration:underline;
 }
-fds-upload-file.fds-upload-file-disabled .fds-upload-dropzone{
+fds-upload-file.fds-upload-file-disabled .fds-upload-dropzone,
+.fds-upload-file.fds-upload-file-disabled .fds-upload-dropzone{
   cursor:not-allowed;
   opacity:0.6;
   border-color:#ccc;
   background-color:#f9f9f9;
 }
 fds-upload-file.fds-upload-file-disabled .fds-upload-dropzone-content,
-fds-upload-file.fds-upload-file-disabled .fds-upload-choose{
+fds-upload-file.fds-upload-file-disabled .fds-upload-choose,
+.fds-upload-file.fds-upload-file-disabled .fds-upload-dropzone-content,
+.fds-upload-file.fds-upload-file-disabled .fds-upload-choose{
   cursor:not-allowed;
   color:#1a1a1a;
   pointer-events:none;
 }
-fds-upload-file.fds-upload-file-disabled .fds-upload-input{
+fds-upload-file.fds-upload-file-disabled .fds-upload-input,
+.fds-upload-file.fds-upload-file-disabled .fds-upload-input{
   pointer-events:none;
 }

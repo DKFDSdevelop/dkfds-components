@@ -2,10 +2,10 @@
 @use "../functions" as func;
 @use "../mixins" as mixins;
 
-fds-upload-file {
+fds-upload-file,
+.fds-upload-file {
     display: block;
     max-width: vars.$typography-text-max-width;
-    margin-top: func.units(5);
 
     .fds-upload-label {
         display: block;
@@ -13,16 +13,28 @@ fds-upload-file {
         font-weight: func.font-weight('medium');
     }
 
+    &:has(fds-help-text) .fds-upload-label {
+        margin-bottom: 0;
+    }
+
     .fds-upload-dropzone {
-        border: 1px dashed #707070;
+        border: 2px dashed func.color('gray-400');
         border-radius: 4px;
         text-align: center;
         position: relative;
+        margin-top: func.units(3);
     }
 
     .fds-upload-file-list {
-        border: 1px dashed #707070;
+        border: 2px dashed func.color('gray-400');
         border-radius: 4px;
+    }
+
+    &:has(fds-error-message) {
+        .fds-upload-dropzone,
+        .fds-upload-file-list {
+            border: 2px dashed func.color(vars.$input-border-color-feedback-error);
+        }
     }
 
     .fds-upload-input {
@@ -93,8 +105,8 @@ fds-upload-file {
         border-bottom: 1px solid #eee;
 
         &:last-child {
-        border-bottom: none;
-    }
+            border-bottom: none;
+        }
     }
 
     .fds-upload-file-name {
@@ -111,23 +123,23 @@ fds-upload-file {
         text-decoration: underline;
     }
 
-        &.fds-upload-file-disabled {
-            .fds-upload-dropzone {
-                cursor: not-allowed;
-                opacity: 0.6;
-                border-color: #ccc;
-                background-color: #f9f9f9;
-            }
-    
-            .fds-upload-dropzone-content,
-            .fds-upload-choose {
-                cursor: not-allowed;
-                color: func.color(vars.$typography-body-text-color);
-                pointer-events: none;
-            }
-    
-            .fds-upload-input {
-                pointer-events: none;
-            }
+    &.fds-upload-file-disabled {
+        .fds-upload-dropzone {
+            cursor: not-allowed;
+            opacity: 0.6;
+            border-color: #ccc;
+            background-color: #f9f9f9;
         }
+
+        .fds-upload-dropzone-content,
+        .fds-upload-choose {
+            cursor: not-allowed;
+            color: func.color(vars.$typography-body-text-color);
+            pointer-events: none;
+        }
+
+        .fds-upload-input {
+            pointer-events: none;
+        }
+    }
 }

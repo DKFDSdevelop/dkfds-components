@@ -8600,6 +8600,9 @@ function registerSelect() {
 class FDSUploadFile extends HTMLElement {
   #initialized = false;
   #files = [];
+  #uploadObserver = null;
+  #dropzoneEl = null;
+  #fileListEl = null;
   #onClick;
   #onKeydown;
   #onDragOver;
@@ -8652,6 +8655,101 @@ class FDSUploadFile extends HTMLElement {
     label.textContent = this.#getLabel();
     return label;
   }
+  #showDropzone() {
+    if (!this.#dropzoneEl) {
+      this.#dropzoneEl = this.#renderDropzone();
+    }
+    this.#fileListEl?.remove();
+    if (!this.contains(this.#dropzoneEl)) {
+      this.appendChild(this.#dropzoneEl);
+    }
+  }
+  #showFileList() {
+    if (!this.#fileListEl) {
+      this.#fileListEl = this.#renderFileList();
+    } else {
+      this.#updateFileList();
+    }
+    this.#dropzoneEl?.remove();
+    if (!this.contains(this.#fileListEl)) {
+      this.appendChild(this.#fileListEl);
+    }
+  }
+  #updateFileList() {
+    const filesContainer = this.#fileListEl.querySelector('.fds-upload-files');
+    if (!filesContainer) return;
+    filesContainer.replaceChildren();
+    this.#files.forEach(file => {
+      filesContainer.appendChild(this.#renderFileItem(file));
+    });
+  }
+  #init() {
+    if (this.#initialized) return;
+    this.#setupObserver();
+    this.#setupAccessibility();
+    this.#initialized = true;
+  }
+
+  /* Mutation observer */
+
+  #setupObserver() {
+    this.#uploadObserver = new MutationObserver(this.#handleMutations);
+    const config = {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['hidden', 'aria-hidden', 'id'],
+      attributeOldValue: false,
+      characterData: false,
+      characterDataOldValue: false
+    };
+    this.#uploadObserver.observe(this, config);
+  }
+  #handleMutations = (records, observer) => {
+    const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
+    if (shouldUpdate) {
+      this.#setupAccessibility();
+    }
+  };
+  #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
+    if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
+      return true;
+    }
+    const relevantTagNames = ['FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+    const allNodes = [...addedNodes, ...removedNodes];
+    return allNodes.some(node => relevantTagNames.includes(node?.tagName));
+  }
+  #setupAccessibility() {
+    const input = this.querySelector('.fds-upload-input');
+    const dropzoneContent = this.querySelector('.fds-upload-dropzone-content');
+    if (!input && !dropzoneContent) return;
+    input?.removeAttribute('aria-describedby');
+    dropzoneContent?.removeAttribute('aria-describedby');
+    const idsForAriaDescribedby = [];
+    let isInvalid = false;
+    const errorMessages = this.querySelectorAll('fds-error-message');
+    const helpTexts = this.querySelectorAll('fds-help-text');
+    const ariaDescribedbyElements = [...errorMessages, ...helpTexts];
+    for (const element of ariaDescribedbyElements) {
+      const notDisplayNone = window.getComputedStyle(element).display !== 'none';
+      const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
+      const visibleToScreenReaders = notDisplayNone && notAriaHidden;
+      if (element.id && visibleToScreenReaders) {
+        idsForAriaDescribedby.push(element.id);
+        if (element.tagName === 'FDS-ERROR-MESSAGE') {
+          isInvalid = true;
+        }
+      }
+    }
+    if (idsForAriaDescribedby.length > 0) {
+      const describedBy = idsForAriaDescribedby.join(' ');
+      input?.setAttribute('aria-describedby', describedBy);
+      dropzoneContent?.setAttribute('aria-describedby', describedBy);
+    }
+    if (input) {
+      isInvalid ? input.setAttribute('aria-invalid', 'true') : input.removeAttribute('aria-invalid');
+    }
+  }
 
   /* Disabled */
 
@@ -8682,19 +8780,24 @@ class FDSUploadFile extends HTMLElement {
       content.removeAttribute('aria-disabled');
     }
   }
+  #moveErrorsToBottom() {
+    const errors = this.querySelectorAll('fds-error-message');
+    if (errors.length === 0) return;
+    this.append(...errors);
+  }
 
   /* -----------------------------
      Rendering
   ----------------------------- */
 
   #render() {
-    this.replaceChildren();
     this.#setUploadLabel();
     if (this.#files.length === 0) {
-      this.appendChild(this.#renderDropzone());
+      this.#showDropzone();
     } else {
-      this.appendChild(this.#renderFileList());
+      this.#showFileList();
     }
+    this.#moveErrorsToBottom();
   }
   #renderDropzone() {
     const dropzone = document.createElement('div');
@@ -8723,10 +8826,6 @@ class FDSUploadFile extends HTMLElement {
     content.setAttribute('role', 'button');
     content.setAttribute('tabindex', '0');
     content.setAttribute('aria-labelledby', mainLabel.id);
-    content.setAttribute('aria-describedby', content.id);
-
-    // Connect the input to the dropzone description
-    input.setAttribute('aria-describedby', content.id);
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.classList.add('icon-svg');
     svg.setAttribute('aria-hidden', 'true');
@@ -8898,11 +8997,11 @@ class FDSUploadFile extends HTMLElement {
     this.addEventListener('dragleave', this.#onDragLeave);
     this.addEventListener('drop', this.#onDrop);
     this.addEventListener('change', this.#onInputChange);
+    this.#init();
     this.#render();
     if (this.#shouldHaveDisabled(this.getAttribute('upload-disabled'))) {
       this.#setDisabled();
     }
-    this.#initialized = true;
   }
 
   /* --------------------------------------------------
@@ -8917,6 +9016,10 @@ class FDSUploadFile extends HTMLElement {
     this.removeEventListener('dragleave', this.#onDragLeave);
     this.removeEventListener('drop', this.#onDrop);
     this.removeEventListener('change', this.#onInputChange);
+    if (this.#uploadObserver) {
+      this.#uploadObserver.disconnect();
+      this.#uploadObserver = null;
+    }
   }
 
   /* --------------------------------------------------
