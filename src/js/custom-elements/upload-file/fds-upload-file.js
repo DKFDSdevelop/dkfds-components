@@ -114,7 +114,6 @@ class FDSUploadFile extends HTMLElement {
         if (this.#initialized) return;
 
         this.#setupObserver();
-        this.#setupAccessibility();
 
         this.#initialized = true;
     }
@@ -175,11 +174,10 @@ class FDSUploadFile extends HTMLElement {
         const ariaDescribedbyElements = [...errorMessages, ...helpTexts];
 
         for (const element of ariaDescribedbyElements) {
-            const notDisplayNone = window.getComputedStyle(element).display !== 'none';
-            const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
+            const isHidden = element.hasAttribute('hidden');
+            const isAriaHidden = element.getAttribute('aria-hidden') === 'true';
 
-            const visibleToScreenReaders = notDisplayNone && notAriaHidden;
-            if (element.id && visibleToScreenReaders) {
+            if (element.id && !isHidden && !isAriaHidden) {
                 idsForAriaDescribedby.push(element.id);
 
                 if (element.tagName === 'FDS-ERROR-MESSAGE') {
@@ -255,6 +253,7 @@ class FDSUploadFile extends HTMLElement {
             this.#showFileList();
         }
 
+        this.#setupAccessibility();
         this.#moveErrorsToBottom();
     }
 
@@ -286,7 +285,7 @@ class FDSUploadFile extends HTMLElement {
         content.id = generateAndVerifyUniqueId('dropzone-desc');
         content.setAttribute('role', 'button');
         content.setAttribute('tabindex', '0');
-        content.setAttribute('aria-labelledby', mainLabel.id);
+        content.setAttribute('aria-labelledby', `${mainLabel.id} ${content.id}`);
 
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.classList.add('icon-svg');
@@ -377,8 +376,6 @@ class FDSUploadFile extends HTMLElement {
         remove.appendChild(svg);
         remove.appendChild(document.createTextNode(' Fjern'));
         remove.setAttribute('aria-label', `Fjern ${file.name}`);
-
-        remove.addEventListener('click', () => this.#removeFileByKey(file));
 
         item.append(fileIcon, name, remove);
         return item;
@@ -501,7 +498,17 @@ class FDSUploadFile extends HTMLElement {
         this.addEventListener('change', this.#onInputChange);
 
         this.#init();
-        this.#render();
+
+        const existingDropzone = this.querySelector('.fds-upload-dropzone');
+        const existingFileList = this.querySelector('.fds-upload-file-list');
+
+        // Caching existing elements so show/hide logic works
+        if (existingDropzone || existingFileList) {
+            this.#dropzoneEl = existingDropzone;
+            this.#fileListEl = existingFileList;
+        } else {
+            this.#render();
+        }
 
         if (this.#shouldHaveDisabled(this.getAttribute('upload-disabled'))) {
             this.#setDisabled();
@@ -558,4 +565,3 @@ function registerUploadFile() {
 }
 
 export default registerUploadFile;
-
