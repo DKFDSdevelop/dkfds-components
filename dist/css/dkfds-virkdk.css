@@ -13376,6 +13376,7 @@ fds-upload-file:has(fds-help-text) .fds-upload-label,
 }
 fds-upload-file .fds-upload-dropzone,
 .fds-upload-file .fds-upload-dropzone{
+  position:relative;
   border:2px dashed #8E8E8E;
   border-radius:4px;
   text-align:center;
@@ -13396,14 +13397,19 @@ fds-upload-file:has(fds-error-message) .fds-upload-file-list,
 fds-upload-file .fds-upload-input,
 .fds-upload-file .fds-upload-input{
   position:absolute;
-  width:1px;
-  height:1px;
-  padding:0;
-  margin:-1px;
-  overflow:hidden;
-  clip:rect(0, 0, 0, 0);
-  white-space:nowrap;
-  border:0;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  opacity:0;
+  appearance:none;
+  -webkit-appearance:none;
+  cursor:pointer;
+}
+fds-upload-file .fds-upload-dropzone:has(.fds-upload-input:focus),
+.fds-upload-file .fds-upload-dropzone:has(.fds-upload-input:focus){
+  border-color:transparent;
+  outline:3px solid #454545;
 }
 fds-upload-file .fds-upload-dropzone-content,
 .fds-upload-file .fds-upload-dropzone-content{
