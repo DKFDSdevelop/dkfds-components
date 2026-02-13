@@ -31,6 +31,8 @@ import registerRadioButton from './custom-elements/radio-button/fds-radio-button
 import registerRadioButtonGroup from './custom-elements/radio-button/fds-radio-button-group';
 import registerDateInput from './custom-elements/date-input/fds-date-input';
 import registerSelect from './custom-elements/select/fds-select';
+import registerDatePicker from './custom-elements/date-picker/fds-date-picker';
+import registerDatePickerGrid from './custom-elements/date-picker/fds-date-picker-grid';
 
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
@@ -133,7 +135,7 @@ var init = function (options) {
   Datepicker
   ---------------------
   */
-  datePicker.on(scope);
+  //datePicker.on(scope);
 
   /*
   ---------------------
@@ -222,18 +224,20 @@ var init = function (options) {
 };
 
 const registerCustomElements = () => {
-  registerAccordion();
-  registerAccordionGroup();
+  registerAccordion(),
+  registerAccordionGroup(),
   registerInputWrapper(),
   registerHelpText(),
   registerCharacterLimit(),
-  registerErrorMessage()
-  registerCheckbox();
-  registerCheckboxGroup();
-  registerRadioButton();
-  registerRadioButtonGroup();
-  registerDateInput();
-  registerSelect();
+  registerErrorMessage(),
+  registerCheckbox(),
+  registerCheckboxGroup(),
+  registerRadioButton(),
+  registerRadioButtonGroup(),
+  registerDateInput(),
+  registerSelect(),
+  registerDatePicker(),
+  registerDatePickerGrid()
 };
 
-export { init, registerCustomElements, registerAccordion, renderAccordionHTML, validateAccordionHTML, registerAccordionGroup, registerInputWrapper, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
+export { init, registerCustomElements, registerAccordion, renderAccordionHTML, validateAccordionHTML, registerAccordionGroup, registerInputWrapper, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerDatePicker, registerDatePickerGrid, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };

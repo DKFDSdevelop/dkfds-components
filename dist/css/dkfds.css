@@ -6617,7 +6617,8 @@ figure{
 .hide-base-svg{
   display:none;
 }
-fds-select select,
+fds-date-picker input,
+.fds-date-picker input, fds-select select,
 .fds-select select, fds-input-wrapper .form-input,
 .fds-input-wrapper .form-input, .form-select, .form-input{
   appearance:none;
@@ -6628,8 +6629,10 @@ fds-select select,
   margin-top:8px;
   text-align:left;
 }
-fds-select select:focus,
-.fds-select select:focus, .form-select:focus, .form-input:focus, fds-select select.focus,
+fds-date-picker input:focus,
+.fds-date-picker input:focus, fds-select select:focus,
+.fds-select select:focus, .form-select:focus, .form-input:focus, fds-date-picker input.focus,
+.fds-date-picker input.focus, fds-select select.focus,
 .fds-select select.focus, .focus.form-select, .focus.form-input{
   outline:3px solid #454545;
   outline-offset:1px;
@@ -13353,4 +13356,107 @@ fds-select:has(select[aria-invalid=true]) select,
   border:2px solid #CC0000;
   padding:calc(8px - 2px) calc(16px - 2px);
   padding-right:32px;
+}
+
+fds-date-picker,
+.fds-date-picker{
+  display:block;
+  margin-top:24px;
+  position:relative;
+}
+fds-date-picker:first-child,
+.fds-date-picker:first-child{
+  margin-top:0;
+}
+fds-date-picker label,
+.fds-date-picker label{
+  font-size:1.6rem;
+  line-height:2.4rem;
+  font-weight:600;
+  color:#1a1a1a;
+  text-transform:none;
+  max-width:66ch;
+  display:inline-block;
+}
+fds-date-picker label.disabled,
+.fds-date-picker label.disabled{
+  color:#707070;
+  font-weight:500;
+}
+fds-date-picker input,
+.fds-date-picker input{
+  border:1px solid #8E8E8E;
+  color:#1a1a1a;
+  font-size:1.6rem;
+  line-height:2.4rem;
+  height:calc(2.4rem + 16px);
+  padding:calc(8px - 1px) calc(16px - 1px);
+  max-width:15rem;
+  border-end-end-radius:0;
+  border-start-end-radius:0;
+}
+fds-date-picker input:disabled,
+.fds-date-picker input:disabled{
+  opacity:1;
+  background-color:transparent;
+  color:#707070;
+  cursor:not-allowed;
+}
+fds-date-picker:has(input[aria-invalid=true]) input,
+.fds-date-picker:has(input[aria-invalid=true]) input{
+  border:2px solid #CC0000;
+  padding:calc(8px - 2px) calc(16px - 2px);
+}
+fds-date-picker .input-wrapper,
+.fds-date-picker .input-wrapper{
+  display:flex;
+  align-items:center;
+}
+fds-date-picker .button.date-button,
+.fds-date-picker .button.date-button{
+  height:calc(2.4rem + 16px);
+  margin-top:8px;
+  border:1px solid #8E8E8E;
+  border-left:none;
+  border-end-start-radius:0;
+  border-start-start-radius:0;
+  border-start-end-radius:8px;
+  border-end-end-radius:8px;
+  padding-left:12px;
+  padding-right:12px;
+}
+
+fds-date-picker-grid,
+.fds-date-picker-grid{
+  display:block;
+  border:1px solid #8E8E8E;
+  background-color:white;
+  width:fit-content;
+}
+fds-date-picker-grid td,
+.fds-date-picker-grid td{
+  height:26px;
+  border:1px solid #8E8E8E;
+}
+fds-date-picker-grid td[data-date]:focus,
+.fds-date-picker-grid td[data-date]:focus{
+  outline:3px solid #454545;
+  outline-offset:1px;
+}
+fds-date-picker-grid td[aria-selected],
+.fds-date-picker-grid td[aria-selected]{
+  cursor:pointer;
+}
+fds-date-picker-grid td[aria-selected]:hover,
+.fds-date-picker-grid td[aria-selected]:hover{
+  background-color:#DCDCDC;
+}
+fds-date-picker-grid td[aria-selected=true],
+.fds-date-picker-grid td[aria-selected=true]{
+  background-color:#1a1a1a;
+  color:white;
+}
+fds-date-picker-grid td[aria-disabled=true],
+.fds-date-picker-grid td[aria-disabled=true]{
+  color:#BFBFBF;
 }
