@@ -109,15 +109,20 @@ fds-upload-file,
 
     .fds-upload-file-item {
         display: flex;
-        justify-content: space-between;
-        gap: 1rem;
-        align-items: center;
+        flex-direction: column;
         padding: 1rem;
         border-bottom: 1px solid #eee;
 
         &:last-child {
             border-bottom: none;
         }
+    }
+
+    .fds-upload-file-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
     }
 
     .fds-upload-file-name {
