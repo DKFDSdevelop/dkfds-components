@@ -31,17 +31,18 @@ fds-upload-file,
         border-radius: 4px;
     }
 
-    &:has(fds-error-message) {
+    &:has(fds-error-message:not([targets])) {
 
         .fds-upload-dropzone,
         .fds-upload-file-list {
             border: 2px dashed func.color(vars.$input-border-color-feedback-error);
         }
 
-        .fds-upload-file-item-error {
+    }
+
+    .fds-upload-file-item-error {
             background-color: #FFE0E0;
         }
-    }
 
     .fds-upload-input {
         position: absolute;
@@ -100,7 +101,7 @@ fds-upload-file,
         justify-content: space-between;
         align-items: center;
         padding: 1rem;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid func.color('gray-300');
 
         .fds-upload-title {
             margin: 0px;
@@ -111,7 +112,7 @@ fds-upload-file,
         display: flex;
         flex-direction: column;
         padding: 1rem;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid func.color('gray-300');
 
         &:last-child {
             border-bottom: none;

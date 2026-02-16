@@ -13388,14 +13388,14 @@ fds-upload-file .fds-upload-file-list,
   border:2px dashed #8E8E8E;
   border-radius:4px;
 }
-fds-upload-file:has(fds-error-message) .fds-upload-dropzone,
-fds-upload-file:has(fds-error-message) .fds-upload-file-list,
-.fds-upload-file:has(fds-error-message) .fds-upload-dropzone,
-.fds-upload-file:has(fds-error-message) .fds-upload-file-list{
+fds-upload-file:has(fds-error-message:not([targets])) .fds-upload-dropzone,
+fds-upload-file:has(fds-error-message:not([targets])) .fds-upload-file-list,
+.fds-upload-file:has(fds-error-message:not([targets])) .fds-upload-dropzone,
+.fds-upload-file:has(fds-error-message:not([targets])) .fds-upload-file-list{
   border:2px dashed #CC0000;
 }
-fds-upload-file:has(fds-error-message) .fds-upload-file-item-error,
-.fds-upload-file:has(fds-error-message) .fds-upload-file-item-error{
+fds-upload-file .fds-upload-file-item-error,
+.fds-upload-file .fds-upload-file-item-error{
   background-color:#FFE0E0;
 }
 fds-upload-file .fds-upload-input,
@@ -13459,7 +13459,7 @@ fds-upload-file .fds-upload-header,
   justify-content:space-between;
   align-items:center;
   padding:1rem;
-  border-bottom:1px solid #eee;
+  border-bottom:1px solid #BFBFBF;
 }
 fds-upload-file .fds-upload-header .fds-upload-title,
 .fds-upload-file .fds-upload-header .fds-upload-title{
@@ -13470,7 +13470,7 @@ fds-upload-file .fds-upload-file-item,
   display:flex;
   flex-direction:column;
   padding:1rem;
-  border-bottom:1px solid #eee;
+  border-bottom:1px solid #BFBFBF;
 }
 fds-upload-file .fds-upload-file-item:last-child,
 .fds-upload-file .fds-upload-file-item:last-child{
