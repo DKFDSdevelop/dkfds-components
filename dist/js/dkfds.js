@@ -6716,7 +6716,7 @@ class FDSHelpText extends HTMLElement {
 
     // During disconnect, the custom element may lose connection to the wrapper.
     // Save the wrapper and use it to dispatch events - otherwise, the events may be lost.
-    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button, fds-radio-button-group, fds-date-input');
+    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button, fds-radio-button-group, fds-date-input, fds-upload-file');
     this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
   }
 
@@ -7107,7 +7107,7 @@ class FDSErrorMessage extends HTMLElement {
     }
 
     // Save reference to parent wrapper
-    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input');
+    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input, fds-upload-file');
     this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
   }
 
@@ -8703,6 +8703,7 @@ class FDSUploadFile extends HTMLElement {
     const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
     if (shouldUpdate) {
       this.#setupAccessibility();
+      this.#handleFileSpecificErrors();
     }
   };
   #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
@@ -8713,13 +8714,38 @@ class FDSUploadFile extends HTMLElement {
     const allNodes = [...addedNodes, ...removedNodes];
     return allNodes.some(node => relevantTagNames.includes(node?.tagName));
   }
+  #handleFileSpecificErrors() {
+    // Clear all existing file errors first
+    this.querySelectorAll('.fds-upload-file-item').forEach(item => {
+      item.classList.remove('fds-upload-file-item-error');
+    });
+
+    // Handle file-specific error messages
+    const fileSpecificErrors = this.querySelectorAll('fds-error-message[targets]');
+    fileSpecificErrors.forEach(errorEl => {
+      const isHidden = errorEl.hasAttribute('hidden');
+      const isAriaHidden = errorEl.getAttribute('aria-hidden') === 'true';
+      if (!isHidden && !isAriaHidden) {
+        const targetsAttr = errorEl.getAttribute('targets');
+        if (targetsAttr) {
+          const targets = targetsAttr.split(',').map(target => target.trim()).filter(target => target);
+          targets.forEach(targetId => {
+            const fileItem = this.querySelector(`[data-file-key="${targetId}"]`);
+            if (fileItem) {
+              fileItem.classList.add('fds-upload-file-item-error');
+            }
+          });
+        }
+      }
+    });
+  }
   #setupAccessibility() {
     const input = this.querySelector('.fds-upload-input');
     if (!input) return;
     input?.removeAttribute('aria-describedby');
     const idsForAriaDescribedby = [];
     let isInvalid = false;
-    const errorMessages = this.querySelectorAll('fds-error-message');
+    const errorMessages = this.querySelectorAll('fds-error-message:not([targets])');
     const helpTexts = this.querySelectorAll('fds-help-text');
     const ariaDescribedbyElements = [...errorMessages, ...helpTexts];
     for (const element of ariaDescribedbyElements) {
@@ -8778,6 +8804,7 @@ class FDSUploadFile extends HTMLElement {
       this.#showFileList();
     }
     this.#setupAccessibility();
+    this.#handleFileSpecificErrors();
     this.#moveErrorsToBottom();
   }
   #renderDropzone() {
@@ -8894,6 +8921,12 @@ class FDSUploadFile extends HTMLElement {
   }
   #removeFileByKey(key) {
     this.#files = this.#files.filter(f => f.id !== key);
+    this.querySelectorAll('fds-error-message[targets]').forEach(errorEl => {
+      const targets = errorEl.getAttribute('targets');
+      if (targets?.split(',').some(t => t.trim() === key)) {
+        errorEl.remove();
+      }
+    });
     this.#render();
   }
 

@@ -37,6 +37,10 @@ fds-upload-file,
         .fds-upload-file-list {
             border: 2px dashed func.color(vars.$input-border-color-feedback-error);
         }
+
+        .fds-upload-file-item-error {
+            background-color: #FFE0E0;
+        }
     }
 
     .fds-upload-input {

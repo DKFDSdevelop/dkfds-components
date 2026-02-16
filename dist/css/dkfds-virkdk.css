@@ -13394,6 +13394,10 @@ fds-upload-file:has(fds-error-message) .fds-upload-file-list,
 .fds-upload-file:has(fds-error-message) .fds-upload-file-list{
   border:2px dashed #CC0000;
 }
+fds-upload-file:has(fds-error-message) .fds-upload-file-item-error,
+.fds-upload-file:has(fds-error-message) .fds-upload-file-item-error{
+  background-color:#FFE0E0;
+}
 fds-upload-file .fds-upload-input,
 .fds-upload-file .fds-upload-input{
   position:absolute;

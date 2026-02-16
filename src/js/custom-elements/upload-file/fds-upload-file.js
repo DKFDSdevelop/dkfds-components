@@ -139,6 +139,7 @@ class FDSUploadFile extends HTMLElement {
 
         if (shouldUpdate) {
             this.#setupAccessibility();
+            this.#handleFileSpecificErrors();
         }
     }
 
@@ -152,6 +153,32 @@ class FDSUploadFile extends HTMLElement {
         return allNodes.some(node => relevantTagNames.includes(node?.tagName));
     }
 
+    #handleFileSpecificErrors() {
+        // Clear all existing file errors first
+        this.querySelectorAll('.fds-upload-file-item').forEach(item => {
+            item.classList.remove('fds-upload-file-item-error');
+        });
+
+        // Handle file-specific error messages
+        const fileSpecificErrors = this.querySelectorAll('fds-error-message[targets]');
+        fileSpecificErrors.forEach(errorEl => {
+            const isHidden = errorEl.hasAttribute('hidden');
+            const isAriaHidden = errorEl.getAttribute('aria-hidden') === 'true';
+            if (!isHidden && !isAriaHidden) {
+                const targetsAttr = errorEl.getAttribute('targets');
+                if (targetsAttr) {
+                    const targets = targetsAttr.split(',').map(target => target.trim()).filter(target => target);
+                    targets.forEach(targetId => {
+                        const fileItem = this.querySelector(`[data-file-key="${targetId}"]`);
+                        if (fileItem) {
+                            fileItem.classList.add('fds-upload-file-item-error');
+                        }
+                    });
+                }
+            }
+        });
+    }
+
     #setupAccessibility() {
         const input = this.querySelector('.fds-upload-input');
         if (!input) return;
@@ -161,7 +188,7 @@ class FDSUploadFile extends HTMLElement {
         const idsForAriaDescribedby = [];
         let isInvalid = false;
 
-        const errorMessages = this.querySelectorAll('fds-error-message');
+        const errorMessages = this.querySelectorAll('fds-error-message:not([targets])');
         const helpTexts = this.querySelectorAll('fds-help-text');
 
         const ariaDescribedbyElements = [...errorMessages, ...helpTexts];
@@ -234,6 +261,7 @@ class FDSUploadFile extends HTMLElement {
         }
 
         this.#setupAccessibility();
+        this.#handleFileSpecificErrors();
         this.#moveErrorsToBottom();
     }
 
@@ -317,8 +345,8 @@ class FDSUploadFile extends HTMLElement {
         filesContainer.setAttribute('role', 'list');
         filesContainer.className = 'fds-upload-files';
 
-        this.#files.forEach(fileObj  => {
-            filesContainer.appendChild(this.#renderFileItem(fileObj ));
+        this.#files.forEach(fileObj => {
+            filesContainer.appendChild(this.#renderFileItem(fileObj));
         });
 
         container.append(header, filesContainer);
@@ -364,18 +392,26 @@ class FDSUploadFile extends HTMLElement {
     ----------------------------- */
 
     #addFiles(fileList) {
-    Array.from(fileList).forEach(file => {
-        this.#files.push({
-            id: generateAndVerifyUniqueId('file'),
-            file
+        Array.from(fileList).forEach(file => {
+            this.#files.push({
+                id: generateAndVerifyUniqueId('file'),
+                file
+            });
         });
-    });
 
-    this.#render();
-}
+        this.#render();
+    }
 
     #removeFileByKey(key) {
         this.#files = this.#files.filter(f => f.id !== key);
+
+        this.querySelectorAll('fds-error-message[targets]').forEach(errorEl => {
+            const targets = errorEl.getAttribute('targets');
+            if (targets?.split(',').some(t => t.trim() === key)) {
+                errorEl.remove();
+            }
+        });
+
         this.#render();
     }
 
