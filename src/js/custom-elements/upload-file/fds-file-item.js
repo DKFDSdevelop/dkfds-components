@@ -34,6 +34,23 @@ class FDSFileItem extends HTMLElement {
         return svg;
     }
 
+    #getRemoveText() {
+        return this.getAttribute('remove-text') ?? 'Fjern';
+    }
+
+    #updateRemoveButtonText() {
+        const removeTextSpan = this.querySelector('.fds-upload-remove-text');
+        const removeButton = this.querySelector('.fds-upload-remove');
+
+        if (!removeTextSpan || !removeButton || !this.#file) return;
+
+        const removeText = this.#getRemoveText();
+
+        removeTextSpan.textContent = ` ${removeText}`;
+
+        removeButton.setAttribute('aria-label', `${removeText} ${this.#file.name}`);
+    }
+
     #setupErrorObserver() {
         if (this.#observer) {
             this.#observer.disconnect();
@@ -120,6 +137,10 @@ class FDSFileItem extends HTMLElement {
         remove.className = 'fds-upload-remove';
         remove.dataset.fileKey = this.#fileId;
 
+        const removeTextSpan = document.createElement('span');
+        removeTextSpan.className = 'fds-upload-remove-text';
+        removeTextSpan.textContent = ` ${this.#getRemoveText()}`;
+
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.classList.add('icon-svg');
         svg.setAttribute('aria-hidden', 'true');
@@ -129,9 +150,8 @@ class FDSFileItem extends HTMLElement {
         svg.appendChild(use);
 
         remove.appendChild(svg);
-        remove.appendChild(document.createTextNode(' Fjern'));
-        remove.setAttribute('aria-label', `Fjern ${this.#file.name}`);
-
+        remove.appendChild(removeTextSpan);
+        remove.setAttribute('aria-label', `${this.#getRemoveText()} ${this.#file.name}`);
         row.append(fileIcon, name, remove);
 
         this.appendChild(row);
@@ -145,7 +165,6 @@ class FDSFileItem extends HTMLElement {
         this.#file = file;
         this.#fileId = fileId;
 
-        // Only render if connected, otherwise wait for connectedCallback
         if (this.isConnected) {
             this.#render();
         }
@@ -159,11 +178,19 @@ class FDSFileItem extends HTMLElement {
         return this.#file;
     }
 
+    /* Attributes which can invoke attributeChangedCallback() */
+
+    static observedAttributes = ['remove-text'];
+
     /* Custom Element Lifecycle */
 
     constructor() {
         super();
     }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT ADDED TO DOCUMENT
+    -------------------------------------------------- */
 
     connectedCallback() {
         if (this.#initialized) return;
@@ -175,12 +202,30 @@ class FDSFileItem extends HTMLElement {
         this.#initialized = true;
     }
 
+    /* --------------------------------------------------
+    CUSTOM ELEMENT REMOVED FROM DOCUMENT
+    -------------------------------------------------- */
+
     disconnectedCallback() {
         this.#initialized = false;
 
         if (this.#observer) {
             this.#observer.disconnect();
             this.#observer = null;
+        }
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+    -------------------------------------------------- */
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (!this.#initialized) return;
+
+        if (name === 'remove-text' && oldValue !== newValue) {
+            if (this.#file && this.#fileId) {
+                this.#updateRemoveButtonText();
+            }
         }
     }
 }

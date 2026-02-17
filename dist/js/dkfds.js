@@ -8622,6 +8622,12 @@ class FDSUploadFile extends HTMLElement {
   #getDropzoneSuffix() {
     return this.getAttribute('dropzone-suffix') ?? '';
   }
+  #getFileListHeader() {
+    return this.getAttribute('file-list-header') ?? 'Valgte filer';
+  }
+  #getFileListMore() {
+    return this.getAttribute('file-list-more') ?? 'Vælg flere filer';
+  }
   #setUploadLabel() {
     let label = this.querySelector('.fds-upload-label');
     if (!label) {
@@ -8632,6 +8638,25 @@ class FDSUploadFile extends HTMLElement {
     }
     label.textContent = this.#getLabel();
     return label;
+  }
+  #setFileListHeader() {
+    const title = this.querySelector('.fds-upload-title');
+    if (title) {
+      title.textContent = this.#getFileListHeader();
+    }
+  }
+  #setFileListMore() {
+    const moreText = this.querySelector('.fds-upload-add-more');
+    if (moreText) {
+      moreText.textContent = this.#getFileListMore();
+    }
+  }
+  #setFileItemsRemoveText() {
+    const fileItems = this.querySelectorAll('fds-file-item');
+    const removeText = this.getAttribute('remove-text') || 'Fjern';
+    fileItems.forEach(item => {
+      item.setAttribute('remove-text', removeText);
+    });
   }
   #showDropzone() {
     if (!this.#dropzoneEl) {
@@ -8816,11 +8841,11 @@ class FDSUploadFile extends HTMLElement {
     header.className = 'fds-upload-header';
     const title = document.createElement('h5');
     title.className = 'fds-upload-title';
-    title.textContent = 'Valgte filer';
+    title.textContent = this.#getFileListHeader();
     const addMore = document.createElement('button');
     addMore.type = 'button';
     addMore.className = 'fds-upload-add-more';
-    addMore.textContent = 'Vælg flere filer';
+    addMore.textContent = this.#getFileListMore();
     header.append(title, addMore);
     const filesContainer = document.createElement('div');
     filesContainer.setAttribute('role', 'list');
@@ -8837,6 +8862,8 @@ class FDSUploadFile extends HTMLElement {
       file
     } = fileObj;
     const fileItem = document.createElement('fds-file-item');
+    const removeText = this.getAttribute('remove-text') || 'Fjern';
+    fileItem.setAttribute('remove-text', removeText);
     fileItem.setFileData(file, id);
     return fileItem;
   }
@@ -8885,7 +8912,7 @@ class FDSUploadFile extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['upload-label', 'dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'upload-disabled'];
+  static observedAttributes = ['upload-label', 'dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'upload-disabled', 'file-list-header', 'file-list-more', 'remove-text'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -8942,6 +8969,7 @@ class FDSUploadFile extends HTMLElement {
     if (this.#shouldHaveDisabled(this.getAttribute('upload-disabled'))) {
       this.#setDisabled();
     }
+    this.#initialized = true;
   }
 
   /* --------------------------------------------------
@@ -8974,6 +9002,15 @@ class FDSUploadFile extends HTMLElement {
       if (this.#files.length === 0) {
         this.#render();
       }
+    }
+    if (name === 'file-list-header' && oldValue !== newValue) {
+      this.#setFileListHeader();
+    }
+    if (name === 'file-list-more' && oldValue !== newValue) {
+      this.#setFileListMore();
+    }
+    if (name === 'remove-text' && oldValue !== newValue) {
+      this.#setFileItemsRemoveText();
     }
   }
 }
@@ -9011,6 +9048,17 @@ class FDSFileItem extends HTMLElement {
     use.setAttribute('href', `#${this.#getFileTypeIcon(file)}`);
     svg.appendChild(use);
     return svg;
+  }
+  #getRemoveText() {
+    return this.getAttribute('remove-text') ?? 'Fjern';
+  }
+  #updateRemoveButtonText() {
+    const removeTextSpan = this.querySelector('.fds-upload-remove-text');
+    const removeButton = this.querySelector('.fds-upload-remove');
+    if (!removeTextSpan || !removeButton || !this.#file) return;
+    const removeText = this.#getRemoveText();
+    removeTextSpan.textContent = ` ${removeText}`;
+    removeButton.setAttribute('aria-label', `${removeText} ${this.#file.name}`);
   }
   #setupErrorObserver() {
     if (this.#observer) {
@@ -9075,6 +9123,9 @@ class FDSFileItem extends HTMLElement {
     remove.type = 'button';
     remove.className = 'fds-upload-remove';
     remove.dataset.fileKey = this.#fileId;
+    const removeTextSpan = document.createElement('span');
+    removeTextSpan.className = 'fds-upload-remove-text';
+    removeTextSpan.textContent = ` ${this.#getRemoveText()}`;
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.classList.add('icon-svg');
     svg.setAttribute('aria-hidden', 'true');
@@ -9082,8 +9133,8 @@ class FDSFileItem extends HTMLElement {
     use.setAttribute('href', '#close');
     svg.appendChild(use);
     remove.appendChild(svg);
-    remove.appendChild(document.createTextNode(' Fjern'));
-    remove.setAttribute('aria-label', `Fjern ${this.#file.name}`);
+    remove.appendChild(removeTextSpan);
+    remove.setAttribute('aria-label', `${this.#getRemoveText()} ${this.#file.name}`);
     row.append(fileIcon, name, remove);
     this.appendChild(row);
     this.#setupErrorObserver();
@@ -9094,8 +9145,6 @@ class FDSFileItem extends HTMLElement {
   setFileData(file, fileId) {
     this.#file = file;
     this.#fileId = fileId;
-
-    // Only render if connected, otherwise wait for connectedCallback
     if (this.isConnected) {
       this.#render();
     }
@@ -9107,11 +9156,20 @@ class FDSFileItem extends HTMLElement {
     return this.#file;
   }
 
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['remove-text'];
+
   /* Custom Element Lifecycle */
 
   constructor() {
     super();
   }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
   connectedCallback() {
     if (this.#initialized) return;
     if (this.#file && this.#fileId && !this.innerHTML) {
@@ -9119,11 +9177,29 @@ class FDSFileItem extends HTMLElement {
     }
     this.#initialized = true;
   }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
   disconnectedCallback() {
     this.#initialized = false;
     if (this.#observer) {
       this.#observer.disconnect();
       this.#observer = null;
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (name === 'remove-text' && oldValue !== newValue) {
+      if (this.#file && this.#fileId) {
+        this.#updateRemoveButtonText();
+      }
     }
   }
 }

@@ -30,6 +30,14 @@ class FDSUploadFile extends HTMLElement {
         return this.getAttribute('dropzone-suffix') ?? '';
     }
 
+    #getFileListHeader() {
+        return this.getAttribute('file-list-header') ?? 'Valgte filer';
+    }
+
+    #getFileListMore() {
+        return this.getAttribute('file-list-more') ?? 'Vælg flere filer'
+    }
+
     #setUploadLabel() {
         let label = this.querySelector('.fds-upload-label');
 
@@ -42,6 +50,29 @@ class FDSUploadFile extends HTMLElement {
 
         label.textContent = this.#getLabel();
         return label;
+    }
+
+    #setFileListHeader() {
+        const title = this.querySelector('.fds-upload-title');
+        if (title) {
+            title.textContent = this.#getFileListHeader();
+        }
+    }
+
+    #setFileListMore() {
+        const moreText = this.querySelector('.fds-upload-add-more');
+        if (moreText) {
+            moreText.textContent = this.#getFileListMore();
+        }
+    }
+
+    #setFileItemsRemoveText() {
+        const fileItems = this.querySelectorAll('fds-file-item');
+        const removeText = this.getAttribute('remove-text') || 'Fjern';
+
+        fileItems.forEach(item => {
+            item.setAttribute('remove-text', removeText);
+        });
     }
 
     #showDropzone() {
@@ -274,12 +305,12 @@ class FDSUploadFile extends HTMLElement {
 
         const title = document.createElement('h5');
         title.className = 'fds-upload-title';
-        title.textContent = 'Valgte filer';
+        title.textContent = this.#getFileListHeader();
 
         const addMore = document.createElement('button');
         addMore.type = 'button';
         addMore.className = 'fds-upload-add-more';
-        addMore.textContent = 'Vælg flere filer';
+        addMore.textContent = this.#getFileListMore();
 
         header.append(title, addMore);
 
@@ -299,6 +330,10 @@ class FDSUploadFile extends HTMLElement {
         const { id, file } = fileObj;
 
         const fileItem = document.createElement('fds-file-item');
+
+        const removeText = this.getAttribute('remove-text') || 'Fjern';
+        fileItem.setAttribute('remove-text', removeText);
+
         fileItem.setFileData(file, id);
 
         return fileItem;
@@ -358,7 +393,7 @@ class FDSUploadFile extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['upload-label', 'dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'upload-disabled'];
+    static observedAttributes = ['upload-label', 'dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'upload-disabled', 'file-list-header', 'file-list-more', 'remove-text'];
 
     /* --------------------------------------------------
    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -423,6 +458,8 @@ class FDSUploadFile extends HTMLElement {
         if (this.#shouldHaveDisabled(this.getAttribute('upload-disabled'))) {
             this.#setDisabled();
         }
+
+        this.#initialized = true;
     }
 
     /* --------------------------------------------------
@@ -460,6 +497,18 @@ class FDSUploadFile extends HTMLElement {
             if (this.#files.length === 0) {
                 this.#render();
             }
+        }
+
+        if (name === 'file-list-header' && oldValue !== newValue) {
+            this.#setFileListHeader();
+        }
+
+        if (name === 'file-list-more' && oldValue !== newValue) {
+            this.#setFileListMore();
+        }
+
+        if (name === 'remove-text' && oldValue !== newValue) {
+            this.#setFileItemsRemoveText()
         }
     }
 }
