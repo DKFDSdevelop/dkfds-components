@@ -263,6 +263,7 @@ class FDSUploadFile extends HTMLElement {
         const content = document.createElement('div');
         content.className = 'fds-upload-dropzone-content';
         content.id = generateAndVerifyUniqueId('dropzone-desc');
+        input.setAttribute('aria-describedby', content.id);
 
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.classList.add('icon-svg');
@@ -388,6 +389,26 @@ class FDSUploadFile extends HTMLElement {
             id: fileObj.id,
             file: fileObj.file
         }));
+    }
+
+    addError(message, fileId = null) {
+        const errorMessage = document.createElement('fds-error-message');
+        errorMessage.textContent = message;
+
+        if (fileId) {
+            errorMessage.setAttribute('targets', fileId);
+        }
+
+        this.appendChild(errorMessage);
+        this.#setupAccessibility();
+        return errorMessage;
+    }
+
+    removeError(errorElement) {
+        if (this.contains(errorElement)) {
+            errorElement.remove();
+            this.#setupAccessibility();
+        }
     }
 
 

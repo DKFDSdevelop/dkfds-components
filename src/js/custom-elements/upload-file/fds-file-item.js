@@ -170,19 +170,13 @@ class FDSFileItem extends HTMLElement {
         }
     }
 
-    getFileId() {
-        return this.#fileId;
-    }
-
-    getFile() {
-        return this.#file;
-    }
-
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = ['remove-text'];
 
-    /* Custom Element Lifecycle */
+    /* --------------------------------------------------
+    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+    -------------------------------------------------- */
 
     constructor() {
         super();

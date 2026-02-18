@@ -8809,6 +8809,7 @@ class FDSUploadFile extends HTMLElement {
     const content = document.createElement('div');
     content.className = 'fds-upload-dropzone-content';
     content.id = generateAndVerifyUniqueId('dropzone-desc');
+    input.setAttribute('aria-describedby', content.id);
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.classList.add('icon-svg');
     svg.setAttribute('aria-hidden', 'true');
@@ -8908,6 +8909,23 @@ class FDSUploadFile extends HTMLElement {
       id: fileObj.id,
       file: fileObj.file
     }));
+  }
+  addError(message) {
+    let fileId = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+    const errorMessage = document.createElement('fds-error-message');
+    errorMessage.textContent = message;
+    if (fileId) {
+      errorMessage.setAttribute('targets', fileId);
+    }
+    this.appendChild(errorMessage);
+    this.#setupAccessibility();
+    return errorMessage;
+  }
+  removeError(errorElement) {
+    if (this.contains(errorElement)) {
+      errorElement.remove();
+      this.#setupAccessibility();
+    }
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
@@ -9149,18 +9167,14 @@ class FDSFileItem extends HTMLElement {
       this.#render();
     }
   }
-  getFileId() {
-    return this.#fileId;
-  }
-  getFile() {
-    return this.#file;
-  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
   static observedAttributes = ['remove-text'];
 
-  /* Custom Element Lifecycle */
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
 
   constructor() {
     super();
