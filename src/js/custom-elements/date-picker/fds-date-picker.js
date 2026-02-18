@@ -8,6 +8,9 @@ class FDSDatePicker extends HTMLElement {
     #initialized;
     #datePickerObserver;
 
+    #handleDatePickerButtonClick;
+    #handleFocusOut;
+
     /* Private methods */
 
     #setupLabel() {
@@ -35,28 +38,6 @@ class FDSDatePicker extends HTMLElement {
 
         if (!input.id) {
             input.id = generateAndVerifyUniqueId('inp');
-        }
-
-        /* Add date picker button next to the input */
-
-        if (!input.parentElement.classList.contains('input-wrapper')) {
-            const inputWrapper = document.createElement('div');
-            inputWrapper.classList.add('input-wrapper');
-            this.appendChild(inputWrapper);
-
-            inputWrapper.appendChild(input);
-
-            const dateButton = document.createElement('button');
-            dateButton.classList.add('button', 'button-icon-only', 'date-button');
-            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svg.classList.add('icon-svg');
-            svg.setAttribute('focusable', 'false');
-            svg.setAttribute('aria-hidden', 'true');
-            const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-            use.setAttributeNS(null, 'href', `#calendar-month`);
-            svg.appendChild(use);
-            dateButton.appendChild(svg);
-            inputWrapper.appendChild(dateButton);
         }
 
         /* Add or remove aria-describedby */
@@ -93,6 +74,42 @@ class FDSDatePicker extends HTMLElement {
 
         this.#setupInput();
         this.#setupLabel();
+
+        const input = this.querySelector('input');
+
+        /* Add date picker button next to the input */
+
+        if (!input.parentElement.classList.contains('input-wrapper')) {
+            const inputWrapper = document.createElement('div');
+            inputWrapper.classList.add('input-wrapper');
+            this.appendChild(inputWrapper);
+
+            inputWrapper.appendChild(input);
+
+            const dateButton = document.createElement('button');
+            dateButton.setAttribute('aria-haspopup', 'dialog');
+            dateButton.classList.add('button', 'button-icon-only', 'date-button');
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.classList.add('icon-svg');
+            svg.setAttribute('focusable', 'false');
+            svg.setAttribute('aria-hidden', 'true');
+            const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+            use.setAttributeNS(null, 'href', `#calendar-month`);
+            svg.appendChild(use);
+            dateButton.appendChild(svg);
+            inputWrapper.appendChild(dateButton);
+        }
+
+        /* Add wrapper for fds-date-picker-grid */
+
+        const datePicker = document.createElement('div');
+        datePicker.classList.add('date-picker', 'd-none');
+        datePicker.setAttribute('role', 'dialog');
+        datePicker.setAttribute('aria-modal', 'false');
+        datePicker.setAttribute('tabindex', '-1'); // Prevent the date picker from closing when a non-focusable child element is clicked
+        const grid = document.createElement('fds-date-picker-grid');
+        datePicker.appendChild(grid);
+        this.appendChild(datePicker);
 
         this.#initialized = true;
     }
@@ -171,6 +188,20 @@ class FDSDatePicker extends HTMLElement {
         return allNodes.some(node => relevantTagNames.includes(node?.tagName));
     }
 
+    #closeOnFocusOut(event) {
+        if (!this.contains(event.relatedTarget)) {
+            this.close();
+        }
+    }
+
+    #datePickerButtonClicked() {
+        this.toggle();
+
+        if (!this.querySelector('.date-picker').classList.contains('d-none')) {
+            this.querySelector('td[tabindex="0"]').focus();
+        }
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = ['show-required-status'];
@@ -184,6 +215,33 @@ class FDSDatePicker extends HTMLElement {
 
         this.#initialized = false;
         this.#datePickerObserver = null;
+
+        /* Set up instance fields for event handling */
+
+        this.#handleDatePickerButtonClick = () => { this.#datePickerButtonClicked(); };
+        this.#handleFocusOut = (event) => { this.#closeOnFocusOut(event); };
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT METHODS
+    -------------------------------------------------- */
+
+    open() {
+        if (!this.querySelector('.date-picker')) return;
+
+        this.querySelector('.date-picker').classList.remove('d-none');
+    }
+
+    close() {
+        if (!this.querySelector('.date-picker')) return;
+
+        this.querySelector('.date-picker').classList.add('d-none');
+    }
+
+    toggle() {
+        if (!this.querySelector('.date-picker')) return;
+
+        this.querySelector('.date-picker').classList.toggle('d-none');
     }
 
     /* --------------------------------------------------
@@ -195,6 +253,10 @@ class FDSDatePicker extends HTMLElement {
 
         this.#init();
         if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+
+        // Add event listeners
+        this.querySelector('.date-button').addEventListener('click', this.#handleDatePickerButtonClick, false);
+        this.addEventListener('focusout', this.#handleFocusOut, false);
     }
 
     /* --------------------------------------------------
@@ -207,6 +269,14 @@ class FDSDatePicker extends HTMLElement {
         if (this.#datePickerObserver) {
             this.#datePickerObserver.disconnect();
             this.#datePickerObserver = null;
+        }
+
+        if (this.querySelector('.date-button') && this.#handleDatePickerButtonClick) {
+            this.querySelector('.date-button').removeEventListener('click', this.#handleDatePickerButtonClick, false);
+        }
+
+        if (this.#handleFocusOut) {
+            this.removeEventListener('focusout', this.#handleFocusOut, false);
         }
     }
 

@@ -168,9 +168,9 @@ class FDSDatePickerGrid extends HTMLElement {
 
         // Remove existing dates in the grid
         const gridcells = gridContainer.querySelectorAll('td');
-
+        
         for (let i = 0; i < this.#TOTAL_GRIDCELLS; i++) {
-            gridcells[i].removeAttribute('tabindex');
+            gridcells[i].setAttribute('tabindex', '-1');
             gridcells[i].removeAttribute('data-date');
             gridcells[i].removeAttribute('aria-label');
             gridcells[i].removeAttribute('aria-selected');
@@ -195,7 +195,6 @@ class FDSDatePickerGrid extends HTMLElement {
 
             if (dateIsBetweenMinAndMax || dateIsGreaterThanMinnoMax || dateIsSmallerThanMaxnoMin || noMinNoMax) {
                 gridcells[i + offset - 1].setAttribute('aria-selected', `false`);
-                gridcells[i + offset - 1].setAttribute('tabindex', '-1');
             }
             else {
                 gridcells[i + offset - 1].setAttribute('aria-disabled', `true`);
@@ -203,18 +202,12 @@ class FDSDatePickerGrid extends HTMLElement {
         }
 
         // If a date is selected and visible in the grid, ensure it is properly marked
-        if (gridContainer.querySelector('td[aria-selected="true"]')) {
-            gridContainer.querySelector('td[aria-selected="true"]').setAttribute('aria-selected', 'false');
-        }
         const selectedDate = this.getAttribute('selected-date');
         if (this.hasAttribute('selected-date') && Util.isValidDateStr(selectedDate)) {
             gridContainer.querySelector(`[data-date="${selectedDate}"]`)?.setAttribute('aria-selected', 'true');
         }
 
         // Ensure it is possible to tab to the date which caused the grid to be redrawn
-        if (gridContainer.querySelector('td[tabindex="0"]')) {
-            gridContainer.querySelector('td[tabindex="0"]').setAttribute('tabindex', '-1');
-        }
         gridContainer.querySelector(`[data-date="${Util.ISOFormatFromDate(date)}"]`).setAttribute('tabindex', '0');
     }
 
