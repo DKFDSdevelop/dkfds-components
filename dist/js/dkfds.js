@@ -8688,6 +8688,20 @@ class FDSUploadFile extends HTMLElement {
       filesContainer.appendChild(this.#renderFileItem(fileObj));
     });
   }
+  #updateDropzoneContent() {
+    if (!this.#dropzoneEl) return;
+    const content = this.#dropzoneEl.querySelector('.fds-upload-dropzone-content p');
+    if (!content) return;
+    const linkSpan = content.querySelector('.fds-upload-choose');
+    if (!linkSpan) return;
+    linkSpan.textContent = this.#getDropzoneLink();
+    content.innerHTML = '';
+    const prefix = this.#getDropzonePrefix();
+    if (prefix) content.append(prefix + ' ');
+    content.appendChild(linkSpan);
+    const suffix = this.#getDropzoneSuffix();
+    if (suffix) content.append(' ' + suffix);
+  }
 
   /* Mutation observer */
 
@@ -9025,7 +9039,7 @@ class FDSUploadFile extends HTMLElement {
     }
     if (['dropzone-prefix', 'dropzone-link', 'dropzone-suffix'].includes(name) && oldValue !== newValue) {
       if (this.#files.length === 0) {
-        this.#render();
+        this.#updateDropzoneContent();
       }
     }
     if (name === 'file-list-header' && oldValue !== newValue) {
