@@ -153,13 +153,17 @@ class FDSUploadFile extends HTMLElement {
     }
 
     #setupAccessibility() {
-        const input = this.#inputEl
+        const input = this.#inputEl;
         if (!input) return;
-
-        input?.removeAttribute('aria-describedby');
 
         const idsForAriaDescribedby = [];
         let isInvalid = false;
+
+        // Preserve dropzone description for screen reader
+        const dropzoneDesc = this.querySelector('.fds-upload-dropzone-content');
+        if (dropzoneDesc && dropzoneDesc.id) {
+            idsForAriaDescribedby.push(dropzoneDesc.id);
+        }
 
         const errorMessages = this.querySelectorAll('fds-error-message:not([targets])');
         const helpTexts = this.querySelectorAll('fds-help-text');
@@ -181,7 +185,9 @@ class FDSUploadFile extends HTMLElement {
 
         if (idsForAriaDescribedby.length > 0) {
             const describedBy = idsForAriaDescribedby.join(' ');
-            input?.setAttribute('aria-describedby', describedBy);
+            input.setAttribute('aria-describedby', describedBy);
+        } else {
+            input.removeAttribute('aria-describedby');
         }
 
         if (input) {
