@@ -9293,7 +9293,11 @@ class FDSDatePickerGrid extends HTMLElement {
     // If a date is selected and visible in the grid, ensure it is properly marked
     const selectedDate = this.getAttribute('selected-date');
     if (this.hasAttribute('selected-date') && isValidDateStr(selectedDate)) {
-      gridContainer.querySelector(`[data-date="${selectedDate}"]`)?.setAttribute('aria-selected', 'true');
+      const selectedDateCell = gridContainer.querySelector(`[data-date="${selectedDate}"]`);
+      // Disabled dates can not be selected
+      if (selectedDateCell && !selectedDateCell.hasAttribute('aria-disabled')) {
+        selectedDateCell?.setAttribute('aria-selected', 'true');
+      }
     }
 
     // Ensure it is possible to tab to the date which caused the grid to be redrawn
