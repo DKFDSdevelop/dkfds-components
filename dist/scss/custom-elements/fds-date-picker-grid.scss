@@ -1,0 +1,50 @@
+@use "../variables" as vars;
+@use "../functions" as func;
+@use "../mixins" as mixins;
+
+fds-date-picker-grid,
+.fds-date-picker-grid {
+    display: block;
+    border: func.border(vars.$input-border);
+    background-color: white;
+    width: fit-content;
+
+    .grid-container {
+        &:focus {
+            outline: 0;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: func.units(2);
+
+            td {
+                height: func.units(7);
+                min-width: func.units(7);
+                text-align: center;
+                border-radius: func.units(405);
+
+                &[data-date]:focus {
+                    @include mixins.focus;
+                }
+
+                &[aria-selected] {
+                    cursor: pointer;
+
+                    &:hover {
+                        background-color: func.color('gray-200');
+                    }
+                }
+
+                &[aria-selected="true"] {
+                    background-color: func.color('black');
+                    color: func.color('white');
+                }
+
+                &[aria-disabled="true"] {
+                    color: func.color('gray-300');
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,451 @@
+import * as Util from './fds-date-picker-utils';
+
+class FDSDatePickerGrid extends HTMLElement {
+
+    /* Private instance fields */
+
+    #initialized;
+
+    #previousMinDate;
+    #previousMaxDate;
+    #correctedMinDate;
+    #correctedMaxDate;
+
+    #MONTHS;
+    #DAYS;
+    #GRID_ROWS;
+    #TOTAL_GRIDCELLS;
+
+    #DEFAULT_MIN_DATE;
+    #DEFAULT_MAX_DATE;
+
+    #handleKeydown;
+
+    /* Private methods */
+
+    #init() {
+        if (this.#initialized) return;
+
+        this.#create();
+
+        // Determine which date to place the focus on in the grid
+        let dateToFocus = new Date();
+        if (this.getAttribute('selected-date')) {
+            dateToFocus = Util.stringToDate(this.getAttribute('selected-date'));
+        }
+        else if (this.getAttribute('default-date')) {
+            dateToFocus = Util.stringToDate(this.getAttribute('default-date'));
+        }
+        this.#redraw(dateToFocus);
+
+        this.#initialized = true;
+    }
+
+    #create() {
+        const gridContainer = document.createElement('div');
+        gridContainer.classList.add('grid-container');
+        gridContainer.setAttribute('tabindex', '-1'); // Used to prevent focus from escaping when non-clickable items are clicked
+        this.appendChild(gridContainer);
+
+        /* Create the date picker header with previous button, next button, year selection, and month selection */
+
+        const datePickerHeader = document.createElement('div');
+        datePickerHeader.classList.add('date-picker-header');
+
+        // Previous button
+        const prevButton = document.createElement('button');
+        prevButton.classList.add('previous-month');
+        prevButton.textContent = 'Forrige';
+        datePickerHeader.appendChild(prevButton);
+
+        // Select month
+        const monthSelect = document.createElement('select');
+        monthSelect.setAttribute('name', 'month');
+        monthSelect.setAttribute('aria-label', 'Vis måned');
+        monthSelect.classList.add('selected-month');
+        for (let i = 0; i < this.#MONTHS.length; i++) {
+            monthSelect.innerHTML += `<option value="${i}">${this.#MONTHS[i].charAt(0).toUpperCase() + this.#MONTHS[i].slice(1)}</option>`;
+        }
+        datePickerHeader.appendChild(monthSelect);
+
+        // Select year
+        const yearSelect = document.createElement('select');
+        yearSelect.setAttribute('name', 'year');
+        yearSelect.setAttribute('aria-label', 'Vis år');
+        yearSelect.classList.add('selected-year');
+        datePickerHeader.appendChild(yearSelect);
+
+        // Next button
+        const nextButton = document.createElement('button');
+        nextButton.classList.add('next-month');
+        nextButton.textContent = 'Næste';
+        datePickerHeader.appendChild(nextButton);
+
+        gridContainer.appendChild(datePickerHeader);
+
+        /* The grid with dates */
+
+        const grid = document.createElement('table');
+        grid.setAttribute('role', 'grid');
+        grid.classList.add('date-picker-grid');
+
+        const gridHead = document.createElement('thead');
+        const gridHeadRow = document.createElement('tr');
+        for (let i = 0; i < this.#DAYS.length; i++) {
+            const gridHeader = document.createElement('th');
+            gridHeader.setAttribute('scope', 'col');
+            gridHeader.innerHTML = `<span aria-hidden="true">${this.#DAYS[i].slice(0, 2)}</span><span class="sr-only">${this.#DAYS[i]}</span>`;
+            gridHeadRow.appendChild(gridHeader);
+        }
+        gridHead.appendChild(gridHeadRow);
+        grid.appendChild(gridHead);
+
+        const gridBody = document.createElement('tbody');
+        for (let i = 0; i < this.#GRID_ROWS; i++) {
+            const gridBodyRow = document.createElement('tr');
+            for (let j = 0; j < this.#DAYS.length; j++) {
+                const gridCell = document.createElement('td');
+                gridBodyRow.appendChild(gridCell);
+            }
+            gridBody.appendChild(gridBodyRow);
+        }
+        grid.appendChild(gridBody);
+
+        gridContainer.appendChild(grid);
+    }
+
+    #redraw(date) {
+        const gridContainer = this.querySelector('.grid-container');
+
+        if (!gridContainer) return;
+
+        if (!Util.isValidDate(date)) {
+            throw new Error('Cannot draw date picker grid with invalid date');
+        }
+
+        /* Check if any changes were made to minimum date or maximum date */
+
+        let minDate = Util.stringToDate(this.getAttribute('min-date'));
+        let maxDate = Util.stringToDate(this.getAttribute('max-date'));
+        let updatedMinMaxDates = false;
+
+        if (this.#previousMinDate !== this.getAttribute('min-date') ||
+            this.#previousMaxDate !== this.getAttribute('max-date') ||
+            !Util.isValidDate(this.#correctedMinDate) ||
+            !Util.isValidDate(this.#correctedMaxDate) ||
+            this.#correctedMinDate > this.#correctedMaxDate) {
+
+            this.#previousMinDate = this.getAttribute('min-date');
+            this.#previousMaxDate = this.getAttribute('max-date');
+
+            if (!Util.isValidDate(minDate)) { minDate = this.#DEFAULT_MIN_DATE; }
+            if (!Util.isValidDate(maxDate)) { maxDate = this.#DEFAULT_MAX_DATE; }
+
+            if (minDate > maxDate) {
+                minDate = maxDate;
+            }
+
+            this.#correctedMinDate = minDate;
+            this.#correctedMaxDate = maxDate;
+            updatedMinMaxDates = true;
+        }
+
+        /* Constrain the date to always be between the minimum date and maximum date */
+
+        date = Util.constrainDate(minDate, date, maxDate);
+
+        /* Changes to minimum date or maximum date can affect the selectable years
+           and requires the select to be updated */
+
+        if (updatedMinMaxDates) {
+            let minYear = minDate.getFullYear();
+            let maxYear = maxDate.getFullYear();
+            const yearSelect = this.querySelector('.selected-year');
+            yearSelect.innerHTML = '';
+            for (let i = minYear; i <= maxYear; i++) {
+                yearSelect.innerHTML += `<option value="${i}">${i}</option>`;
+            }
+        }
+        const year = date.getFullYear();
+        gridContainer.querySelector('.selected-year').value = date.getFullYear();
+
+        // Disable unselectable months
+        const monthSelect = this.querySelector('.selected-month');
+        const monthOptions = monthSelect.querySelectorAll('option');
+        const chosenYear = this.querySelector('.selected-year').value;
+
+        for (let i = 0; i < monthOptions.length; i++) {
+            monthOptions[i].removeAttribute('disabled'); // Reset disabled status on all options
+        }
+        if (minDate.getFullYear() === parseInt(chosenYear, 10)) {
+            const minMonth = minDate.getMonth();
+            for (let i = 0; i < monthOptions.length; i++) {
+                if (i < minMonth) {
+                    monthOptions[i].setAttribute('disabled', '');
+                }
+            }
+        }
+        if (maxDate.getFullYear() === parseInt(chosenYear, 10)) {
+            const maxMonth = maxDate.getMonth();
+            for (let i = 0; i < monthOptions.length; i++) {
+                if (i > maxMonth) {
+                    monthOptions[i].setAttribute('disabled', '');
+                }
+            }
+        }
+        const month = date.getMonth();
+        gridContainer.querySelector('.selected-month').value = month;
+
+        // Remove existing dates in the grid
+        gridContainer.focus(); // Prevent focusout event to trigger
+        const gridcells = gridContainer.querySelectorAll('td');
+
+        for (let i = 0; i < this.#TOTAL_GRIDCELLS; i++) {
+            gridcells[i].removeAttribute('tabindex');
+            gridcells[i].removeAttribute('data-date');
+            gridcells[i].removeAttribute('aria-label');
+            gridcells[i].removeAttribute('aria-selected');
+            gridcells[i].removeAttribute('aria-disabled');
+            gridcells[i].innerHTML = '';
+        }
+
+        // Add new dates
+        const totalDays = Util.totalDaysInMonth(date);
+        const offset = Util.getWeekday(Util.dateFromIntegers(year, month, 1));
+        for (let i = 1; i <= totalDays; i++) {
+            const gridcellDate = Util.dateFromIntegers(year, month, i);
+
+            gridcells[i + offset - 1].setAttribute('data-date', `${Util.ISOFormatFromDate(gridcellDate)}`);
+            gridcells[i + offset - 1].setAttribute('aria-label', `${i}. ${this.#MONTHS[month]} ${year}`);
+            gridcells[i + offset - 1].innerHTML = `${i}`;
+
+            const dateIsBetweenMinAndMax = Util.isValidDate(minDate) && Util.isValidDate(maxDate) && minDate <= gridcellDate && gridcellDate <= maxDate;
+            const dateIsGreaterThanMinNoMax = Util.isValidDate(minDate) && !Util.isValidDate(maxDate) && minDate <= gridcellDate;
+            const dateIsSmallerThanMaxNoMin = !Util.isValidDate(minDate) && Util.isValidDate(maxDate) && gridcellDate <= maxDate;
+            const noMinNoMax = !Util.isValidDate(minDate) && !Util.isValidDate(maxDate);
+
+            if (dateIsBetweenMinAndMax || dateIsGreaterThanMinNoMax || dateIsSmallerThanMaxNoMin || noMinNoMax) {
+                gridcells[i + offset - 1].setAttribute('aria-selected', `false`);
+                gridcells[i + offset - 1].setAttribute('tabindex', '-1');
+            }
+            else {
+                gridcells[i + offset - 1].setAttribute('aria-disabled', `true`);
+            }
+        }
+
+        // If a date is selected and visible in the grid, ensure it is properly marked
+        const selectedDate = this.getAttribute('selected-date');
+        if (this.hasAttribute('selected-date') && Util.isValidDateStr(selectedDate)) {
+            gridContainer.querySelector(`[data-date="${selectedDate}"]`)?.setAttribute('aria-selected', 'true');
+        }
+
+        // Ensure it is possible to tab to the date which caused the grid to be redrawn
+        gridContainer.querySelector(`[data-date="${Util.ISOFormatFromDate(date)}"]`).setAttribute('tabindex', '0');
+    }
+
+    #keyboardNavigation(event) {
+        if (event.target.hasAttribute('data-date')) {
+
+            const focusedDay = Util.stringToDate(event.target.getAttribute('data-date'));
+            const minDate = this.#correctedMinDate;
+            const maxDate = this.#correctedMaxDate;
+
+            switch (event.key) {
+                case 'ArrowLeft':
+                    event.preventDefault();
+                    let yesterday = Util.getYesterday(focusedDay);
+                    if (yesterday < minDate) { yesterday = minDate; }
+                    this.#redraw(yesterday);
+                    this.querySelector(`[data-date="${Util.ISOFormatFromDate(yesterday)}"]`).focus();
+                    break;
+                case 'ArrowRight':
+                    event.preventDefault();
+                    let tomorrow = Util.getTomorrow(focusedDay);
+                    if (maxDate < tomorrow) { tomorrow = maxDate; }
+                    this.#redraw(tomorrow);
+                    this.querySelector(`[data-date="${Util.ISOFormatFromDate(tomorrow)}"]`).focus();
+                    break;
+                case 'ArrowUp':
+                    event.preventDefault();
+                    let prevWeek = Util.getPrevWeek(focusedDay);
+                    if (prevWeek < minDate) { prevWeek = minDate; }
+                    this.#redraw(prevWeek);
+                    this.querySelector(`[data-date="${Util.ISOFormatFromDate(prevWeek)}"]`).focus();
+                    break;
+                case 'ArrowDown':
+                    event.preventDefault();
+                    let nextWeek = Util.getNextWeek(focusedDay);
+                    if (maxDate < nextWeek) { nextWeek = maxDate; }
+                    this.#redraw(nextWeek);
+                    this.querySelector(`[data-date="${Util.ISOFormatFromDate(nextWeek)}"]`).focus();
+                    break;
+                case 'Enter':
+                case ' ':
+                    event.preventDefault();
+                    let selectedDate = focusedDay;
+                    this.setAttribute('selected-date', event.target.getAttribute('data-date'));
+                    this.querySelector(`[data-date="${Util.ISOFormatFromDate(selectedDate)}"]`).focus();
+                    break;
+                case 'PageDown':
+                    event.preventDefault();
+                    if (event.shiftKey) {
+                        let nextYear = Util.getNextYear(focusedDay);
+                        if (maxDate < nextYear) { nextYear = maxDate; }
+                        this.#redraw(nextYear);
+                        this.querySelector(`[data-date="${Util.ISOFormatFromDate(nextYear)}"]`).focus();
+                    }
+                    else {
+                        let nextMonth = Util.getNextMonth(focusedDay);
+                        if (maxDate < nextMonth) { nextMonth = maxDate; }
+                        this.#redraw(nextMonth);
+                        this.querySelector(`[data-date="${Util.ISOFormatFromDate(nextMonth)}"]`).focus();
+                    }
+                    break;
+                case 'PageUp':
+                    event.preventDefault();
+                    if (event.shiftKey) {
+                        let prevYear = Util.getPrevYear(focusedDay);
+                        if (prevYear < minDate) { prevYear = minDate; }
+                        this.#redraw(prevYear);
+                        this.querySelector(`[data-date="${Util.ISOFormatFromDate(prevYear)}"]`).focus();
+                    }
+                    else {
+                        let prevMonth = Util.getPrevMonth(focusedDay);
+                        if (prevMonth < minDate) { prevMonth = minDate; }
+                        this.#redraw(prevMonth);
+                        this.querySelector(`[data-date="${Util.ISOFormatFromDate(prevMonth)}"]`).focus();
+                    }
+                    break;
+                case 'Home':
+                    event.preventDefault();
+                    // Go to first day of the month
+                    if (event.ctrlKey) {
+                        const month = parseInt(this.querySelector('.selected-month').value, 10);
+                        const year = parseInt(this.querySelector('.selected-year').value, 10);
+                        let firstDay = Util.dateFromIntegers(year, month, 1);
+                        if (firstDay < minDate) { firstDay = minDate; }
+                        this.#redraw(firstDay);
+                        this.querySelector(`[data-date="${Util.ISOFormatFromDate(firstDay)}"]`).focus();
+                    }
+                    // Go to first day of the week (Monday)
+                    else {
+                        const weekDay = Util.getWeekday(focusedDay);
+                        if (weekDay !== 0) {
+                            let monday = new Date(focusedDay);
+                            monday.setDate(focusedDay.getDate() - weekDay);
+                            if (monday < minDate) { monday = minDate; }
+                            this.#redraw(monday);
+                            this.querySelector(`[data-date="${Util.ISOFormatFromDate(monday)}"]`).focus();
+                        }
+                    }
+                    break;
+                case 'End':
+                    event.preventDefault();
+                    // Go to last day of the month
+                    if (event.ctrlKey) {
+                        const month = parseInt(this.querySelector('.selected-month').value, 10);
+                        const year = parseInt(this.querySelector('.selected-year').value, 10);
+                        const day = Util.totalDaysInMonth(Util.dateFromIntegers(year, month, 1));
+                        let lastDay = Util.dateFromIntegers(year, month, day);
+                        if (maxDate < lastDay) { lastDay = maxDate; }
+                        this.#redraw(lastDay);
+                        this.querySelector(`[data-date="${Util.ISOFormatFromDate(lastDay)}"]`).focus();
+                    }
+                    // Go to last day of the week (Sunday)
+                    else {
+                        const weekDay = Util.getWeekday(focusedDay);
+                        if (weekDay !== 6) {
+                            let sunday = new Date(focusedDay);
+                            sunday.setDate(focusedDay.getDate() + (6 - weekDay));
+                            if (maxDate < sunday) { sunday = maxDate; }
+                            this.#redraw(sunday);
+                            this.querySelector(`[data-date="${Util.ISOFormatFromDate(sunday)}"]`).focus();
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+
+    /* Attributes which can invoke attributeChangedCallback() */
+
+    static observedAttributes = ['min-date', 'max-date', 'selected-date', 'default-date'];
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+    -------------------------------------------------- */
+
+    constructor() {
+        super();
+
+        this.#initialized = false;
+
+        this.#MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
+        this.#DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
+        this.#GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
+        this.#TOTAL_GRIDCELLS = this.#GRID_ROWS * this.#DAYS.length;
+        this.#DEFAULT_MIN_DATE = new Date(1900, 0, 1);
+        this.#DEFAULT_MAX_DATE = new Date(2100, 11, 31);
+
+        this.#previousMinDate = 0;
+        this.#previousMaxDate = 0;
+        this.#correctedMinDate = null;
+        this.#correctedMaxDate = null;
+
+        this.#handleKeydown = (event) => { this.#keyboardNavigation(event); };
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT ADDED TO DOCUMENT
+    -------------------------------------------------- */
+
+    connectedCallback() {
+        if (this.#initialized) return;
+
+        this.#init();
+
+        // Add event listeners
+        this.querySelector('.grid-container').addEventListener('keydown', this.#handleKeydown, false);
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT REMOVED FROM DOCUMENT
+    -------------------------------------------------- */
+
+    disconnectedCallback() {
+        this.#initialized = false;
+
+        this.querySelector('.grid-container').removeEventListener('keydown', this.#handleKeydown, false);
+        this.querySelector('.grid-container')?.remove();
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+    -------------------------------------------------- */
+
+    attributeChangedCallback(attribute, oldValue, newValue) {
+        if (!this.#initialized && oldValue !== newValue) return;
+
+        if (attribute === 'selected-date') {
+            this.#redraw(Util.stringToDate(this.getAttribute('selected-date')));
+        }
+
+        if (attribute === 'min-date' || attribute === 'max-date') {
+            const dateWithCurrentFocus = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+            let placeFocusOnDate = Util.stringToDate(dateWithCurrentFocus);
+            if (!Util.isValidDate(placeFocusOnDate)) {
+                placeFocusOnDate = new Date();
+            }
+            this.#redraw(placeFocusOnDate);
+            this.querySelector('td[tabindex="0"]').focus();
+        }
+    }
+}
+
+function registerDatePickerGrid() {
+    if (customElements.get('fds-date-picker-grid') === undefined) {
+        window.customElements.define('fds-date-picker-grid', FDSDatePickerGrid);
+    }
+}
+
+export default registerDatePickerGrid;

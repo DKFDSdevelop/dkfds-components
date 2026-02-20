@@ -1,0 +1,301 @@
+import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
+import * as Util from './fds-date-picker-utils';
+
+class FDSDatePicker extends HTMLElement {
+
+    /* Private instance fields */
+
+    #initialized;
+    #datePickerObserver;
+
+    #handleDatePickerButtonClick;
+    #handleFocusOut;
+
+    /* Private methods */
+
+    #setupLabel() {
+        const label = this.querySelector('label');
+
+        if (!label) return;
+
+        const input = this.querySelector('input');
+
+        if (input) {
+            label.htmlFor = input.id;
+            label.classList.toggle('disabled', input.hasAttribute('disabled'));
+        }
+        else {
+            label.removeAttribute('for');
+        }
+    }
+
+    #setupInput() {
+        const input = this.querySelector('input');
+
+        if (!input) return;
+
+        /* Set id */
+
+        if (!input.id) {
+            input.id = generateAndVerifyUniqueId('inp');
+        }
+
+        /* Add or remove aria-describedby */
+
+        input.removeAttribute('aria-describedby');
+        const idsForAriaDescribedby = [];
+        let isInvalid = false;
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+
+        const ariaDescribedbyElements = [...errorMessages, ...helpTexts];
+        for (const element of ariaDescribedbyElements) {
+            const notDisplayNone = window.getComputedStyle(element).display !== 'none';
+            const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
+
+            const visibleToScreenReaders = notDisplayNone && notAriaHidden;
+            if (element.id && visibleToScreenReaders) {
+                idsForAriaDescribedby.push(element.id);
+
+                if (element.tagName === 'FDS-ERROR-MESSAGE') {
+                    isInvalid = true;
+                }
+            }
+        }
+
+        idsForAriaDescribedby.length > 0 ? input.setAttribute('aria-describedby', idsForAriaDescribedby.join(' ')) : input.removeAttribute('aria-describedby');
+        isInvalid ? input.setAttribute('aria-invalid', 'true') : input.removeAttribute('aria-invalid');
+    }
+
+    #init() {
+        if (this.#initialized) return;
+
+        this.#setupObserver();
+
+        this.#setupInput();
+        this.#setupLabel();
+
+        const input = this.querySelector('input');
+
+        /* Add date picker button next to the input */
+
+        if (!input.parentElement.classList.contains('input-wrapper')) {
+            const inputWrapper = document.createElement('div');
+            inputWrapper.classList.add('input-wrapper');
+            this.appendChild(inputWrapper);
+
+            inputWrapper.appendChild(input);
+
+            const dateButton = document.createElement('button');
+            dateButton.setAttribute('aria-haspopup', 'dialog');
+            dateButton.classList.add('button', 'button-icon-only', 'date-button');
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.classList.add('icon-svg');
+            svg.setAttribute('focusable', 'false');
+            svg.setAttribute('aria-hidden', 'true');
+            const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+            use.setAttributeNS(null, 'href', `#calendar-month`);
+            svg.appendChild(use);
+            dateButton.appendChild(svg);
+            inputWrapper.appendChild(dateButton);
+        }
+
+        /* Add wrapper for fds-date-picker-grid */
+
+        const datePicker = document.createElement('div');
+        datePicker.classList.add('ce-date-picker', 'd-none');
+        datePicker.setAttribute('role', 'dialog');
+        datePicker.setAttribute('aria-modal', 'false');
+        const grid = document.createElement('fds-date-picker-grid');
+        datePicker.appendChild(grid);
+        this.appendChild(datePicker);
+
+        this.#initialized = true;
+    }
+
+    #showRequiredStatus(value) {
+        const label = this.querySelector('label');
+        const input = this.querySelector('input');
+
+        if (!label || !input) return;
+
+        let statusIndicator = label.querySelector(':scope > span.weight-normal');
+
+        if (value === null && statusIndicator) {
+            statusIndicator.remove();
+            return;
+        }
+
+        if (!statusIndicator) {
+            const span = document.createElement('span');
+            span.className = 'weight-normal';
+            label.appendChild(span);
+            statusIndicator = span;
+        }
+
+        const isRequired = input.hasAttribute('required') || (input.hasAttribute('aria-required') && input.getAttribute('aria-required') !== 'false');
+
+        let text = value;
+        if (value === '' && isRequired) text = 'skal udfyldes';
+        if (value === '' && !isRequired) text = 'frivilligt';
+
+        statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
+    }
+
+    #setupObserver() {
+        this.#datePickerObserver = new MutationObserver(this.#handleMutations);
+
+        const config = {
+            subtree: true,
+            childList: true,
+            attributes: true,
+            attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required'],
+            attributeOldValue: false,
+            characterData: false,
+            characterDataOldValue: false
+        }
+
+        this.#datePickerObserver.observe(this, config);
+    }
+
+    #handleMutations = (records, observer) => {
+        //console.log(`${this.tagName} had mutations at ${Date.now()}`, records);
+
+        const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
+
+        if (shouldUpdate) {
+            this.#setupInput();
+            this.#setupLabel();
+            if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+        }
+    }
+
+    #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
+        if (
+            attributeName === 'disabled' && target?.tagName === 'INPUT' ||
+            attributeName === 'required' && target?.tagName === 'INPUT' ||
+            attributeName === 'class' && target?.tagName !== 'LABEL' ||
+            attributeName === 'id' ||
+            attributeName === 'hidden' ||
+            attributeName === 'aria-hidden'
+        ) {
+            return true;
+        }
+
+        const relevantTagNames = ['LABEL', 'INPUT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+        const allNodes = [...addedNodes, ...removedNodes];
+        return allNodes.some(node => relevantTagNames.includes(node?.tagName));
+    }
+
+    #closeOnFocusOut(event) {
+        if (!this.contains(event.relatedTarget)) {
+            this.close();
+        }
+    }
+
+    #datePickerButtonClicked() {
+        this.toggle();
+
+        if (!this.querySelector('.ce-date-picker').classList.contains('d-none')) {
+            this.querySelector('td[tabindex="0"]').focus();
+        }
+    }
+
+    /* Attributes which can invoke attributeChangedCallback() */
+
+    static observedAttributes = ['show-required-status'];
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+    -------------------------------------------------- */
+
+    constructor() {
+        super();
+
+        this.#initialized = false;
+        this.#datePickerObserver = null;
+
+        /* Set up instance fields for event handling */
+
+        this.#handleDatePickerButtonClick = () => { this.#datePickerButtonClicked(); };
+        this.#handleFocusOut = (event) => { this.#closeOnFocusOut(event); };
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT METHODS
+    -------------------------------------------------- */
+
+    open() {
+        if (!this.querySelector('.ce-date-picker')) return;
+
+        this.querySelector('.ce-date-picker').classList.remove('d-none');
+    }
+
+    close() {
+        if (!this.querySelector('.ce-date-picker')) return;
+
+        this.querySelector('.ce-date-picker').classList.add('d-none');
+    }
+
+    toggle() {
+        if (!this.querySelector('.ce-date-picker')) return;
+
+        this.querySelector('.ce-date-picker').classList.toggle('d-none');
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT ADDED TO DOCUMENT
+    -------------------------------------------------- */
+
+    connectedCallback() {
+        if (this.#initialized) return;
+
+        this.#init();
+        if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+
+        // Add event listeners
+        this.querySelector('.date-button').addEventListener('click', this.#handleDatePickerButtonClick, false);
+        this.addEventListener('focusout', this.#handleFocusOut, false);
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT REMOVED FROM DOCUMENT
+    -------------------------------------------------- */
+
+    disconnectedCallback() {
+        this.#initialized = false;
+
+        if (this.#datePickerObserver) {
+            this.#datePickerObserver.disconnect();
+            this.#datePickerObserver = null;
+        }
+
+        if (this.querySelector('.date-button') && this.#handleDatePickerButtonClick) {
+            this.querySelector('.date-button').removeEventListener('click', this.#handleDatePickerButtonClick, false);
+        }
+
+        if (this.#handleFocusOut) {
+            this.removeEventListener('focusout', this.#handleFocusOut, false);
+        }
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+    -------------------------------------------------- */
+
+    attributeChangedCallback(attribute, oldValue, newValue) {
+        if (!this.#initialized) return;
+
+        if (attribute === 'show-required-status' && (oldValue !== newValue)) {
+            this.#showRequiredStatus(newValue);
+        }
+    }
+}
+
+function registerDatePicker() {
+    if (customElements.get('fds-date-picker') === undefined) {
+        window.customElements.define('fds-date-picker', FDSDatePicker);
+    }
+}
+
+export default registerDatePicker;

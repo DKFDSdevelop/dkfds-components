@@ -231,17 +231,13 @@ const registerCustomElements = () => {
   registerInputWrapper(),
   registerHelpText(),
   registerCharacterLimit(),
-  registerErrorMessage(),
-  registerCheckbox(),
-  registerCheckboxGroup(),
-  registerRadioButton(),
-  registerRadioButtonGroup(),
-  registerDateInput(),
-  registerSelect(),
-  registerDatePicker(),
-  registerDatePickerGrid()
-  registerUploadFile();
-  registerFileItem();
+  registerErrorMessage()
+  registerCheckbox();
+  registerCheckboxGroup();
+  registerRadioButton();
+  registerRadioButtonGroup();
+  registerDateInput();
+  registerSelect();
 };
 
-export { init, registerCustomElements, registerAccordion, renderAccordionHTML, validateAccordionHTML, registerAccordionGroup, registerInputWrapper, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
+export { init, registerCustomElements, registerAccordion, renderAccordionHTML, validateAccordionHTML, registerAccordionGroup, registerInputWrapper, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };

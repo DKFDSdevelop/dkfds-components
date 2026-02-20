@@ -33,8 +33,6 @@ import registerDateInput from './custom-elements/date-input/fds-date-input';
 import registerSelect from './custom-elements/select/fds-select';
 import registerUploadFile from './custom-elements/upload-file/fds-upload-file';
 import registerFileItem from './custom-elements/upload-file/fds-file-item';
-import registerDatePicker from './custom-elements/date-picker/fds-date-picker';
-import registerDatePickerGrid from './custom-elements/date-picker/fds-date-picker-grid';
 
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
@@ -226,22 +224,20 @@ var init = function (options) {
 };
 
 const registerCustomElements = () => {
-  registerAccordion(),
-  registerAccordionGroup(),
+  registerAccordion();
+  registerAccordionGroup();
   registerInputWrapper(),
   registerHelpText(),
   registerCharacterLimit(),
-  registerErrorMessage(),
-  registerCheckbox(),
-  registerCheckboxGroup(),
-  registerRadioButton(),
-  registerRadioButtonGroup(),
-  registerDateInput(),
-  registerSelect(),
-  registerDatePicker(),
-  registerDatePickerGrid()
+  registerErrorMessage()
+  registerCheckbox();
+  registerCheckboxGroup();
+  registerRadioButton();
+  registerRadioButtonGroup();
+  registerDateInput();
+  registerSelect();
   registerUploadFile();
   registerFileItem();
 };
 
-export { init, registerCustomElements, registerAccordion, renderAccordionHTML, validateAccordionHTML, registerAccordionGroup, registerInputWrapper, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
+export { init, registerCustomElements, registerAccordion, renderAccordionHTML, validateAccordionHTML, registerAccordionGroup, registerInputWrapper, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
