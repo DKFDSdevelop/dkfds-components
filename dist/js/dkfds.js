@@ -8681,14 +8681,23 @@ class FDSDatePicker extends HTMLElement {
       inputWrapper.appendChild(dateButton);
     }
 
-    /* Add wrapper for fds-date-picker-grid */
+    /* Create child elements for the dialog */
+
+    const grid = document.createElement('fds-date-picker-grid');
+    const closeButtonContainer = document.createElement('div');
+    closeButtonContainer.setAttribute('tabindex', '-1');
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'Luk';
+    closeButtonContainer.appendChild(closeButton);
+
+    /* Add wrapper for fds-date-picker-grid and close button */
 
     const datePicker = document.createElement('div');
     datePicker.classList.add('ce-date-picker', 'd-none');
     datePicker.setAttribute('role', 'dialog');
     datePicker.setAttribute('aria-modal', 'false');
-    const grid = document.createElement('fds-date-picker-grid');
     datePicker.appendChild(grid);
+    datePicker.appendChild(closeButtonContainer);
     this.appendChild(datePicker);
     this.#initialized = true;
   }
