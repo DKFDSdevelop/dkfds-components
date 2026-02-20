@@ -9108,6 +9108,8 @@ class FDSDatePickerGrid extends HTMLElement {
   #DEFAULT_MIN_DATE;
   #DEFAULT_MAX_DATE;
   #handleKeydown;
+  #handleChangeMonth;
+  #handleChangeYear;
 
   /* Private methods */
 
@@ -9241,7 +9243,8 @@ class FDSDatePickerGrid extends HTMLElement {
     const year = date.getFullYear();
     gridContainer.querySelector('.selected-year').value = date.getFullYear();
 
-    // Disable unselectable months
+    /* Disable unselectable months */
+
     const monthSelect = this.querySelector('.selected-month');
     const monthOptions = monthSelect.querySelectorAll('option');
     const chosenYear = this.querySelector('.selected-year').value;
@@ -9267,8 +9270,9 @@ class FDSDatePickerGrid extends HTMLElement {
     const month = date.getMonth();
     gridContainer.querySelector('.selected-month').value = month;
 
-    // Remove existing dates in the grid
-    gridContainer.focus(); // Prevent focusout event to trigger
+    /* Remove existing dates in the grid */
+
+    gridContainer.focus(); // Prevent focusout event to trigger in fds-date-picker
     const gridcells = gridContainer.querySelectorAll('td');
     for (let i = 0; i < this.#TOTAL_GRIDCELLS; i++) {
       gridcells[i].removeAttribute('tabindex');
@@ -9279,7 +9283,8 @@ class FDSDatePickerGrid extends HTMLElement {
       gridcells[i].innerHTML = '';
     }
 
-    // Add new dates
+    /* Add new dates */
+
     const totalDays = totalDaysInMonth(date);
     const offset = getWeekday(dateFromIntegers(year, month, 1));
     for (let i = 1; i <= totalDays; i++) {
@@ -9455,6 +9460,25 @@ class FDSDatePickerGrid extends HTMLElement {
       }
     }
   }
+  #selectChange(event) {
+    const focusedDay = this.querySelector('td[data-date][tabindex="0"]');
+    const focusedDayAsDate = stringToDate(focusedDay.getAttribute('data-date'));
+    let day = focusedDayAsDate.getDate();
+    let month = parseInt(this.querySelector('.selected-month').value, 10);
+    let year = parseInt(this.querySelector('.selected-year').value, 10);
+    if (event.target === this.querySelector('.selected-month')) {
+      month = parseInt(event.target.value, 10);
+    } else if (event.target === this.querySelector('.selected-year')) {
+      year = parseInt(event.target.value, 10);
+    }
+    const daysInNewMonth = totalDaysInMonth(dateFromIntegers(year, month, 1));
+    if (daysInNewMonth < day) {
+      day = daysInNewMonth;
+    }
+    const newDate = dateFromIntegers(year, month, day);
+    this.#redraw(newDate);
+    event.target.focus();
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -9480,6 +9504,12 @@ class FDSDatePickerGrid extends HTMLElement {
     this.#handleKeydown = event => {
       this.#keyboardNavigation(event);
     };
+    this.#handleChangeMonth = event => {
+      this.#selectChange(event);
+    };
+    this.#handleChangeYear = event => {
+      this.#selectChange(event);
+    };
   }
 
   /* --------------------------------------------------
@@ -9492,6 +9522,8 @@ class FDSDatePickerGrid extends HTMLElement {
 
     // Add event listeners
     this.querySelector('.grid-container').addEventListener('keydown', this.#handleKeydown, false);
+    this.querySelector('.selected-month').addEventListener('change', this.#handleChangeMonth, false);
+    this.querySelector('.selected-year').addEventListener('change', this.#handleChangeYear, false);
   }
 
   /* --------------------------------------------------
@@ -9501,6 +9533,8 @@ class FDSDatePickerGrid extends HTMLElement {
   disconnectedCallback() {
     this.#initialized = false;
     this.querySelector('.grid-container').removeEventListener('keydown', this.#handleKeydown, false);
+    this.querySelector('.selected-month').removeEventListener('change', this.#handleChangeMonth, false);
+    this.querySelector('.selected-year').removeEventListener('change', this.#handleChangeYear, false);
     this.querySelector('.grid-container')?.remove();
   }
 
