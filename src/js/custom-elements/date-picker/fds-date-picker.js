@@ -103,10 +103,9 @@ class FDSDatePicker extends HTMLElement {
         /* Add wrapper for fds-date-picker-grid */
 
         const datePicker = document.createElement('div');
-        datePicker.classList.add('date-picker', 'd-none');
+        datePicker.classList.add('ce-date-picker', 'd-none');
         datePicker.setAttribute('role', 'dialog');
         datePicker.setAttribute('aria-modal', 'false');
-        datePicker.setAttribute('tabindex', '-1'); // Prevent the date picker from closing when a non-focusable child element is clicked
         const grid = document.createElement('fds-date-picker-grid');
         datePicker.appendChild(grid);
         this.appendChild(datePicker);
@@ -197,7 +196,7 @@ class FDSDatePicker extends HTMLElement {
     #datePickerButtonClicked() {
         this.toggle();
 
-        if (!this.querySelector('.date-picker').classList.contains('d-none')) {
+        if (!this.querySelector('.ce-date-picker').classList.contains('d-none')) {
             this.querySelector('td[tabindex="0"]').focus();
         }
     }
@@ -227,21 +226,21 @@ class FDSDatePicker extends HTMLElement {
     -------------------------------------------------- */
 
     open() {
-        if (!this.querySelector('.date-picker')) return;
+        if (!this.querySelector('.ce-date-picker')) return;
 
-        this.querySelector('.date-picker').classList.remove('d-none');
+        this.querySelector('.ce-date-picker').classList.remove('d-none');
     }
 
     close() {
-        if (!this.querySelector('.date-picker')) return;
+        if (!this.querySelector('.ce-date-picker')) return;
 
-        this.querySelector('.date-picker').classList.add('d-none');
+        this.querySelector('.ce-date-picker').classList.add('d-none');
     }
 
     toggle() {
-        if (!this.querySelector('.date-picker')) return;
+        if (!this.querySelector('.ce-date-picker')) return;
 
-        this.querySelector('.date-picker').classList.toggle('d-none');
+        this.querySelector('.ce-date-picker').classList.toggle('d-none');
     }
 
     /* --------------------------------------------------

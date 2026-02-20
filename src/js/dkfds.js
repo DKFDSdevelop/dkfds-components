@@ -135,7 +135,7 @@ var init = function (options) {
   Datepicker
   ---------------------
   */
-  //datePicker.on(scope);
+  datePicker.on(scope);
 
   /*
   ---------------------

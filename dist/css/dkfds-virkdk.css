@@ -13425,11 +13425,12 @@ fds-date-picker .button.date-button,
   padding-left:12px;
   padding-right:12px;
 }
-fds-date-picker .date-picker[role=dialog],
-.fds-date-picker .date-picker[role=dialog]{
+fds-date-picker .ce-date-picker[role=dialog],
+.fds-date-picker .ce-date-picker[role=dialog]{
   position:absolute;
   z-index:1;
-  top:calc(100% + 8px);
+  top:calc(100% + 4px);
+  box-shadow:0 4px 12px 0 rgba(0, 0, 0, 0.2);
 }
 
 fds-date-picker-grid,
@@ -13439,30 +13440,41 @@ fds-date-picker-grid,
   background-color:white;
   width:fit-content;
 }
-fds-date-picker-grid td,
-.fds-date-picker-grid td{
-  height:26px;
-  border:1px solid #8E8E8E;
+fds-date-picker-grid .grid-container:focus,
+.fds-date-picker-grid .grid-container:focus{
+  outline:0;
 }
-fds-date-picker-grid td[data-date]:focus,
-.fds-date-picker-grid td[data-date]:focus{
+fds-date-picker-grid .grid-container table,
+.fds-date-picker-grid .grid-container table{
+  border-collapse:separate;
+  border-spacing:4px;
+}
+fds-date-picker-grid .grid-container table td,
+.fds-date-picker-grid .grid-container table td{
+  height:40px;
+  min-width:40px;
+  text-align:center;
+  border-radius:20px;
+}
+fds-date-picker-grid .grid-container table td[data-date]:focus,
+.fds-date-picker-grid .grid-container table td[data-date]:focus{
   outline:3px solid #454545;
   outline-offset:1px;
 }
-fds-date-picker-grid td[aria-selected],
-.fds-date-picker-grid td[aria-selected]{
+fds-date-picker-grid .grid-container table td[aria-selected],
+.fds-date-picker-grid .grid-container table td[aria-selected]{
   cursor:pointer;
 }
-fds-date-picker-grid td[aria-selected]:hover,
-.fds-date-picker-grid td[aria-selected]:hover{
+fds-date-picker-grid .grid-container table td[aria-selected]:hover,
+.fds-date-picker-grid .grid-container table td[aria-selected]:hover{
   background-color:#DCDCDC;
 }
-fds-date-picker-grid td[aria-selected=true],
-.fds-date-picker-grid td[aria-selected=true]{
+fds-date-picker-grid .grid-container table td[aria-selected=true],
+.fds-date-picker-grid .grid-container table td[aria-selected=true]{
   background-color:#1a1a1a;
   color:white;
 }
-fds-date-picker-grid td[aria-disabled=true],
-.fds-date-picker-grid td[aria-disabled=true]{
+fds-date-picker-grid .grid-container table td[aria-disabled=true],
+.fds-date-picker-grid .grid-container table td[aria-disabled=true]{
   color:#BFBFBF;
 }

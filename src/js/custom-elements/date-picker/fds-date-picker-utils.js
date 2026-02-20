@@ -24,7 +24,7 @@ export function totalDaysInMonth(date) {
 }
 
 /**
- * Converts a date string to a Date object, removing time.
+ * Converts a date string to a Date object, setting time to 00:00:00.
  * Accepts various separators: slash (/), dash (-), dot (.), or space.
  * 
  * @param {string} str - The date string in YYYY-MM-DD format (or with other separators)
@@ -72,7 +72,7 @@ export function isValidDateStr(str) {
 }
 
 /**
- * Constrains a date to be within the specified range and removes time from Date objects.
+ * Constrains a date to be within the specified range and sets time to 00:00:00
  * 
  * @param {Date} minDate - The minimum allowed date (lower bound, ignored if invalid)
  * @param {Date} date - The date to constrain within the range
@@ -83,6 +83,10 @@ export function constrainDate(minDate, date, maxDate) {
     if (!isValidDate(date)) {
         return new Date('invalid');
     }
+
+    date.setHours(0, 0, 0, 0);
+    if (isValidDate(minDate)) { minDate.setHours(0, 0, 0, 0); }
+    if (isValidDate(maxDate)) { maxDate.setHours(0, 0, 0, 0); }
 
     if (isValidDate(minDate) && date < minDate) {
         return minDate;
@@ -96,7 +100,7 @@ export function constrainDate(minDate, date, maxDate) {
 }
 
 /**
- * Create a date from integers. Unlike new Date(yyyy, mm, dd) this function don't allow date roll overs.
+ * Create a date from integers with timestamp 00:00:00. Unlike new Date(yyyy, mm, dd) this function don't allow date roll overs.
  *
  * @param {number} year - The year in the date
  * @param {number} month - The month in the date (0=January..11=December)
@@ -109,7 +113,7 @@ export function dateFromIntegers(year, month, day) {
     if (0 <= month && month <= 11 && 0 <= year && year <= 9999) {
         const totalMonthDays = totalDaysInMonth(new Date(year, month, 1));
         if (1 <= day && day <= totalMonthDays) {
-            const date = new Date(1990, 1, 1); // Don't use new Date() without an argument, otherwise timestamp won't be 00:00:00
+            const date = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
             date.setFullYear(year);
             date.setMonth(month);
             date.setDate(day);
@@ -227,4 +231,19 @@ export function getNextYear(date) {
         day = newDaysInMonth;
     }
     return new Date(nextYear, month, day);
+}
+
+/**
+ * Checks if two dates are exactly the same
+ * 
+ * @param {Date} date1 - The first date to compare
+ * @param {Date} date2 - The second date to compare
+ * @returns {boolean} True if the dates are exactly equal, false otherwise
+ */
+export function datesAreEqual(date1, date2) {
+    if (!isValidDate(date1) || !isValidDate(date2)) {
+        return false;
+    }
+
+    return date1.getTime() === date2.getTime();
 }
