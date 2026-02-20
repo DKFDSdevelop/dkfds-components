@@ -148,6 +148,10 @@ fds-upload-file,
             background-color: #f9f9f9;
         }
 
+        .fds-upload-label {
+            color: func.color(vars.$input-disabled-text-color);
+        }
+
         .fds-upload-dropzone-content,
         .fds-upload-choose {
             cursor: not-allowed;

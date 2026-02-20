@@ -275,6 +275,8 @@ class FDSUploadFile extends HTMLElement {
         input.multiple = true;
         input.id = generateAndVerifyUniqueId('file-input');
         input.className = 'fds-upload-input';
+
+        input.addEventListener('change', this.#onInputChange);
         this.#inputEl = input;
 
         const isDisabled = this.#shouldHaveDisabled(this.getAttribute('upload-disabled'));
@@ -489,7 +491,6 @@ class FDSUploadFile extends HTMLElement {
         if (this.#initialized) return;
 
         this.addEventListener('click', this.#onClick);
-        this.addEventListener('change', this.#onInputChange);
 
         this.#setupObserver();
 
@@ -519,8 +520,7 @@ class FDSUploadFile extends HTMLElement {
         this.#initialized = false;
 
         this.removeEventListener('click', this.#onClick);
-        this.removeEventListener('change', this.#onInputChange);
-
+        this.#inputEl?.removeEventListener('change', this.#onInputChange);
         if (this.#uploadObserver) {
             this.#uploadObserver.disconnect();
             this.#uploadObserver = null;

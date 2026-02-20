@@ -13504,6 +13504,10 @@ fds-upload-file.fds-upload-file-disabled .fds-upload-dropzone,
   border-color:#ccc;
   background-color:#f9f9f9;
 }
+fds-upload-file.fds-upload-file-disabled .fds-upload-label,
+.fds-upload-file.fds-upload-file-disabled .fds-upload-label{
+  color:#707070;
+}
 fds-upload-file.fds-upload-file-disabled .fds-upload-dropzone-content,
 fds-upload-file.fds-upload-file-disabled .fds-upload-choose,
 .fds-upload-file.fds-upload-file-disabled .fds-upload-dropzone-content,
