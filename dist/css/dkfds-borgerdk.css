@@ -13478,3 +13478,9 @@ fds-date-picker-grid .grid-container table td[aria-disabled=true],
 .fds-date-picker-grid .grid-container table td[aria-disabled=true]{
   color:#BFBFBF;
 }
+fds-date-picker-grid .grid-container .previous-month[aria-disabled=true],
+fds-date-picker-grid .grid-container .next-month[aria-disabled=true],
+.fds-date-picker-grid .grid-container .previous-month[aria-disabled=true],
+.fds-date-picker-grid .grid-container .next-month[aria-disabled=true]{
+  text-decoration:line-through;
+}

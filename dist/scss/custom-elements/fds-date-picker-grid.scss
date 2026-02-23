@@ -46,5 +46,12 @@ fds-date-picker-grid,
                 }
             }
         }
+
+        .previous-month,
+        .next-month {
+            &[aria-disabled="true"] {
+                text-decoration: line-through;
+            }
+        }
     }
 }
