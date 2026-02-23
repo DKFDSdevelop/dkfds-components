@@ -10,6 +10,9 @@ class FDSDatePicker extends HTMLElement {
 
     #handleDatePickerButtonClick;
     #handleFocusOut;
+    #handleDateClick;
+
+    #MONTHS;
 
     /* Private methods */
 
@@ -89,6 +92,7 @@ class FDSDatePicker extends HTMLElement {
             const dateButton = document.createElement('button');
             dateButton.setAttribute('aria-haspopup', 'dialog');
             dateButton.classList.add('button', 'button-icon-only', 'date-button');
+            dateButton.setAttribute('aria-label', 'Åbn datovælger');
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.classList.add('icon-svg');
             svg.setAttribute('focusable', 'false');
@@ -210,6 +214,21 @@ class FDSDatePicker extends HTMLElement {
         }
     }
 
+    #dateSelected(event) {
+        this.close();
+        const selectedDate = Util.stringToDate(this.querySelector('fds-date-picker-grid').getAttribute('selected-date'));
+        const day = selectedDate.getDate();
+        const month = selectedDate.getMonth();
+        const year = selectedDate.getFullYear();
+        if (Util.isValidDate(selectedDate)) {
+            this.querySelector('.date-button').setAttribute('aria-label', `Åbn datovælger, valgt dato er ${day}. ${this.#MONTHS[month]} ${year}`);
+        }
+        else {
+            this.querySelector('.date-button').setAttribute('aria-label', 'Åbn datovælger');
+        }
+        this.querySelector('.date-button').focus();
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = ['show-required-status'];
@@ -228,6 +247,9 @@ class FDSDatePicker extends HTMLElement {
 
         this.#handleDatePickerButtonClick = () => { this.#datePickerButtonClicked(); };
         this.#handleFocusOut = (event) => { this.#closeOnFocusOut(event); };
+        this.#handleDateClick = (event) => { this.#dateSelected(event) };
+
+        this.#MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
     }
 
     /* --------------------------------------------------
@@ -265,6 +287,7 @@ class FDSDatePicker extends HTMLElement {
         // Add event listeners
         this.querySelector('.date-button').addEventListener('click', this.#handleDatePickerButtonClick, false);
         this.addEventListener('focusout', this.#handleFocusOut, false);
+        this.querySelector('fds-date-picker-grid').addEventListener('date-selected', this.#handleDateClick, false);
     }
 
     /* --------------------------------------------------

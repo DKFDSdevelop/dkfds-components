@@ -24,6 +24,7 @@ class FDSDatePickerGrid extends HTMLElement {
     #handleChangeYear;
     #handlePrevMonth;
     #handleNextMonth;
+    #handleDateClick;
 
     /* Private methods */
 
@@ -130,7 +131,7 @@ class FDSDatePickerGrid extends HTMLElement {
         if (!gridContainer) return;
 
         if (!Util.isValidDate(date)) {
-            throw new Error('Cannot draw date picker grid with invalid date');
+            date = new Date();
         }
 
         /* Check if any changes were made to minimum date or maximum date */
@@ -312,6 +313,7 @@ class FDSDatePickerGrid extends HTMLElement {
                     let selectedDate = focusedDay;
                     this.setAttribute('selected-date', event.target.getAttribute('data-date'));
                     this.querySelector(`[data-date="${Util.ISOFormatFromDate(selectedDate)}"]`).focus();
+                    this.dispatchEvent(new Event('date-selected'));
                     break;
                 case 'PageDown':
                     event.preventDefault();
@@ -452,6 +454,17 @@ class FDSDatePickerGrid extends HTMLElement {
         }
     }
 
+    #dateClicked(event) {
+        if (event.target.hasAttribute('data-date') && !event.target.hasAttribute('aria-disabled')) {
+            const selectedDate = Util.stringToDate(event.target.getAttribute('data-date'));
+            this.setAttribute('selected-date', event.target.getAttribute('data-date'));
+            requestAnimationFrame(() => {
+                this.querySelector(`[data-date="${Util.ISOFormatFromDate(selectedDate)}"]`)?.focus();
+            });
+            this.dispatchEvent(new Event('date-selected'));
+        }
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = ['min-date', 'max-date', 'selected-date', 'default-date'];
@@ -482,6 +495,7 @@ class FDSDatePickerGrid extends HTMLElement {
         this.#handleChangeYear = (event) => { this.#selectChange(event); };
         this.#handlePrevMonth = (event) => { this.#monthButtonClicked(event); };
         this.#handleNextMonth = (event) => { this.#monthButtonClicked(event); };
+        this.#handleDateClick = (event) => { this.#dateClicked(event) };
     }
 
     /* --------------------------------------------------
@@ -499,6 +513,7 @@ class FDSDatePickerGrid extends HTMLElement {
         this.querySelector('.selected-year').addEventListener('change', this.#handleChangeYear, false);
         this.querySelector('.previous-month').addEventListener('click', this.#handlePrevMonth, false);
         this.querySelector('.next-month').addEventListener('click', this.#handleNextMonth, false);
+        this.querySelector('.date-picker-grid').addEventListener('click', this.#handleDateClick, false);
     }
 
     /* --------------------------------------------------
@@ -525,6 +540,7 @@ class FDSDatePickerGrid extends HTMLElement {
 
         if (attribute === 'selected-date') {
             this.#redraw(Util.stringToDate(this.getAttribute('selected-date')));
+            this.dispatchEvent(new Event('date-selected'));
         }
 
         if (attribute === 'min-date' || attribute === 'max-date') {
