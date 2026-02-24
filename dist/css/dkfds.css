@@ -13431,6 +13431,11 @@ fds-date-picker .ce-date-picker[role=dialog],
   z-index:1;
   top:calc(100% + 4px);
   box-shadow:0 4px 12px 0 rgba(0, 0, 0, 0.2);
+  background-color:white;
+}
+fds-date-picker .ce-date-picker fds-date-picker-grid + div,
+.fds-date-picker .ce-date-picker fds-date-picker-grid + div{
+  border:1px solid #8E8E8E;
 }
 
 fds-date-picker-grid,

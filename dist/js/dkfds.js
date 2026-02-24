@@ -8923,7 +8923,12 @@ class FDSDatePicker extends HTMLElement {
 
     /* Create child elements for the dialog */
 
-    const grid = document.createElement('fds-date-picker-grid');
+    let grid = null;
+    if (this.querySelector('fds-date-picker-grid')) {
+      grid = this.querySelector('fds-date-picker-grid');
+    } else {
+      grid = document.createElement('fds-date-picker-grid');
+    }
     const closeButtonContainer = document.createElement('div');
     closeButtonContainer.setAttribute('tabindex', '-1');
     const closeButton = document.createElement('button');
