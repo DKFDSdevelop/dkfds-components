@@ -9153,7 +9153,7 @@ class FDSDatePickerGrid extends HTMLElement {
     } else if (this.getAttribute('default-date')) {
       dateToFocus = stringToDate(this.getAttribute('default-date'));
     }
-    this.#redraw(dateToFocus);
+    this.#redraw(dateToFocus, false);
     this.#initialized = true;
   }
   #create() {
@@ -9231,6 +9231,7 @@ class FDSDatePickerGrid extends HTMLElement {
     gridContainer.appendChild(grid);
   }
   #redraw(date) {
+    let setFocus = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
     const gridContainer = this.querySelector('.grid-container');
     if (!gridContainer) return;
     if (!isValidDate(date)) {
@@ -9307,7 +9308,12 @@ class FDSDatePickerGrid extends HTMLElement {
 
     /* Remove existing dates in the grid */
 
-    gridContainer.focus(); // Prevent focusout event to trigger in fds-date-picker
+    // Prevent focusout event to trigger in fds-date-picker when tabindex is updated
+    const activeElement = document.activeElement;
+    const isDateCellFocused = activeElement && activeElement.tagName === 'TD' && activeElement.hasAttribute('data-date') && gridContainer.contains(activeElement);
+    if (isDateCellFocused) {
+      gridContainer.focus();
+    }
     const gridcells = gridContainer.querySelectorAll('td');
     for (let i = 0; i < this.#TOTAL_GRIDCELLS; i++) {
       gridcells[i].removeAttribute('tabindex');
@@ -9359,6 +9365,11 @@ class FDSDatePickerGrid extends HTMLElement {
     const visibleMaxDate = this.querySelector(`[data-date="${ISOFormatFromDate(this.#correctedMaxDate)}"]`);
     visibleMinDate ? prevMonthButton.setAttribute('aria-disabled', 'true') : prevMonthButton.removeAttribute('aria-disabled');
     visibleMaxDate ? nextMonthButton.setAttribute('aria-disabled', 'true') : nextMonthButton.removeAttribute('aria-disabled');
+
+    // Set focus
+    if (setFocus) {
+      this.querySelector('td[tabindex="0"]').focus();
+    }
   }
   #keyboardNavigation(event) {
     if (event.target.hasAttribute('data-date')) {
@@ -9372,8 +9383,7 @@ class FDSDatePickerGrid extends HTMLElement {
           if (yesterday < minDate) {
             yesterday = minDate;
           }
-          this.#redraw(yesterday);
-          this.querySelector(`[data-date="${ISOFormatFromDate(yesterday)}"]`).focus();
+          this.#redraw(yesterday, true);
           break;
         case 'ArrowRight':
           event.preventDefault();
@@ -9381,8 +9391,7 @@ class FDSDatePickerGrid extends HTMLElement {
           if (maxDate < tomorrow) {
             tomorrow = maxDate;
           }
-          this.#redraw(tomorrow);
-          this.querySelector(`[data-date="${ISOFormatFromDate(tomorrow)}"]`).focus();
+          this.#redraw(tomorrow, true);
           break;
         case 'ArrowUp':
           event.preventDefault();
@@ -9390,8 +9399,7 @@ class FDSDatePickerGrid extends HTMLElement {
           if (prevWeek < minDate) {
             prevWeek = minDate;
           }
-          this.#redraw(prevWeek);
-          this.querySelector(`[data-date="${ISOFormatFromDate(prevWeek)}"]`).focus();
+          this.#redraw(prevWeek, true);
           break;
         case 'ArrowDown':
           event.preventDefault();
@@ -9399,15 +9407,14 @@ class FDSDatePickerGrid extends HTMLElement {
           if (maxDate < nextWeek) {
             nextWeek = maxDate;
           }
-          this.#redraw(nextWeek);
-          this.querySelector(`[data-date="${ISOFormatFromDate(nextWeek)}"]`).focus();
+          this.#redraw(nextWeek, true);
           break;
         case 'Enter':
         case ' ':
           event.preventDefault();
-          let selectedDate = focusedDay;
           this.setAttribute('selected-date', event.target.getAttribute('data-date'));
-          this.querySelector(`[data-date="${ISOFormatFromDate(selectedDate)}"]`).focus();
+          this.querySelector('td[tabindex="0"]')?.setAttribute('tabindex', '-1');
+          event.target.setAttribute('tabindex', '0');
           this.dispatchEvent(new Event('date-selected'));
           break;
         case 'PageDown':
@@ -9417,15 +9424,13 @@ class FDSDatePickerGrid extends HTMLElement {
             if (maxDate < nextYear) {
               nextYear = maxDate;
             }
-            this.#redraw(nextYear);
-            this.querySelector(`[data-date="${ISOFormatFromDate(nextYear)}"]`).focus();
+            this.#redraw(nextYear, true);
           } else {
             let nextMonth = getNextMonth(focusedDay);
             if (maxDate < nextMonth) {
               nextMonth = maxDate;
             }
-            this.#redraw(nextMonth);
-            this.querySelector(`[data-date="${ISOFormatFromDate(nextMonth)}"]`).focus();
+            this.#redraw(nextMonth, true);
           }
           break;
         case 'PageUp':
@@ -9435,15 +9440,13 @@ class FDSDatePickerGrid extends HTMLElement {
             if (prevYear < minDate) {
               prevYear = minDate;
             }
-            this.#redraw(prevYear);
-            this.querySelector(`[data-date="${ISOFormatFromDate(prevYear)}"]`).focus();
+            this.#redraw(prevYear, true);
           } else {
             let prevMonth = getPrevMonth(focusedDay);
             if (prevMonth < minDate) {
               prevMonth = minDate;
             }
-            this.#redraw(prevMonth);
-            this.querySelector(`[data-date="${ISOFormatFromDate(prevMonth)}"]`).focus();
+            this.#redraw(prevMonth, true);
           }
           break;
         case 'Home':
@@ -9456,8 +9459,7 @@ class FDSDatePickerGrid extends HTMLElement {
             if (firstDay < minDate) {
               firstDay = minDate;
             }
-            this.#redraw(firstDay);
-            this.querySelector(`[data-date="${ISOFormatFromDate(firstDay)}"]`).focus();
+            this.#redraw(firstDay, true);
           }
           // Go to first day of the week (Monday)
           else {
@@ -9468,8 +9470,7 @@ class FDSDatePickerGrid extends HTMLElement {
               if (monday < minDate) {
                 monday = minDate;
               }
-              this.#redraw(monday);
-              this.querySelector(`[data-date="${ISOFormatFromDate(monday)}"]`).focus();
+              this.#redraw(monday, true);
             }
           }
           break;
@@ -9484,8 +9485,7 @@ class FDSDatePickerGrid extends HTMLElement {
             if (maxDate < lastDay) {
               lastDay = maxDate;
             }
-            this.#redraw(lastDay);
-            this.querySelector(`[data-date="${ISOFormatFromDate(lastDay)}"]`).focus();
+            this.#redraw(lastDay, true);
           }
           // Go to last day of the week (Sunday)
           else {
@@ -9496,8 +9496,7 @@ class FDSDatePickerGrid extends HTMLElement {
               if (maxDate < sunday) {
                 sunday = maxDate;
               }
-              this.#redraw(sunday);
-              this.querySelector(`[data-date="${ISOFormatFromDate(sunday)}"]`).focus();
+              this.#redraw(sunday, true);
             }
           }
           break;
@@ -9520,10 +9519,11 @@ class FDSDatePickerGrid extends HTMLElement {
       day = daysInNewMonth;
     }
     const newDate = dateFromIntegers(year, month, day);
-    this.#redraw(newDate);
+    this.#redraw(newDate, false);
     event.target.focus();
   }
   #monthButtonClicked(event) {
+    if (event.target.hasAttribute('aria-disabled')) return;
     const focusedDay = this.querySelector('td[data-date][tabindex="0"]');
     const focusedDayAsDate = stringToDate(focusedDay.getAttribute('data-date'));
     let prevMonth = getPrevMonth(focusedDayAsDate);
@@ -9532,12 +9532,12 @@ class FDSDatePickerGrid extends HTMLElement {
       if (prevMonth < this.#correctedMinDate) {
         prevMonth = this.#correctedMinDate;
       }
-      this.#redraw(prevMonth);
+      this.#redraw(prevMonth, false);
     } else if (event.target === this.querySelector('.next-month')) {
       if (this.#correctedMaxDate < nextMonth) {
         nextMonth = this.#correctedMaxDate;
       }
-      this.#redraw(nextMonth);
+      this.#redraw(nextMonth, false);
     }
     event.target.focus();
     const visibleMinDate = this.querySelector(`[data-date="${ISOFormatFromDate(this.#correctedMinDate)}"]`);
@@ -9554,11 +9554,9 @@ class FDSDatePickerGrid extends HTMLElement {
   }
   #dateClicked(event) {
     if (event.target.hasAttribute('data-date') && !event.target.hasAttribute('aria-disabled')) {
-      const selectedDate = stringToDate(event.target.getAttribute('data-date'));
+      this.querySelector('td[tabindex="0"]')?.setAttribute('tabindex', '-1');
+      event.target.setAttribute('tabindex', '0');
       this.setAttribute('selected-date', event.target.getAttribute('data-date'));
-      requestAnimationFrame(() => {
-        this.querySelector(`[data-date="${ISOFormatFromDate(selectedDate)}"]`)?.focus();
-      });
       this.dispatchEvent(new Event('date-selected'));
     }
   }
@@ -9642,7 +9640,11 @@ class FDSDatePickerGrid extends HTMLElement {
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized && oldValue !== newValue) return;
     if (attribute === 'selected-date') {
-      this.#redraw(stringToDate(this.getAttribute('selected-date')));
+      this.querySelector('td[aria-selected="true"]')?.setAttribute('aria-selected', 'false');
+      const selectedDate = this.querySelector(`td[data-date="${newValue}"]`);
+      if (selectedDate && !selectedDate.hasAttribute('aria-disabled')) {
+        selectedDate.setAttribute('aria-selected', 'true');
+      }
       this.dispatchEvent(new Event('date-selected'));
     }
     if (attribute === 'min-date' || attribute === 'max-date') {
@@ -9651,8 +9653,7 @@ class FDSDatePickerGrid extends HTMLElement {
       if (!isValidDate(placeFocusOnDate)) {
         placeFocusOnDate = new Date();
       }
-      this.#redraw(placeFocusOnDate);
-      this.querySelector('td[tabindex="0"]').focus();
+      this.#redraw(placeFocusOnDate, true);
     }
   }
 }
