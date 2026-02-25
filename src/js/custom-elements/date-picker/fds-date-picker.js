@@ -10,9 +10,12 @@ class FDSDatePicker extends HTMLElement {
 
     #handleDatePickerButtonClick;
     #handleFocusOut;
+    #handleDateSelection;
     #handleDateClick;
+    #handleInput;
 
     #MONTHS;
+    #FORMATS;
 
     /* Private methods */
 
@@ -220,8 +223,8 @@ class FDSDatePicker extends HTMLElement {
         }
     }
 
-    #dateSelected(event) {
-        this.close();
+    #dateSelected() {
+        // Update date button's aria-label
         const selectedDate = Util.stringToDate(this.querySelector('fds-date-picker-grid').getAttribute('selected-date'));
         const day = selectedDate.getDate();
         const month = selectedDate.getMonth();
@@ -232,7 +235,20 @@ class FDSDatePicker extends HTMLElement {
         else {
             this.querySelector('.date-button').setAttribute('aria-label', 'Åbn datovælger');
         }
+    }
+
+    #dateClicked() {
+        this.close();
         this.querySelector('.date-button').focus();
+    }
+
+    #inputUpdated(event) {
+        const dayMonthYearFormat = true;
+
+        const inputDate = Util.stringToDate(event.target.value, dayMonthYearFormat);
+        if (Util.isValidDate(inputDate)) {
+            this.querySelector('fds-date-picker-grid').setAttribute('selected-date', Util.ISOFormatFromDate(inputDate));
+        }
     }
 
     /* Attributes which can invoke attributeChangedCallback() */
@@ -253,9 +269,12 @@ class FDSDatePicker extends HTMLElement {
 
         this.#handleDatePickerButtonClick = () => { this.#datePickerButtonClicked(); };
         this.#handleFocusOut = (event) => { this.#closeOnFocusOut(event); };
-        this.#handleDateClick = (event) => { this.#dateSelected(event) };
+        this.#handleDateSelection = () => { this.#dateSelected() };
+        this.#handleDateClick = () => { this.#dateClicked() };
+        this.#handleInput = (event) => { this.#inputUpdated(event) };
 
         this.#MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
+        this.#FORMATS = ['DD/MM/YYYY', 'DD-MM-YYYY', 'DD.MM.YYYY', 'DD MM YYYY', 'DD/MM-YYYY'];
     }
 
     /* --------------------------------------------------
@@ -293,7 +312,9 @@ class FDSDatePicker extends HTMLElement {
         // Add event listeners
         this.querySelector('.date-button').addEventListener('click', this.#handleDatePickerButtonClick, false);
         this.addEventListener('focusout', this.#handleFocusOut, false);
-        this.querySelector('fds-date-picker-grid').addEventListener('date-selected', this.#handleDateClick, false);
+        this.querySelector('fds-date-picker-grid').addEventListener('date-selected', this.#handleDateSelection, false);
+        this.querySelector('fds-date-picker-grid').addEventListener('date-clicked', this.#handleDateClick, false);
+        this.querySelector('input').addEventListener('input', this.#handleInput, false);
     }
 
     /* --------------------------------------------------

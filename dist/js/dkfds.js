@@ -8626,21 +8626,32 @@ function totalDaysInMonth(date) {
  * Converts a date string to a Date object, setting time to 00:00:00.
  * Accepts various separators: slash (/), dash (-), dot (.), or space.
  * 
- * @param {string} str - The date string in YYYY-MM-DD format (or with other separators)
+ * @param {string} str - The date string in YYYY-MM-DD format (or DD-MM-YYYY if reverse is true)
+ * @param {boolean} [reverse=false] - If true, expects DD-MM-YYYY format; if false, expects YYYY-MM-DD format
  * @return {Date} A new Date object (time set to 00:00:00), or invalid Date if string format is invalid
  */
 function stringToDate(str) {
+  let reverse = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
   if (typeof str !== 'string') {
     return new Date('invalid');
   }
-  const regex = /^(\d{4})[\/\-\. ](\d{1,2})[\/\-\. ](\d{1,2})$/; // Matches YYYY-MM-DD
-
+  let regex = /^(\d{4})[\/\-\. ](\d{1,2})[\/\-\. ](\d{1,2})$/; // Matches year first, e.g. YYYY-MM-DD
+  if (reverse) {
+    regex = /^(\d{1,2})[\/\-\. ](\d{1,2})[\/\-\. ](\d{4})$/; // Matches day first, e.g. DD-MM-YYYY
+  }
   const match = str.match(regex);
   if (match) {
-    const year = parseInt(match[1], 10);
-    const month = parseInt(match[2], 10) - 1;
-    const day = parseInt(match[3], 10);
-    return dateFromIntegers(year, month, day);
+    if (reverse) {
+      const day = parseInt(match[1], 10);
+      const month = parseInt(match[2], 10) - 1;
+      const year = parseInt(match[3], 10);
+      return dateFromIntegers(year, month, day);
+    } else {
+      const year = parseInt(match[1], 10);
+      const month = parseInt(match[2], 10) - 1;
+      const day = parseInt(match[3], 10);
+      return dateFromIntegers(year, month, day);
+    }
   } else {
     return new Date('invalid');
   }
@@ -8844,8 +8855,11 @@ class FDSDatePicker extends HTMLElement {
   #datePickerObserver;
   #handleDatePickerButtonClick;
   #handleFocusOut;
+  #handleDateSelection;
   #handleDateClick;
+  #handleInput;
   #MONTHS;
+  #FORMATS;
 
   /* Private methods */
 
@@ -9009,8 +9023,8 @@ class FDSDatePicker extends HTMLElement {
       this.querySelector('td[tabindex="0"]').focus();
     }
   }
-  #dateSelected(event) {
-    this.close();
+  #dateSelected() {
+    // Update date button's aria-label
     const selectedDate = stringToDate(this.querySelector('fds-date-picker-grid').getAttribute('selected-date'));
     const day = selectedDate.getDate();
     const month = selectedDate.getMonth();
@@ -9020,7 +9034,17 @@ class FDSDatePicker extends HTMLElement {
     } else {
       this.querySelector('.date-button').setAttribute('aria-label', 'Åbn datovælger');
     }
+  }
+  #dateClicked() {
+    this.close();
     this.querySelector('.date-button').focus();
+  }
+  #inputUpdated(event) {
+    const dayMonthYearFormat = true;
+    const inputDate = stringToDate(event.target.value, dayMonthYearFormat);
+    if (isValidDate(inputDate)) {
+      this.querySelector('fds-date-picker-grid').setAttribute('selected-date', ISOFormatFromDate(inputDate));
+    }
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
@@ -9044,10 +9068,17 @@ class FDSDatePicker extends HTMLElement {
     this.#handleFocusOut = event => {
       this.#closeOnFocusOut(event);
     };
-    this.#handleDateClick = event => {
-      this.#dateSelected(event);
+    this.#handleDateSelection = () => {
+      this.#dateSelected();
+    };
+    this.#handleDateClick = () => {
+      this.#dateClicked();
+    };
+    this.#handleInput = event => {
+      this.#inputUpdated(event);
     };
     this.#MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
+    this.#FORMATS = ['DD/MM/YYYY', 'DD-MM-YYYY', 'DD.MM.YYYY', 'DD MM YYYY', 'DD/MM-YYYY'];
   }
 
   /* --------------------------------------------------
@@ -9079,7 +9110,9 @@ class FDSDatePicker extends HTMLElement {
     // Add event listeners
     this.querySelector('.date-button').addEventListener('click', this.#handleDatePickerButtonClick, false);
     this.addEventListener('focusout', this.#handleFocusOut, false);
-    this.querySelector('fds-date-picker-grid').addEventListener('date-selected', this.#handleDateClick, false);
+    this.querySelector('fds-date-picker-grid').addEventListener('date-selected', this.#handleDateSelection, false);
+    this.querySelector('fds-date-picker-grid').addEventListener('date-clicked', this.#handleDateClick, false);
+    this.querySelector('input').addEventListener('input', this.#handleInput, false);
   }
 
   /* --------------------------------------------------
@@ -9366,8 +9399,9 @@ class FDSDatePickerGrid extends HTMLElement {
     visibleMinDate ? prevMonthButton.setAttribute('aria-disabled', 'true') : prevMonthButton.removeAttribute('aria-disabled');
     visibleMaxDate ? nextMonthButton.setAttribute('aria-disabled', 'true') : nextMonthButton.removeAttribute('aria-disabled');
 
-    // Set focus
-    if (setFocus) {
+    // If wanted, set focus on the date causing the redraw unless the grid is hidden or the focus is on the date input field
+    const isDisplayed = this.offsetParent;
+    if (setFocus && isDisplayed && document.activeElement.tagName !== 'INPUT') {
       this.querySelector('td[tabindex="0"]').focus();
     }
   }
@@ -9413,9 +9447,7 @@ class FDSDatePickerGrid extends HTMLElement {
         case ' ':
           event.preventDefault();
           this.setAttribute('selected-date', event.target.getAttribute('data-date'));
-          this.querySelector('td[tabindex="0"]')?.setAttribute('tabindex', '-1');
-          event.target.setAttribute('tabindex', '0');
-          this.dispatchEvent(new Event('date-selected'));
+          this.dispatchEvent(new Event('date-clicked'));
           break;
         case 'PageDown':
           event.preventDefault();
@@ -9554,10 +9586,8 @@ class FDSDatePickerGrid extends HTMLElement {
   }
   #dateClicked(event) {
     if (event.target.hasAttribute('data-date') && !event.target.hasAttribute('aria-disabled')) {
-      this.querySelector('td[tabindex="0"]')?.setAttribute('tabindex', '-1');
-      event.target.setAttribute('tabindex', '0');
       this.setAttribute('selected-date', event.target.getAttribute('data-date'));
-      this.dispatchEvent(new Event('date-selected'));
+      this.dispatchEvent(new Event('date-clicked'));
     }
   }
 
@@ -9625,11 +9655,11 @@ class FDSDatePickerGrid extends HTMLElement {
 
   disconnectedCallback() {
     this.#initialized = false;
-    this.querySelector('.grid-container').removeEventListener('keydown', this.#handleKeydown, false);
-    this.querySelector('.selected-month').removeEventListener('change', this.#handleChangeMonth, false);
-    this.querySelector('.selected-year').removeEventListener('change', this.#handleChangeYear, false);
-    this.querySelector('.previous-month').removeEventListener('click', this.#handlePrevMonth, false);
-    this.querySelector('.next-month').removeEventListener('click', this.#handleNextMonth, false);
+    this.querySelector('.grid-container')?.removeEventListener('keydown', this.#handleKeydown, false);
+    this.querySelector('.selected-month')?.removeEventListener('change', this.#handleChangeMonth, false);
+    this.querySelector('.selected-year')?.removeEventListener('change', this.#handleChangeYear, false);
+    this.querySelector('.previous-month')?.removeEventListener('click', this.#handlePrevMonth, false);
+    this.querySelector('.next-month')?.removeEventListener('click', this.#handleNextMonth, false);
     this.querySelector('.grid-container')?.remove();
   }
 
@@ -9640,11 +9670,7 @@ class FDSDatePickerGrid extends HTMLElement {
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized && oldValue !== newValue) return;
     if (attribute === 'selected-date') {
-      this.querySelector('td[aria-selected="true"]')?.setAttribute('aria-selected', 'false');
-      const selectedDate = this.querySelector(`td[data-date="${newValue}"]`);
-      if (selectedDate && !selectedDate.hasAttribute('aria-disabled')) {
-        selectedDate.setAttribute('aria-selected', 'true');
-      }
+      this.#redraw(stringToDate(newValue), true);
       this.dispatchEvent(new Event('date-selected'));
     }
     if (attribute === 'min-date' || attribute === 'max-date') {

@@ -276,8 +276,9 @@ class FDSDatePickerGrid extends HTMLElement {
         visibleMinDate ? prevMonthButton.setAttribute('aria-disabled', 'true') : prevMonthButton.removeAttribute('aria-disabled');
         visibleMaxDate ? nextMonthButton.setAttribute('aria-disabled', 'true') : nextMonthButton.removeAttribute('aria-disabled');
 
-        // Set focus
-        if (setFocus) {
+        // If wanted, set focus on the date causing the redraw unless the grid is hidden or the focus is on the date input field
+        const isDisplayed = this.offsetParent;
+        if (setFocus && isDisplayed && document.activeElement.tagName !== 'INPUT') {
             this.querySelector('td[tabindex="0"]').focus();
         }
     }
@@ -318,9 +319,7 @@ class FDSDatePickerGrid extends HTMLElement {
                 case ' ':
                     event.preventDefault();
                     this.setAttribute('selected-date', event.target.getAttribute('data-date'));
-                    this.querySelector('td[tabindex="0"]')?.setAttribute('tabindex', '-1');
-                    event.target.setAttribute('tabindex', '0');
-                    this.dispatchEvent(new Event('date-selected'));
+                    this.dispatchEvent(new Event('date-clicked'));
                     break;
                 case 'PageDown':
                     event.preventDefault();
@@ -457,10 +456,8 @@ class FDSDatePickerGrid extends HTMLElement {
 
     #dateClicked(event) {
         if (event.target.hasAttribute('data-date') && !event.target.hasAttribute('aria-disabled')) {
-            this.querySelector('td[tabindex="0"]')?.setAttribute('tabindex', '-1');
-            event.target.setAttribute('tabindex', '0');
             this.setAttribute('selected-date', event.target.getAttribute('data-date'));
-            this.dispatchEvent(new Event('date-selected'));
+            this.dispatchEvent(new Event('date-clicked'));
         }
     }
 
@@ -522,11 +519,11 @@ class FDSDatePickerGrid extends HTMLElement {
     disconnectedCallback() {
         this.#initialized = false;
 
-        this.querySelector('.grid-container').removeEventListener('keydown', this.#handleKeydown, false);
-        this.querySelector('.selected-month').removeEventListener('change', this.#handleChangeMonth, false);
-        this.querySelector('.selected-year').removeEventListener('change', this.#handleChangeYear, false);
-        this.querySelector('.previous-month').removeEventListener('click', this.#handlePrevMonth, false);
-        this.querySelector('.next-month').removeEventListener('click', this.#handleNextMonth, false);
+        this.querySelector('.grid-container')?.removeEventListener('keydown', this.#handleKeydown, false);
+        this.querySelector('.selected-month')?.removeEventListener('change', this.#handleChangeMonth, false);
+        this.querySelector('.selected-year')?.removeEventListener('change', this.#handleChangeYear, false);
+        this.querySelector('.previous-month')?.removeEventListener('click', this.#handlePrevMonth, false);
+        this.querySelector('.next-month')?.removeEventListener('click', this.#handleNextMonth, false);
         this.querySelector('.grid-container')?.remove();
     }
 
@@ -538,13 +535,7 @@ class FDSDatePickerGrid extends HTMLElement {
         if (!this.#initialized && oldValue !== newValue) return;
 
         if (attribute === 'selected-date') {
-            this.querySelector('td[aria-selected="true"]')?.setAttribute('aria-selected', 'false');
-
-            const selectedDate = this.querySelector(`td[data-date="${newValue}"]`);
-            if (selectedDate && !selectedDate.hasAttribute('aria-disabled')) {
-                selectedDate.setAttribute('aria-selected', 'true');
-            }
-
+            this.#redraw(Util.stringToDate(newValue), true);
             this.dispatchEvent(new Event('date-selected'));
         }
 
