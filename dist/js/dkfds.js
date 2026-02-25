@@ -8858,6 +8858,7 @@ class FDSDatePicker extends HTMLElement {
   #handleDateSelection;
   #handleDateClick;
   #handleInput;
+  #handlePageShow;
   #MONTHS;
   #FORMATS;
 
@@ -9012,8 +9013,32 @@ class FDSDatePicker extends HTMLElement {
     const allNodes = [...addedNodes, ...removedNodes];
     return allNodes.some(node => relevantTagNames.includes(node?.tagName));
   }
+  #updateDateButton(date) {
+    if (isValidDate(date)) {
+      const day = date.getDate();
+      const month = date.getMonth();
+      const year = date.getFullYear();
+      this.querySelector('.date-button').setAttribute('aria-label', `Åbn datovælger, valgt dato er ${day}. ${this.#MONTHS[month]} ${year}`);
+    } else {
+      this.querySelector('.date-button').setAttribute('aria-label', 'Åbn datovælger');
+    }
+  }
+  #updateSelectedDate(date) {
+    if (isValidDate(date)) {
+      this.querySelector('fds-date-picker-grid').setAttribute('selected-date', ISOFormatFromDate(date));
+    } else {
+      this.querySelector('fds-date-picker-grid').setAttribute('selected-date', '');
+    }
+  }
   #closeOnFocusOut(event) {
     if (!this.contains(event.relatedTarget)) {
+      // If anything is entered in the input field, the date picker must match
+      if (this.querySelector('input').value !== '') {
+        const dayMonthYearFormat = true;
+        const date = stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+        this.#updateDateButton(date);
+        this.#updateSelectedDate(date);
+      }
       this.close();
     }
   }
@@ -9031,20 +9056,23 @@ class FDSDatePicker extends HTMLElement {
     const year = selectedDate.getFullYear();
     if (isValidDate(selectedDate)) {
       this.querySelector('.date-button').setAttribute('aria-label', `Åbn datovælger, valgt dato er ${day}. ${this.#MONTHS[month]} ${year}`);
+
+      // Update value in input field unless focus is on the input - otherwise, you risk moving the caret during typing
+      if (document.activeElement !== this.querySelector('input')) {
+        let format = this.#FORMATS[0];
+        if (this.hasAttribute('format') && this.#FORMATS.includes(this.getAttribute('format'))) {
+          format = this.getAttribute('format');
+        }
+        const dayWithZeros = String(day).padStart(2, '0');
+        const monthWithZeros = String(month + 1).padStart(2, '0');
+        const yearWithZeros = String(year).padStart(4, '0');
+        this.querySelector('input').value = format.replace('DD', dayWithZeros).replace('MM', monthWithZeros).replace('YYYY', yearWithZeros);
+      }
     } else {
       this.querySelector('.date-button').setAttribute('aria-label', 'Åbn datovælger');
-    }
-
-    // Update value in input field unless focus is on the input - otherwise, you risk moving the caret during typing
-    if (document.activeElement !== this.querySelector('input')) {
-      let format = this.#FORMATS[0];
-      if (this.hasAttribute('format') && this.#FORMATS.includes(this.getAttribute('format'))) {
-        format = this.getAttribute('format');
+      if (document.activeElement !== this.querySelector('input')) {
+        this.querySelector('input').value = '';
       }
-      const dayWithZeros = String(day).padStart(2, '0');
-      const monthWithZeros = String(month + 1).padStart(2, '0');
-      const yearWithZeros = String(year).padStart(4, '0');
-      this.querySelector('input').value = format.replace('DD', dayWithZeros).replace('MM', monthWithZeros).replace('YYYY', yearWithZeros);
     }
   }
   #dateClicked() {
@@ -9058,6 +9086,25 @@ class FDSDatePicker extends HTMLElement {
       this.querySelector('fds-date-picker-grid').setAttribute('selected-date', ISOFormatFromDate(inputDate));
     } else {
       this.querySelector('fds-date-picker-grid').setAttribute('selected-date', '');
+    }
+  }
+  #updateOnPageshow() {
+    let date = new Date('invalid');
+    if (this.querySelector('input').value !== '') {
+      const dayMonthYearFormat = true;
+      date = stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+    } else if (this.querySelector('fds-date-picker-grid').hasAttribute('selected-date')) {
+      date = stringToDate(this.querySelector('fds-date-picker-grid').getAttribute('selected-date'));
+    }
+    if (isValidDate(date)) {
+      const day = date.getDate();
+      const month = date.getMonth();
+      const year = date.getFullYear();
+      this.querySelector('fds-date-picker-grid').setAttribute('selected-date', ISOFormatFromDate(date));
+      this.querySelector('.date-button').setAttribute('aria-label', `Åbn datovælger, valgt dato er ${day}. ${this.#MONTHS[month]} ${year}`);
+    } else {
+      this.querySelector('fds-date-picker-grid').setAttribute('selected-date', '');
+      this.querySelector('.date-button').setAttribute('aria-label', 'Åbn datovælger');
     }
   }
 
@@ -9090,6 +9137,9 @@ class FDSDatePicker extends HTMLElement {
     };
     this.#handleInput = event => {
       this.#inputUpdated(event);
+    };
+    this.#handlePageShow = () => {
+      this.#updateOnPageshow();
     };
     this.#MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
     this.#FORMATS = ['DD/MM/YYYY', 'DD-MM-YYYY', 'DD.MM.YYYY', 'DD MM YYYY', 'DD/MM-YYYY'];
@@ -9127,6 +9177,9 @@ class FDSDatePicker extends HTMLElement {
     this.querySelector('fds-date-picker-grid').addEventListener('date-selected', this.#handleDateSelection, false);
     this.querySelector('fds-date-picker-grid').addEventListener('date-clicked', this.#handleDateClick, false);
     this.querySelector('input').addEventListener('input', this.#handleInput, false);
+
+    // Handles previously entered input when using the browser's back button
+    window.addEventListener('pageshow', this.#handlePageShow, false);
   }
 
   /* --------------------------------------------------
@@ -9700,7 +9753,16 @@ class FDSDatePickerGrid extends HTMLElement {
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized && oldValue !== newValue) return;
     if (attribute === 'selected-date') {
-      this.#redraw(stringToDate(newValue), true);
+      const date = stringToDate(newValue);
+      const setFocusOnDate = true;
+      if (isValidDate(date)) {
+        this.#redraw(date, setFocusOnDate);
+      } else {
+        // An invalid date might be temporary while the user enters a date in the fds-date-picker's input field
+        // Keep displaying the previous dates to give a more "steady" experience with no rapid updates
+        const dateWithCurrentFocus = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+        this.#redraw(stringToDate(dateWithCurrentFocus), setFocusOnDate);
+      }
       this.dispatchEvent(new Event('date-selected'));
     }
     if (attribute === 'min-date' || attribute === 'max-date') {

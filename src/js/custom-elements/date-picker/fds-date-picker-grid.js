@@ -532,7 +532,17 @@ class FDSDatePickerGrid extends HTMLElement {
         if (!this.#initialized && oldValue !== newValue) return;
 
         if (attribute === 'selected-date') {
-            this.#redraw(Util.stringToDate(newValue), true);
+            const date = Util.stringToDate(newValue);
+            const setFocusOnDate = true;
+            if (Util.isValidDate(date)) {
+                this.#redraw(date, setFocusOnDate);
+            }
+            else {
+                // An invalid date might be temporary while the user enters a date in the fds-date-picker's input field
+                // Keep displaying the previous dates to give a more "steady" experience with no rapid updates
+                const dateWithCurrentFocus = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+                this.#redraw(Util.stringToDate(dateWithCurrentFocus), setFocusOnDate);
+            }
             this.dispatchEvent(new Event('date-selected'));
         }
 

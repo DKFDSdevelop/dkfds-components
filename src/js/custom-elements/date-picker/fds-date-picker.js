@@ -13,6 +13,7 @@ class FDSDatePicker extends HTMLElement {
     #handleDateSelection;
     #handleDateClick;
     #handleInput;
+    #handlePageShow;
 
     #MONTHS;
     #FORMATS;
@@ -209,8 +210,37 @@ class FDSDatePicker extends HTMLElement {
         return allNodes.some(node => relevantTagNames.includes(node?.tagName));
     }
 
+    #updateDateButton(date) {
+        if (Util.isValidDate(date)) {
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            this.querySelector('.date-button').setAttribute('aria-label', `Åbn datovælger, valgt dato er ${day}. ${this.#MONTHS[month]} ${year}`);
+        }
+        else {
+            this.querySelector('.date-button').setAttribute('aria-label', 'Åbn datovælger');
+        }
+    }
+
+    #updateSelectedDate(date) {
+        if (Util.isValidDate(date)) {
+            this.querySelector('fds-date-picker-grid').setAttribute('selected-date', Util.ISOFormatFromDate(date));
+        }
+        else {
+            this.querySelector('fds-date-picker-grid').setAttribute('selected-date', '');
+        }
+    }
+
     #closeOnFocusOut(event) {
         if (!this.contains(event.relatedTarget)) {
+            // If anything is entered in the input field, the date picker must match
+            if (this.querySelector('input').value !== '') {
+                const dayMonthYearFormat = true;
+                const date = Util.stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+                
+                this.#updateDateButton(date);
+                this.#updateSelectedDate(date);
+            }
             this.close();
         }
     }
@@ -231,21 +261,25 @@ class FDSDatePicker extends HTMLElement {
         const year = selectedDate.getFullYear();
         if (Util.isValidDate(selectedDate)) {
             this.querySelector('.date-button').setAttribute('aria-label', `Åbn datovælger, valgt dato er ${day}. ${this.#MONTHS[month]} ${year}`);
+
+            // Update value in input field unless focus is on the input - otherwise, you risk moving the caret during typing
+            if (document.activeElement !== this.querySelector('input')) {
+                let format = this.#FORMATS[0];
+                if (this.hasAttribute('format') && this.#FORMATS.includes(this.getAttribute('format'))) {
+                    format = this.getAttribute('format');
+                }
+                const dayWithZeros = String(day).padStart(2, '0');
+                const monthWithZeros = String(month + 1).padStart(2, '0');
+                const yearWithZeros = String(year).padStart(4, '0');
+                this.querySelector('input').value = format.replace('DD', dayWithZeros).replace('MM', monthWithZeros).replace('YYYY', yearWithZeros);
+            }
         }
         else {
             this.querySelector('.date-button').setAttribute('aria-label', 'Åbn datovælger');
-        }
 
-        // Update value in input field unless focus is on the input - otherwise, you risk moving the caret during typing
-        if (document.activeElement !== this.querySelector('input')) {
-            let format = this.#FORMATS[0];
-            if (this.hasAttribute('format') && this.#FORMATS.includes(this.getAttribute('format'))) {
-                format = this.getAttribute('format');
+            if (document.activeElement !== this.querySelector('input')) {
+                this.querySelector('input').value = '';
             }
-            const dayWithZeros = String(day).padStart(2, '0');
-            const monthWithZeros = String(month + 1).padStart(2, '0');
-            const yearWithZeros = String(year).padStart(4, '0');
-            this.querySelector('input').value = format.replace('DD', dayWithZeros).replace('MM', monthWithZeros).replace('YYYY', yearWithZeros);
         }
     }
 
@@ -263,6 +297,31 @@ class FDSDatePicker extends HTMLElement {
         }
         else {
             this.querySelector('fds-date-picker-grid').setAttribute('selected-date', '');
+        }
+    }
+
+    #updateOnPageshow() {
+        let date = new Date('invalid');
+
+        if (this.querySelector('input').value !== '') {
+            const dayMonthYearFormat = true;
+            date = Util.stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+        }
+        else if (this.querySelector('fds-date-picker-grid').hasAttribute('selected-date')) {
+            date = Util.stringToDate(this.querySelector('fds-date-picker-grid').getAttribute('selected-date'));
+        }
+
+        if (Util.isValidDate(date)) {
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+
+            this.querySelector('fds-date-picker-grid').setAttribute('selected-date', Util.ISOFormatFromDate(date));
+            this.querySelector('.date-button').setAttribute('aria-label', `Åbn datovælger, valgt dato er ${day}. ${this.#MONTHS[month]} ${year}`);
+        }
+        else {
+            this.querySelector('fds-date-picker-grid').setAttribute('selected-date', '');
+            this.querySelector('.date-button').setAttribute('aria-label', 'Åbn datovælger');
         }
     }
 
@@ -287,6 +346,7 @@ class FDSDatePicker extends HTMLElement {
         this.#handleDateSelection = () => { this.#dateSelected() };
         this.#handleDateClick = () => { this.#dateClicked() };
         this.#handleInput = (event) => { this.#inputUpdated(event) };
+        this.#handlePageShow = () => { this.#updateOnPageshow() };
 
         this.#MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
         this.#FORMATS = ['DD/MM/YYYY', 'DD-MM-YYYY', 'DD.MM.YYYY', 'DD MM YYYY', 'DD/MM-YYYY'];
@@ -330,6 +390,9 @@ class FDSDatePicker extends HTMLElement {
         this.querySelector('fds-date-picker-grid').addEventListener('date-selected', this.#handleDateSelection, false);
         this.querySelector('fds-date-picker-grid').addEventListener('date-clicked', this.#handleDateClick, false);
         this.querySelector('input').addEventListener('input', this.#handleInput, false);
+
+        // Handles previously entered input when using the browser's back button
+        window.addEventListener('pageshow', this.#handlePageShow, false);
     }
 
     /* --------------------------------------------------
@@ -366,7 +429,7 @@ class FDSDatePicker extends HTMLElement {
 
         if (attribute === 'format' && (oldValue !== newValue)) {
             if (document.activeElement !== this.querySelector('input')) {
-                
+
                 // If the new format is valid...
                 if (this.hasAttribute('format') && this.#FORMATS.includes(newValue)) {
                     const dayMonthYearFormat = true;
