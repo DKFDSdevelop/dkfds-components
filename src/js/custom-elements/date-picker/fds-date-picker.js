@@ -235,6 +235,18 @@ class FDSDatePicker extends HTMLElement {
         else {
             this.querySelector('.date-button').setAttribute('aria-label', 'Åbn datovælger');
         }
+
+        // Update value in input field unless focus is on the input - otherwise, you risk moving the caret during typing
+        if (document.activeElement !== this.querySelector('input')) {
+            let format = this.#FORMATS[0];
+            if (this.hasAttribute('format') && this.#FORMATS.includes(this.getAttribute('format'))) {
+                format = this.getAttribute('format');
+            }
+            const dayWithZeros = String(day).padStart(2, '0');
+            const monthWithZeros = String(month + 1).padStart(2, '0');
+            const yearWithZeros = String(year).padStart(4, '0');
+            this.querySelector('input').value = format.replace('DD', dayWithZeros).replace('MM', monthWithZeros).replace('YYYY', yearWithZeros);
+        }
     }
 
     #dateClicked() {
@@ -249,11 +261,14 @@ class FDSDatePicker extends HTMLElement {
         if (Util.isValidDate(inputDate)) {
             this.querySelector('fds-date-picker-grid').setAttribute('selected-date', Util.ISOFormatFromDate(inputDate));
         }
+        else {
+            this.querySelector('fds-date-picker-grid').setAttribute('selected-date', '');
+        }
     }
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['show-required-status'];
+    static observedAttributes = ['show-required-status', 'format'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -347,6 +362,28 @@ class FDSDatePicker extends HTMLElement {
 
         if (attribute === 'show-required-status' && (oldValue !== newValue)) {
             this.#showRequiredStatus(newValue);
+        }
+
+        if (attribute === 'format' && (oldValue !== newValue)) {
+            if (document.activeElement !== this.querySelector('input')) {
+                
+                // If the new format is valid...
+                if (this.hasAttribute('format') && this.#FORMATS.includes(newValue)) {
+                    const dayMonthYearFormat = true;
+                    const date = Util.stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+
+                    // ...and if the input field contains a valid date...
+                    if (Util.isValidDate(date)) {
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const year = String(date.getFullYear()).padStart(4, '0');
+
+                        // ...then update the date displayed
+                        this.querySelector('input').value = newValue.replace('DD', day).replace('MM', month).replace('YYYY', year);
+                    }
+
+                }
+            }
         }
     }
 }

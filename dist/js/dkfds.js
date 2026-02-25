@@ -9034,6 +9034,18 @@ class FDSDatePicker extends HTMLElement {
     } else {
       this.querySelector('.date-button').setAttribute('aria-label', 'Åbn datovælger');
     }
+
+    // Update value in input field unless focus is on the input - otherwise, you risk moving the caret during typing
+    if (document.activeElement !== this.querySelector('input')) {
+      let format = this.#FORMATS[0];
+      if (this.hasAttribute('format') && this.#FORMATS.includes(this.getAttribute('format'))) {
+        format = this.getAttribute('format');
+      }
+      const dayWithZeros = String(day).padStart(2, '0');
+      const monthWithZeros = String(month + 1).padStart(2, '0');
+      const yearWithZeros = String(year).padStart(4, '0');
+      this.querySelector('input').value = format.replace('DD', dayWithZeros).replace('MM', monthWithZeros).replace('YYYY', yearWithZeros);
+    }
   }
   #dateClicked() {
     this.close();
@@ -9044,12 +9056,14 @@ class FDSDatePicker extends HTMLElement {
     const inputDate = stringToDate(event.target.value, dayMonthYearFormat);
     if (isValidDate(inputDate)) {
       this.querySelector('fds-date-picker-grid').setAttribute('selected-date', ISOFormatFromDate(inputDate));
+    } else {
+      this.querySelector('fds-date-picker-grid').setAttribute('selected-date', '');
     }
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['show-required-status'];
+  static observedAttributes = ['show-required-status', 'format'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -9141,6 +9155,25 @@ class FDSDatePicker extends HTMLElement {
     if (!this.#initialized) return;
     if (attribute === 'show-required-status' && oldValue !== newValue) {
       this.#showRequiredStatus(newValue);
+    }
+    if (attribute === 'format' && oldValue !== newValue) {
+      if (document.activeElement !== this.querySelector('input')) {
+        // If the new format is valid...
+        if (this.hasAttribute('format') && this.#FORMATS.includes(newValue)) {
+          const dayMonthYearFormat = true;
+          const date = stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+
+          // ...and if the input field contains a valid date...
+          if (isValidDate(date)) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = String(date.getFullYear()).padStart(4, '0');
+
+            // ...then update the date displayed
+            this.querySelector('input').value = newValue.replace('DD', day).replace('MM', month).replace('YYYY', year);
+          }
+        }
+      }
     }
   }
 }
@@ -9273,36 +9306,33 @@ class FDSDatePickerGrid extends HTMLElement {
 
     /* Check if any changes were made to minimum date or maximum date */
 
-    let minDate = stringToDate(this.getAttribute('min-date'));
-    let maxDate = stringToDate(this.getAttribute('max-date'));
     let updatedMinMaxDates = false;
     if (this.#previousMinDate !== this.getAttribute('min-date') || this.#previousMaxDate !== this.getAttribute('max-date') || !isValidDate(this.#correctedMinDate) || !isValidDate(this.#correctedMaxDate) || this.#correctedMinDate > this.#correctedMaxDate) {
       this.#previousMinDate = this.getAttribute('min-date');
       this.#previousMaxDate = this.getAttribute('max-date');
-      if (!isValidDate(minDate)) {
-        minDate = this.#DEFAULT_MIN_DATE;
+      this.#correctedMinDate = stringToDate(this.getAttribute('min-date'));
+      this.#correctedMaxDate = stringToDate(this.getAttribute('max-date'));
+      if (!isValidDate(this.#correctedMinDate)) {
+        this.#correctedMinDate = this.#DEFAULT_MIN_DATE;
       }
-      if (!isValidDate(maxDate)) {
-        maxDate = this.#DEFAULT_MAX_DATE;
+      if (!isValidDate(this.#correctedMaxDate)) {
+        this.#correctedMaxDate = this.#DEFAULT_MAX_DATE;
       }
-      if (minDate > maxDate) {
-        minDate = maxDate;
+      if (this.#correctedMinDate > this.#correctedMaxDate) {
+        this.#correctedMinDate = this.#correctedMaxDate;
       }
-      this.#correctedMinDate = minDate;
-      this.#correctedMaxDate = maxDate;
       updatedMinMaxDates = true;
     }
 
     /* Constrain the date to always be between the minimum date and maximum date */
-
-    date = constrainDate(minDate, date, maxDate);
+    date = constrainDate(this.#correctedMinDate, date, this.#correctedMaxDate);
 
     /* Changes to minimum date or maximum date can affect the selectable years
        and requires the select to be updated */
 
     if (updatedMinMaxDates) {
-      let minYear = minDate.getFullYear();
-      let maxYear = maxDate.getFullYear();
+      let minYear = this.#correctedMinDate.getFullYear();
+      let maxYear = this.#correctedMaxDate.getFullYear();
       const yearSelect = this.querySelector('.selected-year');
       yearSelect.innerHTML = '';
       for (let i = minYear; i <= maxYear; i++) {
@@ -9320,16 +9350,16 @@ class FDSDatePickerGrid extends HTMLElement {
     for (let i = 0; i < monthOptions.length; i++) {
       monthOptions[i].removeAttribute('disabled'); // Reset disabled status on all options
     }
-    if (minDate.getFullYear() === parseInt(chosenYear, 10)) {
-      const minMonth = minDate.getMonth();
+    if (this.#correctedMinDate.getFullYear() === parseInt(chosenYear, 10)) {
+      const minMonth = this.#correctedMinDate.getMonth();
       for (let i = 0; i < monthOptions.length; i++) {
         if (i < minMonth) {
           monthOptions[i].setAttribute('disabled', '');
         }
       }
     }
-    if (maxDate.getFullYear() === parseInt(chosenYear, 10)) {
-      const maxMonth = maxDate.getMonth();
+    if (this.#correctedMaxDate.getFullYear() === parseInt(chosenYear, 10)) {
+      const maxMonth = this.#correctedMaxDate.getMonth();
       for (let i = 0; i < monthOptions.length; i++) {
         if (i > maxMonth) {
           monthOptions[i].setAttribute('disabled', '');
@@ -9366,10 +9396,10 @@ class FDSDatePickerGrid extends HTMLElement {
       gridcells[i + offset - 1].setAttribute('data-date', `${ISOFormatFromDate(gridcellDate)}`);
       gridcells[i + offset - 1].setAttribute('aria-label', `${i}. ${this.#MONTHS[month]} ${year}`);
       gridcells[i + offset - 1].innerHTML = `${i}`;
-      const dateIsBetweenMinAndMax = isValidDate(minDate) && isValidDate(maxDate) && minDate <= gridcellDate && gridcellDate <= maxDate;
-      const dateIsGreaterThanMinNoMax = isValidDate(minDate) && !isValidDate(maxDate) && minDate <= gridcellDate;
-      const dateIsSmallerThanMaxNoMin = !isValidDate(minDate) && isValidDate(maxDate) && gridcellDate <= maxDate;
-      const noMinNoMax = !isValidDate(minDate) && !isValidDate(maxDate);
+      const dateIsBetweenMinAndMax = isValidDate(this.#correctedMinDate) && isValidDate(this.#correctedMaxDate) && this.#correctedMinDate <= gridcellDate && gridcellDate <= this.#correctedMaxDate;
+      const dateIsGreaterThanMinNoMax = isValidDate(this.#correctedMinDate) && !isValidDate(this.#correctedMaxDate) && this.#correctedMinDate <= gridcellDate;
+      const dateIsSmallerThanMaxNoMin = !isValidDate(this.#correctedMinDate) && isValidDate(this.#correctedMaxDate) && gridcellDate <= this.#correctedMaxDate;
+      const noMinNoMax = !isValidDate(this.#correctedMinDate) && !isValidDate(this.#correctedMaxDate);
       if (dateIsBetweenMinAndMax || dateIsGreaterThanMinNoMax || dateIsSmallerThanMaxNoMin || noMinNoMax) {
         gridcells[i + offset - 1].setAttribute('aria-selected', `false`);
         gridcells[i + offset - 1].setAttribute('tabindex', '-1');

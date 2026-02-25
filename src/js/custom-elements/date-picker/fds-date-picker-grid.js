@@ -136,8 +136,6 @@ class FDSDatePickerGrid extends HTMLElement {
 
         /* Check if any changes were made to minimum date or maximum date */
 
-        let minDate = Util.stringToDate(this.getAttribute('min-date'));
-        let maxDate = Util.stringToDate(this.getAttribute('max-date'));
         let updatedMinMaxDates = false;
 
         if (this.#previousMinDate !== this.getAttribute('min-date') ||
@@ -148,29 +146,28 @@ class FDSDatePickerGrid extends HTMLElement {
 
             this.#previousMinDate = this.getAttribute('min-date');
             this.#previousMaxDate = this.getAttribute('max-date');
+            this.#correctedMinDate = Util.stringToDate(this.getAttribute('min-date'));
+            this.#correctedMaxDate = Util.stringToDate(this.getAttribute('max-date'));
 
-            if (!Util.isValidDate(minDate)) { minDate = this.#DEFAULT_MIN_DATE; }
-            if (!Util.isValidDate(maxDate)) { maxDate = this.#DEFAULT_MAX_DATE; }
+            if (!Util.isValidDate(this.#correctedMinDate)) { this.#correctedMinDate = this.#DEFAULT_MIN_DATE; }
+            if (!Util.isValidDate(this.#correctedMaxDate)) { this.#correctedMaxDate = this.#DEFAULT_MAX_DATE; }
 
-            if (minDate > maxDate) {
-                minDate = maxDate;
+            if (this.#correctedMinDate > this.#correctedMaxDate) {
+                this.#correctedMinDate = this.#correctedMaxDate;
             }
 
-            this.#correctedMinDate = minDate;
-            this.#correctedMaxDate = maxDate;
             updatedMinMaxDates = true;
         }
 
         /* Constrain the date to always be between the minimum date and maximum date */
-
-        date = Util.constrainDate(minDate, date, maxDate);
+        date = Util.constrainDate(this.#correctedMinDate, date, this.#correctedMaxDate);
 
         /* Changes to minimum date or maximum date can affect the selectable years
            and requires the select to be updated */
 
         if (updatedMinMaxDates) {
-            let minYear = minDate.getFullYear();
-            let maxYear = maxDate.getFullYear();
+            let minYear = this.#correctedMinDate.getFullYear();
+            let maxYear = this.#correctedMaxDate.getFullYear();
             const yearSelect = this.querySelector('.selected-year');
             yearSelect.innerHTML = '';
             for (let i = minYear; i <= maxYear; i++) {
@@ -189,16 +186,16 @@ class FDSDatePickerGrid extends HTMLElement {
         for (let i = 0; i < monthOptions.length; i++) {
             monthOptions[i].removeAttribute('disabled'); // Reset disabled status on all options
         }
-        if (minDate.getFullYear() === parseInt(chosenYear, 10)) {
-            const minMonth = minDate.getMonth();
+        if (this.#correctedMinDate.getFullYear() === parseInt(chosenYear, 10)) {
+            const minMonth = this.#correctedMinDate.getMonth();
             for (let i = 0; i < monthOptions.length; i++) {
                 if (i < minMonth) {
                     monthOptions[i].setAttribute('disabled', '');
                 }
             }
         }
-        if (maxDate.getFullYear() === parseInt(chosenYear, 10)) {
-            const maxMonth = maxDate.getMonth();
+        if (this.#correctedMaxDate.getFullYear() === parseInt(chosenYear, 10)) {
+            const maxMonth = this.#correctedMaxDate.getMonth();
             for (let i = 0; i < monthOptions.length; i++) {
                 if (i > maxMonth) {
                     monthOptions[i].setAttribute('disabled', '');
@@ -239,10 +236,10 @@ class FDSDatePickerGrid extends HTMLElement {
             gridcells[i + offset - 1].setAttribute('aria-label', `${i}. ${this.#MONTHS[month]} ${year}`);
             gridcells[i + offset - 1].innerHTML = `${i}`;
 
-            const dateIsBetweenMinAndMax = Util.isValidDate(minDate) && Util.isValidDate(maxDate) && minDate <= gridcellDate && gridcellDate <= maxDate;
-            const dateIsGreaterThanMinNoMax = Util.isValidDate(minDate) && !Util.isValidDate(maxDate) && minDate <= gridcellDate;
-            const dateIsSmallerThanMaxNoMin = !Util.isValidDate(minDate) && Util.isValidDate(maxDate) && gridcellDate <= maxDate;
-            const noMinNoMax = !Util.isValidDate(minDate) && !Util.isValidDate(maxDate);
+            const dateIsBetweenMinAndMax = Util.isValidDate(this.#correctedMinDate) && Util.isValidDate(this.#correctedMaxDate) && this.#correctedMinDate <= gridcellDate && gridcellDate <= this.#correctedMaxDate;
+            const dateIsGreaterThanMinNoMax = Util.isValidDate(this.#correctedMinDate) && !Util.isValidDate(this.#correctedMaxDate) && this.#correctedMinDate <= gridcellDate;
+            const dateIsSmallerThanMaxNoMin = !Util.isValidDate(this.#correctedMinDate) && Util.isValidDate(this.#correctedMaxDate) && gridcellDate <= this.#correctedMaxDate;
+            const noMinNoMax = !Util.isValidDate(this.#correctedMinDate) && !Util.isValidDate(this.#correctedMaxDate);
 
             if (dateIsBetweenMinAndMax || dateIsGreaterThanMinNoMax || dateIsSmallerThanMaxNoMin || noMinNoMax) {
                 gridcells[i + offset - 1].setAttribute('aria-selected', `false`);
