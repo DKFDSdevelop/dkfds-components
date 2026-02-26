@@ -222,7 +222,7 @@ class FDSDatePicker extends HTMLElement {
         }
     }
 
-    #updateSelectedDate(date) {
+    #updateSelectedDateAttr(date) {
         if (Util.isValidDate(date)) {
             this.querySelector('fds-date-picker-grid').setAttribute('selected-date', Util.ISOFormatFromDate(date));
         }
@@ -237,15 +237,23 @@ class FDSDatePicker extends HTMLElement {
             if (this.querySelector('input').value !== '') {
                 const dayMonthYearFormat = true;
                 const date = Util.stringToDate(this.querySelector('input').value, dayMonthYearFormat);
-                
+
                 this.#updateDateButton(date);
-                this.#updateSelectedDate(date);
+                this.#updateSelectedDateAttr(date);
             }
             this.close();
         }
     }
 
     #datePickerButtonClicked() {
+        if (this.querySelector('input').value !== '') {
+            const dayMonthYearFormat = true;
+            const date = Util.stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+
+            this.#updateDateButton(date);
+            this.#updateSelectedDateAttr(date);
+        }
+
         this.toggle();
 
         if (!this.querySelector('.ce-date-picker').classList.contains('d-none')) {
@@ -254,31 +262,23 @@ class FDSDatePicker extends HTMLElement {
     }
 
     #dateSelected() {
-        // Update date button's aria-label
         const selectedDate = Util.stringToDate(this.querySelector('fds-date-picker-grid').getAttribute('selected-date'));
-        const day = selectedDate.getDate();
-        const month = selectedDate.getMonth();
-        const year = selectedDate.getFullYear();
-        if (Util.isValidDate(selectedDate)) {
-            this.querySelector('.date-button').setAttribute('aria-label', `Åbn datovælger, valgt dato er ${day}. ${this.#MONTHS[month]} ${year}`);
 
-            // Update value in input field unless focus is on the input - otherwise, you risk moving the caret during typing
-            if (document.activeElement !== this.querySelector('input')) {
+        this.#updateDateButton(selectedDate);
+
+        // Update value in input field unless focus is on the input - otherwise, you risk moving the caret during typing
+        if (document.activeElement !== this.querySelector('input')) {
+            if (Util.isValidDate(selectedDate)) {
                 let format = this.#FORMATS[0];
                 if (this.hasAttribute('format') && this.#FORMATS.includes(this.getAttribute('format'))) {
                     format = this.getAttribute('format');
                 }
-                const dayWithZeros = String(day).padStart(2, '0');
-                const monthWithZeros = String(month + 1).padStart(2, '0');
-                const yearWithZeros = String(year).padStart(4, '0');
-                this.querySelector('input').value = format.replace('DD', dayWithZeros).replace('MM', monthWithZeros).replace('YYYY', yearWithZeros);
-            }
-        }
-        else {
-            this.querySelector('.date-button').setAttribute('aria-label', 'Åbn datovælger');
 
-            if (document.activeElement !== this.querySelector('input')) {
-                this.querySelector('input').value = '';
+                const dayWithZeros = String(selectedDate.getDate()).padStart(2, '0');
+                const monthWithZeros = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                const yearWithZeros = String(selectedDate.getFullYear()).padStart(4, '0');
+
+                this.querySelector('input').value = format.replace('DD', dayWithZeros).replace('MM', monthWithZeros).replace('YYYY', yearWithZeros);
             }
         }
     }
@@ -306,22 +306,13 @@ class FDSDatePicker extends HTMLElement {
         if (this.querySelector('input').value !== '') {
             const dayMonthYearFormat = true;
             date = Util.stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+            this.#updateDateButton(date);
+            this.#updateSelectedDateAttr(date); // The value in the input field supersedes the selected-date attribute
         }
         else if (this.querySelector('fds-date-picker-grid').hasAttribute('selected-date')) {
             date = Util.stringToDate(this.querySelector('fds-date-picker-grid').getAttribute('selected-date'));
-        }
-
-        if (Util.isValidDate(date)) {
-            const day = date.getDate();
-            const month = date.getMonth();
-            const year = date.getFullYear();
-
-            this.querySelector('fds-date-picker-grid').setAttribute('selected-date', Util.ISOFormatFromDate(date));
-            this.querySelector('.date-button').setAttribute('aria-label', `Åbn datovælger, valgt dato er ${day}. ${this.#MONTHS[month]} ${year}`);
-        }
-        else {
-            this.querySelector('fds-date-picker-grid').setAttribute('selected-date', '');
-            this.querySelector('.date-button').setAttribute('aria-label', 'Åbn datovælger');
+            this.#updateDateButton(date);
+            this.#dateSelected();
         }
     }
 

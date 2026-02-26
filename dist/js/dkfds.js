@@ -8616,10 +8616,13 @@ function getWeekday(date) {
  * @return {number} The month's total number of days
  */
 function totalDaysInMonth(date) {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const LAST_DAY_OF_PREVIOUS_MONTH = 0;
-  return new Date(year, month + 1, LAST_DAY_OF_PREVIOUS_MONTH).getDate();
+  const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+
+  newDate.setFullYear(date.getFullYear());
+  newDate.setMonth(date.getMonth() + 1);
+  newDate.setDate(0); // Sets the date to the last day of the previous month
+
+  return newDate.getDate();
 }
 
 /**
@@ -8792,7 +8795,11 @@ function getPrevMonth(date) {
   if (newDaysInMonth < day) {
     day = newDaysInMonth;
   }
-  return new Date(year, prevMonth, day);
+  const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+  newDate.setFullYear(year); // Use setFullYear as new Date(year, month, date) would set year "20" to "1920"
+  newDate.setMonth(prevMonth);
+  newDate.setDate(day);
+  return newDate;
 }
 function getNextMonth(date) {
   let day = date.getDate();
@@ -8800,14 +8807,18 @@ function getNextMonth(date) {
   let year = date.getFullYear();
   let nextMonth = month + 1;
   if (nextMonth === 12) {
-    nextMonth = 1;
+    nextMonth = 0;
     year = year + 1;
   }
   const newDaysInMonth = totalDaysInMonth(new Date(year, nextMonth, 1));
   if (newDaysInMonth < day) {
     day = newDaysInMonth;
   }
-  return new Date(year, nextMonth, day);
+  const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+  newDate.setFullYear(year); // Use setFullYear as new Date(year, month, date) would set year "20" to "1920"
+  newDate.setMonth(nextMonth);
+  newDate.setDate(day);
+  return newDate;
 }
 function getPrevYear(date) {
   let day = date.getDate();
@@ -8818,7 +8829,11 @@ function getPrevYear(date) {
   if (newDaysInMonth < day) {
     day = newDaysInMonth;
   }
-  return new Date(prevYear, month, day);
+  const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+  newDate.setFullYear(prevYear); // Use setFullYear as new Date(year, month, date) would set year "20" to "1920"
+  newDate.setMonth(month);
+  newDate.setDate(day);
+  return newDate;
 }
 function getNextYear(date) {
   let day = date.getDate();
@@ -8829,7 +8844,11 @@ function getNextYear(date) {
   if (newDaysInMonth < day) {
     day = newDaysInMonth;
   }
-  return new Date(nextYear, month, day);
+  const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+  newDate.setFullYear(nextYear); // Use setFullYear as new Date(year, month, date) would set year "20" to "1920"
+  newDate.setMonth(month);
+  newDate.setDate(day);
+  return newDate;
 }
 
 /**
@@ -9023,7 +9042,7 @@ class FDSDatePicker extends HTMLElement {
       this.querySelector('.date-button').setAttribute('aria-label', 'Åbn datovælger');
     }
   }
-  #updateSelectedDate(date) {
+  #updateSelectedDateAttr(date) {
     if (isValidDate(date)) {
       this.querySelector('fds-date-picker-grid').setAttribute('selected-date', ISOFormatFromDate(date));
     } else {
@@ -9037,41 +9056,38 @@ class FDSDatePicker extends HTMLElement {
         const dayMonthYearFormat = true;
         const date = stringToDate(this.querySelector('input').value, dayMonthYearFormat);
         this.#updateDateButton(date);
-        this.#updateSelectedDate(date);
+        this.#updateSelectedDateAttr(date);
       }
       this.close();
     }
   }
   #datePickerButtonClicked() {
+    if (this.querySelector('input').value !== '') {
+      const dayMonthYearFormat = true;
+      const date = stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+      this.#updateDateButton(date);
+      this.#updateSelectedDateAttr(date);
+    }
     this.toggle();
     if (!this.querySelector('.ce-date-picker').classList.contains('d-none')) {
       this.querySelector('td[tabindex="0"]').focus();
     }
   }
   #dateSelected() {
-    // Update date button's aria-label
     const selectedDate = stringToDate(this.querySelector('fds-date-picker-grid').getAttribute('selected-date'));
-    const day = selectedDate.getDate();
-    const month = selectedDate.getMonth();
-    const year = selectedDate.getFullYear();
-    if (isValidDate(selectedDate)) {
-      this.querySelector('.date-button').setAttribute('aria-label', `Åbn datovælger, valgt dato er ${day}. ${this.#MONTHS[month]} ${year}`);
+    this.#updateDateButton(selectedDate);
 
-      // Update value in input field unless focus is on the input - otherwise, you risk moving the caret during typing
-      if (document.activeElement !== this.querySelector('input')) {
+    // Update value in input field unless focus is on the input - otherwise, you risk moving the caret during typing
+    if (document.activeElement !== this.querySelector('input')) {
+      if (isValidDate(selectedDate)) {
         let format = this.#FORMATS[0];
         if (this.hasAttribute('format') && this.#FORMATS.includes(this.getAttribute('format'))) {
           format = this.getAttribute('format');
         }
-        const dayWithZeros = String(day).padStart(2, '0');
-        const monthWithZeros = String(month + 1).padStart(2, '0');
-        const yearWithZeros = String(year).padStart(4, '0');
+        const dayWithZeros = String(selectedDate.getDate()).padStart(2, '0');
+        const monthWithZeros = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const yearWithZeros = String(selectedDate.getFullYear()).padStart(4, '0');
         this.querySelector('input').value = format.replace('DD', dayWithZeros).replace('MM', monthWithZeros).replace('YYYY', yearWithZeros);
-      }
-    } else {
-      this.querySelector('.date-button').setAttribute('aria-label', 'Åbn datovælger');
-      if (document.activeElement !== this.querySelector('input')) {
-        this.querySelector('input').value = '';
       }
     }
   }
@@ -9093,18 +9109,12 @@ class FDSDatePicker extends HTMLElement {
     if (this.querySelector('input').value !== '') {
       const dayMonthYearFormat = true;
       date = stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+      this.#updateDateButton(date);
+      this.#updateSelectedDateAttr(date); // The value in the input field supersedes the selected-date attribute
     } else if (this.querySelector('fds-date-picker-grid').hasAttribute('selected-date')) {
       date = stringToDate(this.querySelector('fds-date-picker-grid').getAttribute('selected-date'));
-    }
-    if (isValidDate(date)) {
-      const day = date.getDate();
-      const month = date.getMonth();
-      const year = date.getFullYear();
-      this.querySelector('fds-date-picker-grid').setAttribute('selected-date', ISOFormatFromDate(date));
-      this.querySelector('.date-button').setAttribute('aria-label', `Åbn datovælger, valgt dato er ${day}. ${this.#MONTHS[month]} ${year}`);
-    } else {
-      this.querySelector('fds-date-picker-grid').setAttribute('selected-date', '');
-      this.querySelector('.date-button').setAttribute('aria-label', 'Åbn datovælger');
+      this.#updateDateButton(date);
+      this.#dateSelected();
     }
   }
 
