@@ -8876,8 +8876,10 @@ class FDSDatePicker extends HTMLElement {
   #handleFocusOut;
   #handleDateSelection;
   #handleDateClick;
+  #handleCloseClick;
   #handleInput;
   #handlePageShow;
+  #handleKeydown;
   #MONTHS;
   #FORMATS;
 
@@ -8967,6 +8969,7 @@ class FDSDatePicker extends HTMLElement {
     closeButtonContainer.setAttribute('tabindex', '-1');
     const closeButton = document.createElement('button');
     closeButton.textContent = 'Luk';
+    closeButton.classList.add('close-button');
     closeButtonContainer.appendChild(closeButton);
 
     /* Add wrapper for fds-date-picker-grid and close button */
@@ -9091,7 +9094,7 @@ class FDSDatePicker extends HTMLElement {
       }
     }
   }
-  #dateClicked() {
+  #closeAndFocusButton() {
     this.close();
     this.querySelector('.date-button').focus();
   }
@@ -9115,6 +9118,25 @@ class FDSDatePicker extends HTMLElement {
       date = stringToDate(this.querySelector('fds-date-picker-grid').getAttribute('selected-date'));
       this.#updateDateButton(date);
       this.#dateSelected();
+    }
+  }
+  #keyboardNavigation(event) {
+    switch (event.key) {
+      case 'Tab':
+        if (event.shiftKey) {
+          if (event.target === this.querySelector('.previous-month')) {
+            event.preventDefault();
+            this.querySelector('.close-button').focus();
+          }
+        } else {
+          if (event.target === this.querySelector('.close-button')) {
+            event.preventDefault();
+            this.querySelector('.previous-month').focus();
+          }
+        }
+        break;
+      case 'Escape':
+        this.#closeAndFocusButton();
     }
   }
 
@@ -9143,13 +9165,19 @@ class FDSDatePicker extends HTMLElement {
       this.#dateSelected();
     };
     this.#handleDateClick = () => {
-      this.#dateClicked();
+      this.#closeAndFocusButton();
+    };
+    this.#handleCloseClick = () => {
+      this.#closeAndFocusButton();
     };
     this.#handleInput = event => {
       this.#inputUpdated(event);
     };
     this.#handlePageShow = () => {
       this.#updateOnPageshow();
+    };
+    this.#handleKeydown = event => {
+      this.#keyboardNavigation(event);
     };
     this.#MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
     this.#FORMATS = ['DD/MM/YYYY', 'DD-MM-YYYY', 'DD.MM.YYYY', 'DD MM YYYY', 'DD/MM-YYYY'];
@@ -9186,7 +9214,9 @@ class FDSDatePicker extends HTMLElement {
     this.addEventListener('focusout', this.#handleFocusOut, false);
     this.querySelector('fds-date-picker-grid').addEventListener('date-selected', this.#handleDateSelection, false);
     this.querySelector('fds-date-picker-grid').addEventListener('date-clicked', this.#handleDateClick, false);
+    this.querySelector('.close-button').addEventListener('click', this.#handleCloseClick, false);
     this.querySelector('input').addEventListener('input', this.#handleInput, false);
+    this.querySelector('.ce-date-picker').addEventListener('keydown', this.#handleKeydown, false);
 
     // Handles previously entered input when using the browser's back button
     window.addEventListener('pageshow', this.#handlePageShow, false);
