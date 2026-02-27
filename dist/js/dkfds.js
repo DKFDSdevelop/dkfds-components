@@ -9292,6 +9292,7 @@ class FDSDatePickerGrid extends HTMLElement {
   #DAYS;
   #GRID_ROWS;
   #TOTAL_GRIDCELLS;
+  #CELL_DATE_FORMAT;
   #DEFAULT_MIN_DATE;
   #DEFAULT_MAX_DATE;
   #handleKeydown;
@@ -9488,13 +9489,24 @@ class FDSDatePickerGrid extends HTMLElement {
     const offset = getWeekday(dateFromIntegers(year, month, 1));
     for (let i = 1; i <= totalDays; i++) {
       const gridcellDate = dateFromIntegers(year, month, i);
+
+      // Set the data-date attribute for each date cell
       gridcells[i + offset - 1].setAttribute('data-date', `${ISOFormatFromDate(gridcellDate)}`);
-      gridcells[i + offset - 1].setAttribute('aria-label', `${i}. ${this.#MONTHS[month]} ${year}`);
+
+      // Set the aria-label for each cell
+      const ariaLabel = this.#CELL_DATE_FORMAT.replace('DAY', i).replace('MONTH', this.#MONTHS[month]).replace('YEAR', year);
+      gridcells[i + offset - 1].setAttribute('aria-label', ariaLabel);
+
+      // If the cell is the minimum or maximum date, add additional info in the aria-label
       if (datesAreEqual(gridcellDate, this.#correctedMinDate)) {
-        gridcells[i + offset - 1].setAttribute('aria-label', `${i}. ${this.#MONTHS[month]} ${year}, tidligste mulige dato`);
+        const minAriaLabel = `${ariaLabel}, tidligste valgbare dato`;
+        gridcells[i + offset - 1].setAttribute('aria-label', minAriaLabel);
       } else if (datesAreEqual(gridcellDate, this.#correctedMaxDate)) {
-        gridcells[i + offset - 1].setAttribute('aria-label', `${i}. ${this.#MONTHS[month]} ${year}, seneste mulige dato`);
+        const maxAriaLabel = `${ariaLabel}, seneste valgbare dato`;
+        gridcells[i + offset - 1].setAttribute('aria-label', maxAriaLabel);
       }
+
+      // Set the content of each cell (a number from 1-31)
       gridcells[i + offset - 1].innerHTML = `${i}`;
       const dateIsBetweenMinAndMax = isValidDate(this.#correctedMinDate) && isValidDate(this.#correctedMaxDate) && this.#correctedMinDate <= gridcellDate && gridcellDate <= this.#correctedMaxDate;
       const dateIsGreaterThanMinNoMax = isValidDate(this.#correctedMinDate) && !isValidDate(this.#correctedMaxDate) && this.#correctedMinDate <= gridcellDate;
@@ -9720,10 +9732,53 @@ class FDSDatePickerGrid extends HTMLElement {
       this.dispatchEvent(new Event('date-clicked'));
     }
   }
+  #updateTextDays(str) {
+    const newDays = str.split(" ");
+    if (newDays.length === 7) {
+      this.#DAYS = newDays;
+      const tableHeaders = this.querySelectorAll('th');
+      for (let i = 0; i < tableHeaders.length; i++) {
+        tableHeaders[i].innerHTML = `<span aria-hidden="true">${this.#DAYS[i].slice(0, 2)}</span><span class="sr-only">${this.#DAYS[i]}</span>`;
+      }
+    }
+  }
+  #updateTextMonths(str) {
+    const newMonths = str.split(" ");
+    if (newMonths.length === 12) {
+      this.#MONTHS = newMonths;
+      const header = this.querySelector('.date-picker-header');
+      if (header && header.querySelector('.sr-only')) {
+        header.querySelector('.sr-only').textContent = '';
+      }
+      const monthOptions = this.querySelectorAll('.selected-month option');
+      for (let i = 0; i < monthOptions.length; i++) {
+        monthOptions[i].textContent = this.#MONTHS[i].charAt(0).toUpperCase() + this.#MONTHS[i].slice(1);
+      }
+    }
+  }
+  #updateTextPrevButton(str) {
+    if (this.querySelector('.previous-month')) {
+      this.querySelector('.previous-month').textContent = str;
+    }
+  }
+  #updateTextNextButton(str) {
+    if (this.querySelector('.next-month')) {
+      this.querySelector('.next-month').textContent = str;
+    }
+  }
+  #updateTextDateAnnouncement(str) {
+    // Check that string contains exactly one "DAY", one "MONTH", and one "YEAR" substring
+    const dayCount = (str.match(/DAY/g) || []).length;
+    const monthCount = (str.match(/MONTH/g) || []).length;
+    const yearCount = (str.match(/YEAR/g) || []).length;
+    if (dayCount === 1 && monthCount === 1 && yearCount === 1) {
+      this.#CELL_DATE_FORMAT = str;
+    }
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['min-date', 'max-date', 'selected-date', 'default-date'];
+  static observedAttributes = ['min-date', 'max-date', 'selected-date', 'default-date', 'text-months', 'text-days', 'text-prevbutton', 'text-nextbutton', 'text-date-announcement'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -9736,8 +9791,11 @@ class FDSDatePickerGrid extends HTMLElement {
     this.#DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
     this.#GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
     this.#TOTAL_GRIDCELLS = this.#GRID_ROWS * this.#DAYS.length;
-    this.#DEFAULT_MIN_DATE = new Date(1900, 0, 1);
-    this.#DEFAULT_MAX_DATE = new Date(2100, 11, 31);
+    this.#CELL_DATE_FORMAT = 'DAY. MONTH YEAR';
+    this.#DEFAULT_MIN_DATE = new Date();
+    this.#DEFAULT_MIN_DATE.setHours(0, 0, 0, 0);
+    this.#DEFAULT_MAX_DATE = new Date(this.#DEFAULT_MIN_DATE);
+    this.#DEFAULT_MAX_DATE.setFullYear(this.#DEFAULT_MIN_DATE.getFullYear() + 10);
     this.#previousMinDate = 0;
     this.#previousMaxDate = 0;
     this.#correctedMinDate = null;
@@ -9768,7 +9826,22 @@ class FDSDatePickerGrid extends HTMLElement {
 
   connectedCallback() {
     if (this.#initialized) return;
+    if (this.hasAttribute('text-days')) {
+      this.#updateTextDays(this.getAttribute('text-days'));
+    }
+    if (this.hasAttribute('text-months')) {
+      this.#updateTextMonths(this.getAttribute('text-months'));
+    }
+    if (this.hasAttribute('text-date-announcement')) {
+      this.#updateTextDateAnnouncement(this.getAttribute('text-date-announcement'));
+    }
     this.#init();
+    if (this.hasAttribute('text-prevbutton')) {
+      this.#updateTextPrevButton(this.getAttribute('text-prevbutton'));
+    }
+    if (this.hasAttribute('text-nextbutton')) {
+      this.#updateTextNextButton(this.getAttribute('text-nextbutton'));
+    }
 
     // Add event listeners
     this.querySelector('.grid-container').addEventListener('keydown', this.#handleKeydown, false);
@@ -9820,6 +9893,21 @@ class FDSDatePickerGrid extends HTMLElement {
         placeFocusOnDate = new Date();
       }
       this.#redraw(placeFocusOnDate, true);
+    }
+    if (attribute === 'text-days') {
+      this.#updateTextDays(newValue);
+    }
+    if (attribute === 'text-months') {
+      this.#updateTextMonths(newValue);
+    }
+    if (attribute === 'text-prevbutton') {
+      this.#updateTextPrevButton(newValue);
+    }
+    if (attribute === 'text-nextbutton') {
+      this.#updateTextNextButton(newValue);
+    }
+    if (attribute === 'text-date-announcement') {
+      this.#updateTextDateAnnouncement(newValue);
     }
   }
 }
