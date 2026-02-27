@@ -9232,12 +9232,14 @@ class FDSDatePicker extends HTMLElement {
       this.#datePickerObserver.disconnect();
       this.#datePickerObserver = null;
     }
-    if (this.querySelector('.date-button') && this.#handleDatePickerButtonClick) {
-      this.querySelector('.date-button').removeEventListener('click', this.#handleDatePickerButtonClick, false);
-    }
-    if (this.#handleFocusOut) {
-      this.removeEventListener('focusout', this.#handleFocusOut, false);
-    }
+    this.querySelector('.date-button')?.removeEventListener('click', this.#handleDatePickerButtonClick, false);
+    this.removeEventListener('focusout', this.#handleFocusOut, false);
+    this.querySelector('fds-date-picker-grid')?.removeEventListener('date-selected', this.#handleDateSelection, false);
+    this.querySelector('fds-date-picker-grid')?.removeEventListener('date-clicked', this.#handleDateClick, false);
+    this.querySelector('.close-button')?.removeEventListener('click', this.#handleCloseClick, false);
+    this.querySelector('input')?.removeEventListener('input', this.#handleInput, false);
+    this.querySelector('.ce-date-picker')?.removeEventListener('keydown', this.#handleKeydown, false);
+    window.removeEventListener('pageshow', this.#handlePageShow, false);
   }
 
   /* --------------------------------------------------
@@ -9488,6 +9490,11 @@ class FDSDatePickerGrid extends HTMLElement {
       const gridcellDate = dateFromIntegers(year, month, i);
       gridcells[i + offset - 1].setAttribute('data-date', `${ISOFormatFromDate(gridcellDate)}`);
       gridcells[i + offset - 1].setAttribute('aria-label', `${i}. ${this.#MONTHS[month]} ${year}`);
+      if (datesAreEqual(gridcellDate, this.#correctedMinDate)) {
+        gridcells[i + offset - 1].setAttribute('aria-label', `${i}. ${this.#MONTHS[month]} ${year}, tidligste mulige dato`);
+      } else if (datesAreEqual(gridcellDate, this.#correctedMaxDate)) {
+        gridcells[i + offset - 1].setAttribute('aria-label', `${i}. ${this.#MONTHS[month]} ${year}, seneste mulige dato`);
+      }
       gridcells[i + offset - 1].innerHTML = `${i}`;
       const dateIsBetweenMinAndMax = isValidDate(this.#correctedMinDate) && isValidDate(this.#correctedMaxDate) && this.#correctedMinDate <= gridcellDate && gridcellDate <= this.#correctedMaxDate;
       const dateIsGreaterThanMinNoMax = isValidDate(this.#correctedMinDate) && !isValidDate(this.#correctedMaxDate) && this.#correctedMinDate <= gridcellDate;
@@ -9783,6 +9790,7 @@ class FDSDatePickerGrid extends HTMLElement {
     this.querySelector('.selected-year')?.removeEventListener('change', this.#handleChangeYear, false);
     this.querySelector('.previous-month')?.removeEventListener('click', this.#handlePrevMonth, false);
     this.querySelector('.next-month')?.removeEventListener('click', this.#handleNextMonth, false);
+    this.querySelector('.date-picker-grid')?.removeEventListener('click', this.#handleDateClick, false);
     this.querySelector('.grid-container')?.remove();
   }
 

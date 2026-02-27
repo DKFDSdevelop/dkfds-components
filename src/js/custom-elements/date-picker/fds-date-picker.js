@@ -426,13 +426,14 @@ class FDSDatePicker extends HTMLElement {
             this.#datePickerObserver = null;
         }
 
-        if (this.querySelector('.date-button') && this.#handleDatePickerButtonClick) {
-            this.querySelector('.date-button').removeEventListener('click', this.#handleDatePickerButtonClick, false);
-        }
-
-        if (this.#handleFocusOut) {
-            this.removeEventListener('focusout', this.#handleFocusOut, false);
-        }
+        this.querySelector('.date-button')?.removeEventListener('click', this.#handleDatePickerButtonClick, false);
+        this.removeEventListener('focusout', this.#handleFocusOut, false);
+        this.querySelector('fds-date-picker-grid')?.removeEventListener('date-selected', this.#handleDateSelection, false);
+        this.querySelector('fds-date-picker-grid')?.removeEventListener('date-clicked', this.#handleDateClick, false);
+        this.querySelector('.close-button')?.removeEventListener('click', this.#handleCloseClick, false);
+        this.querySelector('input')?.removeEventListener('input', this.#handleInput, false);
+        this.querySelector('.ce-date-picker')?.removeEventListener('keydown', this.#handleKeydown, false);
+        window.removeEventListener('pageshow', this.#handlePageShow, false);
     }
 
     /* --------------------------------------------------

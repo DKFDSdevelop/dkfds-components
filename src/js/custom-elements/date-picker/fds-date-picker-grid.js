@@ -234,6 +234,12 @@ class FDSDatePickerGrid extends HTMLElement {
 
             gridcells[i + offset - 1].setAttribute('data-date', `${Util.ISOFormatFromDate(gridcellDate)}`);
             gridcells[i + offset - 1].setAttribute('aria-label', `${i}. ${this.#MONTHS[month]} ${year}`);
+            if (Util.datesAreEqual(gridcellDate, this.#correctedMinDate)) {
+                gridcells[i + offset - 1].setAttribute('aria-label', `${i}. ${this.#MONTHS[month]} ${year}, tidligste mulige dato`);
+            }
+            else if (Util.datesAreEqual(gridcellDate, this.#correctedMaxDate)) {
+                gridcells[i + offset - 1].setAttribute('aria-label', `${i}. ${this.#MONTHS[month]} ${year}, seneste mulige dato`);
+            }
             gridcells[i + offset - 1].innerHTML = `${i}`;
 
             const dateIsBetweenMinAndMax = Util.isValidDate(this.#correctedMinDate) && Util.isValidDate(this.#correctedMaxDate) && this.#correctedMinDate <= gridcellDate && gridcellDate <= this.#correctedMaxDate;
@@ -521,6 +527,7 @@ class FDSDatePickerGrid extends HTMLElement {
         this.querySelector('.selected-year')?.removeEventListener('change', this.#handleChangeYear, false);
         this.querySelector('.previous-month')?.removeEventListener('click', this.#handlePrevMonth, false);
         this.querySelector('.next-month')?.removeEventListener('click', this.#handleNextMonth, false);
+        this.querySelector('.date-picker-grid')?.removeEventListener('click', this.#handleDateClick, false);
         this.querySelector('.grid-container')?.remove();
     }
 
