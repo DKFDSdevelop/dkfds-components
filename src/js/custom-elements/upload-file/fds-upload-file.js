@@ -2,6 +2,13 @@ import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 class FDSUploadFile extends HTMLElement {
 
+    /**
+     * Internal state:
+     * - #files holds the canonical list of selected files (source of truth).
+     * - UI (dropzone vs file list) is rendered based on #files.length.
+     * - DOM is partially cached (#dropzoneEl, #fileListEl) to allow toggling without recreating elements unnecessarily.
+     */
+
     #inputEl = null;
     #initialized = false;
     #files = [];
@@ -36,6 +43,14 @@ class FDSUploadFile extends HTMLElement {
 
     #getFileListMore() {
         return this.getAttribute('file-list-more') ?? 'Vælg flere filer'
+    }
+
+    #getFileListHeadingLevel() {
+        const headingLevel = this.getAttribute('heading-level');
+        if (!headingLevel || !['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(headingLevel)) {
+            return 'h5';
+        }
+        return headingLevel;
     }
 
     #setUploadLabel() {
@@ -73,6 +88,24 @@ class FDSUploadFile extends HTMLElement {
         fileItems.forEach(item => {
             item.setAttribute('remove-text', removeText);
         });
+    }
+
+    #updateFileListHeadingLevel() {
+        if (!this.#fileListEl) return;
+
+        const currentTitle = this.#fileListEl.querySelector('.fds-upload-title');
+        if (!currentTitle) return;
+
+        const newTag = this.#getFileListHeadingLevel();
+        const currentTag = currentTitle.tagName.toLowerCase();
+
+        if (currentTag === newTag) return;
+
+        const newTitle = document.createElement(newTag);
+        newTitle.className = currentTitle.className;
+        newTitle.textContent = currentTitle.textContent;
+
+        currentTitle.replaceWith(newTitle);
     }
 
     #showDropzone() {
@@ -192,6 +225,7 @@ class FDSUploadFile extends HTMLElement {
 
         const ariaDescribedbyElements = [...errorMessages, ...helpTexts];
 
+        // Build aria-describedby attribute from visible elements
         for (const element of ariaDescribedbyElements) {
             const isHidden = element.hasAttribute('hidden');
             const isAriaHidden = element.getAttribute('aria-hidden') === 'true';
@@ -283,7 +317,7 @@ class FDSUploadFile extends HTMLElement {
         if (isDisabled) {
             input.disabled = true;
         }
-
+        
         const mainLabel = this.querySelector('.fds-upload-label');
         if (mainLabel) {
             mainLabel.setAttribute('for', input.id);
@@ -305,7 +339,7 @@ class FDSUploadFile extends HTMLElement {
 
         const p = document.createElement('p');
 
-        // Text content
+        // Text content: prefix + link + suffix
         const prefix = this.#getDropzonePrefix();
         if (prefix) {
             p.append(prefix + ' ');
@@ -334,7 +368,8 @@ class FDSUploadFile extends HTMLElement {
         const header = document.createElement('div');
         header.className = 'fds-upload-header';
 
-        const title = document.createElement('h5');
+        const level = this.#getFileListHeadingLevel();
+        const title = document.createElement(level);
         title.className = 'fds-upload-title';
         title.textContent = this.#getFileListHeader();
 
@@ -384,13 +419,20 @@ class FDSUploadFile extends HTMLElement {
 
         this.#files.push(...newFiles);
 
+        // Emit event with added files
+        this.dispatchEvent(new CustomEvent('files-added', {
+            detail: newFiles.map(f => f.file),
+            bubbles: true,
+            composed: true
+        }));
+
+        // If this is the first file, we must re-render to switch from dropzone view to file list view.
         if (isFirstFile) {
             this.#render();
             return;
         }
 
         const filesContainer = this.querySelector('.fds-upload-files');
-
         newFiles.forEach(fileObj => {
             filesContainer?.appendChild(this.#renderFileItem(fileObj));
         });
@@ -398,6 +440,10 @@ class FDSUploadFile extends HTMLElement {
 
 
     #removeFileByKey(key) {
+         // Find the file to remove before filtering
+        const removedFile = this.#files.find(f => f.id === key);
+
+        // Remove it from internal state
         this.#files = this.#files.filter(f => f.id !== key);
 
         const fileItem = this.querySelector(`fds-file-item[data-file-key="${key}"]`);
@@ -405,6 +451,16 @@ class FDSUploadFile extends HTMLElement {
             fileItem.remove();
         }
 
+        // Emit event with removed file
+        if (removedFile) {
+            this.dispatchEvent(new CustomEvent('files-removed', {
+                detail: removedFile.file,
+                bubbles: true,
+                composed: true
+            }));
+        }
+
+        // Re-render to show dropzone if all files are removed
         if (this.#files.length === 0) {
             this.#render();
         }
@@ -444,7 +500,7 @@ class FDSUploadFile extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['upload-label', 'dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'upload-disabled', 'file-list-header', 'file-list-more', 'remove-text'];
+    static observedAttributes = ['upload-label', 'dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'upload-disabled', 'file-list-header', 'file-list-more', 'remove-text', 'heading-level'];
 
     /* --------------------------------------------------
    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -558,6 +614,10 @@ class FDSUploadFile extends HTMLElement {
 
         if (name === 'remove-text' && oldValue !== newValue) {
             this.#setFileItemsRemoveText()
+        }
+
+        if (name === 'heading-level' && oldValue !== newValue) {
+            this.#updateFileListHeadingLevel()
         }
     }
 }
