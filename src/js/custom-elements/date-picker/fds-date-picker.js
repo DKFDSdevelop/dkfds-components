@@ -20,6 +20,9 @@ class FDSDatePicker extends HTMLElement {
     #MONTHS;
     #FORMATS;
 
+    #textOpen;
+    #textSelectedDate;
+
     /* Private methods */
 
     #setupLabel() {
@@ -95,10 +98,13 @@ class FDSDatePicker extends HTMLElement {
 
             inputWrapper.appendChild(input);
 
+            if (this.hasAttribute('text-open')) { this.#textOpen = this.getAttribute('text-open'); }
+            if (this.hasAttribute('text-selecteddate')) { this.#textSelectedDate = this.getAttribute('text-selecteddate'); }
+
             const dateButton = document.createElement('button');
             dateButton.setAttribute('aria-haspopup', 'dialog');
             dateButton.classList.add('button', 'button-icon-only', 'date-button');
-            dateButton.setAttribute('aria-label', 'Åbn datovælger');
+            dateButton.setAttribute('aria-label', this.#textOpen);
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.classList.add('icon-svg');
             svg.setAttribute('focusable', 'false');
@@ -119,6 +125,8 @@ class FDSDatePicker extends HTMLElement {
         else {
             grid = document.createElement('fds-date-picker-grid');
         }
+        if (this.hasAttribute('text-months')) { this.#updateTextMonths(this.getAttribute('text-months')) }
+
         const closeButtonContainer = document.createElement('div');
         closeButtonContainer.setAttribute('tabindex', '-1');
         const closeButton = document.createElement('button');
@@ -218,10 +226,14 @@ class FDSDatePicker extends HTMLElement {
             const day = date.getDate();
             const month = date.getMonth();
             const year = date.getFullYear();
-            this.querySelector('.date-button').setAttribute('aria-label', `Åbn datovælger, valgt dato er ${day}. ${this.#MONTHS[month]} ${year}`);
+            const ariaLabel = this.#textSelectedDate
+                .replace('DAY', day)
+                .replace('MONTH', this.#MONTHS[month])
+                .replace('YEAR', year);
+            this.querySelector('.date-button').setAttribute('aria-label', `${this.#textOpen}, ${ariaLabel}`);
         }
         else {
-            this.querySelector('.date-button').setAttribute('aria-label', 'Åbn datovælger');
+            this.querySelector('.date-button').setAttribute('aria-label', this.#textOpen);
         }
     }
 
@@ -340,9 +352,17 @@ class FDSDatePicker extends HTMLElement {
         }
     }
 
+    #updateTextMonths(str) {
+        const newMonths = str.split(" ");
+        if (newMonths.length === 12) {
+            this.#MONTHS = newMonths;
+            this.querySelector('fds-date-picker-grid')?.setAttribute('text-months', str);
+        }
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['show-required-status', 'format'];
+    static observedAttributes = ['show-required-status', 'format', 'text-open', 'text-selecteddate', 'text-months'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -360,13 +380,15 @@ class FDSDatePicker extends HTMLElement {
         this.#handleFocusOut = (event) => { this.#closeOnFocusOut(event); };
         this.#handleDateSelection = () => { this.#dateSelected() };
         this.#handleDateClick = () => { this.#closeAndFocusButton() };
-        this.#handleCloseClick  = () => { this.#closeAndFocusButton() };
+        this.#handleCloseClick = () => { this.#closeAndFocusButton() };
         this.#handleInput = (event) => { this.#inputUpdated(event) };
         this.#handlePageShow = () => { this.#updateOnPageshow() };
         this.#handleKeydown = (event) => { this.#keyboardNavigation(event); };
 
         this.#MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
         this.#FORMATS = ['DD/MM/YYYY', 'DD-MM-YYYY', 'DD.MM.YYYY', 'DD MM YYYY', 'DD/MM-YYYY'];
+        this.#textOpen = 'Åbn datovælger';
+        this.#textSelectedDate = 'valgt dato er DAY. MONTH YEAR';
     }
 
     /* --------------------------------------------------
@@ -468,6 +490,23 @@ class FDSDatePicker extends HTMLElement {
                 }
             }
         }
+
+        if (attribute === 'text-open') {
+            this.#textOpen = newValue;
+        }
+
+        if (attribute === 'text-selecteddate') {
+            // Check that string contains exactly one "DAY", one "MONTH", and one "YEAR" substring
+            const dayCount = (newValue.match(/DAY/g) || []).length;
+            const monthCount = (newValue.match(/MONTH/g) || []).length;
+            const yearCount = (newValue.match(/YEAR/g) || []).length;
+
+            if (dayCount === 1 && monthCount === 1 && yearCount === 1) {
+                this.#textSelectedDate = newValue;
+            }
+        }
+
+        if (attribute === 'text-months') { this.#updateTextMonths(newValue); }
     }
 }
 

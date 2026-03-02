@@ -27,6 +27,9 @@ class FDSDatePickerGrid extends HTMLElement {
     #handleNextMonth;
     #handleDateClick;
 
+    #textMinDate;
+    #textMaxDate;
+
     /* Private methods */
 
     #init() {
@@ -97,6 +100,9 @@ class FDSDatePickerGrid extends HTMLElement {
 
         /* The grid with dates */
 
+        if (this.hasAttribute('text-mindate')) { this.#textMinDate = this.getAttribute('text-mindate'); }
+        if (this.hasAttribute('text-maxdate')) { this.#textMaxDate = this.getAttribute('text-maxdate'); }
+        
         const grid = document.createElement('table');
         grid.setAttribute('role', 'grid');
         grid.classList.add('date-picker-grid');
@@ -245,11 +251,11 @@ class FDSDatePickerGrid extends HTMLElement {
 
             // If the cell is the minimum or maximum date, add additional info in the aria-label
             if (Util.datesAreEqual(gridcellDate, this.#correctedMinDate)) {
-                const minAriaLabel = `${ariaLabel}, tidligste valgbare dato`;
+                const minAriaLabel = `${ariaLabel}, ${this.#textMinDate}`;
                 gridcells[i + offset - 1].setAttribute('aria-label', minAriaLabel);
             }
             else if (Util.datesAreEqual(gridcellDate, this.#correctedMaxDate)) {
-                const maxAriaLabel = `${ariaLabel}, seneste valgbare dato`;
+                const maxAriaLabel = `${ariaLabel}, ${this.#textMaxDate}`;
                 gridcells[i + offset - 1].setAttribute('aria-label', maxAriaLabel);
             }
 
@@ -531,7 +537,7 @@ class FDSDatePickerGrid extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['min-date', 'max-date', 'selected-date', 'default-date', 'text-months', 'text-days', 'text-prevbutton', 'text-nextbutton', 'text-date-announcement'];
+    static observedAttributes = ['min-date', 'max-date', 'selected-date', 'default-date', 'text-months', 'text-days', 'text-prevbutton', 'text-nextbutton', 'text-date-announcement', 'text-mindate', 'text-maxdate'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -547,6 +553,8 @@ class FDSDatePickerGrid extends HTMLElement {
         this.#GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
         this.#TOTAL_GRIDCELLS = this.#GRID_ROWS * this.#DAYS.length;
         this.#CELL_DATE_FORMAT = 'DAY. MONTH YEAR';
+        this.#textMinDate = 'tidligste valgbare dato';
+        this.#textMaxDate = 'seneste valgbare dato';
 
         this.#DEFAULT_MIN_DATE = new Date();
         this.#DEFAULT_MIN_DATE.setHours(0, 0, 0, 0);
@@ -614,6 +622,8 @@ class FDSDatePickerGrid extends HTMLElement {
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#initialized && oldValue !== newValue) return;
 
+        let redrawNeeded = false;
+
         if (attribute === 'selected-date') {
             const date = Util.stringToDate(newValue);
             const setFocusOnDate = true;
@@ -630,12 +640,7 @@ class FDSDatePickerGrid extends HTMLElement {
         }
 
         if (attribute === 'min-date' || attribute === 'max-date') {
-            const dateWithCurrentFocus = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
-            let placeFocusOnDate = Util.stringToDate(dateWithCurrentFocus);
-            if (!Util.isValidDate(placeFocusOnDate)) {
-                placeFocusOnDate = new Date();
-            }
-            this.#redraw(placeFocusOnDate, true);
+            redrawNeeded = true;
         }
 
         if (attribute === 'text-days') { this.#updateTextDays(newValue); }
@@ -647,6 +652,25 @@ class FDSDatePickerGrid extends HTMLElement {
         if (attribute === 'text-nextbutton') { this.#updateTextNextButton(newValue); }
 
         if (attribute === 'text-date-announcement') { this.#updateTextDateAnnouncement(newValue); }
+
+        if (attribute === 'text-mindate') { 
+            this.#textMinDate = newValue;
+            redrawNeeded = true;
+        }
+
+        if (attribute === 'text-maxdate') { 
+            this.#textMaxDate = newValue;
+            redrawNeeded = true;
+        }
+
+        if (redrawNeeded) {
+            const dateWithCurrentFocus = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+            let placeFocusOnDate = Util.stringToDate(dateWithCurrentFocus);
+            if (!Util.isValidDate(placeFocusOnDate)) {
+                placeFocusOnDate = new Date();
+            }
+            this.#redraw(placeFocusOnDate, true);
+        }
     }
 }
 
