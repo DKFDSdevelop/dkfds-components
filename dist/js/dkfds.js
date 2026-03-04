@@ -9896,6 +9896,46 @@ class FDSDatePickerGrid extends HTMLElement {
     this.querySelector('.previous-month').addEventListener('click', this.#handlePrevMonth, false);
     this.querySelector('.next-month').addEventListener('click', this.#handleNextMonth, false);
     this.querySelector('.date-picker-grid').addEventListener('click', this.#handleDateClick, false);
+
+    // If the date picker is part of a "duo" defining start date and end date, add event listeners when both grids exist
+    const isStartDate = this.hasAttribute('end-date-grid');
+    const isEndDate = this.hasAttribute('start-date-grid');
+    const startDateGrid = document.querySelector(`[end-date-grid="${this.id}"]`);
+    const endDateGrid = document.querySelector(`[start-date-grid="${this.id}"]`);
+    if (isStartDate && endDateGrid) {
+      this.addEventListener('date-selected', () => {
+        console.log(1);
+        endDateGrid.setCorrectedMinDate(stringToDate(this.getAttribute('selected-date')));
+      });
+      endDateGrid.addEventListener('date-selected', () => {
+        console.log(2);
+        this.setCorrectedMaxDate(stringToDate(endDateGrid.getAttribute('selected-date')));
+      });
+    } else if (isEndDate && startDateGrid) {
+      startDateGrid.addEventListener('date-selected', () => {
+        console.log(3);
+        this.setCorrectedMinDate(stringToDate(startDateGrid.getAttribute('selected-date')));
+      });
+      this.addEventListener('date-selected', () => {
+        console.log(4);
+        startDateGrid.setCorrectedMaxDate(stringToDate(this.getAttribute('selected-date')));
+      });
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  setCorrectedMinDate(date) {
+    this.#correctedMinDate = date;
+    const focusableDate = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+    this.#redraw(stringToDate(focusableDate));
+  }
+  setCorrectedMaxDate(date) {
+    this.#correctedMaxDate = date;
+    const focusableDate = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+    this.#redraw(stringToDate(focusableDate));
   }
 
   /* --------------------------------------------------
