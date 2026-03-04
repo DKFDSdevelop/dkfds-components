@@ -13509,3 +13509,11 @@ fds-textarea:has(textarea[aria-invalid=true]) textarea,
   padding:calc(8px - 2px) calc(16px - 2px);
   padding-right:32px;
 }
+fds-textarea textarea.form-input,
+.fds-textarea textarea.form-input{
+  height:auto;
+}
+fds-textarea textarea.no-resize,
+.fds-textarea textarea.no-resize{
+  resize:none;
+}

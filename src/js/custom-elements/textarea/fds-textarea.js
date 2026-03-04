@@ -14,6 +14,10 @@ class FDSTextarea extends HTMLElement {
 
         if (!label) return;
 
+        if (!label.classList.contains('form-label')) {
+            label.classList.add('form-label');
+        }
+
         const textarea = this.querySelector('textarea');
 
         if (textarea) {
@@ -30,7 +34,9 @@ class FDSTextarea extends HTMLElement {
 
         if (!textarea) return;
 
-        // /* Set id */
+        if (!textarea.classList.contains('form-input')) {
+            textarea.classList.add('form-input');
+        }
 
         if (!textarea.id) {
             textarea.id = generateAndVerifyUniqueId('txt');

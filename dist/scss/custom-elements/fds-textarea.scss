@@ -35,4 +35,12 @@ fds-textarea,
         }
         
     }
+
+    textarea.form-input {
+        height: auto;
+    }
+
+    textarea.no-resize {
+        resize: none;
+    }
 }
