@@ -10165,6 +10165,25 @@ class FDSDatePickerGrid extends HTMLElement {
       if (!isValidDate(this.#correctedMaxDate)) {
         this.#correctedMaxDate = this.#DEFAULT_MAX_DATE;
       }
+
+      // If the grid has another connected date picker grid, the min-date or max-date might need adjustment
+      if (this.hasAttribute('start-date-id')) {
+        const endDateGrid = document.querySelector(`[end-date-id="${this.getAttribute('start-date-id')}"]`);
+        if (endDateGrid && endDateGrid.hasAttribute('selected-date')) {
+          const potentialMaxDate = stringToDate(endDateGrid.getAttribute('selected-date'));
+          if (isValidDate(potentialMaxDate) && potentialMaxDate < this.#correctedMaxDate) {
+            this.#correctedMaxDate = potentialMaxDate;
+          }
+        }
+      } else if (this.hasAttribute('end-date-id')) {
+        const startDateGrid = document.querySelector(`[start-date-id="${this.getAttribute('end-date-id')}"]`);
+        if (startDateGrid && startDateGrid.hasAttribute('selected-date')) {
+          const potentialMinDate = stringToDate(startDateGrid.getAttribute('selected-date'));
+          if (isValidDate(potentialMinDate) && this.#correctedMinDate < potentialMinDate) {
+            this.#correctedMinDate = potentialMinDate;
+          }
+        }
+      }
       if (this.#correctedMinDate > this.#correctedMaxDate) {
         this.#correctedMinDate = this.#correctedMaxDate;
       }
@@ -10606,18 +10625,20 @@ class FDSDatePickerGrid extends HTMLElement {
     this.querySelector('.date-picker-grid').addEventListener('click', this.#handleDateClick, false);
 
     // If the date picker is part of a "duo" defining start date and end date, add event listeners when both grids exist
-    const isStartDate = this.hasAttribute('end-date-grid');
-    const isEndDate = this.hasAttribute('start-date-grid');
-    const startDateGrid = document.querySelector(`[end-date-grid="${this.id}"]`);
-    const endDateGrid = document.querySelector(`[start-date-grid="${this.id}"]`);
+    const isStartDate = this.hasAttribute('start-date-id');
+    const isEndDate = this.hasAttribute('end-date-id');
+    const startDateGrid = document.querySelector(`[start-date-id="${this.getAttribute('end-date-id')}"]`);
+    const endDateGrid = document.querySelector(`[end-date-id="${this.getAttribute('start-date-id')}"]`);
     if (isStartDate && endDateGrid) {
       customElements.whenDefined('fds-date-picker-grid').then(() => {
         if (!this.getHasDatePickerConnection() && !endDateGrid?.getHasDatePickerConnection()) {
           this.addEventListener('date-selected', () => {
-            endDateGrid.setCorrectedMinDate(stringToDate(this.getAttribute('selected-date')));
+            const focusableDate = endDateGrid.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+            endDateGrid.forceCompleteRedraw(stringToDate(focusableDate));
           });
           endDateGrid.addEventListener('date-selected', () => {
-            this.setCorrectedMaxDate(stringToDate(endDateGrid.getAttribute('selected-date')));
+            const focusableDate = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+            this.forceCompleteRedraw(stringToDate(focusableDate));
           });
           this.setHasDatePickerConnection(true);
           endDateGrid.setHasDatePickerConnection(true);
@@ -10627,10 +10648,12 @@ class FDSDatePickerGrid extends HTMLElement {
       customElements.whenDefined('fds-date-picker-grid').then(() => {
         if (!this.getHasDatePickerConnection() && !startDateGrid?.getHasDatePickerConnection()) {
           startDateGrid.addEventListener('date-selected', () => {
-            this.setCorrectedMinDate(stringToDate(startDateGrid.getAttribute('selected-date')));
+            const focusableDate = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+            this.forceCompleteRedraw(stringToDate(focusableDate));
           });
           this.addEventListener('date-selected', () => {
-            startDateGrid.setCorrectedMaxDate(stringToDate(this.getAttribute('selected-date')));
+            const focusableDate = startDateGrid.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+            startDateGrid.forceCompleteRedraw(stringToDate(focusableDate));
           });
           startDateGrid.setHasDatePickerConnection(true);
           this.setHasDatePickerConnection(true);
@@ -10643,15 +10666,10 @@ class FDSDatePickerGrid extends HTMLElement {
   CUSTOM ELEMENT METHODS
   -------------------------------------------------- */
 
-  setCorrectedMinDate(date) {
-    this.#correctedMinDate = date;
-    const focusableDate = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
-    this.#redraw(stringToDate(focusableDate));
-  }
-  setCorrectedMaxDate(date) {
-    this.#correctedMaxDate = date;
-    const focusableDate = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
-    this.#redraw(stringToDate(focusableDate));
+  forceCompleteRedraw(date) {
+    let setFocus = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+    this.#previousMaxDate = 0; // Force update of select element with possible years
+    this.#redraw(date, setFocus);
   }
   setHasDatePickerConnection(val) {
     this.#hasDatePickerConnection = val;
