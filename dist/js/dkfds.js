@@ -8623,6 +8623,9 @@ class FDSUploadFile extends HTMLElement {
   #getLabel() {
     return this.getAttribute('upload-label') ?? 'Vedhæft filer';
   }
+  #getUploadId() {
+    return this.getAttribute('upload-id') ?? null;
+  }
   #getDropzonePrefix() {
     return this.getAttribute('dropzone-prefix') ?? 'Træk dine filer herhen eller';
   }
@@ -8650,7 +8653,6 @@ class FDSUploadFile extends HTMLElement {
     if (!label) {
       label = document.createElement('label');
       label.className = 'fds-upload-label';
-      label.id = generateAndVerifyUniqueId('upl');
       this.prepend(label);
     }
     label.textContent = this.#getLabel();
@@ -8707,6 +8709,15 @@ class FDSUploadFile extends HTMLElement {
     this.#dropzoneEl = null;
     if (!this.contains(this.#fileListEl)) {
       this.appendChild(this.#fileListEl);
+    }
+  }
+  #updateUploadId(newValue) {
+    if (this.#inputEl) {
+      this.#inputEl.id = newValue || generateAndVerifyUniqueId('file-input');
+      const mainLabel = this.querySelector('.fds-upload-label');
+      if (mainLabel) {
+        mainLabel.setAttribute('for', this.#inputEl.id);
+      }
     }
   }
   #updateFileList() {
@@ -8845,7 +8856,7 @@ class FDSUploadFile extends HTMLElement {
     const input = document.createElement('input');
     input.type = 'file';
     input.multiple = true;
-    input.id = generateAndVerifyUniqueId('file-input');
+    input.id = this.#getUploadId() || generateAndVerifyUniqueId('file-input');
     input.className = 'fds-upload-input';
     input.addEventListener('change', this.#onInputChange);
     this.#inputEl = input;
@@ -9008,7 +9019,7 @@ class FDSUploadFile extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['upload-label', 'dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'upload-disabled', 'file-list-header', 'file-list-more', 'remove-text', 'heading-level'];
+  static observedAttributes = ['upload-label', 'upload-id', 'dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'upload-disabled', 'file-list-header', 'file-list-more', 'remove-text', 'heading-level'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -9089,6 +9100,9 @@ class FDSUploadFile extends HTMLElement {
     if (!this.#initialized) return;
     if (name === 'upload-label' && oldValue !== newValue) {
       this.#setUploadLabel();
+    }
+    if (name === 'upload-id' && oldValue !== newValue) {
+      this.#updateUploadId(newValue);
     }
     if (name === 'upload-disabled' && oldValue !== newValue) {
       this.#shouldHaveDisabled(newValue) ? this.#setDisabled() : this.#removeDisabled();
