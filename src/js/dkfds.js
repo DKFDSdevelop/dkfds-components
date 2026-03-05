@@ -31,6 +31,8 @@ import registerRadioButton from './custom-elements/radio-button/fds-radio-button
 import registerRadioButtonGroup from './custom-elements/radio-button/fds-radio-button-group';
 import registerDateInput from './custom-elements/date-input/fds-date-input';
 import registerSelect from './custom-elements/select/fds-select';
+import registerUploadFile from './custom-elements/upload-file/fds-upload-file';
+import registerFileItem from './custom-elements/upload-file/fds-file-item';
 import registerDatePicker from './custom-elements/date-picker/fds-date-picker';
 import registerDatePickerGrid from './custom-elements/date-picker/fds-date-picker-grid';
 import registerTextarea from './custom-elements/textarea/fds-textarea';
@@ -240,6 +242,8 @@ const registerCustomElements = () => {
   registerDatePicker(),
   registerDatePickerGrid(),
   registerTextarea()
+  registerUploadFile();
+  registerFileItem();
 };
 
-export { init, registerCustomElements, registerAccordion, renderAccordionHTML, validateAccordionHTML, registerAccordionGroup, registerInputWrapper, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerDatePicker, registerDatePickerGrid, registerTextarea, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
+export { init, registerCustomElements, registerAccordion, renderAccordionHTML, validateAccordionHTML, registerAccordionGroup, registerInputWrapper, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
