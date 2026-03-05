@@ -97,7 +97,7 @@ class FDSErrorMessage extends HTMLElement {
         }
 
         // Save reference to parent wrapper
-        this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input');
+        this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input, fds-upload-file');
         this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
     }
 
