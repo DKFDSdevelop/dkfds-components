@@ -9339,6 +9339,7 @@ class FDSDatePickerGrid extends HTMLElement {
   #handleDateClick;
   #textMinDate;
   #textMaxDate;
+  #hasDatePickerConnection;
 
   /* Private methods */
 
@@ -9864,6 +9865,7 @@ class FDSDatePickerGrid extends HTMLElement {
     this.#handleDateClick = event => {
       this.#dateClicked(event);
     };
+    this.#hasDatePickerConnection = false;
   }
 
   /* --------------------------------------------------
@@ -9903,22 +9905,30 @@ class FDSDatePickerGrid extends HTMLElement {
     const startDateGrid = document.querySelector(`[end-date-grid="${this.id}"]`);
     const endDateGrid = document.querySelector(`[start-date-grid="${this.id}"]`);
     if (isStartDate && endDateGrid) {
-      this.addEventListener('date-selected', () => {
-        console.log(1);
-        endDateGrid.setCorrectedMinDate(stringToDate(this.getAttribute('selected-date')));
-      });
-      endDateGrid.addEventListener('date-selected', () => {
-        console.log(2);
-        this.setCorrectedMaxDate(stringToDate(endDateGrid.getAttribute('selected-date')));
+      customElements.whenDefined('fds-date-picker-grid').then(() => {
+        if (!this.getHasDatePickerConnection() && !endDateGrid?.getHasDatePickerConnection()) {
+          this.addEventListener('date-selected', () => {
+            endDateGrid.setCorrectedMinDate(stringToDate(this.getAttribute('selected-date')));
+          });
+          endDateGrid.addEventListener('date-selected', () => {
+            this.setCorrectedMaxDate(stringToDate(endDateGrid.getAttribute('selected-date')));
+          });
+          this.setHasDatePickerConnection(true);
+          endDateGrid.setHasDatePickerConnection(true);
+        }
       });
     } else if (isEndDate && startDateGrid) {
-      startDateGrid.addEventListener('date-selected', () => {
-        console.log(3);
-        this.setCorrectedMinDate(stringToDate(startDateGrid.getAttribute('selected-date')));
-      });
-      this.addEventListener('date-selected', () => {
-        console.log(4);
-        startDateGrid.setCorrectedMaxDate(stringToDate(this.getAttribute('selected-date')));
+      customElements.whenDefined('fds-date-picker-grid').then(() => {
+        if (!this.getHasDatePickerConnection() && !startDateGrid?.getHasDatePickerConnection()) {
+          startDateGrid.addEventListener('date-selected', () => {
+            this.setCorrectedMinDate(stringToDate(startDateGrid.getAttribute('selected-date')));
+          });
+          this.addEventListener('date-selected', () => {
+            startDateGrid.setCorrectedMaxDate(stringToDate(this.getAttribute('selected-date')));
+          });
+          startDateGrid.setHasDatePickerConnection(true);
+          this.setHasDatePickerConnection(true);
+        }
       });
     }
   }
@@ -9936,6 +9946,12 @@ class FDSDatePickerGrid extends HTMLElement {
     this.#correctedMaxDate = date;
     const focusableDate = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
     this.#redraw(stringToDate(focusableDate));
+  }
+  setHasDatePickerConnection(val) {
+    this.#hasDatePickerConnection = val;
+  }
+  getHasDatePickerConnection() {
+    return this.#hasDatePickerConnection;
   }
 
   /* --------------------------------------------------
