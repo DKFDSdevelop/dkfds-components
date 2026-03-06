@@ -8873,7 +8873,8 @@ class FDSUploadFile extends HTMLElement {
     // Dropzone content
     const content = document.createElement('div');
     content.className = 'fds-upload-dropzone-content';
-    content.id = generateAndVerifyUniqueId('dropzone-desc');
+    content.id = `dropzone-${input.id}`;
+    ;
     input.setAttribute('aria-describedby', content.id);
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.classList.add('icon-svg');
