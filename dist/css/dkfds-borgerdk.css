@@ -13655,3 +13655,42 @@ fds-date-picker-grid .grid-container .next-month[aria-disabled=true],
 .fds-date-picker-grid .grid-container .next-month[aria-disabled=true]{
   text-decoration:line-through;
 }
+
+fds-textarea,
+.fds-textarea{
+  display:block;
+  margin-top:24px;
+}
+fds-textarea:first-child,
+.fds-textarea:first-child{
+  margin-top:0;
+}
+fds-textarea label,
+.fds-textarea label{
+  font-size:1.6rem;
+  line-height:2.4rem;
+  font-weight:600;
+  color:#1a1a1a;
+  text-transform:none;
+  max-width:66ch;
+  display:inline-block;
+}
+fds-textarea label.disabled,
+.fds-textarea label.disabled{
+  color:#707070;
+  font-weight:500;
+}
+fds-textarea:has(textarea[aria-invalid=true]) textarea,
+.fds-textarea:has(textarea[aria-invalid=true]) textarea{
+  border:2px solid #CC0000;
+  padding:calc(8px - 2px) calc(16px - 2px);
+  padding-right:32px;
+}
+fds-textarea textarea.form-input,
+.fds-textarea textarea.form-input{
+  height:auto;
+}
+fds-textarea textarea.no-resize,
+.fds-textarea textarea.no-resize{
+  resize:none;
+}
