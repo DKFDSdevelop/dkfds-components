@@ -9318,254 +9318,6 @@ function registerFileItem() {
   }
 }
 /* harmony default export */ const fds_file_item = (registerFileItem);
-;// ./src/js/custom-elements/date-picker/fds-date-picker.js
-
-
-class FDSDatePicker extends HTMLElement {
-  /* Private instance fields */
-
-  #initialized;
-  #datePickerObserver;
-  #handleDatePickerButtonClick;
-  #handleFocusOut;
-
-  /* Private methods */
-
-  #setupLabel() {
-    const label = this.querySelector('label');
-    if (!label) return;
-    const input = this.querySelector('input');
-    if (input) {
-      label.htmlFor = input.id;
-      label.classList.toggle('disabled', input.hasAttribute('disabled'));
-    } else {
-      label.removeAttribute('for');
-    }
-  }
-  #setupInput() {
-    const input = this.querySelector('input');
-    if (!input) return;
-
-    /* Set id */
-
-    if (!input.id) {
-      input.id = generateAndVerifyUniqueId('inp');
-    }
-
-    /* Add or remove aria-describedby */
-
-    input.removeAttribute('aria-describedby');
-    const idsForAriaDescribedby = [];
-    let isInvalid = false;
-    const errorMessages = this.querySelectorAll('fds-error-message');
-    const helpTexts = this.querySelectorAll('fds-help-text');
-    const ariaDescribedbyElements = [...errorMessages, ...helpTexts];
-    for (const element of ariaDescribedbyElements) {
-      const notDisplayNone = window.getComputedStyle(element).display !== 'none';
-      const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
-      const visibleToScreenReaders = notDisplayNone && notAriaHidden;
-      if (element.id && visibleToScreenReaders) {
-        idsForAriaDescribedby.push(element.id);
-        if (element.tagName === 'FDS-ERROR-MESSAGE') {
-          isInvalid = true;
-        }
-      }
-    }
-    idsForAriaDescribedby.length > 0 ? input.setAttribute('aria-describedby', idsForAriaDescribedby.join(' ')) : input.removeAttribute('aria-describedby');
-    isInvalid ? input.setAttribute('aria-invalid', 'true') : input.removeAttribute('aria-invalid');
-  }
-  #init() {
-    if (this.#initialized) return;
-    this.#setupObserver();
-    this.#setupInput();
-    this.#setupLabel();
-    const input = this.querySelector('input');
-
-    /* Add date picker button next to the input */
-
-    if (!input.parentElement.classList.contains('input-wrapper')) {
-      const inputWrapper = document.createElement('div');
-      inputWrapper.classList.add('input-wrapper');
-      this.appendChild(inputWrapper);
-      inputWrapper.appendChild(input);
-      const dateButton = document.createElement('button');
-      dateButton.setAttribute('aria-haspopup', 'dialog');
-      dateButton.classList.add('button', 'button-icon-only', 'date-button');
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.classList.add('icon-svg');
-      svg.setAttribute('focusable', 'false');
-      svg.setAttribute('aria-hidden', 'true');
-      const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-      use.setAttributeNS(null, 'href', `#calendar-month`);
-      svg.appendChild(use);
-      dateButton.appendChild(svg);
-      inputWrapper.appendChild(dateButton);
-    }
-
-    /* Add wrapper for fds-date-picker-grid */
-
-    const datePicker = document.createElement('div');
-    datePicker.classList.add('ce-date-picker', 'd-none');
-    datePicker.setAttribute('role', 'dialog');
-    datePicker.setAttribute('aria-modal', 'false');
-    const grid = document.createElement('fds-date-picker-grid');
-    datePicker.appendChild(grid);
-    this.appendChild(datePicker);
-    this.#initialized = true;
-  }
-  #showRequiredStatus(value) {
-    const label = this.querySelector('label');
-    const input = this.querySelector('input');
-    if (!label || !input) return;
-    let statusIndicator = label.querySelector(':scope > span.weight-normal');
-    if (value === null && statusIndicator) {
-      statusIndicator.remove();
-      return;
-    }
-    if (!statusIndicator) {
-      const span = document.createElement('span');
-      span.className = 'weight-normal';
-      label.appendChild(span);
-      statusIndicator = span;
-    }
-    const isRequired = input.hasAttribute('required') || input.hasAttribute('aria-required') && input.getAttribute('aria-required') !== 'false';
-    let text = value;
-    if (value === '' && isRequired) text = 'skal udfyldes';
-    if (value === '' && !isRequired) text = 'frivilligt';
-    statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
-  }
-  #setupObserver() {
-    this.#datePickerObserver = new MutationObserver(this.#handleMutations);
-    const config = {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required'],
-      attributeOldValue: false,
-      characterData: false,
-      characterDataOldValue: false
-    };
-    this.#datePickerObserver.observe(this, config);
-  }
-  #handleMutations = (records, observer) => {
-    //console.log(`${this.tagName} had mutations at ${Date.now()}`, records);
-
-    const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
-    if (shouldUpdate) {
-      this.#setupInput();
-      this.#setupLabel();
-      if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
-    }
-  };
-  #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
-    if (attributeName === 'disabled' && target?.tagName === 'INPUT' || attributeName === 'required' && target?.tagName === 'INPUT' || attributeName === 'class' && target?.tagName !== 'LABEL' || attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
-      return true;
-    }
-    const relevantTagNames = ['LABEL', 'INPUT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
-    const allNodes = [...addedNodes, ...removedNodes];
-    return allNodes.some(node => relevantTagNames.includes(node?.tagName));
-  }
-  #closeOnFocusOut(event) {
-    if (!this.contains(event.relatedTarget)) {
-      this.close();
-    }
-  }
-  #datePickerButtonClicked() {
-    this.toggle();
-    if (!this.querySelector('.ce-date-picker').classList.contains('d-none')) {
-      this.querySelector('td[tabindex="0"]').focus();
-    }
-  }
-
-  /* Attributes which can invoke attributeChangedCallback() */
-
-  static observedAttributes = ['show-required-status'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
-
-  constructor() {
-    super();
-    this.#initialized = false;
-    this.#datePickerObserver = null;
-
-    /* Set up instance fields for event handling */
-
-    this.#handleDatePickerButtonClick = () => {
-      this.#datePickerButtonClicked();
-    };
-    this.#handleFocusOut = event => {
-      this.#closeOnFocusOut(event);
-    };
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
-
-  open() {
-    if (!this.querySelector('.ce-date-picker')) return;
-    this.querySelector('.ce-date-picker').classList.remove('d-none');
-  }
-  close() {
-    if (!this.querySelector('.ce-date-picker')) return;
-    this.querySelector('.ce-date-picker').classList.add('d-none');
-  }
-  toggle() {
-    if (!this.querySelector('.ce-date-picker')) return;
-    this.querySelector('.ce-date-picker').classList.toggle('d-none');
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
-
-  connectedCallback() {
-    if (this.#initialized) return;
-    this.#init();
-    if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
-
-    // Add event listeners
-    this.querySelector('.date-button').addEventListener('click', this.#handleDatePickerButtonClick, false);
-    this.addEventListener('focusout', this.#handleFocusOut, false);
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
-
-  disconnectedCallback() {
-    this.#initialized = false;
-    if (this.#datePickerObserver) {
-      this.#datePickerObserver.disconnect();
-      this.#datePickerObserver = null;
-    }
-    if (this.querySelector('.date-button') && this.#handleDatePickerButtonClick) {
-      this.querySelector('.date-button').removeEventListener('click', this.#handleDatePickerButtonClick, false);
-    }
-    if (this.#handleFocusOut) {
-      this.removeEventListener('focusout', this.#handleFocusOut, false);
-    }
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
-
-  attributeChangedCallback(attribute, oldValue, newValue) {
-    if (!this.#initialized) return;
-    if (attribute === 'show-required-status' && oldValue !== newValue) {
-      this.#showRequiredStatus(newValue);
-    }
-  }
-}
-function registerDatePicker() {
-  if (customElements.get('fds-date-picker') === undefined) {
-    window.customElements.define('fds-date-picker', FDSDatePicker);
-  }
-}
-/* harmony default export */ const fds_date_picker = (registerDatePicker);
 ;// ./src/js/custom-elements/date-picker/fds-date-picker-utils.js
 /**
  * Get weekday index with Monday as 0
@@ -9585,31 +9337,45 @@ function getWeekday(date) {
  * @return {number} The month's total number of days
  */
 function totalDaysInMonth(date) {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const LAST_DAY_OF_PREVIOUS_MONTH = 0;
-  return new Date(year, month + 1, LAST_DAY_OF_PREVIOUS_MONTH).getDate();
+  const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+
+  newDate.setFullYear(date.getFullYear());
+  newDate.setMonth(date.getMonth() + 1);
+  newDate.setDate(0); // Sets the date to the last day of the previous month
+
+  return newDate.getDate();
 }
 
 /**
  * Converts a date string to a Date object, setting time to 00:00:00.
  * Accepts various separators: slash (/), dash (-), dot (.), or space.
  * 
- * @param {string} str - The date string in YYYY-MM-DD format (or with other separators)
+ * @param {string} str - The date string in YYYY-MM-DD format (or DD-MM-YYYY if reverse is true)
+ * @param {boolean} [reverse=false] - If true, expects DD-MM-YYYY format; if false, expects YYYY-MM-DD format
  * @return {Date} A new Date object (time set to 00:00:00), or invalid Date if string format is invalid
  */
 function stringToDate(str) {
+  let reverse = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
   if (typeof str !== 'string') {
     return new Date('invalid');
   }
-  const regex = /^(\d{4})[\/\-\. ](\d{1,2})[\/\-\. ](\d{1,2})$/; // Matches YYYY-MM-DD
-
+  let regex = /^(\d{4})[\/\-\. ](\d{1,2})[\/\-\. ](\d{1,2})$/; // Matches year first, e.g. YYYY-MM-DD
+  if (reverse) {
+    regex = /^(\d{1,2})[\/\-\. ](\d{1,2})[\/\-\. ](\d{4})$/; // Matches day first, e.g. DD-MM-YYYY
+  }
   const match = str.match(regex);
   if (match) {
-    const year = parseInt(match[1], 10);
-    const month = parseInt(match[2], 10) - 1;
-    const day = parseInt(match[3], 10);
-    return dateFromIntegers(year, month, day);
+    if (reverse) {
+      const day = parseInt(match[1], 10);
+      const month = parseInt(match[2], 10) - 1;
+      const year = parseInt(match[3], 10);
+      return dateFromIntegers(year, month, day);
+    } else {
+      const year = parseInt(match[1], 10);
+      const month = parseInt(match[2], 10) - 1;
+      const day = parseInt(match[3], 10);
+      return dateFromIntegers(year, month, day);
+    }
   } else {
     return new Date('invalid');
   }
@@ -9750,7 +9516,11 @@ function getPrevMonth(date) {
   if (newDaysInMonth < day) {
     day = newDaysInMonth;
   }
-  return new Date(year, prevMonth, day);
+  const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+  newDate.setFullYear(year); // Use setFullYear as new Date(year, month, date) would set year "20" to "1920"
+  newDate.setMonth(prevMonth);
+  newDate.setDate(day);
+  return newDate;
 }
 function getNextMonth(date) {
   let day = date.getDate();
@@ -9758,14 +9528,18 @@ function getNextMonth(date) {
   let year = date.getFullYear();
   let nextMonth = month + 1;
   if (nextMonth === 12) {
-    nextMonth = 1;
+    nextMonth = 0;
     year = year + 1;
   }
   const newDaysInMonth = totalDaysInMonth(new Date(year, nextMonth, 1));
   if (newDaysInMonth < day) {
     day = newDaysInMonth;
   }
-  return new Date(year, nextMonth, day);
+  const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+  newDate.setFullYear(year); // Use setFullYear as new Date(year, month, date) would set year "20" to "1920"
+  newDate.setMonth(nextMonth);
+  newDate.setDate(day);
+  return newDate;
 }
 function getPrevYear(date) {
   let day = date.getDate();
@@ -9776,7 +9550,11 @@ function getPrevYear(date) {
   if (newDaysInMonth < day) {
     day = newDaysInMonth;
   }
-  return new Date(prevYear, month, day);
+  const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+  newDate.setFullYear(prevYear); // Use setFullYear as new Date(year, month, date) would set year "20" to "1920"
+  newDate.setMonth(month);
+  newDate.setDate(day);
+  return newDate;
 }
 function getNextYear(date) {
   let day = date.getDate();
@@ -9787,7 +9565,11 @@ function getNextYear(date) {
   if (newDaysInMonth < day) {
     day = newDaysInMonth;
   }
-  return new Date(nextYear, month, day);
+  const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+  newDate.setFullYear(nextYear); // Use setFullYear as new Date(year, month, date) would set year "20" to "1920"
+  newDate.setMonth(month);
+  newDate.setDate(day);
+  return newDate;
 }
 
 /**
@@ -9803,6 +9585,456 @@ function datesAreEqual(date1, date2) {
   }
   return date1.getTime() === date2.getTime();
 }
+;// ./src/js/custom-elements/date-picker/fds-date-picker.js
+
+
+class FDSDatePicker extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized;
+  #datePickerObserver;
+  #handleDatePickerButtonClick;
+  #handleFocusOut;
+  #handleDateSelection;
+  #handleDateClick;
+  #handleCloseClick;
+  #handleInput;
+  #handlePageShow;
+  #handleKeydown;
+  #MONTHS;
+  #FORMATS;
+  #textOpen;
+  #textSelectedDate;
+
+  /* Private methods */
+
+  #setupLabel() {
+    const label = this.querySelector('label');
+    if (!label) return;
+    const input = this.querySelector('input');
+    if (input) {
+      label.htmlFor = input.id;
+      label.classList.toggle('disabled', input.hasAttribute('disabled'));
+    } else {
+      label.removeAttribute('for');
+    }
+  }
+  #setupInput() {
+    const input = this.querySelector('input');
+    if (!input) return;
+
+    /* Set id */
+
+    if (!input.id) {
+      input.id = generateAndVerifyUniqueId('inp');
+    }
+
+    /* Add or remove aria-describedby */
+
+    input.removeAttribute('aria-describedby');
+    const idsForAriaDescribedby = [];
+    let isInvalid = false;
+    const errorMessages = this.querySelectorAll('fds-error-message');
+    const helpTexts = this.querySelectorAll('fds-help-text');
+    const ariaDescribedbyElements = [...errorMessages, ...helpTexts];
+    for (const element of ariaDescribedbyElements) {
+      const notDisplayNone = window.getComputedStyle(element).display !== 'none';
+      const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
+      const visibleToScreenReaders = notDisplayNone && notAriaHidden;
+      if (element.id && visibleToScreenReaders) {
+        idsForAriaDescribedby.push(element.id);
+        if (element.tagName === 'FDS-ERROR-MESSAGE') {
+          isInvalid = true;
+        }
+      }
+    }
+    idsForAriaDescribedby.length > 0 ? input.setAttribute('aria-describedby', idsForAriaDescribedby.join(' ')) : input.removeAttribute('aria-describedby');
+    isInvalid ? input.setAttribute('aria-invalid', 'true') : input.removeAttribute('aria-invalid');
+  }
+  #init() {
+    if (this.#initialized) return;
+    this.#setupObserver();
+    this.#setupInput();
+    this.#setupLabel();
+    const input = this.querySelector('input');
+
+    /* Add date picker button next to the input */
+
+    if (!input.parentElement.classList.contains('input-wrapper')) {
+      const inputWrapper = document.createElement('div');
+      inputWrapper.classList.add('input-wrapper');
+      this.appendChild(inputWrapper);
+      inputWrapper.appendChild(input);
+      if (this.hasAttribute('text-open')) {
+        this.#textOpen = this.getAttribute('text-open');
+      }
+      if (this.hasAttribute('text-selecteddate')) {
+        this.#textSelectedDate = this.getAttribute('text-selecteddate');
+      }
+      const dateButton = document.createElement('button');
+      dateButton.setAttribute('aria-haspopup', 'dialog');
+      dateButton.classList.add('button', 'button-icon-only', 'date-button');
+      dateButton.setAttribute('aria-label', this.#textOpen);
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.classList.add('icon-svg');
+      svg.setAttribute('focusable', 'false');
+      svg.setAttribute('aria-hidden', 'true');
+      const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+      use.setAttributeNS(null, 'href', `#calendar-month`);
+      svg.appendChild(use);
+      dateButton.appendChild(svg);
+      inputWrapper.appendChild(dateButton);
+    }
+
+    /* Create child elements for the dialog */
+
+    let grid = null;
+    if (this.querySelector('fds-date-picker-grid')) {
+      grid = this.querySelector('fds-date-picker-grid');
+    } else {
+      grid = document.createElement('fds-date-picker-grid');
+    }
+    if (this.hasAttribute('text-months')) {
+      this.#updateTextMonths(this.getAttribute('text-months'));
+    }
+    const closeButtonContainer = document.createElement('div');
+    closeButtonContainer.setAttribute('tabindex', '-1');
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'Luk';
+    closeButton.classList.add('close-button');
+    closeButtonContainer.appendChild(closeButton);
+
+    /* Add wrapper for fds-date-picker-grid and close button */
+
+    const datePicker = document.createElement('div');
+    datePicker.classList.add('ce-date-picker', 'd-none');
+    datePicker.setAttribute('role', 'dialog');
+    datePicker.setAttribute('aria-modal', 'false');
+    datePicker.appendChild(grid);
+    datePicker.appendChild(closeButtonContainer);
+    this.appendChild(datePicker);
+    this.#initialized = true;
+  }
+  #showRequiredStatus(value) {
+    const label = this.querySelector('label');
+    const input = this.querySelector('input');
+    if (!label || !input) return;
+    let statusIndicator = label.querySelector(':scope > span.weight-normal');
+    if (value === null && statusIndicator) {
+      statusIndicator.remove();
+      return;
+    }
+    if (!statusIndicator) {
+      const span = document.createElement('span');
+      span.className = 'weight-normal';
+      label.appendChild(span);
+      statusIndicator = span;
+    }
+    const isRequired = input.hasAttribute('required') || input.hasAttribute('aria-required') && input.getAttribute('aria-required') !== 'false';
+    let text = value;
+    if (value === '' && isRequired) text = 'skal udfyldes';
+    if (value === '' && !isRequired) text = 'frivilligt';
+    statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
+  }
+  #setupObserver() {
+    this.#datePickerObserver = new MutationObserver(this.#handleMutations);
+    const config = {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required'],
+      attributeOldValue: false,
+      characterData: false,
+      characterDataOldValue: false
+    };
+    this.#datePickerObserver.observe(this, config);
+  }
+  #handleMutations = (records, observer) => {
+    //console.log(`${this.tagName} had mutations at ${Date.now()}`, records);
+
+    const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
+    if (shouldUpdate) {
+      this.#setupInput();
+      this.#setupLabel();
+      if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+    }
+  };
+  #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
+    if (attributeName === 'disabled' && target?.tagName === 'INPUT' || attributeName === 'required' && target?.tagName === 'INPUT' || attributeName === 'class' && target?.tagName !== 'LABEL' || attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
+      return true;
+    }
+    const relevantTagNames = ['LABEL', 'INPUT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+    const allNodes = [...addedNodes, ...removedNodes];
+    return allNodes.some(node => relevantTagNames.includes(node?.tagName));
+  }
+  #updateDateButton(date) {
+    if (isValidDate(date)) {
+      const day = date.getDate();
+      const month = date.getMonth();
+      const year = date.getFullYear();
+      const ariaLabel = this.#textSelectedDate.replace('DAY', day).replace('MONTH', this.#MONTHS[month]).replace('YEAR', year);
+      this.querySelector('.date-button').setAttribute('aria-label', `${this.#textOpen}, ${ariaLabel}`);
+    } else {
+      this.querySelector('.date-button').setAttribute('aria-label', this.#textOpen);
+    }
+  }
+  #updateSelectedDateAttr(date) {
+    if (isValidDate(date)) {
+      this.querySelector('fds-date-picker-grid').setAttribute('selected-date', ISOFormatFromDate(date));
+    } else {
+      this.querySelector('fds-date-picker-grid').setAttribute('selected-date', '');
+    }
+  }
+  #closeOnFocusOut(event) {
+    if (!this.contains(event.relatedTarget)) {
+      // If anything is entered in the input field, the date picker must match
+      if (this.querySelector('input').value !== '') {
+        const dayMonthYearFormat = true;
+        const date = stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+        this.#updateDateButton(date);
+        this.#updateSelectedDateAttr(date);
+      }
+      this.close();
+    }
+  }
+  #datePickerButtonClicked() {
+    if (this.querySelector('input').value !== '') {
+      const dayMonthYearFormat = true;
+      const date = stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+      this.#updateDateButton(date);
+      this.#updateSelectedDateAttr(date);
+    }
+    this.toggle();
+    if (!this.querySelector('.ce-date-picker').classList.contains('d-none')) {
+      this.querySelector('td[tabindex="0"]').focus();
+    }
+  }
+  #dateSelected() {
+    const selectedDate = stringToDate(this.querySelector('fds-date-picker-grid').getAttribute('selected-date'));
+    this.#updateDateButton(selectedDate);
+
+    // Update value in input field unless focus is on the input - otherwise, you risk moving the caret during typing
+    if (document.activeElement !== this.querySelector('input')) {
+      if (isValidDate(selectedDate)) {
+        let format = this.#FORMATS[0];
+        if (this.hasAttribute('format') && this.#FORMATS.includes(this.getAttribute('format'))) {
+          format = this.getAttribute('format');
+        }
+        const dayWithZeros = String(selectedDate.getDate()).padStart(2, '0');
+        const monthWithZeros = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const yearWithZeros = String(selectedDate.getFullYear()).padStart(4, '0');
+        this.querySelector('input').value = format.replace('DD', dayWithZeros).replace('MM', monthWithZeros).replace('YYYY', yearWithZeros);
+      }
+    }
+  }
+  #closeAndFocusButton() {
+    this.close();
+    this.querySelector('.date-button').focus();
+  }
+  #inputUpdated(event) {
+    const dayMonthYearFormat = true;
+    const inputDate = stringToDate(event.target.value, dayMonthYearFormat);
+    if (isValidDate(inputDate)) {
+      this.querySelector('fds-date-picker-grid').setAttribute('selected-date', ISOFormatFromDate(inputDate));
+    } else {
+      this.querySelector('fds-date-picker-grid').setAttribute('selected-date', '');
+    }
+  }
+  #updateOnPageshow() {
+    let date = new Date('invalid');
+    if (this.querySelector('input').value !== '') {
+      const dayMonthYearFormat = true;
+      date = stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+      this.#updateDateButton(date);
+      this.#updateSelectedDateAttr(date); // The value in the input field supersedes the selected-date attribute
+    } else if (this.querySelector('fds-date-picker-grid').hasAttribute('selected-date')) {
+      date = stringToDate(this.querySelector('fds-date-picker-grid').getAttribute('selected-date'));
+      this.#updateDateButton(date);
+      this.#dateSelected();
+    }
+  }
+  #keyboardNavigation(event) {
+    switch (event.key) {
+      case 'Tab':
+        if (event.shiftKey) {
+          if (event.target === this.querySelector('.previous-month')) {
+            event.preventDefault();
+            this.querySelector('.close-button').focus();
+          }
+        } else {
+          if (event.target === this.querySelector('.close-button')) {
+            event.preventDefault();
+            this.querySelector('.previous-month').focus();
+          }
+        }
+        break;
+      case 'Escape':
+        this.#closeAndFocusButton();
+    }
+  }
+  #updateTextMonths(str) {
+    const newMonths = str.split(" ");
+    if (newMonths.length === 12) {
+      this.#MONTHS = newMonths;
+      this.querySelector('fds-date-picker-grid')?.setAttribute('text-months', str);
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['show-required-status', 'format', 'text-open', 'text-selecteddate', 'text-months'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+    this.#initialized = false;
+    this.#datePickerObserver = null;
+
+    /* Set up instance fields for event handling */
+
+    this.#handleDatePickerButtonClick = () => {
+      this.#datePickerButtonClicked();
+    };
+    this.#handleFocusOut = event => {
+      this.#closeOnFocusOut(event);
+    };
+    this.#handleDateSelection = () => {
+      this.#dateSelected();
+    };
+    this.#handleDateClick = () => {
+      this.#closeAndFocusButton();
+    };
+    this.#handleCloseClick = () => {
+      this.#closeAndFocusButton();
+    };
+    this.#handleInput = event => {
+      this.#inputUpdated(event);
+    };
+    this.#handlePageShow = () => {
+      this.#updateOnPageshow();
+    };
+    this.#handleKeydown = event => {
+      this.#keyboardNavigation(event);
+    };
+    this.#MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
+    this.#FORMATS = ['DD/MM/YYYY', 'DD-MM-YYYY', 'DD.MM.YYYY', 'DD MM YYYY', 'DD/MM-YYYY'];
+    this.#textOpen = 'Åbn datovælger';
+    this.#textSelectedDate = 'valgt dato er DAY. MONTH YEAR';
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  open() {
+    if (!this.querySelector('.ce-date-picker')) return;
+    this.querySelector('.ce-date-picker').classList.remove('d-none');
+  }
+  close() {
+    if (!this.querySelector('.ce-date-picker')) return;
+    this.querySelector('.ce-date-picker').classList.add('d-none');
+  }
+  toggle() {
+    if (!this.querySelector('.ce-date-picker')) return;
+    this.querySelector('.ce-date-picker').classList.toggle('d-none');
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.#initialized) return;
+    this.#init();
+    if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+
+    // Add event listeners
+    this.querySelector('.date-button').addEventListener('click', this.#handleDatePickerButtonClick, false);
+    this.addEventListener('focusout', this.#handleFocusOut, false);
+    this.querySelector('fds-date-picker-grid').addEventListener('date-selected', this.#handleDateSelection, false);
+    this.querySelector('fds-date-picker-grid').addEventListener('date-clicked', this.#handleDateClick, false);
+    this.querySelector('.close-button').addEventListener('click', this.#handleCloseClick, false);
+    this.querySelector('input').addEventListener('input', this.#handleInput, false);
+    this.querySelector('.ce-date-picker').addEventListener('keydown', this.#handleKeydown, false);
+
+    // Handles previously entered input when using the browser's back button
+    window.addEventListener('pageshow', this.#handlePageShow, false);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#initialized = false;
+    if (this.#datePickerObserver) {
+      this.#datePickerObserver.disconnect();
+      this.#datePickerObserver = null;
+    }
+    this.querySelector('.date-button')?.removeEventListener('click', this.#handleDatePickerButtonClick, false);
+    this.removeEventListener('focusout', this.#handleFocusOut, false);
+    this.querySelector('fds-date-picker-grid')?.removeEventListener('date-selected', this.#handleDateSelection, false);
+    this.querySelector('fds-date-picker-grid')?.removeEventListener('date-clicked', this.#handleDateClick, false);
+    this.querySelector('.close-button')?.removeEventListener('click', this.#handleCloseClick, false);
+    this.querySelector('input')?.removeEventListener('input', this.#handleInput, false);
+    this.querySelector('.ce-date-picker')?.removeEventListener('keydown', this.#handleKeydown, false);
+    window.removeEventListener('pageshow', this.#handlePageShow, false);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (attribute === 'show-required-status' && oldValue !== newValue) {
+      this.#showRequiredStatus(newValue);
+    }
+    if (attribute === 'format' && oldValue !== newValue) {
+      if (document.activeElement !== this.querySelector('input')) {
+        // If the new format is valid...
+        if (this.hasAttribute('format') && this.#FORMATS.includes(newValue)) {
+          const dayMonthYearFormat = true;
+          const date = stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+
+          // ...and if the input field contains a valid date...
+          if (isValidDate(date)) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = String(date.getFullYear()).padStart(4, '0');
+
+            // ...then update the date displayed
+            this.querySelector('input').value = newValue.replace('DD', day).replace('MM', month).replace('YYYY', year);
+          }
+        }
+      }
+    }
+    if (attribute === 'text-open') {
+      this.#textOpen = newValue;
+    }
+    if (attribute === 'text-selecteddate') {
+      // Check that string contains exactly one "DAY", one "MONTH", and one "YEAR" substring
+      const dayCount = (newValue.match(/DAY/g) || []).length;
+      const monthCount = (newValue.match(/MONTH/g) || []).length;
+      const yearCount = (newValue.match(/YEAR/g) || []).length;
+      if (dayCount === 1 && monthCount === 1 && yearCount === 1) {
+        this.#textSelectedDate = newValue;
+      }
+    }
+    if (attribute === 'text-months') {
+      this.#updateTextMonths(newValue);
+    }
+  }
+}
+function registerDatePicker() {
+  if (customElements.get('fds-date-picker') === undefined) {
+    window.customElements.define('fds-date-picker', FDSDatePicker);
+  }
+}
+/* harmony default export */ const fds_date_picker = (registerDatePicker);
 ;// ./src/js/custom-elements/date-picker/fds-date-picker-grid.js
 
 class FDSDatePickerGrid extends HTMLElement {
@@ -9817,9 +10049,18 @@ class FDSDatePickerGrid extends HTMLElement {
   #DAYS;
   #GRID_ROWS;
   #TOTAL_GRIDCELLS;
+  #CELL_DATE_FORMAT;
   #DEFAULT_MIN_DATE;
   #DEFAULT_MAX_DATE;
   #handleKeydown;
+  #handleChangeMonth;
+  #handleChangeYear;
+  #handlePrevMonth;
+  #handleNextMonth;
+  #handleDateClick;
+  #textMinDate;
+  #textMaxDate;
+  #hasDatePickerConnection;
 
   /* Private methods */
 
@@ -9834,7 +10075,7 @@ class FDSDatePickerGrid extends HTMLElement {
     } else if (this.getAttribute('default-date')) {
       dateToFocus = stringToDate(this.getAttribute('default-date'));
     }
-    this.#redraw(dateToFocus);
+    this.#redraw(dateToFocus, false);
     this.#initialized = true;
   }
   #create() {
@@ -9848,6 +10089,12 @@ class FDSDatePickerGrid extends HTMLElement {
     const datePickerHeader = document.createElement('div');
     datePickerHeader.classList.add('date-picker-header');
 
+    // sr messages
+    const srMessage = document.createElement('span');
+    srMessage.classList.add('sr-only');
+    srMessage.setAttribute('aria-live', 'polite');
+    datePickerHeader.appendChild(srMessage);
+
     // Previous button
     const prevButton = document.createElement('button');
     prevButton.classList.add('previous-month');
@@ -9857,7 +10104,7 @@ class FDSDatePickerGrid extends HTMLElement {
     // Select month
     const monthSelect = document.createElement('select');
     monthSelect.setAttribute('name', 'month');
-    monthSelect.setAttribute('aria-label', 'Vis måned');
+    monthSelect.setAttribute('aria-label', 'Måned');
     monthSelect.classList.add('selected-month');
     for (let i = 0; i < this.#MONTHS.length; i++) {
       monthSelect.innerHTML += `<option value="${i}">${this.#MONTHS[i].charAt(0).toUpperCase() + this.#MONTHS[i].slice(1)}</option>`;
@@ -9867,7 +10114,7 @@ class FDSDatePickerGrid extends HTMLElement {
     // Select year
     const yearSelect = document.createElement('select');
     yearSelect.setAttribute('name', 'year');
-    yearSelect.setAttribute('aria-label', 'Vis år');
+    yearSelect.setAttribute('aria-label', 'År');
     yearSelect.classList.add('selected-year');
     datePickerHeader.appendChild(yearSelect);
 
@@ -9880,6 +10127,12 @@ class FDSDatePickerGrid extends HTMLElement {
 
     /* The grid with dates */
 
+    if (this.hasAttribute('text-mindate')) {
+      this.#textMinDate = this.getAttribute('text-mindate');
+    }
+    if (this.hasAttribute('text-maxdate')) {
+      this.#textMaxDate = this.getAttribute('text-maxdate');
+    }
     const grid = document.createElement('table');
     grid.setAttribute('role', 'grid');
     grid.classList.add('date-picker-grid');
@@ -9906,44 +10159,61 @@ class FDSDatePickerGrid extends HTMLElement {
     gridContainer.appendChild(grid);
   }
   #redraw(date) {
+    let setFocus = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
     const gridContainer = this.querySelector('.grid-container');
     if (!gridContainer) return;
     if (!isValidDate(date)) {
-      throw new Error('Cannot draw date picker grid with invalid date');
+      date = new Date();
     }
 
     /* Check if any changes were made to minimum date or maximum date */
 
-    let minDate = stringToDate(this.getAttribute('min-date'));
-    let maxDate = stringToDate(this.getAttribute('max-date'));
     let updatedMinMaxDates = false;
     if (this.#previousMinDate !== this.getAttribute('min-date') || this.#previousMaxDate !== this.getAttribute('max-date') || !isValidDate(this.#correctedMinDate) || !isValidDate(this.#correctedMaxDate) || this.#correctedMinDate > this.#correctedMaxDate) {
       this.#previousMinDate = this.getAttribute('min-date');
       this.#previousMaxDate = this.getAttribute('max-date');
-      if (!isValidDate(minDate)) {
-        minDate = this.#DEFAULT_MIN_DATE;
+      this.#correctedMinDate = stringToDate(this.getAttribute('min-date'));
+      this.#correctedMaxDate = stringToDate(this.getAttribute('max-date'));
+      if (!isValidDate(this.#correctedMinDate)) {
+        this.#correctedMinDate = this.#DEFAULT_MIN_DATE;
       }
-      if (!isValidDate(maxDate)) {
-        maxDate = this.#DEFAULT_MAX_DATE;
+      if (!isValidDate(this.#correctedMaxDate)) {
+        this.#correctedMaxDate = this.#DEFAULT_MAX_DATE;
       }
-      if (minDate > maxDate) {
-        minDate = maxDate;
+
+      // If the grid has another connected date picker grid, the min-date or max-date might need adjustment
+      if (this.hasAttribute('start-date-id')) {
+        const endDateGrid = document.querySelector(`[end-date-id="${this.getAttribute('start-date-id')}"]`);
+        if (endDateGrid && endDateGrid.hasAttribute('selected-date')) {
+          const potentialMaxDate = stringToDate(endDateGrid.getAttribute('selected-date'));
+          if (isValidDate(potentialMaxDate) && potentialMaxDate < this.#correctedMaxDate) {
+            this.#correctedMaxDate = potentialMaxDate;
+          }
+        }
+      } else if (this.hasAttribute('end-date-id')) {
+        const startDateGrid = document.querySelector(`[start-date-id="${this.getAttribute('end-date-id')}"]`);
+        if (startDateGrid && startDateGrid.hasAttribute('selected-date')) {
+          const potentialMinDate = stringToDate(startDateGrid.getAttribute('selected-date'));
+          if (isValidDate(potentialMinDate) && this.#correctedMinDate < potentialMinDate) {
+            this.#correctedMinDate = potentialMinDate;
+          }
+        }
       }
-      this.#correctedMinDate = minDate;
-      this.#correctedMaxDate = maxDate;
+      if (this.#correctedMinDate > this.#correctedMaxDate) {
+        this.#correctedMinDate = this.#correctedMaxDate;
+      }
       updatedMinMaxDates = true;
     }
 
     /* Constrain the date to always be between the minimum date and maximum date */
-
-    date = constrainDate(minDate, date, maxDate);
+    date = constrainDate(this.#correctedMinDate, date, this.#correctedMaxDate);
 
     /* Changes to minimum date or maximum date can affect the selectable years
        and requires the select to be updated */
 
     if (updatedMinMaxDates) {
-      let minYear = minDate.getFullYear();
-      let maxYear = maxDate.getFullYear();
+      let minYear = this.#correctedMinDate.getFullYear();
+      let maxYear = this.#correctedMaxDate.getFullYear();
       const yearSelect = this.querySelector('.selected-year');
       yearSelect.innerHTML = '';
       for (let i = minYear; i <= maxYear; i++) {
@@ -9953,23 +10223,24 @@ class FDSDatePickerGrid extends HTMLElement {
     const year = date.getFullYear();
     gridContainer.querySelector('.selected-year').value = date.getFullYear();
 
-    // Disable unselectable months
+    /* Disable unselectable months */
+
     const monthSelect = this.querySelector('.selected-month');
     const monthOptions = monthSelect.querySelectorAll('option');
     const chosenYear = this.querySelector('.selected-year').value;
     for (let i = 0; i < monthOptions.length; i++) {
       monthOptions[i].removeAttribute('disabled'); // Reset disabled status on all options
     }
-    if (minDate.getFullYear() === parseInt(chosenYear, 10)) {
-      const minMonth = minDate.getMonth();
+    if (this.#correctedMinDate.getFullYear() === parseInt(chosenYear, 10)) {
+      const minMonth = this.#correctedMinDate.getMonth();
       for (let i = 0; i < monthOptions.length; i++) {
         if (i < minMonth) {
           monthOptions[i].setAttribute('disabled', '');
         }
       }
     }
-    if (maxDate.getFullYear() === parseInt(chosenYear, 10)) {
-      const maxMonth = maxDate.getMonth();
+    if (this.#correctedMaxDate.getFullYear() === parseInt(chosenYear, 10)) {
+      const maxMonth = this.#correctedMaxDate.getMonth();
       for (let i = 0; i < monthOptions.length; i++) {
         if (i > maxMonth) {
           monthOptions[i].setAttribute('disabled', '');
@@ -9979,8 +10250,14 @@ class FDSDatePickerGrid extends HTMLElement {
     const month = date.getMonth();
     gridContainer.querySelector('.selected-month').value = month;
 
-    // Remove existing dates in the grid
-    gridContainer.focus(); // Prevent focusout event to trigger
+    /* Remove existing dates in the grid */
+
+    // Prevent focusout event to trigger in fds-date-picker when tabindex is updated
+    const activeElement = document.activeElement;
+    const isDateCellFocused = activeElement && activeElement.tagName === 'TD' && activeElement.hasAttribute('data-date') && gridContainer.contains(activeElement);
+    if (isDateCellFocused) {
+      gridContainer.focus();
+    }
     const gridcells = gridContainer.querySelectorAll('td');
     for (let i = 0; i < this.#TOTAL_GRIDCELLS; i++) {
       gridcells[i].removeAttribute('tabindex');
@@ -9991,18 +10268,35 @@ class FDSDatePickerGrid extends HTMLElement {
       gridcells[i].innerHTML = '';
     }
 
-    // Add new dates
+    /* Add new dates */
+
     const totalDays = totalDaysInMonth(date);
     const offset = getWeekday(dateFromIntegers(year, month, 1));
     for (let i = 1; i <= totalDays; i++) {
       const gridcellDate = dateFromIntegers(year, month, i);
+
+      // Set the data-date attribute for each date cell
       gridcells[i + offset - 1].setAttribute('data-date', `${ISOFormatFromDate(gridcellDate)}`);
-      gridcells[i + offset - 1].setAttribute('aria-label', `${i}. ${this.#MONTHS[month]} ${year}`);
+
+      // Set the aria-label for each cell
+      const ariaLabel = this.#CELL_DATE_FORMAT.replace('DAY', i).replace('MONTH', this.#MONTHS[month]).replace('YEAR', year);
+      gridcells[i + offset - 1].setAttribute('aria-label', ariaLabel);
+
+      // If the cell is the minimum or maximum date, add additional info in the aria-label
+      if (datesAreEqual(gridcellDate, this.#correctedMinDate)) {
+        const minAriaLabel = `${ariaLabel}, ${this.#textMinDate}`;
+        gridcells[i + offset - 1].setAttribute('aria-label', minAriaLabel);
+      } else if (datesAreEqual(gridcellDate, this.#correctedMaxDate)) {
+        const maxAriaLabel = `${ariaLabel}, ${this.#textMaxDate}`;
+        gridcells[i + offset - 1].setAttribute('aria-label', maxAriaLabel);
+      }
+
+      // Set the content of each cell (a number from 1-31)
       gridcells[i + offset - 1].innerHTML = `${i}`;
-      const dateIsBetweenMinAndMax = isValidDate(minDate) && isValidDate(maxDate) && minDate <= gridcellDate && gridcellDate <= maxDate;
-      const dateIsGreaterThanMinNoMax = isValidDate(minDate) && !isValidDate(maxDate) && minDate <= gridcellDate;
-      const dateIsSmallerThanMaxNoMin = !isValidDate(minDate) && isValidDate(maxDate) && gridcellDate <= maxDate;
-      const noMinNoMax = !isValidDate(minDate) && !isValidDate(maxDate);
+      const dateIsBetweenMinAndMax = isValidDate(this.#correctedMinDate) && isValidDate(this.#correctedMaxDate) && this.#correctedMinDate <= gridcellDate && gridcellDate <= this.#correctedMaxDate;
+      const dateIsGreaterThanMinNoMax = isValidDate(this.#correctedMinDate) && !isValidDate(this.#correctedMaxDate) && this.#correctedMinDate <= gridcellDate;
+      const dateIsSmallerThanMaxNoMin = !isValidDate(this.#correctedMinDate) && isValidDate(this.#correctedMaxDate) && gridcellDate <= this.#correctedMaxDate;
+      const noMinNoMax = !isValidDate(this.#correctedMinDate) && !isValidDate(this.#correctedMaxDate);
       if (dateIsBetweenMinAndMax || dateIsGreaterThanMinNoMax || dateIsSmallerThanMaxNoMin || noMinNoMax) {
         gridcells[i + offset - 1].setAttribute('aria-selected', `false`);
         gridcells[i + offset - 1].setAttribute('tabindex', '-1');
@@ -10014,11 +10308,29 @@ class FDSDatePickerGrid extends HTMLElement {
     // If a date is selected and visible in the grid, ensure it is properly marked
     const selectedDate = this.getAttribute('selected-date');
     if (this.hasAttribute('selected-date') && isValidDateStr(selectedDate)) {
-      gridContainer.querySelector(`[data-date="${selectedDate}"]`)?.setAttribute('aria-selected', 'true');
+      const selectedDateCell = gridContainer.querySelector(`[data-date="${selectedDate}"]`);
+      // Disabled dates can not be selected
+      if (selectedDateCell && !selectedDateCell.hasAttribute('aria-disabled')) {
+        selectedDateCell?.setAttribute('aria-selected', 'true');
+      }
     }
 
     // Ensure it is possible to tab to the date which caused the grid to be redrawn
     gridContainer.querySelector(`[data-date="${ISOFormatFromDate(date)}"]`).setAttribute('tabindex', '0');
+
+    // Ensure previous and next month buttons have the proper disabled state
+    const prevMonthButton = this.querySelector('.previous-month');
+    const nextMonthButton = this.querySelector('.next-month');
+    const visibleMinDate = this.querySelector(`[data-date="${ISOFormatFromDate(this.#correctedMinDate)}"]`);
+    const visibleMaxDate = this.querySelector(`[data-date="${ISOFormatFromDate(this.#correctedMaxDate)}"]`);
+    visibleMinDate ? prevMonthButton.setAttribute('aria-disabled', 'true') : prevMonthButton.removeAttribute('aria-disabled');
+    visibleMaxDate ? nextMonthButton.setAttribute('aria-disabled', 'true') : nextMonthButton.removeAttribute('aria-disabled');
+
+    // If wanted, set focus on the date causing the redraw unless the grid is hidden or the focus is on the date input field
+    const isDisplayed = this.offsetParent;
+    if (setFocus && isDisplayed && document.activeElement.tagName !== 'INPUT') {
+      this.querySelector('td[tabindex="0"]').focus();
+    }
   }
   #keyboardNavigation(event) {
     if (event.target.hasAttribute('data-date')) {
@@ -10032,8 +10344,7 @@ class FDSDatePickerGrid extends HTMLElement {
           if (yesterday < minDate) {
             yesterday = minDate;
           }
-          this.#redraw(yesterday);
-          this.querySelector(`[data-date="${ISOFormatFromDate(yesterday)}"]`).focus();
+          this.#redraw(yesterday, true);
           break;
         case 'ArrowRight':
           event.preventDefault();
@@ -10041,8 +10352,7 @@ class FDSDatePickerGrid extends HTMLElement {
           if (maxDate < tomorrow) {
             tomorrow = maxDate;
           }
-          this.#redraw(tomorrow);
-          this.querySelector(`[data-date="${ISOFormatFromDate(tomorrow)}"]`).focus();
+          this.#redraw(tomorrow, true);
           break;
         case 'ArrowUp':
           event.preventDefault();
@@ -10050,8 +10360,7 @@ class FDSDatePickerGrid extends HTMLElement {
           if (prevWeek < minDate) {
             prevWeek = minDate;
           }
-          this.#redraw(prevWeek);
-          this.querySelector(`[data-date="${ISOFormatFromDate(prevWeek)}"]`).focus();
+          this.#redraw(prevWeek, true);
           break;
         case 'ArrowDown':
           event.preventDefault();
@@ -10059,15 +10368,13 @@ class FDSDatePickerGrid extends HTMLElement {
           if (maxDate < nextWeek) {
             nextWeek = maxDate;
           }
-          this.#redraw(nextWeek);
-          this.querySelector(`[data-date="${ISOFormatFromDate(nextWeek)}"]`).focus();
+          this.#redraw(nextWeek, true);
           break;
         case 'Enter':
         case ' ':
           event.preventDefault();
-          let selectedDate = focusedDay;
           this.setAttribute('selected-date', event.target.getAttribute('data-date'));
-          this.querySelector(`[data-date="${ISOFormatFromDate(selectedDate)}"]`).focus();
+          this.dispatchEvent(new Event('date-clicked'));
           break;
         case 'PageDown':
           event.preventDefault();
@@ -10076,15 +10383,13 @@ class FDSDatePickerGrid extends HTMLElement {
             if (maxDate < nextYear) {
               nextYear = maxDate;
             }
-            this.#redraw(nextYear);
-            this.querySelector(`[data-date="${ISOFormatFromDate(nextYear)}"]`).focus();
+            this.#redraw(nextYear, true);
           } else {
             let nextMonth = getNextMonth(focusedDay);
             if (maxDate < nextMonth) {
               nextMonth = maxDate;
             }
-            this.#redraw(nextMonth);
-            this.querySelector(`[data-date="${ISOFormatFromDate(nextMonth)}"]`).focus();
+            this.#redraw(nextMonth, true);
           }
           break;
         case 'PageUp':
@@ -10094,15 +10399,13 @@ class FDSDatePickerGrid extends HTMLElement {
             if (prevYear < minDate) {
               prevYear = minDate;
             }
-            this.#redraw(prevYear);
-            this.querySelector(`[data-date="${ISOFormatFromDate(prevYear)}"]`).focus();
+            this.#redraw(prevYear, true);
           } else {
             let prevMonth = getPrevMonth(focusedDay);
             if (prevMonth < minDate) {
               prevMonth = minDate;
             }
-            this.#redraw(prevMonth);
-            this.querySelector(`[data-date="${ISOFormatFromDate(prevMonth)}"]`).focus();
+            this.#redraw(prevMonth, true);
           }
           break;
         case 'Home':
@@ -10115,8 +10418,7 @@ class FDSDatePickerGrid extends HTMLElement {
             if (firstDay < minDate) {
               firstDay = minDate;
             }
-            this.#redraw(firstDay);
-            this.querySelector(`[data-date="${ISOFormatFromDate(firstDay)}"]`).focus();
+            this.#redraw(firstDay, true);
           }
           // Go to first day of the week (Monday)
           else {
@@ -10127,8 +10429,7 @@ class FDSDatePickerGrid extends HTMLElement {
               if (monday < minDate) {
                 monday = minDate;
               }
-              this.#redraw(monday);
-              this.querySelector(`[data-date="${ISOFormatFromDate(monday)}"]`).focus();
+              this.#redraw(monday, true);
             }
           }
           break;
@@ -10143,8 +10444,7 @@ class FDSDatePickerGrid extends HTMLElement {
             if (maxDate < lastDay) {
               lastDay = maxDate;
             }
-            this.#redraw(lastDay);
-            this.querySelector(`[data-date="${ISOFormatFromDate(lastDay)}"]`).focus();
+            this.#redraw(lastDay, true);
           }
           // Go to last day of the week (Sunday)
           else {
@@ -10155,18 +10455,115 @@ class FDSDatePickerGrid extends HTMLElement {
               if (maxDate < sunday) {
                 sunday = maxDate;
               }
-              this.#redraw(sunday);
-              this.querySelector(`[data-date="${ISOFormatFromDate(sunday)}"]`).focus();
+              this.#redraw(sunday, true);
             }
           }
           break;
       }
     }
   }
+  #selectChange(event) {
+    const focusedDay = this.querySelector('td[data-date][tabindex="0"]');
+    const focusedDayAsDate = stringToDate(focusedDay.getAttribute('data-date'));
+    let day = focusedDayAsDate.getDate();
+    let month = parseInt(this.querySelector('.selected-month').value, 10);
+    let year = parseInt(this.querySelector('.selected-year').value, 10);
+    if (event.target === this.querySelector('.selected-month')) {
+      month = parseInt(event.target.value, 10);
+    } else if (event.target === this.querySelector('.selected-year')) {
+      year = parseInt(event.target.value, 10);
+    }
+    const daysInNewMonth = totalDaysInMonth(dateFromIntegers(year, month, 1));
+    if (daysInNewMonth < day) {
+      day = daysInNewMonth;
+    }
+    const newDate = dateFromIntegers(year, month, day);
+    this.#redraw(newDate, false);
+    event.target.focus();
+  }
+  #monthButtonClicked(event) {
+    if (event.target.hasAttribute('aria-disabled')) return;
+    const focusedDay = this.querySelector('td[data-date][tabindex="0"]');
+    const focusedDayAsDate = stringToDate(focusedDay.getAttribute('data-date'));
+    let prevMonth = getPrevMonth(focusedDayAsDate);
+    let nextMonth = getNextMonth(focusedDayAsDate);
+    if (event.target === this.querySelector('.previous-month')) {
+      if (prevMonth < this.#correctedMinDate) {
+        prevMonth = this.#correctedMinDate;
+      }
+      this.#redraw(prevMonth, false);
+    } else if (event.target === this.querySelector('.next-month')) {
+      if (this.#correctedMaxDate < nextMonth) {
+        nextMonth = this.#correctedMaxDate;
+      }
+      this.#redraw(nextMonth, false);
+    }
+    event.target.focus();
+    const visibleMinDate = this.querySelector(`[data-date="${ISOFormatFromDate(this.#correctedMinDate)}"]`);
+    const visibleMaxDate = this.querySelector(`[data-date="${ISOFormatFromDate(this.#correctedMaxDate)}"]`);
+    const month = this.#MONTHS[parseInt(this.querySelector('.selected-month').value, 10)];
+    const year = parseInt(this.querySelector('.selected-year').value, 10);
+    if (event.target === this.querySelector('.previous-month') && visibleMinDate) {
+      this.querySelector('.sr-only').textContent = `${month} ${year}, tidligste måned nået`;
+    } else if (event.target === this.querySelector('.next-month') && visibleMaxDate) {
+      this.querySelector('.sr-only').textContent = `${month} ${year}, seneste måned nået`;
+    } else {
+      this.querySelector('.sr-only').textContent = `${month} ${year}`;
+    }
+  }
+  #dateClicked(event) {
+    if (event.target.hasAttribute('data-date') && !event.target.hasAttribute('aria-disabled')) {
+      this.setAttribute('selected-date', event.target.getAttribute('data-date'));
+      this.dispatchEvent(new Event('date-clicked'));
+    }
+  }
+  #updateTextDays(str) {
+    const newDays = str.split(" ");
+    if (newDays.length === 7) {
+      this.#DAYS = newDays;
+      const tableHeaders = this.querySelectorAll('th');
+      for (let i = 0; i < tableHeaders.length; i++) {
+        tableHeaders[i].innerHTML = `<span aria-hidden="true">${this.#DAYS[i].slice(0, 2)}</span><span class="sr-only">${this.#DAYS[i]}</span>`;
+      }
+    }
+  }
+  #updateTextMonths(str) {
+    const newMonths = str.split(" ");
+    if (newMonths.length === 12) {
+      this.#MONTHS = newMonths;
+      const header = this.querySelector('.date-picker-header');
+      if (header && header.querySelector('.sr-only')) {
+        header.querySelector('.sr-only').textContent = '';
+      }
+      const monthOptions = this.querySelectorAll('.selected-month option');
+      for (let i = 0; i < monthOptions.length; i++) {
+        monthOptions[i].textContent = this.#MONTHS[i].charAt(0).toUpperCase() + this.#MONTHS[i].slice(1);
+      }
+    }
+  }
+  #updateTextPrevButton(str) {
+    if (this.querySelector('.previous-month')) {
+      this.querySelector('.previous-month').textContent = str;
+    }
+  }
+  #updateTextNextButton(str) {
+    if (this.querySelector('.next-month')) {
+      this.querySelector('.next-month').textContent = str;
+    }
+  }
+  #updateTextDateAnnouncement(str) {
+    // Check that string contains exactly one "DAY", one "MONTH", and one "YEAR" substring
+    const dayCount = (str.match(/DAY/g) || []).length;
+    const monthCount = (str.match(/MONTH/g) || []).length;
+    const yearCount = (str.match(/YEAR/g) || []).length;
+    if (dayCount === 1 && monthCount === 1 && yearCount === 1) {
+      this.#CELL_DATE_FORMAT = str;
+    }
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['min-date', 'max-date', 'selected-date', 'default-date'];
+  static observedAttributes = ['min-date', 'max-date', 'selected-date', 'default-date', 'text-months', 'text-days', 'text-prevbutton', 'text-nextbutton', 'text-date-announcement', 'text-mindate', 'text-maxdate'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -10179,8 +10576,13 @@ class FDSDatePickerGrid extends HTMLElement {
     this.#DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
     this.#GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
     this.#TOTAL_GRIDCELLS = this.#GRID_ROWS * this.#DAYS.length;
-    this.#DEFAULT_MIN_DATE = new Date(1900, 0, 1);
-    this.#DEFAULT_MAX_DATE = new Date(2100, 11, 31);
+    this.#CELL_DATE_FORMAT = 'DAY. MONTH YEAR';
+    this.#textMinDate = 'tidligste valgbare dato';
+    this.#textMaxDate = 'seneste valgbare dato';
+    this.#DEFAULT_MIN_DATE = new Date();
+    this.#DEFAULT_MIN_DATE.setHours(0, 0, 0, 0);
+    this.#DEFAULT_MAX_DATE = new Date(this.#DEFAULT_MIN_DATE);
+    this.#DEFAULT_MAX_DATE.setFullYear(this.#DEFAULT_MIN_DATE.getFullYear() + 10);
     this.#previousMinDate = 0;
     this.#previousMaxDate = 0;
     this.#correctedMinDate = null;
@@ -10188,6 +10590,22 @@ class FDSDatePickerGrid extends HTMLElement {
     this.#handleKeydown = event => {
       this.#keyboardNavigation(event);
     };
+    this.#handleChangeMonth = event => {
+      this.#selectChange(event);
+    };
+    this.#handleChangeYear = event => {
+      this.#selectChange(event);
+    };
+    this.#handlePrevMonth = event => {
+      this.#monthButtonClicked(event);
+    };
+    this.#handleNextMonth = event => {
+      this.#monthButtonClicked(event);
+    };
+    this.#handleDateClick = event => {
+      this.#dateClicked(event);
+    };
+    this.#hasDatePickerConnection = false;
   }
 
   /* --------------------------------------------------
@@ -10196,10 +10614,83 @@ class FDSDatePickerGrid extends HTMLElement {
 
   connectedCallback() {
     if (this.#initialized) return;
+    if (this.hasAttribute('text-days')) {
+      this.#updateTextDays(this.getAttribute('text-days'));
+    }
+    if (this.hasAttribute('text-months')) {
+      this.#updateTextMonths(this.getAttribute('text-months'));
+    }
+    if (this.hasAttribute('text-date-announcement')) {
+      this.#updateTextDateAnnouncement(this.getAttribute('text-date-announcement'));
+    }
     this.#init();
+    if (this.hasAttribute('text-prevbutton')) {
+      this.#updateTextPrevButton(this.getAttribute('text-prevbutton'));
+    }
+    if (this.hasAttribute('text-nextbutton')) {
+      this.#updateTextNextButton(this.getAttribute('text-nextbutton'));
+    }
 
     // Add event listeners
     this.querySelector('.grid-container').addEventListener('keydown', this.#handleKeydown, false);
+    this.querySelector('.selected-month').addEventListener('change', this.#handleChangeMonth, false);
+    this.querySelector('.selected-year').addEventListener('change', this.#handleChangeYear, false);
+    this.querySelector('.previous-month').addEventListener('click', this.#handlePrevMonth, false);
+    this.querySelector('.next-month').addEventListener('click', this.#handleNextMonth, false);
+    this.querySelector('.date-picker-grid').addEventListener('click', this.#handleDateClick, false);
+
+    // If the date picker is part of a "duo" defining start date and end date, add event listeners when both grids exist
+    const isStartDate = this.hasAttribute('start-date-id');
+    const isEndDate = this.hasAttribute('end-date-id');
+    const startDateGrid = document.querySelector(`[start-date-id="${this.getAttribute('end-date-id')}"]`);
+    const endDateGrid = document.querySelector(`[end-date-id="${this.getAttribute('start-date-id')}"]`);
+    if (isStartDate && endDateGrid) {
+      customElements.whenDefined('fds-date-picker-grid').then(() => {
+        if (!this.getHasDatePickerConnection() && !endDateGrid?.getHasDatePickerConnection()) {
+          this.addEventListener('date-selected', () => {
+            const focusableDate = endDateGrid.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+            endDateGrid.forceCompleteRedraw(stringToDate(focusableDate));
+          });
+          endDateGrid.addEventListener('date-selected', () => {
+            const focusableDate = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+            this.forceCompleteRedraw(stringToDate(focusableDate));
+          });
+          this.setHasDatePickerConnection(true);
+          endDateGrid.setHasDatePickerConnection(true);
+        }
+      });
+    } else if (isEndDate && startDateGrid) {
+      customElements.whenDefined('fds-date-picker-grid').then(() => {
+        if (!this.getHasDatePickerConnection() && !startDateGrid?.getHasDatePickerConnection()) {
+          startDateGrid.addEventListener('date-selected', () => {
+            const focusableDate = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+            this.forceCompleteRedraw(stringToDate(focusableDate));
+          });
+          this.addEventListener('date-selected', () => {
+            const focusableDate = startDateGrid.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+            startDateGrid.forceCompleteRedraw(stringToDate(focusableDate));
+          });
+          startDateGrid.setHasDatePickerConnection(true);
+          this.setHasDatePickerConnection(true);
+        }
+      });
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  forceCompleteRedraw(date) {
+    let setFocus = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+    this.#previousMaxDate = 0; // Force update of select element with possible years
+    this.#redraw(date, setFocus);
+  }
+  setHasDatePickerConnection(val) {
+    this.#hasDatePickerConnection = val;
+  }
+  getHasDatePickerConnection() {
+    return this.#hasDatePickerConnection;
   }
 
   /* --------------------------------------------------
@@ -10208,7 +10699,12 @@ class FDSDatePickerGrid extends HTMLElement {
 
   disconnectedCallback() {
     this.#initialized = false;
-    this.querySelector('.grid-container').removeEventListener('keydown', this.#handleKeydown, false);
+    this.querySelector('.grid-container')?.removeEventListener('keydown', this.#handleKeydown, false);
+    this.querySelector('.selected-month')?.removeEventListener('change', this.#handleChangeMonth, false);
+    this.querySelector('.selected-year')?.removeEventListener('change', this.#handleChangeYear, false);
+    this.querySelector('.previous-month')?.removeEventListener('click', this.#handlePrevMonth, false);
+    this.querySelector('.next-month')?.removeEventListener('click', this.#handleNextMonth, false);
+    this.querySelector('.date-picker-grid')?.removeEventListener('click', this.#handleDateClick, false);
     this.querySelector('.grid-container')?.remove();
   }
 
@@ -10218,17 +10714,53 @@ class FDSDatePickerGrid extends HTMLElement {
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized && oldValue !== newValue) return;
+    let redrawNeeded = false;
     if (attribute === 'selected-date') {
-      this.#redraw(stringToDate(this.getAttribute('selected-date')));
+      const date = stringToDate(newValue);
+      const setFocusOnDate = true;
+      if (isValidDate(date)) {
+        this.#redraw(date, setFocusOnDate);
+      } else {
+        // An invalid date might be temporary while the user enters a date in the fds-date-picker's input field
+        // Keep displaying the previous dates to give a more "steady" experience with no rapid updates
+        const dateWithCurrentFocus = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+        this.#redraw(stringToDate(dateWithCurrentFocus), setFocusOnDate);
+      }
+      this.dispatchEvent(new Event('date-selected'));
     }
     if (attribute === 'min-date' || attribute === 'max-date') {
+      redrawNeeded = true;
+    }
+    if (attribute === 'text-days') {
+      this.#updateTextDays(newValue);
+    }
+    if (attribute === 'text-months') {
+      this.#updateTextMonths(newValue);
+    }
+    if (attribute === 'text-prevbutton') {
+      this.#updateTextPrevButton(newValue);
+    }
+    if (attribute === 'text-nextbutton') {
+      this.#updateTextNextButton(newValue);
+    }
+    if (attribute === 'text-date-announcement') {
+      this.#updateTextDateAnnouncement(newValue);
+    }
+    if (attribute === 'text-mindate') {
+      this.#textMinDate = newValue;
+      redrawNeeded = true;
+    }
+    if (attribute === 'text-maxdate') {
+      this.#textMaxDate = newValue;
+      redrawNeeded = true;
+    }
+    if (redrawNeeded) {
       const dateWithCurrentFocus = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
       let placeFocusOnDate = stringToDate(dateWithCurrentFocus);
       if (!isValidDate(placeFocusOnDate)) {
         placeFocusOnDate = new Date();
       }
-      this.#redraw(placeFocusOnDate);
-      this.querySelector('td[tabindex="0"]').focus();
+      this.#redraw(placeFocusOnDate, true);
     }
   }
 }

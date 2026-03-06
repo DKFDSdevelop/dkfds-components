@@ -16,34 +16,47 @@ export function getWeekday(date) {
  * @return {number} The month's total number of days
  */
 export function totalDaysInMonth(date) {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const LAST_DAY_OF_PREVIOUS_MONTH = 0;
+    const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
 
-    return new Date(year, month + 1, LAST_DAY_OF_PREVIOUS_MONTH).getDate();
+    newDate.setFullYear(date.getFullYear());
+    newDate.setMonth(date.getMonth() + 1);
+    newDate.setDate(0); // Sets the date to the last day of the previous month
+
+    return newDate.getDate()
 }
 
 /**
  * Converts a date string to a Date object, setting time to 00:00:00.
  * Accepts various separators: slash (/), dash (-), dot (.), or space.
  * 
- * @param {string} str - The date string in YYYY-MM-DD format (or with other separators)
+ * @param {string} str - The date string in YYYY-MM-DD format (or DD-MM-YYYY if reverse is true)
+ * @param {boolean} [reverse=false] - If true, expects DD-MM-YYYY format; if false, expects YYYY-MM-DD format
  * @return {Date} A new Date object (time set to 00:00:00), or invalid Date if string format is invalid
  */
-export function stringToDate(str) {
+export function stringToDate(str, reverse = false) {
     if (typeof str !== 'string') {
         return new Date('invalid');
     }
 
-    const regex = /^(\d{4})[\/\-\. ](\d{1,2})[\/\-\. ](\d{1,2})$/; // Matches YYYY-MM-DD
+    let regex = /^(\d{4})[\/\-\. ](\d{1,2})[\/\-\. ](\d{1,2})$/; // Matches year first, e.g. YYYY-MM-DD
+    if (reverse) {
+        regex = /^(\d{1,2})[\/\-\. ](\d{1,2})[\/\-\. ](\d{4})$/; // Matches day first, e.g. DD-MM-YYYY
+    }
 
     const match = str.match(regex);
     if (match) {
-        const year = parseInt(match[1], 10);
-        const month = parseInt(match[2], 10) - 1;
-        const day = parseInt(match[3], 10);
-
-        return dateFromIntegers(year, month, day);
+        if (reverse) {
+            const day = parseInt(match[1], 10);
+            const month = parseInt(match[2], 10) - 1;
+            const year = parseInt(match[3], 10);
+            return dateFromIntegers(year, month, day);
+        }
+        else {
+            const year = parseInt(match[1], 10);
+            const month = parseInt(match[2], 10) - 1;
+            const day = parseInt(match[3], 10);
+            return dateFromIntegers(year, month, day);
+        }
     }
     else {
         return new Date('invalid');
@@ -181,6 +194,7 @@ export function getPrevMonth(date) {
     let day = date.getDate();
     let month = date.getMonth();
     let year = date.getFullYear();
+
     let prevMonth = month - 1;
     if (prevMonth === -1) {
         prevMonth = 11;
@@ -190,47 +204,74 @@ export function getPrevMonth(date) {
     if (newDaysInMonth < day) {
         day = newDaysInMonth;
     }
-    return new Date(year, prevMonth, day);
+
+    const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+    newDate.setFullYear(year); // Use setFullYear as new Date(year, month, date) would set year "20" to "1920"
+    newDate.setMonth(prevMonth);
+    newDate.setDate(day);
+
+    return newDate;
 }
 
 export function getNextMonth(date) {
     let day = date.getDate();
     let month = date.getMonth();
     let year = date.getFullYear();
+
     let nextMonth = month + 1;
     if (nextMonth === 12) {
-        nextMonth = 1;
+        nextMonth = 0;
         year = year + 1;
     }
     const newDaysInMonth = totalDaysInMonth(new Date(year, nextMonth, 1));
     if (newDaysInMonth < day) {
         day = newDaysInMonth;
     }
-    return new Date(year, nextMonth, day);
+
+    const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+    newDate.setFullYear(year); // Use setFullYear as new Date(year, month, date) would set year "20" to "1920"
+    newDate.setMonth(nextMonth);
+    newDate.setDate(day);
+
+    return newDate;
 }
 
 export function getPrevYear(date) {
     let day = date.getDate();
     const month = date.getMonth();
     let year = date.getFullYear();
+
     let prevYear = year - 1;
     const newDaysInMonth = totalDaysInMonth(new Date(prevYear, month, 1));
     if (newDaysInMonth < day) {
         day = newDaysInMonth;
     }
-    return new Date(prevYear, month, day);
+
+    const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+    newDate.setFullYear(prevYear); // Use setFullYear as new Date(year, month, date) would set year "20" to "1920"
+    newDate.setMonth(month);
+    newDate.setDate(day);
+
+    return newDate;
 }
 
 export function getNextYear(date) {
     let day = date.getDate();
     const month = date.getMonth();
     let year = date.getFullYear();
+    
     let nextYear = year + 1;
     const newDaysInMonth = totalDaysInMonth(new Date(nextYear, month, 1));
     if (newDaysInMonth < day) {
         day = newDaysInMonth;
     }
-    return new Date(nextYear, month, day);
+
+    const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+    newDate.setFullYear(nextYear); // Use setFullYear as new Date(year, month, date) would set year "20" to "1920"
+    newDate.setMonth(month);
+    newDate.setDate(day);
+
+    return newDate;
 }
 
 /**

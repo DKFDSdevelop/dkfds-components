@@ -80,6 +80,11 @@ fds-date-picker,
             z-index: 1;
             top: calc(100% + 4px);
             box-shadow: func.shadow('light');
+            background-color: func.color('white');
+        }
+
+        fds-date-picker-grid + div {
+            border: func.border(vars.$input-border);
         }
     }
 }
