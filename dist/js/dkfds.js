@@ -9758,6 +9758,9 @@ class FDSDatePicker extends HTMLElement {
       this.#setupInput();
       this.#setupLabel();
       if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+      if (this.querySelector('.date-button')) {
+        this.querySelector('input')?.hasAttribute('disabled') ? this.querySelector('.date-button').setAttribute('disabled', '') : this.querySelector('.date-button').removeAttribute('disabled');
+      }
     }
   };
   #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
