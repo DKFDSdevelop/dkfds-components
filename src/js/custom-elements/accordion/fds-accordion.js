@@ -67,13 +67,19 @@ class FDSAccordion extends HTMLElement {
         headingElement = newHeadingLevel;
     }
 
+    #setExpandedState(isExpanded) {
+        const button = this.#getHeadingElement()?.querySelector('button.accordion-button');
+        const content = this.#getContentElement();
+
+        if (!button || !content) return;
+
+        button.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+        content.setAttribute('aria-hidden', isExpanded ? 'false' : 'true');
+    }
+
     #updateExpanded(expanded) {
-        if (expanded !== null && expanded !== "false") {
-            this.expandAccordion();
-        }
-        else {
-            this.collapseAccordion();
-        }
+        const isExpanded = expanded !== null && expanded !== 'false';
+        this.#setExpandedState(isExpanded);
     }
 
     #updateContentId(contentId) {
@@ -143,30 +149,23 @@ class FDSAccordion extends HTMLElement {
     -------------------------------------------------- */
 
     expandAccordion() {
-        this.#getHeadingElement().querySelector('button.accordion-button').setAttribute('aria-expanded', 'true');
-        this.#getContentElement().setAttribute('aria-hidden', 'false');
-        if (this.getAttribute('expanded') === null || this.getAttribute('expanded') === 'false') {
+        this.#setExpandedState(true);
+        if (this.getAttribute('expanded') !== 'true') {
             this.setAttribute('expanded', 'true');
         }
         this.dispatchEvent(new CustomEvent('fds-accordion-expanded', { bubbles: true }));
     }
 
     collapseAccordion() {
-        this.#getHeadingElement().querySelector('button.accordion-button').setAttribute('aria-expanded', 'false');
-        this.#getContentElement().setAttribute('aria-hidden', 'true');
-        if (this.hasAttribute('expanded')) {
+        this.#setExpandedState(false);
+        if (this.getAttribute('expanded') !== 'false') {
             this.setAttribute('expanded', 'false');
         }
         this.dispatchEvent(new CustomEvent('fds-accordion-collapsed', { bubbles: true }));
     }
 
     toggleAccordion() {
-        if (this.isExpanded()) {
-            this.collapseAccordion();
-        }
-        else {
-            this.expandAccordion();
-        }
+        this.isExpanded() ? this.collapseAccordion() : this.expandAccordion();
     }
 
     isExpanded() {
