@@ -21,38 +21,87 @@ class FDSAccordion extends HTMLElement {
         return this.querySelector('.accordion-content');
     }
 
-    #render() {
-        if (this.#rendered) return;
+    #normalizeHeadingLevel(headingLevel) {
+        const normalizedHeadingLevel = (headingLevel || 'h3').toLowerCase();
+        return ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(normalizedHeadingLevel) ? normalizedHeadingLevel : 'h3';
+    }
 
-        // Check if the HTML inside the accordion already has been rendered
-        const accordionRendered = validateAccordionHTML(this.children);
+    #ensureStructure() {
+        const headingLevel = this.#normalizeHeadingLevel(this.getAttribute('heading-level'));
 
-        if (!accordionRendered) {
+        let headingElement = this.#getHeadingElement();
+        let contentElement = this.#getContentElement();
 
-            // Capture existing child nodes to preserve functionality
-            const preservedNodes = Array.from(this.childNodes);
+        // Create heading element if missing
+        if (!headingElement) {
+            headingElement = document.createElement(headingLevel);
 
-            // Render inner markup
-            const inner = renderAccordionHTML({
-                heading: this.getAttribute('heading') || '',
-                headingLevel: (this.getAttribute('heading-level') || 'h3').toLowerCase(),
-                expanded: this.isExpanded(),
-                contentId: '',
-                variantText: this.getAttribute('variant-text'),
-                variantIcon: this.getAttribute('variant-icon'),
-                content: '',
-            });
-            this.innerHTML = inner;
+            const existingButtonElement = this.querySelector(':scope > button.accordion-button');
 
-            // Reinsert preserved nodes into the content container
-            const contentEl = this.#getContentElement();
-            contentEl.innerHTML = ''; // Remove any whitespaces created by renderAccordionHTML()
-            const fragment = document.createDocumentFragment();
-            preservedNodes.forEach(node => fragment.appendChild(node));
-            contentEl.appendChild(fragment);
+            if (existingButtonElement) {
+                existingButtonElement.replaceWith(headingElement);
+                headingElement.appendChild(existingButtonElement);
+            }
+            else {
+                this.prepend(headingElement);
+            }
         }
 
-        this.#rendered = true;
+        // Create button if missing
+        let buttonElement = headingElement.querySelector('button.accordion-button');
+        if (!buttonElement) {
+            const preservedHeadingNodes = Array.from(headingElement.childNodes);
+
+            buttonElement = document.createElement('button');
+            buttonElement.classList.add('accordion-button');
+            buttonElement.setAttribute('type', 'button');
+
+            headingElement.replaceChildren(buttonElement);
+
+            const titleElement = document.createElement('span');
+            titleElement.classList.add('accordion-title');
+
+            if (this.hasAttribute('heading')) {
+                titleElement.textContent = this.getAttribute('heading');
+            }
+            else {
+                const fragment = document.createDocumentFragment();
+                preservedHeadingNodes.forEach(node => fragment.appendChild(node));
+
+                if (fragment.childNodes.length > 0) {
+                    titleElement.appendChild(fragment);
+                }
+            }
+
+            buttonElement.appendChild(titleElement);
+        }
+
+        // Create title element if missing
+        let titleElement = buttonElement.querySelector('.accordion-title');
+        if (!titleElement) {
+            titleElement = document.createElement('span');
+            titleElement.classList.add('accordion-title');
+
+            if (this.hasAttribute('heading')) {
+                titleElement.textContent = this.getAttribute('heading');
+            }
+
+            buttonElement.prepend(titleElement);
+        }
+
+        // Create content container if missing
+        if (!contentElement) {
+            contentElement = document.createElement('div');
+            contentElement.classList.add('accordion-content');
+
+            const fragment = document.createDocumentFragment();
+            const nodesToMove = Array.from(this.childNodes).filter(node => node !== headingElement);
+
+            nodesToMove.forEach(node => fragment.appendChild(node));
+            contentElement.appendChild(fragment);
+
+            this.appendChild(contentElement);
+        }
     }
 
     #updateHeading(heading) {
@@ -60,11 +109,14 @@ class FDSAccordion extends HTMLElement {
     }
 
     #updateHeadingLevel(headingLevel) {
-        const newHeadingLevel = document.createElement(`${headingLevel}`);
+        const normalizedHeadingLevel = this.#normalizeHeadingLevel(headingLevel);
         let headingElement = this.#getHeadingElement();
+
+        if (!headingElement || headingElement.tagName.toLowerCase() === normalizedHeadingLevel) return;
+
+        const newHeadingLevel = document.createElement(normalizedHeadingLevel);
         newHeadingLevel.append(...headingElement.childNodes);
         headingElement.replaceWith(newHeadingLevel);
-        headingElement = newHeadingLevel;
     }
 
     #setExpandedState(isExpanded) {
@@ -85,6 +137,32 @@ class FDSAccordion extends HTMLElement {
     #updateContentId(contentId) {
         this.#getHeadingElement().querySelector('.accordion-button').setAttribute('aria-controls', contentId);
         this.#getContentElement().setAttribute('id', contentId);
+    }
+
+    #ensureContentId() {
+        const headingElement = this.#getHeadingElement();
+        const contentElement = this.#getContentElement();
+
+        if (!headingElement || !contentElement) return;
+
+        const buttonHeadingId = headingElement.querySelector('.accordion-button').getAttribute('aria-controls');
+        const contentId = contentElement.getAttribute('id');
+
+        if (this.hasAttribute('content-id')) {
+            this.#updateContentId(this.getAttribute('content-id'));
+        }
+        else if (contentId && buttonHeadingId === contentId) {
+            return;
+        }
+        else if (contentId) {
+            this.#updateContentId(contentId);
+        }
+        else if (buttonHeadingId) {
+            this.#updateContentId(buttonHeadingId);
+        }
+        else {
+            this.#updateContentId(generateAndVerifyUniqueId('acc'));
+        }
     }
 
     #updateVariant(text, icon) {
@@ -118,6 +196,27 @@ class FDSAccordion extends HTMLElement {
         }
         else if (button.querySelector('.accordion-icon')) {
             button.querySelector('.accordion-icon').remove();
+        }
+    }
+
+    //Apply all current attributes to the DOM
+    #syncAll() {
+        if (this.hasAttribute('heading')) {
+            this.#updateHeading(this.getAttribute('heading'));
+        }
+
+        this.#updateHeadingLevel(this.getAttribute('heading-level'));
+        this.#updateExpanded(this.getAttribute('expanded'));
+        this.#ensureContentId();
+
+        if (this.hasAttribute('variant-text') || this.hasAttribute('variant-icon')) {
+            this.#updateVariant(
+                this.getAttribute('variant-text'),
+                this.getAttribute('variant-icon')
+            );
+        }
+        else {
+            this.#updateVariant('', '');
         }
     }
 
@@ -179,27 +278,12 @@ class FDSAccordion extends HTMLElement {
     connectedCallback() {
         if (this.#rendered) return;
 
-        this.#render();
+        this.#ensureStructure();
+        this.#syncAll();
 
-        // Ensure the accordion has a valid id
-        const contentId = this.#getContentElement().getAttribute('id');
-        const buttonHeadingId = this.#getHeadingElement().querySelector('.accordion-button').getAttribute('aria-controls');
-        if (contentId === '' || contentId !== buttonHeadingId) {
-            let newId = '';
-            if (this.hasAttribute('content-id')) {
-                newId = this.getAttribute('content-id');
-            }
-            else if (contentId === '') {
-                newId = generateAndVerifyUniqueId('acc');
-            }
-            else {
-                newId = contentId;
-            }
-            this.#updateContentId(newId);
-        }
-
-        // Add event listeners
         this.#getHeadingElement().querySelector('button.accordion-button').addEventListener('click', this.#handleAccordionClick, false);
+
+        this.#rendered = true;
     }
 
     /* --------------------------------------------------
