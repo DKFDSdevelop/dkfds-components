@@ -8433,6 +8433,80 @@ function registerDateInput() {
   }
 }
 /* harmony default export */ const fds_date_input = (registerDateInput);
+;// ./src/js/custom-elements/select/fds-select-utils.js
+
+
+/**
+ * Associates a label element with a select element.
+ *
+ * @param {HTMLLabelElement} label - The label element to associate.
+ * @param {HTMLSelectElement} select - The select element to associate the label with.
+ * @returns {void}
+ */
+function associateLabelWithSelect(label, select) {
+  if (!label) return;
+  if (select) {
+    if (!select.id) {
+      select.id = generateAndVerifyUniqueId('sel');
+    }
+    label.htmlFor = select.id;
+  } else {
+    label.removeAttribute('for');
+  }
+}
+
+/**
+ * Matches the disabled class of a label element to the disabled attribute of a select element.
+ *
+ * @param {HTMLLabelElement} label - The label element to update.
+ * @param {HTMLSelectElement} select - The select element to match the disabled state from.
+ * @returns {void}
+ */
+function setDisabledClass(label, select) {
+  if (!label || !select) return;
+  label.classList.toggle('disabled', select.hasAttribute('disabled'));
+}
+
+/**
+ * Sets the `aria-describedby` attribute on a select element based on
+ * the IDs of visible error messages and help texts.
+ *
+ * @param {HTMLSelectElement} select - The select element to update.
+ * @param {NodeList} errorMessages - Error message elements to consider.
+ * @param {NodeList} helpTexts - Help text elements to consider.
+ * @returns {void}
+ */
+function setAriaDescribedBy(select, errorMessages, helpTexts) {
+  if (!select) return;
+  const ids = [...Array.from(errorMessages), ...Array.from(helpTexts)]
+  // Only include elements that are visible to screen readers and have an ID
+  .filter(element => {
+    const notDisplayNone = window.getComputedStyle(element).display !== 'none';
+    const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
+    return element.id && notDisplayNone && notAriaHidden;
+  })
+  // Extract the ID from each element
+  .map(element => element.id);
+  ids.length > 0 ? select.setAttribute('aria-describedby', ids.join(' ')) : select.removeAttribute('aria-describedby');
+}
+
+/**
+ * Sets or removes the `aria-invalid` attribute on a select element
+ * based on whether any error messages are visible to screen readers.
+ *
+ * @param {HTMLSelectElement} select - The select element to update.
+ * @param {NodeList} errorMessages - Error message elements to evaluate.
+ * @returns {void}
+ */
+function setInvalid(select, errorMessages) {
+  if (!select) return;
+  const invalid = Array.from(errorMessages).some(element => {
+    const notDisplayNone = window.getComputedStyle(element).display !== 'none';
+    const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
+    return notDisplayNone && notAriaHidden;
+  });
+  invalid ? select.setAttribute('aria-invalid', 'true') : select.removeAttribute('aria-invalid');
+}
 ;// ./src/js/custom-elements/select/fds-select.js
 
 class FDSSelect extends HTMLElement {
@@ -8440,64 +8514,22 @@ class FDSSelect extends HTMLElement {
 
   #initialized;
   #selectObserver = null;
+  #label = null;
+  #select = null;
+  #errorMessages = null;
+  #helpTexts = null;
 
   /* Private methods */
 
-  #setupLabel() {
-    const label = this.querySelector('label');
-    if (!label) return;
-    const select = this.querySelector('select');
-    if (select) {
-      label.htmlFor = select.id;
-      label.classList.toggle('disabled', select.hasAttribute('disabled'));
-    } else {
-      label.removeAttribute('for');
-    }
-  }
-  #setupSelect() {
-    const select = this.querySelector('select');
-    if (!select) return;
-
-    /* Set id */
-
-    if (!select.id) {
-      select.id = generateAndVerifyUniqueId('sel');
-    }
-
-    /* Add or remove aria-describedby */
-
-    select.removeAttribute('aria-describedby');
-    const idsForAriaDescribedby = [];
-    let isInvalid = false;
-    const errorMessages = this.querySelectorAll('fds-error-message');
-    const helpTexts = this.querySelectorAll('fds-help-text');
-    const ariaDescribedbyElements = [...errorMessages, ...helpTexts];
-    for (const element of ariaDescribedbyElements) {
-      const notDisplayNone = window.getComputedStyle(element).display !== 'none';
-      const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
-      const visibleToScreenReaders = notDisplayNone && notAriaHidden;
-      if (element.id && visibleToScreenReaders) {
-        idsForAriaDescribedby.push(element.id);
-        if (element.tagName === 'FDS-ERROR-MESSAGE') {
-          isInvalid = true;
-        }
-      }
-    }
-    idsForAriaDescribedby.length > 0 ? select.setAttribute('aria-describedby', idsForAriaDescribedby.join(' ')) : select.removeAttribute('aria-describedby');
-    isInvalid ? select.setAttribute('aria-invalid', 'true') : select.removeAttribute('aria-invalid');
-  }
-  #init() {
-    if (this.#initialized) return;
-    this.#setupObserver();
-    this.#setupSelect();
-    this.#setupLabel();
-    this.#initialized = true;
+  #refreshReferences() {
+    this.#label = this.querySelector('label');
+    this.#select = this.querySelector('select');
+    this.#errorMessages = this.querySelectorAll('fds-error-message');
+    this.#helpTexts = this.querySelectorAll('fds-help-text');
   }
   #showRequiredStatus(value) {
-    const label = this.querySelector('label');
-    const select = this.querySelector('select');
-    if (!label || !select) return;
-    let statusIndicator = label.querySelector(':scope > span.weight-normal');
+    if (!this.#label || !this.#select) return;
+    let statusIndicator = this.#label.querySelector(':scope > span.weight-normal');
     if (value === null && statusIndicator) {
       statusIndicator.remove();
       return;
@@ -8505,10 +8537,10 @@ class FDSSelect extends HTMLElement {
     if (!statusIndicator) {
       const span = document.createElement('span');
       span.className = 'weight-normal';
-      label.appendChild(span);
+      this.#label.appendChild(span);
       statusIndicator = span;
     }
-    const isRequired = select.hasAttribute('required') || select.hasAttribute('aria-required') && select.getAttribute('aria-required') !== 'false';
+    const isRequired = this.#select.hasAttribute('required') || this.#select.hasAttribute('aria-required') && this.#select.getAttribute('aria-required') !== 'false';
     let text = value;
     if (value === '' && isRequired) text = 'skal udfyldes';
     if (value === '' && !isRequired) text = 'frivilligt';
@@ -8528,12 +8560,13 @@ class FDSSelect extends HTMLElement {
     this.#selectObserver.observe(this, config);
   }
   #handleMutations = (records, observer) => {
-    //console.log(`${this.tagName} had mutations at ${Date.now()}`, records);
-
     const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
     if (shouldUpdate) {
-      this.#setupSelect();
-      this.#setupLabel();
+      this.#refreshReferences();
+      associateLabelWithSelect(this.#label, this.#select);
+      setDisabledClass(this.#label, this.#select);
+      setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
+      setInvalid(this.#select, this.#errorMessages);
       if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
     }
   };
@@ -8548,7 +8581,7 @@ class FDSSelect extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['show-required-status'];
+  static observedAttributes = ['show-required-status', 'ready'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -8560,12 +8593,29 @@ class FDSSelect extends HTMLElement {
   }
 
   /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  /**
+   * Set eventlisteners on click elements in accordion list
+   */
+  init() {
+    this.#setupObserver();
+    this.#refreshReferences();
+    associateLabelWithSelect(this.#label, this.#select);
+    setDisabledClass(this.#label, this.#select);
+    setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
+    setInvalid(this.#select, this.#errorMessages);
+    this.#initialized = true;
+  }
+
+  /* --------------------------------------------------
   CUSTOM ELEMENT ADDED TO DOCUMENT
   -------------------------------------------------- */
 
   connectedCallback() {
     if (this.#initialized) return;
-    this.#init();
+    this.init();
     if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
   }
 
@@ -8588,6 +8638,7 @@ class FDSSelect extends HTMLElement {
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
     if (attribute === 'show-required-status' && oldValue !== newValue) {
+      this.#refreshReferences();
       this.#showRequiredStatus(newValue);
     }
   }
