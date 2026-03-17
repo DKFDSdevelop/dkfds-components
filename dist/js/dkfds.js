@@ -8490,7 +8490,7 @@ function setDisabledClass(label, select) {
  */
 function setAriaDescribedBy(select, errorMessages, helpTexts) {
   if (!select) return;
-  const ids = [...Array.from(errorMessages), ...Array.from(helpTexts)].filter(element => element.id && isVisibleToScreenReader(element)).map(element => element.id);
+  const ids = [...errorMessages, ...helpTexts].filter(element => element.id && isVisibleToScreenReader(element)).map(element => element.id);
   ids.length > 0 ? select.setAttribute('aria-describedby', ids.join(' ')) : select.removeAttribute('aria-describedby');
 }
 
@@ -8596,9 +8596,6 @@ class FDSSelect extends HTMLElement {
   CUSTOM ELEMENT METHODS
   -------------------------------------------------- */
 
-  /**
-   * Set eventlisteners on click elements in accordion list
-   */
   init() {
     this.#setupObserver();
     this.#refreshReferences();
@@ -8629,6 +8626,10 @@ class FDSSelect extends HTMLElement {
       this.#selectObserver.disconnect();
       this.#selectObserver = null;
     }
+    this.#label = null;
+    this.#select = null;
+    this.#errorMessages = null;
+    this.#helpTexts = null;
   }
 
   /* --------------------------------------------------

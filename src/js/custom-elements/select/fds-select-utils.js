@@ -59,7 +59,7 @@ export function setDisabledClass(label, select) {
 export function setAriaDescribedBy(select, errorMessages, helpTexts) {
     if (!select) return;
 
-    const ids = [...Array.from(errorMessages), ...Array.from(helpTexts)]
+    const ids = [...errorMessages, ...helpTexts]
         .filter(element => element.id && isVisibleToScreenReader(element))
         .map(element => element.id);
 

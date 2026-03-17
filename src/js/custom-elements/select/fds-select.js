@@ -79,9 +79,9 @@ class FDSSelect extends HTMLElement {
 
     #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
         if (
-            attributeName === 'disabled' && target?.tagName === 'SELECT' ||
-            attributeName === 'required' && target?.tagName === 'SELECT' ||
-            attributeName === 'class' && target?.tagName !== 'LABEL' ||
+            (attributeName === 'disabled' && target?.tagName === 'SELECT') ||
+            (attributeName === 'required' && target?.tagName === 'SELECT') ||
+            (attributeName === 'class' && target?.tagName !== 'LABEL') ||
             attributeName === 'id' ||
             attributeName === 'hidden' ||
             attributeName === 'aria-hidden'
@@ -112,9 +112,6 @@ class FDSSelect extends HTMLElement {
     CUSTOM ELEMENT METHODS
     -------------------------------------------------- */
 
-    /**
-     * Set eventlisteners on click elements in accordion list
-     */
     init() {
         this.#setupObserver();
 
@@ -150,6 +147,11 @@ class FDSSelect extends HTMLElement {
             this.#selectObserver.disconnect();
             this.#selectObserver = null;
         }
+
+        this.#label = null;
+        this.#select = null;
+        this.#errorMessages = null;
+        this.#helpTexts = null;
     }
 
     /* --------------------------------------------------
