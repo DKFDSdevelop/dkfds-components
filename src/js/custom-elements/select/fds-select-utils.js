@@ -1,6 +1,18 @@
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 /**
+ * Determines whether an element is visible to screen readers.
+ *
+ * @param {HTMLElement} element - The element to check.
+ * @returns {boolean} True if the element is visible to screen readers, false otherwise.
+ */
+function isVisibleToScreenReader(element) {
+    const notDisplayNone = window.getComputedStyle(element).display !== 'none';
+    const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
+    return notDisplayNone && notAriaHidden;
+}
+
+/**
  * Associates a label element with a select element.
  *
  * @param {HTMLLabelElement} label - The label element to associate.
@@ -46,20 +58,13 @@ export function setDisabledClass(label, select) {
  */
 export function setAriaDescribedBy(select, errorMessages, helpTexts) {
     if (!select) return;
-  
+
     const ids = [...Array.from(errorMessages), ...Array.from(helpTexts)]
-        // Only include elements that are visible to screen readers and have an ID
-        .filter(element => {
-            const notDisplayNone = window.getComputedStyle(element).display !== 'none';
-            const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
-            return element.id && notDisplayNone && notAriaHidden;
-        })
-        // Extract the ID from each element
+        .filter(element => element.id && isVisibleToScreenReader(element))
         .map(element => element.id);
-  
+
     ids.length > 0 ? select.setAttribute('aria-describedby', ids.join(' ')) : select.removeAttribute('aria-describedby');
 }
-
 
 /**
  * Sets or removes the `aria-invalid` attribute on a select element
@@ -72,11 +77,7 @@ export function setAriaDescribedBy(select, errorMessages, helpTexts) {
 export function setInvalid(select, errorMessages) {
     if (!select) return;
 
-    const invalid = Array.from(errorMessages).some(element => {
-        const notDisplayNone = window.getComputedStyle(element).display !== 'none';
-        const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
-        return notDisplayNone && notAriaHidden;
-    });
+    const invalid = Array.from(errorMessages).some(element => isVisibleToScreenReader(element));
 
     invalid ? select.setAttribute('aria-invalid', 'true') : select.removeAttribute('aria-invalid');
 }
