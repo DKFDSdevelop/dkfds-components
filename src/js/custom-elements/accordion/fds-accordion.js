@@ -26,7 +26,7 @@ class FDSAccordion extends HTMLElement {
         return ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(normalizedHeadingLevel) ? normalizedHeadingLevel : 'h3';
     }
 
-    #ensureStructure() {
+    #ensureDOM() {
         const headingLevel = this.#normalizeHeadingLevel(this.getAttribute('heading-level'));
 
         let headingElement = this.#getHeadingElement();
@@ -200,6 +200,7 @@ class FDSAccordion extends HTMLElement {
     }
 
     //Apply all current attributes to the DOM
+    //Ensures that attr values take precedence if they conflict with pre-generated HTML.
     #syncAll() {
         if (this.hasAttribute('heading')) {
             this.#updateHeading(this.getAttribute('heading'));
@@ -222,7 +223,7 @@ class FDSAccordion extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['heading', 'heading-level', 'expanded', 'content-id', 'variant-text', 'variant-icon'];
+    static observedAttributes = ['heading', 'heading-level', 'expanded', 'content-id', 'variant-text', 'variant-icon', 'ready'];
 
     /* Getters and setters */
 
@@ -246,6 +247,21 @@ class FDSAccordion extends HTMLElement {
     /* --------------------------------------------------
     CUSTOM ELEMENT METHODS
     -------------------------------------------------- */
+
+    init() {
+        if (this.#rendered) return;
+
+        this.#ensureDOM();
+        this.#syncAll();
+
+        const button = this.#getHeadingElement()?.querySelector('button.accordion-button');
+        if (button) {
+            button.removeEventListener('click', this.#handleAccordionClick, false);
+            button.addEventListener('click', this.#handleAccordionClick, false);
+        }
+
+        this.#rendered = true;
+    }
 
     expandAccordion() {
         this.#setExpandedState(true);
@@ -278,12 +294,9 @@ class FDSAccordion extends HTMLElement {
     connectedCallback() {
         if (this.#rendered) return;
 
-        this.#ensureStructure();
-        this.#syncAll();
+        if (this.hasAttribute('ready') && this.getAttribute('ready') !== 'true') return;
 
-        this.#getHeadingElement().querySelector('button.accordion-button').addEventListener('click', this.#handleAccordionClick, false);
-
-        this.#rendered = true;
+        this.init();
     }
 
     /* --------------------------------------------------
@@ -291,13 +304,9 @@ class FDSAccordion extends HTMLElement {
     -------------------------------------------------- */
 
     disconnectedCallback() {
-        this.#rendered = false;
-
-        if (this.#getHeadingElement()) {
-            const button = this.#getHeadingElement().querySelector('button.accordion-button');
-            if (button && this.#handleAccordionClick) {
-                button.removeEventListener('click', this.#handleAccordionClick, false);
-            }
+        const button = this.#getHeadingElement()?.querySelector('button.accordion-button');
+        if (button) {
+            button.removeEventListener('click', this.#handleAccordionClick, false);
         }
     }
 
@@ -306,6 +315,13 @@ class FDSAccordion extends HTMLElement {
     -------------------------------------------------- */
 
     attributeChangedCallback(attribute, oldValue, newValue) {
+        if (attribute === 'ready') {
+            if (!this.#rendered && this.isConnected && newValue === 'true') {
+                this.init();
+            }
+            return;
+        }
+
         if (!this.#rendered) return;
 
         if (attribute === 'heading') {
