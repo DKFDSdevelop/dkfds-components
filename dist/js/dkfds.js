@@ -8547,6 +8547,7 @@ class FDSSelect extends HTMLElement {
     statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
   }
   #setupObserver() {
+    if (this.#selectObserver) return;
     this.#selectObserver = new MutationObserver(this.#handleMutations);
     const config = {
       subtree: true,
@@ -8603,6 +8604,7 @@ class FDSSelect extends HTMLElement {
     setDisabledClass(this.#label, this.#select);
     setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
     setInvalid(this.#select, this.#errorMessages);
+    if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
     this.#initialized = true;
   }
 
@@ -8611,9 +8613,9 @@ class FDSSelect extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
-    if (this.#initialized) return;
-    this.init();
-    if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+    const ready = this.getAttribute('ready');
+    if (ready === 'false') return;
+    if (!this.#initialized) this.init();
   }
 
   /* --------------------------------------------------
@@ -8637,6 +8639,11 @@ class FDSSelect extends HTMLElement {
   -------------------------------------------------- */
 
   attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (newValue !== 'false') {
+        this.init();
+      }
+    }
     if (!this.#initialized) return;
     if (attribute === 'show-required-status' && oldValue !== newValue) {
       this.#refreshReferences();

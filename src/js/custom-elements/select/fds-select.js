@@ -48,6 +48,8 @@ class FDSSelect extends HTMLElement {
     }
 
     #setupObserver() {
+        if (this.#selectObserver) return;
+
         this.#selectObserver = new MutationObserver(this.#handleMutations);
 
         const config = {
@@ -122,6 +124,8 @@ class FDSSelect extends HTMLElement {
         Util.setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
         Util.setInvalid(this.#select, this.#errorMessages);
 
+        if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+
         this.#initialized = true;
     }
 
@@ -130,10 +134,11 @@ class FDSSelect extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
-        if (this.#initialized) return;
+        const ready = this.getAttribute('ready');
 
-        this.init();
-        if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+        if (ready === 'false') return;
+
+        if (!this.#initialized) this.init();
     }
 
     /* --------------------------------------------------
@@ -159,6 +164,12 @@ class FDSSelect extends HTMLElement {
     -------------------------------------------------- */
 
     attributeChangedCallback(attribute, oldValue, newValue) {
+        if (attribute === 'ready') {
+            if (newValue !== 'false') {
+                this.init();
+            }
+        }
+
         if (!this.#initialized) return;
 
         if (attribute === 'show-required-status' && (oldValue !== newValue)) {
