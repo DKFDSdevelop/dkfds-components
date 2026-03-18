@@ -8453,7 +8453,6 @@ function isVisibleToScreenReader(element) {
  *
  * @param {HTMLLabelElement} label - The label element to associate.
  * @param {HTMLSelectElement} select - The select element to associate the label with.
- * @returns {void}
  */
 function associateLabelWithSelect(label, select) {
   if (!label) return;
@@ -8472,7 +8471,6 @@ function associateLabelWithSelect(label, select) {
  *
  * @param {HTMLLabelElement} label - The label element to update.
  * @param {HTMLSelectElement} select - The select element to match the disabled state from.
- * @returns {void}
  */
 function setDisabledClass(label, select) {
   if (!label || !select) return;
@@ -8486,7 +8484,6 @@ function setDisabledClass(label, select) {
  * @param {HTMLSelectElement} select - The select element to update.
  * @param {NodeList} errorMessages - Error message elements to consider.
  * @param {NodeList} helpTexts - Help text elements to consider.
- * @returns {void}
  */
 function setAriaDescribedBy(select, errorMessages, helpTexts) {
   if (!select) return;
@@ -8500,7 +8497,6 @@ function setAriaDescribedBy(select, errorMessages, helpTexts) {
  *
  * @param {HTMLSelectElement} select - The select element to update.
  * @param {NodeList} errorMessages - Error message elements to evaluate.
- * @returns {void}
  */
 function setInvalid(select, errorMessages) {
   if (!select) return;
@@ -8560,25 +8556,44 @@ class FDSSelect extends HTMLElement {
     };
     this.#selectObserver.observe(this, config);
   }
-  #handleMutations = (records, observer) => {
-    const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
-    if (shouldUpdate) {
-      this.#refreshReferences();
-      associateLabelWithSelect(this.#label, this.#select);
-      setDisabledClass(this.#label, this.#select);
-      setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
-      setInvalid(this.#select, this.#errorMessages);
-      if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      // A relevant child element was added or removed.
+      // Refresh everything as multiple mutations may occur simultaneously.
+      const relevantTagNames = ['LABEL', 'SELECT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        this.#refreshReferences();
+        associateLabelWithSelect(this.#label, this.#select);
+        setDisabledClass(this.#label, this.#select);
+        setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
+        setInvalid(this.#select, this.#errorMessages);
+        if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+        break;
+      }
+
+      // The select's disabled attribute changed
+      if (attributeName === 'disabled' && target?.tagName === 'SELECT') {
+        setDisabledClass(this.#label, this.#select);
+      }
+
+      // The select's required attribute changed
+      else if (attributeName === 'required' && target?.tagName === 'SELECT') {
+        if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+      }
+
+      // Class changes on the label are excluded to prevent an infinite loop, as setDisabledClass adds/removes the 'disabled' class on the label.
+      else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class' && target?.tagName !== 'LABEL') {
+        setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
+        setInvalid(this.#select, this.#errorMessages);
+      }
     }
   };
-  #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
-    if (attributeName === 'disabled' && target?.tagName === 'SELECT' || attributeName === 'required' && target?.tagName === 'SELECT' || attributeName === 'class' && target?.tagName !== 'LABEL' || attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
-      return true;
-    }
-    const relevantTagNames = ['LABEL', 'SELECT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
-    const allNodes = [...addedNodes, ...removedNodes];
-    return allNodes.some(node => relevantTagNames.includes(node?.tagName));
-  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -8613,8 +8628,7 @@ class FDSSelect extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
-    const ready = this.getAttribute('ready');
-    if (ready === 'false') return;
+    if (this.getAttribute('ready') === 'false') return;
     if (!this.#initialized) this.init();
   }
 

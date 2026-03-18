@@ -6,7 +6,7 @@ import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
  * @param {HTMLElement} element - The element to check.
  * @returns {boolean} True if the element is visible to screen readers, false otherwise.
  */
-function isVisibleToScreenReader(element) {
+export function isVisibleToScreenReader(element) {
     const notDisplayNone = window.getComputedStyle(element).display !== 'none';
     const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
     return notDisplayNone && notAriaHidden;
@@ -17,7 +17,6 @@ function isVisibleToScreenReader(element) {
  *
  * @param {HTMLLabelElement} label - The label element to associate.
  * @param {HTMLSelectElement} select - The select element to associate the label with.
- * @returns {void}
  */
 export function associateLabelWithSelect(label, select) {
     if (!label) return;
@@ -39,7 +38,6 @@ export function associateLabelWithSelect(label, select) {
  *
  * @param {HTMLLabelElement} label - The label element to update.
  * @param {HTMLSelectElement} select - The select element to match the disabled state from.
- * @returns {void}
  */
 export function setDisabledClass(label, select) {
     if (!label || !select) return;
@@ -54,7 +52,6 @@ export function setDisabledClass(label, select) {
  * @param {HTMLSelectElement} select - The select element to update.
  * @param {NodeList} errorMessages - Error message elements to consider.
  * @param {NodeList} helpTexts - Help text elements to consider.
- * @returns {void}
  */
 export function setAriaDescribedBy(select, errorMessages, helpTexts) {
     if (!select) return;
@@ -72,7 +69,6 @@ export function setAriaDescribedBy(select, errorMessages, helpTexts) {
  *
  * @param {HTMLSelectElement} select - The select element to update.
  * @param {NodeList} errorMessages - Error message elements to evaluate.
- * @returns {void}
  */
 export function setInvalid(select, errorMessages) {
     if (!select) return;

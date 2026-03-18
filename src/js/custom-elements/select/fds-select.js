@@ -65,35 +65,44 @@ class FDSSelect extends HTMLElement {
         this.#selectObserver.observe(this, config);
     }
 
-    #handleMutations = (records, observer) => {
-        const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
+    #handleMutations = (records) => {
+        for (const { attributeName, target, addedNodes, removedNodes } of records) {
 
-        if (shouldUpdate) {
-            this.#refreshReferences();
-            Util.associateLabelWithSelect(this.#label, this.#select);
-            Util.setDisabledClass(this.#label, this.#select);
-            Util.setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
-            Util.setInvalid(this.#select, this.#errorMessages);
+            // A relevant child element was added or removed.
+            // Refresh everything as multiple mutations may occur simultaneously.
+            const relevantTagNames = ['LABEL', 'SELECT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+            const allNodes = [...addedNodes, ...removedNodes];
+            if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+                this.#refreshReferences();
+                Util.associateLabelWithSelect(this.#label, this.#select);
+                Util.setDisabledClass(this.#label, this.#select);
+                Util.setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
+                Util.setInvalid(this.#select, this.#errorMessages);
+                if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+                break;
+            }
 
-            if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+            // The select's disabled attribute changed
+            if (attributeName === 'disabled' && target?.tagName === 'SELECT') {
+                Util.setDisabledClass(this.#label, this.#select);
+            }
+
+            // The select's required attribute changed
+            else if (attributeName === 'required' && target?.tagName === 'SELECT') {
+                if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+            }
+
+            // Class changes on the label are excluded to prevent an infinite loop, as setDisabledClass adds/removes the 'disabled' class on the label.
+            else if (
+                attributeName === 'id' ||
+                attributeName === 'hidden' ||
+                attributeName === 'aria-hidden' ||
+                (attributeName === 'class' && target?.tagName !== 'LABEL')
+            ) {
+                Util.setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
+                Util.setInvalid(this.#select, this.#errorMessages);
+            }
         }
-    }
-
-    #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
-        if (
-            (attributeName === 'disabled' && target?.tagName === 'SELECT') ||
-            (attributeName === 'required' && target?.tagName === 'SELECT') ||
-            (attributeName === 'class' && target?.tagName !== 'LABEL') ||
-            attributeName === 'id' ||
-            attributeName === 'hidden' ||
-            attributeName === 'aria-hidden'
-        ) {
-            return true;
-        }
-
-        const relevantTagNames = ['LABEL', 'SELECT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
-        const allNodes = [...addedNodes, ...removedNodes];
-        return allNodes.some(node => relevantTagNames.includes(node?.tagName));
     }
 
     /* Attributes which can invoke attributeChangedCallback() */
@@ -134,9 +143,7 @@ class FDSSelect extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
-        const ready = this.getAttribute('ready');
-
-        if (ready === 'false') return;
+        if (this.getAttribute('ready') === 'false') return;
 
         if (!this.#initialized) this.init();
     }
