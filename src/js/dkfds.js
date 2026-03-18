@@ -19,7 +19,7 @@ import Tooltip from './components/tooltip';
 const datePicker = require('./components/date-picker').default;
 
 // Custom elements
-import { registerAccordion, renderAccordionHTML, validateAccordionHTML } from './custom-elements/accordion/fds-accordion';
+import registerAccordion from './custom-elements/accordion/fds-accordion';
 import registerAccordionGroup from './custom-elements/accordion/fds-accordion-group';
 import registerInputWrapper from './custom-elements/input/fds-input-wrapper';
 import registerHelpText from './custom-elements/help-text/fds-help-text';
@@ -246,4 +246,4 @@ const registerCustomElements = () => {
   registerFileItem()
 };
 
-export { init, registerCustomElements, registerAccordion, renderAccordionHTML, validateAccordionHTML, registerAccordionGroup, registerInputWrapper, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
+export { init, registerCustomElements, registerAccordion, registerAccordionGroup, registerInputWrapper, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
