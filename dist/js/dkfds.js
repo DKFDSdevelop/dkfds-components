@@ -5981,7 +5981,7 @@ class FDSAccordion extends HTMLElement {
 
   connectedCallback() {
     if (this.#rendered) return;
-    if (this.hasAttribute('ready') && this.getAttribute('ready') !== 'true') return;
+    if (this.getAttribute('ready') === 'false') return;
     this.init();
   }
 
