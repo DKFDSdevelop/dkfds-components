@@ -3205,7 +3205,7 @@ __webpack_require__.d(__webpack_exports__, {
   Tooltip: () => (/* reexport */ tooltip),
   datePicker: () => (/* binding */ datePicker),
   init: () => (/* binding */ init),
-  registerAccordion: () => (/* reexport */ registerAccordion),
+  registerAccordion: () => (/* reexport */ fds_accordion),
   registerAccordionGroup: () => (/* reexport */ fds_accordion_group),
   registerCharacterLimit: () => (/* reexport */ fds_character_limit),
   registerCheckbox: () => (/* reexport */ fds_checkbox),
@@ -6041,7 +6041,7 @@ function registerAccordion() {
     window.customElements.define('fds-accordion', FDSAccordion);
   }
 }
-
+/* harmony default export */ const fds_accordion = (registerAccordion);
 ;// ./src/js/custom-elements/accordion/fds-accordion-group.js
 
 
@@ -11190,7 +11190,7 @@ var init = function (options) {
   }
 };
 const registerCustomElements = () => {
-  registerAccordion(), fds_accordion_group(), fds_input_wrapper(), fds_help_text(), fds_character_limit(), fds_error_message(), fds_checkbox(), fds_checkbox_group(), fds_radio_button(), fds_radio_button_group(), fds_date_input(), fds_select(), fds_date_picker(), fds_date_picker_grid(), fds_textarea(), fds_upload_file(), fds_file_item();
+  fds_accordion(), fds_accordion_group(), fds_input_wrapper(), fds_help_text(), fds_character_limit(), fds_error_message(), fds_checkbox(), fds_checkbox_group(), fds_radio_button(), fds_radio_button_group(), fds_date_input(), fds_select(), fds_date_picker(), fds_date_picker_grid(), fds_textarea(), fds_upload_file(), fds_file_item();
 };
 
 })();

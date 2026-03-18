@@ -364,4 +364,4 @@ function registerAccordion() {
     }
 }
 
-export { registerAccordion };
+export default registerAccordion;
