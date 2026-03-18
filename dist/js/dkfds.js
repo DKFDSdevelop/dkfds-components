@@ -8443,9 +8443,10 @@ function registerDateInput() {
  * @returns {boolean} True if the element is visible to screen readers, false otherwise.
  */
 function isVisibleToScreenReader(element) {
-  const notDisplayNone = window.getComputedStyle(element).display !== 'none';
+  const notDNone = !element.classList.contains('d-none');
+  const notHidden = !element.hasAttribute('hidden') || element.getAttribute('hidden') === 'false';
   const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
-  return notDisplayNone && notAriaHidden;
+  return notDNone && notHidden && notAriaHidden;
 }
 
 /**
@@ -11258,6 +11259,7 @@ var init = function (options) {
 const registerCustomElements = () => {
   registerAccordion(), fds_accordion_group(), fds_input_wrapper(), fds_help_text(), fds_character_limit(), fds_error_message(), fds_checkbox(), fds_checkbox_group(), fds_radio_button(), fds_radio_button_group(), fds_date_input(), fds_select(), fds_date_picker(), fds_date_picker_grid(), fds_textarea(), fds_upload_file(), fds_file_item();
 };
+registerCustomElements();
 
 })();
 
