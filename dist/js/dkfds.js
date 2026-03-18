@@ -3222,9 +3222,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
   registerSelect: () => (/* reexport */ fds_select),
   registerTextarea: () => (/* reexport */ fds_textarea),
-  registerUploadFile: () => (/* reexport */ fds_upload_file),
-  renderAccordionHTML: () => (/* reexport */ renderAccordionHTML),
-  validateAccordionHTML: () => (/* reexport */ validateAccordionHTML)
+  registerUploadFile: () => (/* reexport */ fds_upload_file)
 });
 
 ;// ./src/js/components/accordion.js
@@ -5739,65 +5737,7 @@ function generateAndVerifyUniqueId(str) {
   }
   return uniqueId;
 }
-;// ./src/js/custom-elements/accordion/renderAccordionHTML.js
-function renderAccordionHTML() {
-  let {
-    heading = '',
-    headingLevel = 'h3',
-    expanded = false,
-    contentId,
-    variantText,
-    variantIcon,
-    content = ''
-  } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  const id = contentId || '';
-  const ariaExpanded = expanded;
-  const ariaHidden = !expanded;
-  const variantMarkup = variantText && variantIcon ? `
-        <span class="accordion-icon">
-            <span class="icon_text">${variantText}</span>
-            <svg class="icon-svg" focusable="false" aria-hidden="true"><use href="#${variantIcon}"></use></svg>
-        </span>
-        `.trim() : '';
-  return `
-        <${headingLevel}>
-            <button class="accordion-button" aria-expanded="${ariaExpanded}" type="button" aria-controls="${id}">
-                <span class="accordion-title">${heading}</span>${variantMarkup}
-            </button>
-        </${headingLevel}>
-        <div class="accordion-content" id="${id}" aria-hidden="${ariaHidden}">
-            ${content}
-        </div>
-        `.trim();
-}
-;// ./src/js/custom-elements/accordion/validateAccordionHTML.js
-function validateAccordionHTML(children) {
-  if (children.length !== 2) return false;
-  const [heading, content] = children;
-
-  // Heading tag
-  if (!['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(heading.tagName)) return false;
-
-  // Button
-  const button = heading.querySelector(':scope > button.accordion-button[aria-expanded][aria-controls]');
-  if (!button) return false;
-
-  // Title
-  if (!button.querySelector(':scope > .accordion-title')) return false;
-
-  // Variant icon and text (optional)
-  const variant = button.querySelector(':scope > .accordion-title + .accordion-icon');
-  if (variant) {
-    if (!variant.querySelector(':scope > .icon_text') || !variant.querySelector(':scope > .icon-svg')) return false;
-  }
-
-  // Content
-  if (!content.classList.contains('accordion-content') || !content.hasAttribute('id') || !content.hasAttribute('aria-hidden')) return false;
-  return true;
-}
 ;// ./src/js/custom-elements/accordion/fds-accordion.js
-
-
 
 
 

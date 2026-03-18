@@ -1,8 +1,6 @@
 'use strict';
 
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
-import { renderAccordionHTML } from './renderAccordionHTML.js';
-import { validateAccordionHTML } from './validateAccordionHTML.js'
 
 class FDSAccordion extends HTMLElement {
 
@@ -366,4 +364,4 @@ function registerAccordion() {
     }
 }
 
-export { registerAccordion, renderAccordionHTML, validateAccordionHTML };
+export { registerAccordion };
