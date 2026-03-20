@@ -8550,6 +8550,14 @@ class FDSSelect extends HTMLElement {
     if (value === '' && !isRequired) text = 'frivilligt';
     statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
   }
+  #setLabel(value) {
+    if (!this.#label) {
+      const label = document.createElement('label');
+      this.prepend(label);
+      this.#label = label;
+    }
+    this.#label.textContent = value;
+  }
   #setupObserver() {
     if (this.#selectObserver) return;
     this.#selectObserver = new MutationObserver(this.#handleMutations);
@@ -8605,7 +8613,33 @@ class FDSSelect extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['show-required-status', 'ready'];
+  static observedAttributes = ['show-required-status', 'ready', 'label'];
+
+  /* --------------------------------------------------
+  GETTERS AND SETTERS
+  -------------------------------------------------- */
+
+  #setAttr(name, value) {
+    value === null ? this.removeAttribute(name) : this.setAttribute(name, value);
+  }
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    this.#setAttr('show-required-status', value);
+  }
+  get ready() {
+    return this.getAttribute('ready') !== 'false';
+  }
+  set ready(value) {
+    this.#setAttr('ready', value);
+  }
+  get label() {
+    return this.getAttribute('label');
+  }
+  set label(value) {
+    this.#setAttr('label', value);
+  }
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -8623,6 +8657,12 @@ class FDSSelect extends HTMLElement {
   init() {
     this.#setupObserver();
     this.#refreshReferences();
+    if (this.hasAttribute('label')) this.#setLabel(this.getAttribute('label'));
+    if (!this.#select && this.#label) {
+      const select = document.createElement('select');
+      this.append(select);
+      this.#select = select;
+    }
     associateLabelWithSelect(this.#label, this.#select);
     setDisabledClass(this.#label, this.#select);
     setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
@@ -8670,6 +8710,9 @@ class FDSSelect extends HTMLElement {
     if (attribute === 'show-required-status' && oldValue !== newValue) {
       this.#refreshReferences();
       this.#showRequiredStatus(newValue);
+    }
+    if (attribute === 'label' && oldValue !== newValue) {
+      this.#setLabel(newValue);
     }
   }
 }
