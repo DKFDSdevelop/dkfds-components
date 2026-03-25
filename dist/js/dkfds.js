@@ -5744,7 +5744,7 @@ function generateAndVerifyUniqueId(str) {
 class FDSAccordion extends HTMLElement {
   /* Private instance fields */
 
-  #rendered;
+  #initialized;
   #handleAccordionClick;
 
   /* Private methods */
@@ -5762,63 +5762,50 @@ class FDSAccordion extends HTMLElement {
   #ensureDOM() {
     const headingLevel = this.#normalizeHeadingLevel(this.getAttribute('heading-level'));
     let headingElement = this.#getHeadingElement();
-    let contentElement = this.#getContentElement();
+    let contentElement = this.querySelector(':scope > div');
 
-    // Create heading element if missing
+    // Attribute mode:
+    // No heading markup provided, so create canonical structure from attributes
     if (!headingElement) {
       headingElement = document.createElement(headingLevel);
-      const existingButtonElement = this.querySelector(':scope > button.accordion-button');
-      if (existingButtonElement) {
-        existingButtonElement.replaceWith(headingElement);
-        headingElement.appendChild(existingButtonElement);
-      } else {
-        this.prepend(headingElement);
-      }
-    }
-
-    // Create button if missing
-    let buttonElement = headingElement.querySelector('button.accordion-button');
-    if (!buttonElement) {
-      const preservedHeadingNodes = Array.from(headingElement.childNodes);
-      buttonElement = document.createElement('button');
+      const buttonElement = document.createElement('button');
       buttonElement.classList.add('accordion-button');
       buttonElement.setAttribute('type', 'button');
-      headingElement.replaceChildren(buttonElement);
       const titleElement = document.createElement('span');
       titleElement.classList.add('accordion-title');
-      if (this.hasAttribute('heading')) {
-        titleElement.textContent = this.getAttribute('heading');
-      } else {
-        const fragment = document.createDocumentFragment();
-        preservedHeadingNodes.forEach(node => fragment.appendChild(node));
-        if (fragment.childNodes.length > 0) {
-          titleElement.appendChild(fragment);
-        }
-      }
+      titleElement.textContent = this.getAttribute('heading') || '';
       buttonElement.appendChild(titleElement);
-    }
-
-    // Create title element if missing
-    let titleElement = buttonElement.querySelector('.accordion-title');
-    if (!titleElement) {
-      titleElement = document.createElement('span');
-      titleElement.classList.add('accordion-title');
-      if (this.hasAttribute('heading')) {
-        titleElement.textContent = this.getAttribute('heading');
+      headingElement.appendChild(buttonElement);
+      if (!contentElement) {
+        contentElement = document.createElement('div');
+        this.appendChild(contentElement);
       }
-      buttonElement.prepend(titleElement);
+      contentElement.classList.add('accordion-content');
+      this.prepend(headingElement);
+      return true;
     }
 
-    // Create content container if missing
-    if (!contentElement) {
-      contentElement = document.createElement('div');
-      contentElement.classList.add('accordion-content');
-      const fragment = document.createDocumentFragment();
-      const nodesToMove = Array.from(this.childNodes).filter(node => node !== headingElement);
-      nodesToMove.forEach(node => fragment.appendChild(node));
-      contentElement.appendChild(fragment);
-      this.appendChild(contentElement);
+    // Enhance mode:
+    // Heading exists, so the supported prerendered structure must already be present
+    const buttonElement = headingElement.querySelector(':scope > button');
+    if (!buttonElement) {
+      console.warn('<fds-accordion> Missing direct child button inside heading.');
+      return false;
     }
+    const titleElement = buttonElement.querySelector(':scope > span');
+    if (!titleElement) {
+      console.warn('<fds-accordion> Missing direct child span inside button.');
+      return false;
+    }
+    if (!contentElement) {
+      console.warn('<fds-accordion> Missing direct child div for accordion content.');
+      return false;
+    }
+    buttonElement.classList.add('accordion-button');
+    buttonElement.setAttribute('type', 'button');
+    titleElement.classList.add('accordion-title');
+    contentElement.classList.add('accordion-content');
+    return true;
   }
   #updateHeading(heading) {
     this.querySelector('.accordion-title').textContent = heading;
@@ -5926,7 +5913,7 @@ class FDSAccordion extends HTMLElement {
 
   constructor() {
     super();
-    this.#rendered = false;
+    this.#initialized = false;
 
     /* Set up instance fields for event handling */
 
@@ -5940,15 +5927,16 @@ class FDSAccordion extends HTMLElement {
   -------------------------------------------------- */
 
   init() {
-    if (this.#rendered) return;
-    this.#ensureDOM();
+    if (this.#initialized) return;
+    const isValid = this.#ensureDOM();
+    if (!isValid) return;
     this.#syncAll();
     const button = this.#getHeadingElement()?.querySelector('button.accordion-button');
     if (button) {
       button.removeEventListener('click', this.#handleAccordionClick, false);
       button.addEventListener('click', this.#handleAccordionClick, false);
     }
-    this.#rendered = true;
+    this.#initialized = true;
   }
   expandAccordion() {
     this.#setExpandedState(true);
@@ -5980,7 +5968,6 @@ class FDSAccordion extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
-    if (this.#rendered) return;
     if (this.getAttribute('ready') === 'false') return;
     this.init();
   }
@@ -5994,6 +5981,7 @@ class FDSAccordion extends HTMLElement {
     if (button) {
       button.removeEventListener('click', this.#handleAccordionClick, false);
     }
+    this.#initialized = false;
   }
 
   /* --------------------------------------------------
@@ -6002,12 +5990,12 @@ class FDSAccordion extends HTMLElement {
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (attribute === 'ready') {
-      if (!this.#rendered && this.isConnected && newValue === 'true') {
+      if (!this.#initialized && this.isConnected && newValue === 'true') {
         this.init();
       }
       return;
     }
-    if (!this.#rendered) return;
+    if (!this.#initialized) return;
     if (attribute === 'heading') {
       this.#updateHeading(newValue);
     }
