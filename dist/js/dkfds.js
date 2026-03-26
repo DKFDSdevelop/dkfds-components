@@ -5884,7 +5884,9 @@ class FDSAccordion extends HTMLElement {
     if (this.hasAttribute('heading')) {
       this.#updateHeading(this.getAttribute('heading'));
     }
-    this.#updateHeadingLevel(this.getAttribute('heading-level'));
+    if (this.hasAttribute('heading-level')) {
+      this.#updateHeadingLevel(this.getAttribute('heading-level'));
+    }
     this.#updateExpanded(this.getAttribute('expanded'));
     this.#ensureContentId();
     if (this.hasAttribute('variant-text') || this.hasAttribute('variant-icon')) {
@@ -6006,7 +6008,9 @@ class FDSAccordion extends HTMLElement {
       this.#updateExpanded(newValue);
     }
     if (attribute === 'content-id') {
-      this.#updateContentId(newValue);
+      if (newValue !== null && newValue !== '') {
+        this.#updateContentId(newValue);
+      }
     }
     if (attribute === 'variant-text') {
       if (this.hasAttribute('variant-icon')) {
