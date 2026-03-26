@@ -131,7 +131,16 @@ class FDSDatePicker extends HTMLElement {
         closeButtonContainer.setAttribute('tabindex', '-1');
         const closeButton = document.createElement('button');
         closeButton.textContent = 'Luk';
-        closeButton.classList.add('close-button');
+        closeButton.classList.add('close-button', 'function-link');
+        const svgClose = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svgClose.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        svgClose.setAttribute('viewBox', '0 -960 960 960');
+        svgClose.setAttribute('aria-hidden', 'true');
+        svgClose.classList.add('icon-svg');
+        const pathClose = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        pathClose.setAttribute('d', 'm256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z');
+        svgClose.appendChild(pathClose);
+        closeButton.prepend(svgClose);
         closeButtonContainer.appendChild(closeButton);
 
         /* Add wrapper for fds-date-picker-grid and close button */

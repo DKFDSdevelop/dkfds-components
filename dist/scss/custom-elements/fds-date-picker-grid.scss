@@ -2,25 +2,143 @@
 @use "../functions" as func;
 @use "../mixins" as mixins;
 
+$-date-width: func.units(7);
+$-border-spacing: func.units(2, 'rem');
+$-background-color: func.color('gray-100');
+$-th-border: func.units(2);
+$-grid-min-width: 220px;
+
 fds-date-picker-grid,
 .fds-date-picker-grid {
     display: block;
-    border: func.border(vars.$input-border);
+    border: func.border(vars.$datepicker-border);
     background-color: white;
-    width: fit-content;
+    max-width: calc(7 * $-date-width + 8 * $-border-spacing + 2px);
+    border-radius: func.border-radius('medium');
+    overflow: auto;
 
     .grid-container {
+        width: fit-content;
+
         &:focus {
             outline: 0;
         }
 
+        .date-picker-header {
+            display: flex;
+            justify-content: space-between;
+            background-color: $-background-color;
+            padding-top: func.units(2);
+            padding-bottom: func.units(2);
+            //min-width: fit-content;
+            min-width: $-grid-min-width;
+            //width: fit-content;
+            position: relative;
+            z-index: vars.$zindex-ce-date-picker-header;
+
+            .month-year-wrapper {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+
+                .selected-month,
+                .selected-year {
+                    border: 0;
+                    background-color: $-background-color;
+                    border-radius: func.border-radius('medium');
+                    @include mixins.add-background-svg('chevron-down');
+                    background-position: 100%;
+                    background-size: func.units(5, 'rem');
+                    padding-right: func.units(5, 'rem');
+                    padding-left: func.units(3);
+                    margin-left: func.units(2);
+                    margin-right: func.units(2);
+                    font-weight: func.font-weight('semibold');
+                    height: func.units(7);
+
+                    &:hover {
+                        background-color: func.color('gray-200');
+                    }
+
+                    &:active {
+                        background-color: func.color('gray-300');
+                    }
+
+                    &:focus {
+                        outline-offset: -3px;
+                    }
+
+                    option {
+                        background-color: func.color('white');
+                    }
+                }
+            }
+
+            .previous-month,
+            .next-month {
+                width: func.units(7);
+                height: func.units(7);
+                border-radius: func.units(405);
+
+                &:hover {
+                    background-color: func.color('gray-200');
+                }
+
+                &:active {
+                    background-color: func.color('gray-300');
+                }
+
+                svg {
+                    pointer-events: none;
+                }
+            }
+
+            .previous-month {
+                margin-left: func.units(2);
+            }
+
+            .next-month {
+                margin-right: func.units(2);
+            }
+        }
+
         table {
             border-collapse: separate;
-            border-spacing: func.units(2);
+            border-spacing: $-border-spacing;
+            min-width: $-grid-min-width;
+
+            thead th {
+                position: relative;
+                //border-bottom: $-th-border solid $-background-color;
+                //border-top: $-th-border solid $-background-color;
+                font-size: func.font-size('xs');
+                font-weight: func.font-weight('normal');
+                height: func.units(7);
+
+                span[aria-hidden="true"] {
+                    position: relative;
+                    z-index: vars.$zindex-ce-date-picker-th;
+                    top: -4px;
+                }
+
+                &::before {
+                    content: '';
+                    position: absolute;
+                    z-index: vars.$zindex-ce-date-picker-th-background;
+                    background-color: $-background-color;
+                    display: block;
+                    left: calc(0rem - $-border-spacing);
+                    top: calc(0rem - $-border-spacing - $-th-border);
+                    width: calc(100% + 2 * $-border-spacing);
+                    height: calc(100% + 2 * $-border-spacing);
+                    border-bottom: 1px solid func.color('gray-200');
+                }
+            }
 
             td {
                 height: func.units(7);
-                min-width: func.units(7);
+                width: $-date-width;
+                max-width: $-date-width;
                 text-align: center;
                 border-radius: func.units(405);
 
@@ -44,13 +162,6 @@ fds-date-picker-grid,
                 &[aria-disabled="true"] {
                     color: func.color('gray-300');
                 }
-            }
-        }
-
-        .previous-month,
-        .next-month {
-            &[aria-disabled="true"] {
-                text-decoration: line-through;
             }
         }
     }

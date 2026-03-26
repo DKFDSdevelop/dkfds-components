@@ -72,19 +72,48 @@ fds-date-picker,
         border-end-end-radius: func.border-radius('medium');
         padding-left: func.units(305);
         padding-right: func.units(305);
+
+        &:hover {
+            border: func.border(vars.$input-border);
+            border-left: none;
+        }
     }
 
     .ce-date-picker {
         &[role="dialog"] {
             position: absolute;
-            z-index: 1;
+            z-index: vars.$zindex-ce-datepicker;
             top: calc(100% + 4px);
             box-shadow: func.shadow('light');
             background-color: func.color('white');
+            max-width: -webkit-fill-available;
+            max-width: stretch;
+            overflow: auto;
+
+            @include mixins.media-breakpoint-up(sm) {
+                min-width: max-content;
+            }
         }
 
-        fds-date-picker-grid + div {
-            border: func.border(vars.$input-border);
+        fds-date-picker-grid {
+            border-bottom-color: func.color('gray-200');
+            border-bottom-left-radius: func.border-radius('none');
+            border-bottom-right-radius: func.border-radius('none');
+
+            & + div {
+                border: func.border(vars.$datepicker-border);
+                border-top: 0;
+                display: flex;
+                border-bottom-left-radius: func.border-radius('medium');
+                border-bottom-right-radius: func.border-radius('medium');
+
+                .close-button {
+                    margin-top: func.units(3);
+                    margin-bottom: func.units(3);
+                    margin-left: auto;
+                    margin-right: func.units(405);
+                }
+            }
         }
     }
 }

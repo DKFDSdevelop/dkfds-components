@@ -227,23 +227,23 @@ var init = function (options) {
 };
 
 const registerCustomElements = () => {
-  registerAccordion(),
-  registerAccordionGroup(),
-  registerInputWrapper(),
-  registerHelpText(),
-  registerCharacterLimit(),
-  registerErrorMessage(),
-  registerCheckbox(),
-  registerCheckboxGroup(),
-  registerRadioButton(),
-  registerRadioButtonGroup(),
-  registerDateInput(),
-  registerSelect(),
-  registerDatePicker(),
-  registerDatePickerGrid(),
-  registerTextarea(),
-  registerUploadFile(),
-  registerFileItem()
+  registerAccordion();
+  registerAccordionGroup();
+  registerInputWrapper();
+  registerHelpText();
+  registerCharacterLimit();
+  registerErrorMessage();
+  registerCheckbox();
+  registerCheckboxGroup();
+  registerRadioButton();
+  registerRadioButtonGroup();
+  registerDateInput();
+  registerSelect();
+  registerDatePicker();
+  registerDatePickerGrid();
+  registerTextarea();
+  registerUploadFile();
+  registerFileItem();
 };
 
 registerCustomElements();

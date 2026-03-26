@@ -9816,7 +9816,16 @@ class FDSDatePicker extends HTMLElement {
     closeButtonContainer.setAttribute('tabindex', '-1');
     const closeButton = document.createElement('button');
     closeButton.textContent = 'Luk';
-    closeButton.classList.add('close-button');
+    closeButton.classList.add('close-button', 'function-link');
+    const svgClose = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svgClose.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svgClose.setAttribute('viewBox', '0 -960 960 960');
+    svgClose.setAttribute('aria-hidden', 'true');
+    svgClose.classList.add('icon-svg');
+    const pathClose = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    pathClose.setAttribute('d', 'm256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z');
+    svgClose.appendChild(pathClose);
+    closeButton.prepend(svgClose);
     closeButtonContainer.appendChild(closeButton);
 
     /* Add wrapper for fds-date-picker-grid and close button */
@@ -10215,9 +10224,25 @@ class FDSDatePickerGrid extends HTMLElement {
 
     // Previous button
     const prevButton = document.createElement('button');
-    prevButton.classList.add('previous-month');
-    prevButton.textContent = 'Forrige';
+    prevButton.classList.add('button', 'button-icon-only', 'previous-month');
+    const svgPrev = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svgPrev.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svgPrev.setAttribute('viewBox', '0 -960 960 960');
+    svgPrev.setAttribute('aria-hidden', 'true');
+    svgPrev.classList.add('icon-svg');
+    const prevButtonSR = document.createElement('span');
+    prevButtonSR.textContent = 'Forrige';
+    prevButtonSR.classList.add('sr-only');
+    const pathPrev = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    pathPrev.setAttribute('d', 'M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z');
+    svgPrev.appendChild(pathPrev);
+    prevButton.appendChild(svgPrev);
+    prevButton.appendChild(prevButtonSR);
     datePickerHeader.appendChild(prevButton);
+
+    // Wrapper for month and year
+    const monthYearWrapper = document.createElement('div');
+    monthYearWrapper.classList.add('month-year-wrapper');
 
     // Select month
     const monthSelect = document.createElement('select');
@@ -10227,19 +10252,32 @@ class FDSDatePickerGrid extends HTMLElement {
     for (let i = 0; i < this.#MONTHS.length; i++) {
       monthSelect.innerHTML += `<option value="${i}">${this.#MONTHS[i].charAt(0).toUpperCase() + this.#MONTHS[i].slice(1)}</option>`;
     }
-    datePickerHeader.appendChild(monthSelect);
+    monthYearWrapper.appendChild(monthSelect);
 
     // Select year
     const yearSelect = document.createElement('select');
     yearSelect.setAttribute('name', 'year');
     yearSelect.setAttribute('aria-label', 'År');
     yearSelect.classList.add('selected-year');
-    datePickerHeader.appendChild(yearSelect);
+    monthYearWrapper.appendChild(yearSelect);
+    datePickerHeader.appendChild(monthYearWrapper);
 
     // Next button
     const nextButton = document.createElement('button');
-    nextButton.classList.add('next-month');
-    nextButton.textContent = 'Næste';
+    nextButton.classList.add('button', 'button-icon-only', 'next-month');
+    const svgNext = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svgNext.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svgNext.setAttribute('viewBox', '0 -960 960 960');
+    svgNext.setAttribute('aria-hidden', 'true');
+    svgNext.classList.add('icon-svg');
+    const nextButtonSR = document.createElement('span');
+    nextButtonSR.textContent = 'Næste';
+    nextButtonSR.classList.add('sr-only');
+    const pathNext = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    pathNext.setAttribute('d', 'M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z');
+    svgNext.appendChild(pathNext);
+    nextButton.appendChild(svgNext);
+    nextButton.appendChild(nextButtonSR);
     datePickerHeader.appendChild(nextButton);
     gridContainer.appendChild(datePickerHeader);
 
@@ -10661,12 +10699,12 @@ class FDSDatePickerGrid extends HTMLElement {
   }
   #updateTextPrevButton(str) {
     if (this.querySelector('.previous-month')) {
-      this.querySelector('.previous-month').textContent = str;
+      this.querySelector('.previous-month .sr-only').textContent = str;
     }
   }
   #updateTextNextButton(str) {
     if (this.querySelector('.next-month')) {
-      this.querySelector('.next-month').textContent = str;
+      this.querySelector('.next-month .sr-only').textContent = str;
     }
   }
   #updateTextDateAnnouncement(str) {
@@ -11299,7 +11337,23 @@ var init = function (options) {
   }
 };
 const registerCustomElements = () => {
-  fds_accordion(), fds_accordion_group(), fds_input_wrapper(), fds_help_text(), fds_character_limit(), fds_error_message(), fds_checkbox(), fds_checkbox_group(), fds_radio_button(), fds_radio_button_group(), fds_date_input(), fds_select(), fds_date_picker(), fds_date_picker_grid(), fds_textarea(), fds_upload_file(), fds_file_item();
+  fds_accordion();
+  fds_accordion_group();
+  fds_input_wrapper();
+  fds_help_text();
+  fds_character_limit();
+  fds_error_message();
+  fds_checkbox();
+  fds_checkbox_group();
+  fds_radio_button();
+  fds_radio_button_group();
+  fds_date_input();
+  fds_select();
+  fds_date_picker();
+  fds_date_picker_grid();
+  fds_textarea();
+  fds_upload_file();
+  fds_file_item();
 };
 registerCustomElements();
 
