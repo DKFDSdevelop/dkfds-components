@@ -186,7 +186,10 @@ class FDSAccordion extends HTMLElement {
             this.#updateHeading(this.getAttribute('heading'));
         }
 
-        this.#updateHeadingLevel(this.getAttribute('heading-level'));
+        if (this.hasAttribute('heading-level')) {
+            this.#updateHeadingLevel(this.getAttribute('heading-level'));
+        }
+
         this.#updateExpanded(this.getAttribute('expanded'));
         this.#ensureContentId();
 
@@ -195,8 +198,7 @@ class FDSAccordion extends HTMLElement {
                 this.getAttribute('variant-text'),
                 this.getAttribute('variant-icon')
             );
-        }
-        else {
+        } else {
             this.#updateVariant('', '');
         }
     }
