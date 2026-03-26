@@ -319,14 +319,15 @@ class FDSAccordion extends HTMLElement {
         }
 
         if (attribute === 'content-id') {
-            this.#updateContentId(newValue);
+            if (newValue !== null && newValue !== '') {
+                this.#updateContentId(newValue);
+            }
         }
 
         if (attribute === 'variant-text') {
             if (this.hasAttribute('variant-icon')) {
                 this.#updateVariant(newValue, this.getAttribute('variant-icon'));
-            }
-            else {
+            } else {
                 this.#updateVariant(newValue, '');
             }
         }
@@ -334,8 +335,7 @@ class FDSAccordion extends HTMLElement {
         if (attribute === 'variant-icon') {
             if (this.hasAttribute('variant-text')) {
                 this.#updateVariant(this.getAttribute('variant-text'), newValue);
-            }
-            else {
+            } else {
                 this.#updateVariant('', newValue);
             }
         }

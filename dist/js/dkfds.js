@@ -6006,7 +6006,9 @@ class FDSAccordion extends HTMLElement {
       this.#updateExpanded(newValue);
     }
     if (attribute === 'content-id') {
-      this.#updateContentId(newValue);
+      if (newValue !== null && newValue !== '') {
+        this.#updateContentId(newValue);
+      }
     }
     if (attribute === 'variant-text') {
       if (this.hasAttribute('variant-icon')) {
