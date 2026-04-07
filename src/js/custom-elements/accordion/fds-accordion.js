@@ -8,6 +8,7 @@ class FDSAccordion extends HTMLElement {
 
     #initialized;
     #handleAccordionClick;
+    #accordionObserver = null;
 
     /* Private methods */
 
@@ -203,6 +204,26 @@ class FDSAccordion extends HTMLElement {
         }
     }
 
+    #setupObserver() {
+        if (this.#accordionObserver) return;
+
+        this.#accordionObserver = new MutationObserver(this.#handleMutations);
+
+        const config = {
+            subtree: true,
+            childList: true
+        }
+
+        this.#accordionObserver.observe(this, config);
+    }
+
+    #handleMutations = (records) => {
+        const button = this.#getHeadingElement()?.querySelector('button.accordion-button');
+        if (button) {
+            button.addEventListener('click', this.#handleAccordionClick, false);
+        }
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = ['heading', 'heading-level', 'expanded', 'content-id', 'variant-text', 'variant-icon', 'ready'];
@@ -233,6 +254,10 @@ class FDSAccordion extends HTMLElement {
     init() {
         if (this.#initialized) return;
 
+        this.#setupObserver();
+
+        if (this.innerHTML === '') return; // Accordions must have content. If no content is found at all, don't init as some frameworks have experienced problems otherwise.
+
         const isValid = this.#ensureDOM();
         if (!isValid) return;
 
@@ -240,7 +265,6 @@ class FDSAccordion extends HTMLElement {
 
         const button = this.#getHeadingElement()?.querySelector('button.accordion-button');
         if (button) {
-            button.removeEventListener('click', this.#handleAccordionClick, false);
             button.addEventListener('click', this.#handleAccordionClick, false);
         }
 
@@ -277,7 +301,7 @@ class FDSAccordion extends HTMLElement {
 
     connectedCallback() {
         if (this.getAttribute('ready') === 'false') return;
-    
+
         this.init();
     }
 
@@ -292,6 +316,11 @@ class FDSAccordion extends HTMLElement {
         }
 
         this.#initialized = false;
+
+        if (this.#accordionObserver) {
+            this.#accordionObserver.disconnect();
+            this.#accordionObserver = null;
+        }
     }
 
     /* --------------------------------------------------
