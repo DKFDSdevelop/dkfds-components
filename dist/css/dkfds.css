@@ -12812,11 +12812,11 @@ fds-input-wrapper .form-input-wrapper.readonly .form-input-prefix,
 .fds-input-wrapper .form-input-wrapper.readonly .form-input-prefix{
   border-color:#DCDCDC;
 }
-fds-input-wrapper:has(fds-error-message:not([hidden])) > .form-input, fds-input-wrapper:has(fds-error-message:not([hidden])) > .form-input-wrapper > .form-input, fds-input-wrapper:has(.fds-error-message:not([hidden])) > .form-input, fds-input-wrapper:has(.fds-error-message:not([hidden])) > .form-input-wrapper > .form-input,
-.fds-input-wrapper:has(fds-error-message:not([hidden])) > .form-input,
-.fds-input-wrapper:has(fds-error-message:not([hidden])) > .form-input-wrapper > .form-input,
-.fds-input-wrapper:has(.fds-error-message:not([hidden])) > .form-input,
-.fds-input-wrapper:has(.fds-error-message:not([hidden])) > .form-input-wrapper > .form-input{
+fds-input-wrapper:has(fds-error-message:not([hidden]), fds-error-message[hidden=false]) > .form-input, fds-input-wrapper:has(fds-error-message:not([hidden]), fds-error-message[hidden=false]) > .form-input-wrapper > .form-input, fds-input-wrapper:has(.fds-error-message:not([hidden]), .fds-error-message[hidden=false]) > .form-input, fds-input-wrapper:has(.fds-error-message:not([hidden]), .fds-error-message[hidden=false]) > .form-input-wrapper > .form-input,
+.fds-input-wrapper:has(fds-error-message:not([hidden]), fds-error-message[hidden=false]) > .form-input,
+.fds-input-wrapper:has(fds-error-message:not([hidden]), fds-error-message[hidden=false]) > .form-input-wrapper > .form-input,
+.fds-input-wrapper:has(.fds-error-message:not([hidden]), .fds-error-message[hidden=false]) > .form-input,
+.fds-input-wrapper:has(.fds-error-message:not([hidden]), .fds-error-message[hidden=false]) > .form-input-wrapper > .form-input{
   border:2px solid #CC0000;
   padding:calc(8px - 2px) calc(16px - 2px);
 }

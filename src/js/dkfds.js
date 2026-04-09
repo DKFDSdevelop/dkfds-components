@@ -36,6 +36,7 @@ import registerFileItem from './custom-elements/upload-file/fds-file-item';
 import registerDatePicker from './custom-elements/date-picker/fds-date-picker';
 import registerDatePickerGrid from './custom-elements/date-picker/fds-date-picker-grid';
 import registerTextarea from './custom-elements/textarea/fds-textarea';
+import registerErrorSummary from './custom-elements/error-summary/fds-error-summary';
 
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
@@ -244,8 +245,9 @@ const registerCustomElements = () => {
   registerTextarea();
   registerUploadFile();
   registerFileItem();
+  registerErrorSummary();
 };
 
 registerCustomElements();
 
-export { init, registerCustomElements, registerAccordion, registerAccordionGroup, registerInputWrapper, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
+export { init, registerCustomElements, registerAccordion, registerAccordionGroup, registerInputWrapper, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
