@@ -12888,11 +12888,9 @@ fds-checkbox,
   margin-top:8px;
   position:relative;
 }
-fds-checkbox:has(> fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message:not([hidden])) .form-checkbox + label::before, fds-checkbox:has(> .fds-error-message:not([hidden]),
-> .form-group-checkbox ~ .fds-error-message) .form-checkbox + label::before,
-.fds-checkbox:has(> fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message:not([hidden])) .form-checkbox + label::before,
-.fds-checkbox:has(> .fds-error-message:not([hidden]),
-> .form-group-checkbox ~ .fds-error-message) .form-checkbox + label::before{
+fds-checkbox:has(> fds-error-message:not([hidden]), > fds-error-message[hidden=false], > .form-group-checkbox ~ fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message[hidden=false]) .form-checkbox + label::before, fds-checkbox:has(> .fds-error-message:not([hidden]), > .fds-error-message[hidden=false], > .form-group-checkbox ~ .fds-error-message:not([hidden]), > .form-group-checkbox ~ .fds-error-message[hidden=false]) .form-checkbox + label::before,
+.fds-checkbox:has(> fds-error-message:not([hidden]), > fds-error-message[hidden=false], > .form-group-checkbox ~ fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message[hidden=false]) .form-checkbox + label::before,
+.fds-checkbox:has(> .fds-error-message:not([hidden]), > .fds-error-message[hidden=false], > .form-group-checkbox ~ .fds-error-message:not([hidden]), > .form-group-checkbox ~ .fds-error-message[hidden=false]) .form-checkbox + label::before{
   border:2px solid #CC0000;
 }
 fds-checkbox fds-help-text,
@@ -12991,8 +12989,9 @@ fds-checkbox:has(.checkbox-content):has(.checkbox-content[aria-hidden=false])::b
   left:10px;
   top:calc(1.2rem - 12px + 4px + 24px + 4px + 4px);
 }
-fds-checkbox:has(.checkbox-content):has(> fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message:not([hidden]))::before,
-.fds-checkbox:has(.checkbox-content):has(> fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message:not([hidden]))::before{
+fds-checkbox:has(.checkbox-content):has(> fds-error-message:not([hidden]), > fds-error-message[hidden=false], > .form-group-checkbox ~ fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message[hidden=false])::before, fds-checkbox:has(.checkbox-content):has(> .fds-error-message:not([hidden]), > .fds-error-message[hidden=false], > .form-group-checkbox ~ .fds-error-message:not([hidden]), > .form-group-checkbox ~ .fds-error-message[hidden=false])::before,
+.fds-checkbox:has(.checkbox-content):has(> fds-error-message:not([hidden]), > fds-error-message[hidden=false], > .form-group-checkbox ~ fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message[hidden=false])::before,
+.fds-checkbox:has(.checkbox-content):has(> .fds-error-message:not([hidden]), > .fds-error-message[hidden=false], > .form-group-checkbox ~ .fds-error-message:not([hidden]), > .form-group-checkbox ~ .fds-error-message[hidden=false])::before{
   height:calc(100% - (1.2rem - 12px + 4px + 24px + 4px + 4px) - 28px);
 }
 fds-checkbox .table--selectable th:first-child fds-checkbox,
@@ -13042,22 +13041,37 @@ fds-checkbox-group > ::slotted(*) + ::slotted(fds-checkbox),
 .fds-checkbox-group > ::slotted(*) + ::slotted(fds-checkbox){
   margin-top:8px;
 }
-fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])) fds-checkbox .form-checkbox + label::before,
-fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])) fds-checkbox .form-checkbox:checked + label::before,
-fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])) fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
-fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])) fds-checkbox .form-checkbox.mixed + label::before,
-fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])) .fds-checkbox .form-checkbox + label::before,
-fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])) .fds-checkbox .form-checkbox:checked + label::before,
-fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])) .fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
-fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])) .fds-checkbox .form-checkbox.mixed + label::before,
-.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])) fds-checkbox .form-checkbox + label::before,
-.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])) fds-checkbox .form-checkbox:checked + label::before,
-.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])) fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
-.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])) fds-checkbox .form-checkbox.mixed + label::before,
-.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])) .fds-checkbox .form-checkbox + label::before,
-.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])) .fds-checkbox .form-checkbox:checked + label::before,
-.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])) .fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
-.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden])) .fds-checkbox .form-checkbox.mixed + label::before{
+fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) fds-checkbox .form-checkbox + label::before,
+fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) fds-checkbox .form-checkbox:checked + label::before,
+fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
+fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) fds-checkbox .form-checkbox.mixed + label::before,
+fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) .fds-checkbox .form-checkbox + label::before,
+fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) .fds-checkbox .form-checkbox:checked + label::before,
+fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) .fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
+fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) .fds-checkbox .form-checkbox.mixed + label::before, fds-checkbox-group:has(fieldset > .fds-error-message:not([hidden]), fieldset > .fds-error-message[hidden=false]) fds-checkbox .form-checkbox + label::before,
+fds-checkbox-group:has(fieldset > .fds-error-message:not([hidden]), fieldset > .fds-error-message[hidden=false]) fds-checkbox .form-checkbox:checked + label::before,
+fds-checkbox-group:has(fieldset > .fds-error-message:not([hidden]), fieldset > .fds-error-message[hidden=false]) fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
+fds-checkbox-group:has(fieldset > .fds-error-message:not([hidden]), fieldset > .fds-error-message[hidden=false]) fds-checkbox .form-checkbox.mixed + label::before,
+fds-checkbox-group:has(fieldset > .fds-error-message:not([hidden]), fieldset > .fds-error-message[hidden=false]) .fds-checkbox .form-checkbox + label::before,
+fds-checkbox-group:has(fieldset > .fds-error-message:not([hidden]), fieldset > .fds-error-message[hidden=false]) .fds-checkbox .form-checkbox:checked + label::before,
+fds-checkbox-group:has(fieldset > .fds-error-message:not([hidden]), fieldset > .fds-error-message[hidden=false]) .fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
+fds-checkbox-group:has(fieldset > .fds-error-message:not([hidden]), fieldset > .fds-error-message[hidden=false]) .fds-checkbox .form-checkbox.mixed + label::before,
+.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) fds-checkbox .form-checkbox + label::before,
+.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) fds-checkbox .form-checkbox:checked + label::before,
+.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
+.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) fds-checkbox .form-checkbox.mixed + label::before,
+.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) .fds-checkbox .form-checkbox + label::before,
+.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) .fds-checkbox .form-checkbox:checked + label::before,
+.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) .fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
+.fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) .fds-checkbox .form-checkbox.mixed + label::before,
+.fds-checkbox-group:has(fieldset > .fds-error-message:not([hidden]), fieldset > .fds-error-message[hidden=false]) fds-checkbox .form-checkbox + label::before,
+.fds-checkbox-group:has(fieldset > .fds-error-message:not([hidden]), fieldset > .fds-error-message[hidden=false]) fds-checkbox .form-checkbox:checked + label::before,
+.fds-checkbox-group:has(fieldset > .fds-error-message:not([hidden]), fieldset > .fds-error-message[hidden=false]) fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
+.fds-checkbox-group:has(fieldset > .fds-error-message:not([hidden]), fieldset > .fds-error-message[hidden=false]) fds-checkbox .form-checkbox.mixed + label::before,
+.fds-checkbox-group:has(fieldset > .fds-error-message:not([hidden]), fieldset > .fds-error-message[hidden=false]) .fds-checkbox .form-checkbox + label::before,
+.fds-checkbox-group:has(fieldset > .fds-error-message:not([hidden]), fieldset > .fds-error-message[hidden=false]) .fds-checkbox .form-checkbox:checked + label::before,
+.fds-checkbox-group:has(fieldset > .fds-error-message:not([hidden]), fieldset > .fds-error-message[hidden=false]) .fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
+.fds-checkbox-group:has(fieldset > .fds-error-message:not([hidden]), fieldset > .fds-error-message[hidden=false]) .fds-checkbox .form-checkbox.mixed + label::before{
   border-color:#CC0000;
   border-width:2px;
 }
@@ -13226,14 +13240,14 @@ fds-radio-button-group > ::slotted(*) + ::slotted(fds-radio-button),
 .fds-radio-button-group > ::slotted(*) + ::slotted(fds-radio-button){
   margin-top:8px;
 }
-fds-radio-button-group:has(fieldset > fds-error-message:not([hidden])) fds-radio-button .form-radio + label::before,
-fds-radio-button-group:has(fieldset > fds-error-message:not([hidden])) fds-radio-button .form-radio:checked + label::before,
-fds-radio-button-group:has(fieldset > fds-error-message:not([hidden])) fds-radio-button .form-radio[aria-checked=mixed] + label::before,
-fds-radio-button-group:has(fieldset > fds-error-message:not([hidden])) fds-radio-button .form-radio.mixed + label::before,
-.fds-radio-button-group:has(fieldset > fds-error-message:not([hidden])) fds-radio-button .form-radio + label::before,
-.fds-radio-button-group:has(fieldset > fds-error-message:not([hidden])) fds-radio-button .form-radio:checked + label::before,
-.fds-radio-button-group:has(fieldset > fds-error-message:not([hidden])) fds-radio-button .form-radio[aria-checked=mixed] + label::before,
-.fds-radio-button-group:has(fieldset > fds-error-message:not([hidden])) fds-radio-button .form-radio.mixed + label::before{
+fds-radio-button-group:has(fieldset > fds-error-message:not([hidden]), fds-error-message[hidden=false]) fds-radio-button .form-radio + label::before,
+fds-radio-button-group:has(fieldset > fds-error-message:not([hidden]), fds-error-message[hidden=false]) fds-radio-button .form-radio:checked + label::before,
+fds-radio-button-group:has(fieldset > fds-error-message:not([hidden]), fds-error-message[hidden=false]) fds-radio-button .form-radio[aria-checked=mixed] + label::before,
+fds-radio-button-group:has(fieldset > fds-error-message:not([hidden]), fds-error-message[hidden=false]) fds-radio-button .form-radio.mixed + label::before,
+.fds-radio-button-group:has(fieldset > fds-error-message:not([hidden]), fds-error-message[hidden=false]) fds-radio-button .form-radio + label::before,
+.fds-radio-button-group:has(fieldset > fds-error-message:not([hidden]), fds-error-message[hidden=false]) fds-radio-button .form-radio:checked + label::before,
+.fds-radio-button-group:has(fieldset > fds-error-message:not([hidden]), fds-error-message[hidden=false]) fds-radio-button .form-radio[aria-checked=mixed] + label::before,
+.fds-radio-button-group:has(fieldset > fds-error-message:not([hidden]), fds-error-message[hidden=false]) fds-radio-button .form-radio.mixed + label::before{
   border-color:#CC0000;
   border-width:2px;
 }
@@ -13288,15 +13302,15 @@ fds-date-input .button-open-calendar,
   margin-bottom:8px;
   display:inline-flex;
 }
-fds-date-input:has(fds-error-message:not([targets]):not([hidden])) input,
-.fds-date-input:has(fds-error-message:not([targets]):not([hidden])) input{
+fds-date-input:has(fds-error-message:not([targets]):not([hidden]), fds-error-message:not([targets])[hidden=false]) input,
+.fds-date-input:has(fds-error-message:not([targets]):not([hidden]), fds-error-message:not([targets])[hidden=false]) input{
   border:2px solid #CC0000;
   padding:calc(8px - 2px) calc(16px - 2px);
 }
-fds-date-input:has(fds-error-message[targets*=year]:not([hidden])) .form-group[data-attribute=year] input, fds-date-input:has(fds-error-message[targets*=month]:not([hidden])) .form-group[data-attribute=month] input, fds-date-input:has(fds-error-message[targets*=day]:not([hidden])) .form-group[data-attribute=day] input,
-.fds-date-input:has(fds-error-message[targets*=year]:not([hidden])) .form-group[data-attribute=year] input,
-.fds-date-input:has(fds-error-message[targets*=month]:not([hidden])) .form-group[data-attribute=month] input,
-.fds-date-input:has(fds-error-message[targets*=day]:not([hidden])) .form-group[data-attribute=day] input{
+fds-date-input:has(fds-error-message[targets*=year]:not([hidden]), fds-error-message[targets*=year][hidden=false]) .form-group[data-attribute=year] input, fds-date-input:has(fds-error-message[targets*=month]:not([hidden]), fds-error-message[targets*=month][hidden=false]) .form-group[data-attribute=month] input, fds-date-input:has(fds-error-message[targets*=day]:not([hidden]), fds-error-message[targets*=day][hidden=false]) .form-group[data-attribute=day] input,
+.fds-date-input:has(fds-error-message[targets*=year]:not([hidden]), fds-error-message[targets*=year][hidden=false]) .form-group[data-attribute=year] input,
+.fds-date-input:has(fds-error-message[targets*=month]:not([hidden]), fds-error-message[targets*=month][hidden=false]) .form-group[data-attribute=month] input,
+.fds-date-input:has(fds-error-message[targets*=day]:not([hidden]), fds-error-message[targets*=day][hidden=false]) .form-group[data-attribute=day] input{
   border:2px solid #CC0000;
   padding:calc(8px - 2px) calc(16px - 2px);
 }
@@ -13391,10 +13405,13 @@ fds-upload-file .fds-upload-file-list,
   border:2px dashed #8E8E8E;
   border-radius:4px;
 }
-fds-upload-file:has(fds-error-message:not([targets])) .fds-upload-dropzone,
-fds-upload-file:has(fds-error-message:not([targets])) .fds-upload-file-list,
-.fds-upload-file:has(fds-error-message:not([targets])) .fds-upload-dropzone,
-.fds-upload-file:has(fds-error-message:not([targets])) .fds-upload-file-list{
+fds-upload-file:has(fds-error-message:not([targets]):not([hidden]), fds-error-message:not([targets])[hidden=false]) .fds-upload-dropzone,
+fds-upload-file:has(fds-error-message:not([targets]):not([hidden]), fds-error-message:not([targets])[hidden=false]) .fds-upload-file-list, fds-upload-file:has(.fds-error-message:not([targets]):not([hidden]), .fds-error-message:not([targets])[hidden=false]) .fds-upload-dropzone,
+fds-upload-file:has(.fds-error-message:not([targets]):not([hidden]), .fds-error-message:not([targets])[hidden=false]) .fds-upload-file-list,
+.fds-upload-file:has(fds-error-message:not([targets]):not([hidden]), fds-error-message:not([targets])[hidden=false]) .fds-upload-dropzone,
+.fds-upload-file:has(fds-error-message:not([targets]):not([hidden]), fds-error-message:not([targets])[hidden=false]) .fds-upload-file-list,
+.fds-upload-file:has(.fds-error-message:not([targets]):not([hidden]), .fds-error-message:not([targets])[hidden=false]) .fds-upload-dropzone,
+.fds-upload-file:has(.fds-error-message:not([targets]):not([hidden]), .fds-error-message:not([targets])[hidden=false]) .fds-upload-file-list{
   border:2px dashed #CC0000;
 }
 fds-upload-file .fds-upload-file-item-error,

@@ -18,7 +18,7 @@ fds-radio-button-group,
         margin-top: $button-distance;
     }
 
-    &:has(fieldset > fds-error-message:not([hidden])) {
+    &:has(fieldset > fds-error-message:not([hidden]), fds-error-message[hidden="false"]) {
 
         fds-radio-button {
             .form-radio+label::before,

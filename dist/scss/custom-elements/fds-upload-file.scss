@@ -31,7 +31,8 @@ fds-upload-file,
         border-radius: 4px;
     }
 
-    &:has(fds-error-message:not([targets])) {
+    &:has(fds-error-message:not([targets]):not([hidden]), fds-error-message:not([targets])[hidden="false"]),
+    &:has(.fds-error-message:not([targets]):not([hidden]), .fds-error-message:not([targets])[hidden="false"]) {
 
         .fds-upload-dropzone,
         .fds-upload-file-list {
