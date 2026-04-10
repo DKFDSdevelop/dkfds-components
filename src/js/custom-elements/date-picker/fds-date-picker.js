@@ -411,6 +411,7 @@ class FDSDatePicker extends HTMLElement {
         if (!this.querySelector('.ce-date-picker')) return;
 
         this.querySelector('.ce-date-picker').classList.remove('d-none');
+        this.querySelector('fds-date-picker-grid').resizeMonth();
     }
 
     close() {
@@ -423,6 +424,7 @@ class FDSDatePicker extends HTMLElement {
         if (!this.querySelector('.ce-date-picker')) return;
 
         this.querySelector('.ce-date-picker').classList.toggle('d-none');
+        this.querySelector('fds-date-picker-grid').resizeMonth();
     }
 
     /* --------------------------------------------------
