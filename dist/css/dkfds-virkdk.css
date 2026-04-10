@@ -13865,3 +13865,86 @@ fds-textarea textarea.no-resize,
 .fds-textarea textarea.no-resize{
   resize:none;
 }
+
+fds-error-summary,
+.fds-error-summary{
+  display:block;
+}
+fds-error-summary > nav,
+.fds-error-summary > nav{
+  background-color:#ffe0e0;
+  background-image:linear-gradient(to right, #CC0000 4px, transparent 4px);
+  background-repeat:no-repeat;
+  padding:1.6rem;
+  padding-left:5.2rem;
+  position:relative;
+  margin-top:0;
+  margin-bottom:48px;
+  border-radius:8px;
+}
+fds-error-summary > nav > svg,
+.fds-error-summary > nav > svg{
+  position:absolute;
+  left:2rem;
+  height:2.4rem;
+  width:2.4rem;
+  vertical-align:middle;
+  fill:currentColor;
+}
+fds-error-summary > nav > svg:focus,
+.fds-error-summary > nav > svg:focus{
+  outline:none;
+}
+fds-error-summary > nav > h1,
+fds-error-summary > nav > h2,
+fds-error-summary > nav > h3,
+fds-error-summary > nav > h4,
+fds-error-summary > nav > h5,
+fds-error-summary > nav > h6,
+.fds-error-summary > nav > h1,
+.fds-error-summary > nav > h2,
+.fds-error-summary > nav > h3,
+.fds-error-summary > nav > h4,
+.fds-error-summary > nav > h5,
+.fds-error-summary > nav > h6{
+  font-size:1.6rem;
+  line-height:1.5;
+  margin-top:0;
+  margin-bottom:0;
+  font-weight:600;
+  color:#1a1a1a;
+  overflow-wrap:break-word;
+}
+fds-error-summary > nav > ul,
+fds-error-summary > nav > ul > li,
+.fds-error-summary > nav > ul,
+.fds-error-summary > nav > ul > li{
+  list-style:none;
+  margin:0;
+  margin-top:8px;
+  padding:0;
+  color:#1a1a1a;
+  max-width:66ch;
+}
+fds-error-summary > nav > ul > li::marker,
+fds-error-summary > nav > ul > li::before,
+.fds-error-summary > nav > ul > li::marker,
+.fds-error-summary > nav > ul > li::before{
+  content:none;
+}
+fds-error-summary > nav > ul a,
+fds-error-summary > nav > ul a:link,
+fds-error-summary > nav > ul a:active,
+fds-error-summary > nav > ul a:visited,
+fds-error-summary > nav > ul a:hover,
+.fds-error-summary > nav > ul a,
+.fds-error-summary > nav > ul a:link,
+.fds-error-summary > nav > ul a:active,
+.fds-error-summary > nav > ul a:visited,
+.fds-error-summary > nav > ul a:hover{
+  color:#1a1a1a;
+}
+fds-error-summary.alert--paragraph,
+.fds-error-summary.alert--paragraph{
+  max-width:66ch;
+}

@@ -12,12 +12,10 @@ class FDSErrorSummary extends HTMLElement {
 
     #getSummaryElements() {
         const navElement = this.querySelector(':scope > nav');
-        const alertElement = navElement?.querySelector(':scope > div');
-        const bodyElement = alertElement?.querySelector(':scope > div');
-        const headingElement = bodyElement?.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
-        const listElement = bodyElement?.querySelector(':scope > ul');
+        const headingElement = navElement?.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
+        const listElement = navElement?.querySelector(':scope > ul');
 
-        return { navElement, alertElement, bodyElement, headingElement, listElement };
+        return { navElement, headingElement, listElement };
     }
 
     #normalizeHeadingLevel(headingLevel) {
@@ -37,13 +35,7 @@ class FDSErrorSummary extends HTMLElement {
         if (!navElement) {
             navElement = document.createElement('nav');
 
-            const alertElement = document.createElement('div');
-            alertElement.classList.add('alert', 'alert-error', 'mt-0', 'mb-8');
-            alertElement.setAttribute('role', 'alert');
-            alertElement.dataset.module = 'error-summary';
-
             const iconElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            iconElement.classList.add('icon-svg', 'alert-icon');
             iconElement.setAttribute('aria-label', 'Fejl');
             iconElement.setAttribute('focusable', 'false');
 
@@ -51,23 +43,15 @@ class FDSErrorSummary extends HTMLElement {
             useElement.setAttributeNS(null, 'href', '#error');
             iconElement.appendChild(useElement);
 
-            const bodyElement = document.createElement('div');
-            bodyElement.classList.add('alert-body');
-
             const headingElement = document.createElement(headingLevel);
-            headingElement.classList.add('alert-heading');
             headingElement.textContent = this.getAttribute('heading') || 'Der er problemer';
             headingElement.id = generateAndVerifyUniqueId('error-summary-heading');
 
             const listElement = document.createElement('ul');
-            listElement.classList.add('alert-text', 'nobullet-list');
 
-            bodyElement.appendChild(headingElement);
-            bodyElement.appendChild(listElement);
-
-            alertElement.appendChild(iconElement);
-            alertElement.appendChild(bodyElement);
-            navElement.appendChild(alertElement);
+            navElement.appendChild(iconElement);
+            navElement.appendChild(headingElement);
+            navElement.appendChild(listElement);
 
             navElement.setAttribute('aria-labelledby', headingElement.id);
 
@@ -78,37 +62,18 @@ class FDSErrorSummary extends HTMLElement {
 
         // Enhance mode:
         // Nav exists, so the supported prerendered structure must already be present
-        const alertElement = navElement.querySelector(':scope > div');
-        if (!alertElement) {
-            console.warn('<fds-error-summary> Missing direct child div inside nav.');
-            return false;
-        }
 
-        const bodyElement = alertElement.querySelector(':scope > div');
-        if (!bodyElement) {
-            console.warn('<fds-error-summary> Missing direct child div for alert body.');
-            return false;
-        }
-
-        const headingElement = bodyElement.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
+        const headingElement = alertElement.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
         if (!headingElement) {
-            console.warn('<fds-error-summary> Missing direct child heading inside alert body.');
+            console.warn('<fds-error-summary> Missing direct child heading inside alert.');
             return false;
         }
 
-        const listElement = bodyElement.querySelector(':scope > ul');
+        const listElement = alertElement.querySelector(':scope > ul');
         if (!listElement) {
-            console.warn('<fds-error-summary> Missing direct child ul inside alert body.');
+            console.warn('<fds-error-summary> Missing direct child ul inside alert.');
             return false;
         }
-
-        alertElement.classList.add('alert', 'alert-error', 'mt-0', 'mb-8');
-        alertElement.setAttribute('role', 'alert');
-        alertElement.dataset.module = 'error-summary';
-
-        bodyElement.classList.add('alert-body');
-        headingElement.classList.add('alert-heading');
-        listElement.classList.add('alert-text', 'nobullet-list');
 
         if (!headingElement.id) {
             headingElement.id = generateAndVerifyUniqueId('error-summary-heading');
