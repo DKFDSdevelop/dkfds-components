@@ -166,11 +166,13 @@ class FDSDatePickerGrid extends HTMLElement {
 
     #redraw(date, setFocus = false) {
         const gridContainer = this.querySelector('.grid-container');
+        const TODAY = new Date();
+        TODAY.setHours(0, 0, 0, 0);
 
         if (!gridContainer) return;
 
         if (!Util.isValidDate(date)) {
-            date = new Date();
+            date = TODAY;
         }
 
         /* Check if any changes were made to minimum date or maximum date */
@@ -282,6 +284,7 @@ class FDSDatePickerGrid extends HTMLElement {
             gridcells[i].removeAttribute('aria-label');
             gridcells[i].removeAttribute('aria-selected');
             gridcells[i].removeAttribute('aria-disabled');
+            gridcells[i].classList.remove('today');
             gridcells[i].innerHTML = '';
         }
 
@@ -310,6 +313,10 @@ class FDSDatePickerGrid extends HTMLElement {
             else if (Util.datesAreEqual(gridcellDate, this.#correctedMaxDate)) {
                 const maxAriaLabel = `${ariaLabel}, ${this.#textMaxDate}`;
                 gridcells[i + offset - 1].setAttribute('aria-label', maxAriaLabel);
+            }
+
+            if (Util.datesAreEqual(gridcellDate, TODAY)) {
+                gridcells[i + offset - 1].classList.add('today');
             }
 
             // Set the content of each cell (a number from 1-31)

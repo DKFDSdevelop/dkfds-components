@@ -13809,6 +13809,11 @@ fds-date-picker-grid .grid-container table td[aria-disabled=true],
 .fds-date-picker-grid .grid-container table td[aria-disabled=true]{
   color:#BFBFBF;
 }
+fds-date-picker-grid .grid-container table td.today,
+.fds-date-picker-grid .grid-container table td.today{
+  font-weight:700;
+  text-decoration:underline;
+}
 
 fds-textarea,
 .fds-textarea{
