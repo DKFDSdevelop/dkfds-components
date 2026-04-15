@@ -1,5 +1,279 @@
 import * as Util from './fds-date-picker-utils';
 
+const sheet = new CSSStyleSheet();
+sheet.replaceSync(`
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        border: 0;
+        user-select: none;
+        white-space: nowrap;
+    }
+
+    button,
+    select {
+        text-transform: none;
+        appearance: none;
+        font-family: inherit;
+        font-size: 100%;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1.5;
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        margin: 0;
+        overflow-wrap: break-word;
+        max-width: 100%;
+        font-weight: inherit;
+        font-size: 1.6rem;
+        min-height: 32px;
+        padding: 2px;
+        border-width: 2px;
+        border-style: solid;
+        text-decoration: none;
+        border-color: transparent;
+        color: #1a1a1a;
+        background-color: transparent;
+    }
+
+    .button:disabled, 
+    .button.disabled {
+        opacity: 0.25;
+        cursor: not-allowed;
+        box-shadow: none !important;
+    }
+
+    .button.button-icon-only .icon-svg {
+        margin: 0;
+    }
+
+    .button.button-icon-only:hover, 
+    .button.button-icon-only.button-hover {
+        border-color: #F5F5F5;
+        color: #1a1a1a;
+        background-color: #F5F5F5;
+    }
+
+    .button.button-icon-only:active, 
+    .button.button-icon-only.button-active {
+        border-color: #DCDCDC;
+        color: #1a1a1a;
+        background-color: #DCDCDC;
+    }
+
+    .button.button-icon-only:disabled, 
+    .button.button-icon-only.disabled {
+        text-decoration: none;
+        border-color: transparent;
+        color: #1a1a1a;
+        background-color: transparent;
+    }
+
+    .button .icon-svg {
+        margin-right: 8px;
+        fill: currentColor;
+        min-width: 2.4rem;
+    }
+
+    .select-arrow {
+        position: absolute;
+        max-width: 2.4rem;
+    }
+
+    :host {
+        display: block;
+        border: 1px solid #8E8E8E;
+        background-color: white;
+        max-width: calc(7 * 40px + 8 * 0.4rem + 2px);
+        border-radius: 8px;
+        overflow: auto;
+    }
+
+    .grid-container {
+        width: fit-content;
+    }
+
+    .grid-container:focus {
+        outline: 0;
+    }
+
+    .date-picker-header {
+        display: flex;
+        justify-content: space-between;
+        background-color: #F5F5F5;
+        padding-top: 4px;
+        padding-bottom: 4px;
+        min-width: 220px;
+        position: relative;
+        z-index: 3;
+    }
+
+    .month-year-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .selected-month,
+    .selected-year {
+        border: 0;
+        background-color: #F5F5F5;
+        border-radius: 8px;
+        background-position: 100%;
+        background-size: 2.4rem;
+        padding-right: 2.4rem;
+        padding-left: 8px;
+        margin-left: 4px;
+        margin-right: 4px;
+        font-weight: 600;
+        height: 40px;
+    }
+
+    .selected-month:hover,
+    .selected-year:hover {
+        background-color: #DCDCDC;
+    }
+
+    .selected-month:active,
+    .selected-year:active {
+        background-color: #BFBFBF;
+    }
+
+    .selected-month:focus,
+    .selected-year:focus {
+        outline-offset: -3px;
+    }
+
+    .selected-month option,
+    .selected-year option {
+        background-color: #ffffff;
+    }
+
+    .previous-month,
+    .next-month {
+        width: 40px;
+        height: 40px;
+        border-radius: 20px;
+    }
+
+    .previous-month:hover,
+    .next-month:hover {
+        background-color: #DCDCDC;
+    }
+
+    .previous-month:active,
+    .next-month:active {
+        background-color: #BFBFBF;
+    }
+
+    .previous-month svg,
+    .next-month svg {
+        pointer-events: none;
+    }
+
+    .previous-month {
+        margin-left: 4px;
+    }
+
+    .next-month {
+        margin-right: 4px;
+    }
+
+    table {
+        border-collapse: separate;
+        border-spacing: 0.4rem;
+        min-width: 220px;
+    }
+
+    thead th {
+        position: relative;
+        font-size: 1.4rem;
+        font-weight: 400;
+        height: 40px;
+    }
+
+    thead th span[aria-hidden="true"] {
+        position: relative;
+        z-index: 1;
+        top: -4px;
+    }
+
+    thead th::before {
+        content: '';
+        position: absolute;
+        z-index: 1;
+        background-color: #F5F5F5;
+        display: block;
+        left: calc(0rem - 0.4rem);
+        top: calc(0rem - 0.4rem - 4px);
+        width: calc(100% + 2 * 0.4rem);
+        height: calc(100% + 2 * 0.4rem);
+        border-bottom: 1px solid #DCDCDC;
+    }
+
+    td {
+        height: 40px;
+        width: 40px;
+        max-width: 40px;
+        text-align: center;
+        border-radius: 20px;
+    }
+
+    td[data-date]:focus {
+        outline: 3px solid #454545;
+        outline-offset: 1px;
+    }
+
+    td:not([data-date]):focus {
+        outline: none;
+    }
+
+    td[aria-selected] {
+        cursor: pointer;
+    }
+
+    td[aria-selected]:hover {
+        background-color: #DCDCDC;
+    }
+
+    td[aria-selected="true"] {
+        background-color: #1a1a1a;
+        color: #ffffff;
+    }
+
+    td[aria-disabled="true"] {
+        color: #BFBFBF;
+    }
+
+    td[aria-disabled="true"]:focus {
+        outline: none;
+    }
+
+    td[aria-current="date"] {
+        font-weight: 700;
+        text-decoration: underline;
+    }
+`);
+
+
 class FDSDatePickerGrid extends HTMLElement {
 
     /* Private instance fields */
@@ -26,6 +300,7 @@ class FDSDatePickerGrid extends HTMLElement {
     #handlePrevMonth;
     #handleNextMonth;
     #handleDateClick;
+    #handleFocusOut
 
     #textMinDate;
     #textMaxDate;
@@ -56,7 +331,7 @@ class FDSDatePickerGrid extends HTMLElement {
         const gridContainer = document.createElement('div');
         gridContainer.classList.add('grid-container');
         gridContainer.setAttribute('tabindex', '-1'); // Used to prevent focus from escaping when non-clickable items are clicked
-        this.appendChild(gridContainer);
+        this.shadowRoot.appendChild(gridContainer);
 
         /* Create the date picker header with previous button, next button, year selection, and month selection */
 
@@ -101,6 +376,17 @@ class FDSDatePickerGrid extends HTMLElement {
         }
         monthYearWrapper.appendChild(monthSelect);
 
+        const svgArrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svgArrow.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        svgArrow.setAttribute('viewBox', '0 -960 960 960');
+        svgArrow.setAttribute('aria-hidden', 'true');
+        svgArrow.classList.add('icon-svg', 'select-arrow');
+        const pathArrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        pathArrow.setAttribute('d', 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z');
+        svgArrow.appendChild(pathArrow);
+
+        monthYearWrapper.appendChild(svgArrow);
+
         // Select year
         const yearSelect = document.createElement('select');
         yearSelect.setAttribute('name', 'year');
@@ -109,6 +395,8 @@ class FDSDatePickerGrid extends HTMLElement {
         monthYearWrapper.appendChild(yearSelect);
 
         datePickerHeader.appendChild(monthYearWrapper);
+
+        
 
         // Next button
         const nextButton = document.createElement('button');
@@ -165,7 +453,7 @@ class FDSDatePickerGrid extends HTMLElement {
     }
 
     #redraw(date, setFocus = false) {
-        const gridContainer = this.querySelector('.grid-container');
+        const gridContainer = this.shadowRoot.querySelector('.grid-container');
         const TODAY = new Date();
         TODAY.setHours(0, 0, 0, 0);
 
@@ -229,7 +517,7 @@ class FDSDatePickerGrid extends HTMLElement {
         if (updatedMinMaxDates) {
             let minYear = this.#correctedMinDate.getFullYear();
             let maxYear = this.#correctedMaxDate.getFullYear();
-            const yearSelect = this.querySelector('.selected-year');
+            const yearSelect = this.shadowRoot.querySelector('.selected-year');
             yearSelect.innerHTML = '';
             for (let i = minYear; i <= maxYear; i++) {
                 yearSelect.innerHTML += `<option value="${i}">${i}</option>`;
@@ -240,9 +528,9 @@ class FDSDatePickerGrid extends HTMLElement {
 
         /* Disable unselectable months */
 
-        const monthSelect = this.querySelector('.selected-month');
+        const monthSelect = this.shadowRoot.querySelector('.selected-month');
         const monthOptions = monthSelect.querySelectorAll('option');
-        const chosenYear = this.querySelector('.selected-year').value;
+        const chosenYear = this.shadowRoot.querySelector('.selected-year').value;
 
         for (let i = 0; i < monthOptions.length; i++) {
             monthOptions[i].removeAttribute('disabled'); // Reset disabled status on all options
@@ -279,12 +567,13 @@ class FDSDatePickerGrid extends HTMLElement {
         const gridcells = gridContainer.querySelectorAll('td');
 
         for (let i = 0; i < this.#TOTAL_GRIDCELLS; i++) {
-            gridcells[i].removeAttribute('tabindex');
+            gridcells[i].setAttribute('tabindex', '-1');
             gridcells[i].removeAttribute('data-date');
             gridcells[i].removeAttribute('aria-label');
             gridcells[i].removeAttribute('aria-selected');
             gridcells[i].removeAttribute('aria-disabled');
-            gridcells[i].classList.remove('today');
+            gridcells[i].removeAttribute('aria-current');
+            //gridcells[i].classList.remove('today');
             gridcells[i].innerHTML = '';
         }
 
@@ -316,7 +605,8 @@ class FDSDatePickerGrid extends HTMLElement {
             }
 
             if (Util.datesAreEqual(gridcellDate, TODAY)) {
-                gridcells[i + offset - 1].classList.add('today');
+                gridcells[i + offset - 1].setAttribute('aria-current', 'date');
+                //gridcells[i + offset - 1].classList.add('today');
             }
 
             // Set the content of each cell (a number from 1-31)
@@ -329,7 +619,7 @@ class FDSDatePickerGrid extends HTMLElement {
 
             if (dateIsBetweenMinAndMax || dateIsGreaterThanMinNoMax || dateIsSmallerThanMaxNoMin || noMinNoMax) {
                 gridcells[i + offset - 1].setAttribute('aria-selected', `false`);
-                gridcells[i + offset - 1].setAttribute('tabindex', '-1');
+                //gridcells[i + offset - 1].setAttribute('tabindex', '-1');
             }
             else {
                 gridcells[i + offset - 1].setAttribute('aria-disabled', `true`);
@@ -350,11 +640,11 @@ class FDSDatePickerGrid extends HTMLElement {
         gridContainer.querySelector(`[data-date="${Util.ISOFormatFromDate(date)}"]`).setAttribute('tabindex', '0');
 
         // Ensure previous and next month buttons have the proper disabled state
-        const prevMonthButton = this.querySelector('.previous-month');
-        const nextMonthButton = this.querySelector('.next-month');
+        const prevMonthButton = this.shadowRoot.querySelector('.previous-month');
+        const nextMonthButton = this.shadowRoot.querySelector('.next-month');
 
-        const visibleMinDate = this.querySelector(`[data-date="${Util.ISOFormatFromDate(this.#correctedMinDate)}"]`);
-        const visibleMaxDate = this.querySelector(`[data-date="${Util.ISOFormatFromDate(this.#correctedMaxDate)}"]`);
+        const visibleMinDate = this.shadowRoot.querySelector(`[data-date="${Util.ISOFormatFromDate(this.#correctedMinDate)}"]`);
+        const visibleMaxDate = this.shadowRoot.querySelector(`[data-date="${Util.ISOFormatFromDate(this.#correctedMaxDate)}"]`);
 
         visibleMinDate ? prevMonthButton.setAttribute('aria-disabled', 'true') : prevMonthButton.removeAttribute('aria-disabled');
         visibleMaxDate ? nextMonthButton.setAttribute('aria-disabled', 'true') : nextMonthButton.removeAttribute('aria-disabled');
@@ -362,7 +652,7 @@ class FDSDatePickerGrid extends HTMLElement {
         // If wanted, set focus on the date causing the redraw unless the grid is hidden or the focus is on the date input field
         const isDisplayed = this.offsetParent;
         if (setFocus && isDisplayed && document.activeElement.tagName !== 'INPUT') {
-            this.querySelector('td[tabindex="0"]').focus();
+            this.shadowRoot.querySelector('td[tabindex="0"]').focus();
         }
     }
 
@@ -434,8 +724,8 @@ class FDSDatePickerGrid extends HTMLElement {
                     event.preventDefault();
                     // Go to first day of the month
                     if (event.ctrlKey) {
-                        const month = parseInt(this.querySelector('.selected-month').value, 10);
-                        const year = parseInt(this.querySelector('.selected-year').value, 10);
+                        const month = parseInt(this.shadowRoot.querySelector('.selected-month').value, 10);
+                        const year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
                         let firstDay = Util.dateFromIntegers(year, month, 1);
                         if (firstDay < minDate) { firstDay = minDate; }
                         this.#redraw(firstDay, true);
@@ -455,8 +745,8 @@ class FDSDatePickerGrid extends HTMLElement {
                     event.preventDefault();
                     // Go to last day of the month
                     if (event.ctrlKey) {
-                        const month = parseInt(this.querySelector('.selected-month').value, 10);
-                        const year = parseInt(this.querySelector('.selected-year').value, 10);
+                        const month = parseInt(this.shadowRoot.querySelector('.selected-month').value, 10);
+                        const year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
                         const day = Util.totalDaysInMonth(Util.dateFromIntegers(year, month, 1));
                         let lastDay = Util.dateFromIntegers(year, month, day);
                         if (maxDate < lastDay) { lastDay = maxDate; }
@@ -478,17 +768,17 @@ class FDSDatePickerGrid extends HTMLElement {
     }
 
     #selectChange(event) {
-        const focusedDay = this.querySelector('td[data-date][tabindex="0"]');
+        const focusedDay = this.shadowRoot.querySelector('td[data-date][tabindex="0"]');
         const focusedDayAsDate = Util.stringToDate(focusedDay.getAttribute('data-date'));
 
         let day = focusedDayAsDate.getDate();
-        let month = parseInt(this.querySelector('.selected-month').value, 10);
-        let year = parseInt(this.querySelector('.selected-year').value, 10);
+        let month = parseInt(this.shadowRoot.querySelector('.selected-month').value, 10);
+        let year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
 
-        if (event.target === this.querySelector('.selected-month')) {
+        if (event.target === this.shadowRoot.querySelector('.selected-month')) {
             month = parseInt(event.target.value, 10);
         }
-        else if (event.target === this.querySelector('.selected-year')) {
+        else if (event.target === this.shadowRoot.querySelector('.selected-year')) {
             year = parseInt(event.target.value, 10);
         }
 
@@ -505,35 +795,35 @@ class FDSDatePickerGrid extends HTMLElement {
     #monthButtonClicked(event) {
         if (event.target.hasAttribute('aria-disabled')) return;
 
-        const focusedDay = this.querySelector('td[data-date][tabindex="0"]');
+        const focusedDay = this.shadowRoot.querySelector('td[data-date][tabindex="0"]');
         const focusedDayAsDate = Util.stringToDate(focusedDay.getAttribute('data-date'));
         let prevMonth = Util.getPrevMonth(focusedDayAsDate);
         let nextMonth = Util.getNextMonth(focusedDayAsDate);
 
-        if (event.target === this.querySelector('.previous-month')) {
+        if (event.target === this.shadowRoot.querySelector('.previous-month')) {
             if (prevMonth < this.#correctedMinDate) { prevMonth = this.#correctedMinDate; }
             this.#redraw(prevMonth, false);
         }
-        else if (event.target === this.querySelector('.next-month')) {
+        else if (event.target === this.shadowRoot.querySelector('.next-month')) {
             if (this.#correctedMaxDate < nextMonth) { nextMonth = this.#correctedMaxDate; }
             this.#redraw(nextMonth, false);
         }
 
         event.target.focus();
 
-        const visibleMinDate = this.querySelector(`[data-date="${Util.ISOFormatFromDate(this.#correctedMinDate)}"]`);
-        const visibleMaxDate = this.querySelector(`[data-date="${Util.ISOFormatFromDate(this.#correctedMaxDate)}"]`);
-        const month = this.#MONTHS[parseInt(this.querySelector('.selected-month').value, 10)];
-        const year = parseInt(this.querySelector('.selected-year').value, 10);
+        const visibleMinDate = this.shadowRoot.querySelector(`[data-date="${Util.ISOFormatFromDate(this.#correctedMinDate)}"]`);
+        const visibleMaxDate = this.shadowRoot.querySelector(`[data-date="${Util.ISOFormatFromDate(this.#correctedMaxDate)}"]`);
+        const month = this.#MONTHS[parseInt(this.shadowRoot.querySelector('.selected-month').value, 10)];
+        const year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
 
-        if (event.target === this.querySelector('.previous-month') && visibleMinDate) {
-            this.querySelector('.sr-only').textContent = `${month} ${year}, tidligste måned nået`;
+        if (event.target === this.shadowRoot.querySelector('.previous-month') && visibleMinDate) {
+            this.shadowRoot.querySelector('.sr-only').textContent = `${month} ${year}, tidligste måned nået`;
         }
-        else if (event.target === this.querySelector('.next-month') && visibleMaxDate) {
-            this.querySelector('.sr-only').textContent = `${month} ${year}, seneste måned nået`;
+        else if (event.target === this.shadowRoot.querySelector('.next-month') && visibleMaxDate) {
+            this.shadowRoot.querySelector('.sr-only').textContent = `${month} ${year}, seneste måned nået`;
         }
         else {
-            this.querySelector('.sr-only').textContent = `${month} ${year}`;
+            this.shadowRoot.querySelector('.sr-only').textContent = `${month} ${year}`;
         }
     }
 
@@ -548,7 +838,7 @@ class FDSDatePickerGrid extends HTMLElement {
         const newDays = str.split(" ");
         if (newDays.length === 7) {
             this.#DAYS = newDays;
-            const tableHeaders = this.querySelectorAll('th');
+            const tableHeaders = this.shadowRoot.querySelectorAll('th');
             for (let i = 0; i < tableHeaders.length; i++) {
                 tableHeaders[i].innerHTML = `<span aria-hidden="true">${this.#DAYS[i].slice(0, 2)}</span><span class="sr-only">${this.#DAYS[i]}</span>`;
             }
@@ -560,12 +850,12 @@ class FDSDatePickerGrid extends HTMLElement {
         if (newMonths.length === 12) {
             this.#MONTHS = newMonths;
 
-            const header = this.querySelector('.date-picker-header');
+            const header = this.shadowRoot.querySelector('.date-picker-header');
             if (header && header.querySelector('.sr-only')) {
                 header.querySelector('.sr-only').textContent = '';
             }
 
-            const monthOptions = this.querySelectorAll('.selected-month option');
+            const monthOptions = this.shadowRoot.querySelectorAll('.selected-month option');
             for (let i = 0; i < monthOptions.length; i++) {
                 monthOptions[i].textContent = this.#MONTHS[i].charAt(0).toUpperCase() + this.#MONTHS[i].slice(1);
             }
@@ -575,14 +865,14 @@ class FDSDatePickerGrid extends HTMLElement {
     }
 
     #updateTextPrevButton(str) {
-        if (this.querySelector('.previous-month')) {
-            this.querySelector('.previous-month .sr-only').textContent = str;
+        if (this.shadowRoot.querySelector('.previous-month')) {
+            this.shadowRoot.querySelector('.previous-month .sr-only').textContent = str;
         }
     }
 
     #updateTextNextButton(str) {
-        if (this.querySelector('.next-month')) {
-            this.querySelector('.next-month .sr-only').textContent = str;
+        if (this.shadowRoot.querySelector('.next-month')) {
+            this.shadowRoot.querySelector('.next-month .sr-only').textContent = str;
         }
     }
 
@@ -597,32 +887,11 @@ class FDSDatePickerGrid extends HTMLElement {
         }
     }
 
-    resizeMonth() {
-        const monthSelect = this.querySelector('.selected-month');
-        if (!monthSelect) return;
-
-        const ROOT_FONT_SIZE = 10;    // px, result of the 62.5% trick
-        const ARROW_OFFSET_REM = 25;  // px, is converted to rem
-        const ARROW_OFFSET_PX = 8;    // px, kept as pixels
-
-        const selectedOption = monthSelect.options?.[monthSelect.selectedIndex];
-        if (!selectedOption) return;
-
-        const tempSpan = document.createElement('span');
-        tempSpan.style.visibility = 'hidden';
-        tempSpan.style.position = 'absolute';
-        tempSpan.style.fontFamily = '"IBM Plex Sans", "system-ui", system, sans-serif';
-        tempSpan.style.fontSize = '16px';
-        tempSpan.style.lineHeight = '1.5';
-        tempSpan.style.fontWeight = '600';
-        tempSpan.textContent = selectedOption.text;
-
-        this.appendChild(tempSpan);
-        if (tempSpan.offsetWidth > 0) {
-            const remWidth = (tempSpan.offsetWidth + ARROW_OFFSET_REM) / ROOT_FONT_SIZE;
-            monthSelect.style.width = `calc(${remWidth}rem + ${ARROW_OFFSET_PX}px)`;
+    #sendFocusOutEvent(event) {
+        if (!this.shadowRoot.contains(event.relatedTarget)) {
+            this.dispatchEvent(new Event('focus-left-grid'));
+            console.log('Focus left grid');
         }
-        this.removeChild(tempSpan);
     }
 
     /* Attributes which can invoke attributeChangedCallback() */
@@ -635,6 +904,8 @@ class FDSDatePickerGrid extends HTMLElement {
 
     constructor() {
         super();
+        this.attachShadow({ mode: 'open' });
+        this.shadowRoot.adoptedStyleSheets = [sheet];
 
         this.#initialized = false;
 
@@ -662,6 +933,7 @@ class FDSDatePickerGrid extends HTMLElement {
         this.#handlePrevMonth = (event) => { this.#monthButtonClicked(event); };
         this.#handleNextMonth = (event) => { this.#monthButtonClicked(event); };
         this.#handleDateClick = (event) => { this.#dateClicked(event) };
+        this.#handleFocusOut = (event) => { this.#sendFocusOutEvent(event) };
 
         this.#hasDatePickerConnection = false;
     }
@@ -683,12 +955,14 @@ class FDSDatePickerGrid extends HTMLElement {
         if (this.hasAttribute('text-nextbutton')) { this.#updateTextNextButton(this.getAttribute('text-nextbutton')); }
 
         // Add event listeners
-        this.querySelector('.grid-container').addEventListener('keydown', this.#handleKeydown, false);
-        this.querySelector('.selected-month').addEventListener('change', this.#handleChangeMonth, false);
-        this.querySelector('.selected-year').addEventListener('change', this.#handleChangeYear, false);
-        this.querySelector('.previous-month').addEventListener('click', this.#handlePrevMonth, false);
-        this.querySelector('.next-month').addEventListener('click', this.#handleNextMonth, false);
-        this.querySelector('.date-picker-grid').addEventListener('click', this.#handleDateClick, false);
+        this.shadowRoot.querySelector('.grid-container').addEventListener('keydown', this.#handleKeydown, false);
+        this.shadowRoot.querySelector('.selected-month').addEventListener('change', this.#handleChangeMonth, false);
+        this.shadowRoot.querySelector('.selected-year').addEventListener('change', this.#handleChangeYear, false);
+        this.shadowRoot.querySelector('.previous-month').addEventListener('click', this.#handlePrevMonth, false);
+        this.shadowRoot.querySelector('.next-month').addEventListener('click', this.#handleNextMonth, false);
+        this.shadowRoot.querySelector('.date-picker-grid').addEventListener('click', this.#handleDateClick, false);
+        //this.shadowRoot.querySelector('.grid-container').addEventListener('focusout', this.#handleFocusOut, false);
+        this.shadowRoot.addEventListener('focusout', this.#handleFocusOut, false);
 
         // If the date picker is part of a "duo" defining start date and end date, add event listeners when both grids exist
         const isStartDate = this.hasAttribute('start-date-id');
@@ -701,12 +975,12 @@ class FDSDatePickerGrid extends HTMLElement {
             customElements.whenDefined('fds-date-picker-grid').then(() => {
                 if (!this.getHasDatePickerConnection() && !endDateGrid?.getHasDatePickerConnection()) {
                     this.addEventListener('date-selected', () => {
-                        const focusableDate = endDateGrid.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+                        const focusableDate = endDateGrid.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
                         endDateGrid.forceCompleteRedraw(Util.stringToDate(focusableDate));
                     })
 
                     endDateGrid.addEventListener('date-selected', () => {
-                        const focusableDate = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+                        const focusableDate = this.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
                         this.forceCompleteRedraw(Util.stringToDate(focusableDate));
                     })
 
@@ -719,12 +993,12 @@ class FDSDatePickerGrid extends HTMLElement {
             customElements.whenDefined('fds-date-picker-grid').then(() => {
                 if (!this.getHasDatePickerConnection() && !startDateGrid?.getHasDatePickerConnection()) {
                     startDateGrid.addEventListener('date-selected', () => {
-                        const focusableDate = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+                        const focusableDate = this.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
                         this.forceCompleteRedraw(Util.stringToDate(focusableDate));
                     })
 
                     this.addEventListener('date-selected', () => {
-                        const focusableDate = startDateGrid.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+                        const focusableDate = startDateGrid.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
                         startDateGrid.forceCompleteRedraw(Util.stringToDate(focusableDate));
                     })
 
@@ -759,20 +1033,44 @@ class FDSDatePickerGrid extends HTMLElement {
         return this.#hasDatePickerConnection;
     }
 
+    focusFocusableDate() {
+        this.shadowRoot.querySelector('td[tabindex="0"]')?.focus();
+    }
+
+    resizeMonth() {
+        const monthSelect = this.shadowRoot.querySelector('.selected-month');
+        if (!monthSelect) return;
+
+        const ROOT_FONT_SIZE = 10;    // px, result of the 62.5% trick
+        const ARROW_OFFSET_REM = 25;  // px, is converted to rem
+        const ARROW_OFFSET_PX = 8;    // px, kept as pixels
+
+        const selectedOption = monthSelect.options?.[monthSelect.selectedIndex];
+        if (!selectedOption) return;
+
+        const tempSpan = document.createElement('span');
+        tempSpan.style.visibility = 'hidden';
+        tempSpan.style.position = 'absolute';
+        tempSpan.style.fontFamily = '"IBM Plex Sans", "system-ui", system, sans-serif';
+        tempSpan.style.fontSize = '16px';
+        tempSpan.style.lineHeight = '1.5';
+        tempSpan.style.fontWeight = '600';
+        tempSpan.textContent = selectedOption.text;
+
+        this.shadowRoot.appendChild(tempSpan);
+        if (tempSpan.offsetWidth > 0) {
+            const remWidth = (tempSpan.offsetWidth + ARROW_OFFSET_REM) / ROOT_FONT_SIZE;
+            monthSelect.style.width = `calc(${remWidth}rem + ${ARROW_OFFSET_PX}px)`;
+        }
+        this.shadowRoot.removeChild(tempSpan);
+    }
+
     /* --------------------------------------------------
     CUSTOM ELEMENT REMOVED FROM DOCUMENT
     -------------------------------------------------- */
 
     disconnectedCallback() {
         this.#initialized = false;
-
-        this.querySelector('.grid-container')?.removeEventListener('keydown', this.#handleKeydown, false);
-        this.querySelector('.selected-month')?.removeEventListener('change', this.#handleChangeMonth, false);
-        this.querySelector('.selected-year')?.removeEventListener('change', this.#handleChangeYear, false);
-        this.querySelector('.previous-month')?.removeEventListener('click', this.#handlePrevMonth, false);
-        this.querySelector('.next-month')?.removeEventListener('click', this.#handleNextMonth, false);
-        this.querySelector('.date-picker-grid')?.removeEventListener('click', this.#handleDateClick, false);
-        this.querySelector('.grid-container')?.remove();
     }
 
     /* --------------------------------------------------
@@ -793,7 +1091,7 @@ class FDSDatePickerGrid extends HTMLElement {
             else {
                 // An invalid date might be temporary while the user enters a date in the fds-date-picker's input field
                 // Keep displaying the previous dates to give a more "steady" experience with no rapid updates
-                const dateWithCurrentFocus = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+                const dateWithCurrentFocus = this.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
                 this.#redraw(Util.stringToDate(dateWithCurrentFocus), setFocusOnDate);
             }
             this.dispatchEvent(new Event('date-selected'));
@@ -824,7 +1122,7 @@ class FDSDatePickerGrid extends HTMLElement {
         }
 
         if (redrawNeeded) {
-            const dateWithCurrentFocus = this.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+            const dateWithCurrentFocus = this.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
             let placeFocusOnDate = Util.stringToDate(dateWithCurrentFocus);
             if (!Util.isValidDate(placeFocusOnDate)) {
                 placeFocusOnDate = new Date();

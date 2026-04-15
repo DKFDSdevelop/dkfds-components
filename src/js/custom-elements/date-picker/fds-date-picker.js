@@ -202,8 +202,6 @@ class FDSDatePicker extends HTMLElement {
     }
 
     #handleMutations = (records, observer) => {
-        //console.log(`${this.tagName} had mutations at ${Date.now()}`, records);
-
         const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
 
         if (shouldUpdate) {
@@ -284,7 +282,7 @@ class FDSDatePicker extends HTMLElement {
         this.toggle();
 
         if (!this.querySelector('.ce-date-picker').classList.contains('d-none')) {
-            this.querySelector('td[tabindex="0"]').focus();
+            this.querySelector('fds-date-picker-grid').focusFocusableDate();
         }
     }
 
@@ -347,7 +345,9 @@ class FDSDatePicker extends HTMLElement {
         switch (event.key) {
             case 'Tab':
                 if (event.shiftKey) {
-                    if (event.target === this.querySelector('.previous-month')) {
+                    const path = event.composedPath();
+                    const innerTarget = path[0];
+                    if (innerTarget === this.querySelector('fds-date-picker-grid').shadowRoot.querySelector('.previous-month')) {
                         event.preventDefault();
                         this.querySelector('.close-button').focus();
                     }
@@ -355,7 +355,7 @@ class FDSDatePicker extends HTMLElement {
                 else {
                     if (event.target === this.querySelector('.close-button')) {
                         event.preventDefault();
-                        this.querySelector('.previous-month').focus();
+                        this.querySelector('fds-date-picker-grid').shadowRoot.querySelector('.previous-month').focus();
                     }
                 }
                 break;
