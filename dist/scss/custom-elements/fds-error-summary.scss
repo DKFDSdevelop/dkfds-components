@@ -48,7 +48,14 @@ fds-error-summary,
         overflow-wrap: break-word;
     }
 
-    >nav>ul,
+    >nav>ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        color: func.color(vars.$alert-text-color);
+        max-width: vars.$typography-text-max-width;
+    }
+
     >nav>ul>li {
         list-style: none;
         margin: 0;

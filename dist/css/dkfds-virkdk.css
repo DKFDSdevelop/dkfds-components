@@ -13916,8 +13916,14 @@ fds-error-summary > nav > h6,
   overflow-wrap:break-word;
 }
 fds-error-summary > nav > ul,
+.fds-error-summary > nav > ul{
+  list-style:none;
+  margin:0;
+  padding:0;
+  color:#1a1a1a;
+  max-width:66ch;
+}
 fds-error-summary > nav > ul > li,
-.fds-error-summary > nav > ul,
 .fds-error-summary > nav > ul > li{
   list-style:none;
   margin:0;

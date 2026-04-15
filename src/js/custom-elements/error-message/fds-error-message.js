@@ -32,7 +32,7 @@ class FDSErrorMessage extends HTMLElement {
 
             const visibleMessage = document.createElement('span');
             visibleMessage.classList.add('visible-message');
-            visibleMessage.textContent = this.textContent;
+            visibleMessage.textContent = this.getAttribute('message') || this.textContent;
             this.textContent = '';
 
             this.appendChild(svg);
@@ -57,6 +57,19 @@ class FDSErrorMessage extends HTMLElement {
         }));
     }
 
+    #dispatchErrorMessageCallback() {
+        if (!this.#parentWrapper) return;
+
+        this.#parentWrapper.dispatchEvent(new CustomEvent('error-message-callback', {
+            bubbles: true,
+            detail: {
+                errorId: this.id,
+                isHidden: this.#shouldBeHidden(this.getAttribute('hidden')),
+                targets: this.getTargets()
+            }
+        }));
+    }
+
     /* --------------------------------------------------
     CUSTOM ELEMENT METHODS
     -------------------------------------------------- */
@@ -70,7 +83,7 @@ class FDSErrorMessage extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['id', 'icon-text', 'hidden', 'targets'];
+    static observedAttributes = ['id', 'icon-text', 'hidden', 'targets', 'message'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -97,8 +110,8 @@ class FDSErrorMessage extends HTMLElement {
         }
 
         // Save reference to parent wrapper
-        this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input, fds-upload-file');
-        this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
+        this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input, fds-select, fds-upload-file');
+        this.#dispatchErrorMessageCallback();
     }
 
     /* --------------------------------------------------
@@ -127,7 +140,7 @@ class FDSErrorMessage extends HTMLElement {
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.#rendered) return;
 
-        if (name === 'icon-text') {
+        if (name === 'icon-text' && oldValue !== newValue) {
             this.#iconText = newValue;
             this.querySelector(':scope > .alert-icon').setAttribute('aria-label', this.#iconText);
         }
@@ -136,7 +149,12 @@ class FDSErrorMessage extends HTMLElement {
             this.#notifyParent();
         }
 
-        this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
+        if (name === 'message' && oldValue !== newValue) {
+            this.querySelector(':scope > .visible-message').textContent = newValue;
+        }
+
+
+        this.#dispatchErrorMessageCallback();
     }
 }
 

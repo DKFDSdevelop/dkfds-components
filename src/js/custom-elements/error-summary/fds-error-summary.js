@@ -7,6 +7,7 @@ class FDSErrorSummary extends HTMLElement {
     /* Private instance fields */
 
     #initialized;
+    #handleErrorMessageEvents;
 
     /* Private methods */
 
@@ -25,13 +26,34 @@ class FDSErrorSummary extends HTMLElement {
             : 'h2';
     }
 
+    #isErrorMessageHidden(errorMessage) {
+        if (!errorMessage) return true;
+
+        const hiddenValue = errorMessage.getAttribute('hidden');
+        return hiddenValue === '' || hiddenValue === 'true';
+    }
+
+    #isEligibleErrorMessage(errorMessage) {
+        return errorMessage instanceof HTMLElement
+            && errorMessage.matches('fds-error-message')
+            && !!errorMessage.id
+            && !!errorMessage.closest(
+                'fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input, fds-select, fds-upload-file'
+            );
+    }
+
+    #syncVisibility() {
+        const { listElement } = this.#getSummaryElements();
+        const hasErrors = !!listElement?.querySelector(':scope > li');
+
+        this.hidden = !hasErrors;
+    }
+
     #ensureDOM() {
         const headingLevel = this.#normalizeHeadingLevel(this.getAttribute('heading-level'));
 
         let navElement = this.querySelector(':scope > nav');
 
-        // Attribute mode:
-        // No nav markup provided, so create canonical structure from attributes
         if (!navElement) {
             navElement = document.createElement('nav');
 
@@ -60,18 +82,15 @@ class FDSErrorSummary extends HTMLElement {
             return true;
         }
 
-        // Enhance mode:
-        // Nav exists, so the supported prerendered structure must already be present
-
-        const headingElement = alertElement.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
+        const headingElement = navElement.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
         if (!headingElement) {
-            console.warn('<fds-error-summary> Missing direct child heading inside alert.');
+            console.warn('<fds-error-summary> Missing direct child heading inside nav.');
             return false;
         }
 
-        const listElement = alertElement.querySelector(':scope > ul');
+        const listElement = navElement.querySelector(':scope > ul');
         if (!listElement) {
-            console.warn('<fds-error-summary> Missing direct child ul inside alert.');
+            console.warn('<fds-error-summary> Missing direct child ul inside nav.');
             return false;
         }
 
@@ -86,9 +105,9 @@ class FDSErrorSummary extends HTMLElement {
 
     #updateHeading(heading) {
         const { headingElement } = this.#getSummaryElements();
-        if (!headingElement) return;
-
-        headingElement.textContent = heading;
+        if (headingElement) {
+            headingElement.textContent = heading;
+        }
     }
 
     #updateHeadingLevel(headingLevel) {
@@ -112,27 +131,146 @@ class FDSErrorSummary extends HTMLElement {
     }
 
     #syncAll() {
-        if (this.hasAttribute('heading')) {
-            this.#updateHeading(this.getAttribute('heading'));
+        const heading = this.getAttribute('heading');
+        const headingLevel = this.getAttribute('heading-level');
+
+        if (heading !== null) {
+            this.#updateHeading(heading);
         }
 
-        if (this.hasAttribute('heading-level')) {
-            this.#updateHeadingLevel(this.getAttribute('heading-level'));
+        if (headingLevel !== null) {
+            this.#updateHeadingLevel(headingLevel);
         }
     }
 
-    /* Attributes which can invoke attributeChangedCallback() */
+    #addError(errorId, message) {
+        const { listElement } = this.#getSummaryElements();
+        if (!listElement || !errorId || !message) return;
 
-    static observedAttributes = ['heading', 'heading-level', 'ready'];
+        let li = listElement.querySelector(`[data-error-id="${errorId}"]`);
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-    -------------------------------------------------- */
+        if (!li) {
+            li = document.createElement('li');
+            li.dataset.errorId = errorId;
+
+            const link = document.createElement('a');
+            link.classList.add('function-link');
+            li.appendChild(link);
+
+            listElement.appendChild(li);
+        }
+
+        const link = li.querySelector('a');
+        if (link) {
+            link.href = `#${errorId}`;
+            link.textContent = message;
+        }
+
+        this.#syncVisibility();
+    }
+
+    #removeError(errorId) {
+        const { listElement } = this.#getSummaryElements();
+        listElement?.querySelector(`[data-error-id="${errorId}"]`)?.remove();
+
+        this.#syncVisibility();
+    }
+
+    #syncErrorMessage(errorMessage) {
+        if (!errorMessage?.id || !this.#isEligibleErrorMessage(errorMessage)) {
+            if (errorMessage?.id) {
+                this.#removeError(errorMessage.id);
+            }
+            return;
+        }
+
+        const isHidden = this.#isErrorMessageHidden(errorMessage);
+        const message = errorMessage.querySelector(':scope > .visible-message')?.textContent?.trim()
+            || errorMessage.textContent?.trim();
+
+        if (isHidden || !message) {
+            this.#removeError(errorMessage.id);
+            return;
+        }
+
+        this.#addError(errorMessage.id, message);
+    }
+
+    #syncErrorById(errorId) {
+        if (!errorId) return;
+
+        const errorMessage = document.getElementById(errorId);
+
+        if (!errorMessage || !this.#isEligibleErrorMessage(errorMessage)) {
+            this.#removeError(errorId);
+            return;
+        }
+
+        this.#syncErrorMessage(errorMessage);
+    }
+
+    #scanAllErrors() {
+        document.querySelectorAll(
+            'fds-input-wrapper fds-error-message, ' +
+            'fds-checkbox fds-error-message, ' +
+            'fds-checkbox-group fds-error-message, ' +
+            'fds-radio-button-group fds-error-message, ' +
+            'fds-date-input fds-error-message, ' +
+            'fds-select fds-error-message, ' +
+            'fds-upload-file fds-error-message'
+        ).forEach((errorMessage) => {
+            this.#syncErrorMessage(errorMessage);
+        });
+
+        this.#syncVisibility();
+    }
+
+    #cleanupAutoMode() {
+        if (!this.#handleErrorMessageEvents) return;
+
+        document.removeEventListener('error-message-visibility-changed', this.#handleErrorMessageEvents);
+        document.removeEventListener('error-message-callback', this.#handleErrorMessageEvents);
+        this.#handleErrorMessageEvents = null;
+    }
+
+    #initAutoMode() {
+        this.#cleanupAutoMode();
+
+        const { listElement } = this.#getSummaryElements();
+        if (listElement) {
+            listElement.innerHTML = '';
+        }
+
+        this.#syncVisibility();
+        this.#scanAllErrors();
+
+        this.#handleErrorMessageEvents = (e) => {
+            const { errorId, isRemoved } = e.detail || {};
+
+            if (e.type === 'error-message-callback' && !errorId) {
+                this.#scanAllErrors();
+                return;
+            }
+
+            if (isRemoved) {
+                this.#removeError(errorId);
+                return;
+            }
+
+            this.#syncErrorById(errorId);
+        };
+
+        document.addEventListener('error-message-visibility-changed', this.#handleErrorMessageEvents);
+        document.addEventListener('error-message-callback', this.#handleErrorMessageEvents);
+    }
+
+    static observedAttributes = ['heading', 'heading-level', 'ready', 'auto'];
 
     constructor() {
         super();
 
         this.#initialized = false;
+        this.#handleErrorMessageEvents = null;
     }
 
     /* --------------------------------------------------
@@ -146,6 +284,12 @@ class FDSErrorSummary extends HTMLElement {
         if (!isValid) return;
 
         this.#syncAll();
+
+        if (this.hasAttribute('auto')) {
+            this.#initAutoMode();
+        } else {
+            this.#syncVisibility();
+        }
 
         this.#initialized = true;
     }
@@ -165,6 +309,7 @@ class FDSErrorSummary extends HTMLElement {
     -------------------------------------------------- */
 
     disconnectedCallback() {
+        this.#cleanupAutoMode();
         this.#initialized = false;
     }
 
@@ -176,6 +321,16 @@ class FDSErrorSummary extends HTMLElement {
         if (attribute === 'ready') {
             if (!this.#initialized && this.isConnected && newValue === 'true') {
                 this.init();
+            }
+            return;
+        }
+
+        if (attribute === 'auto') {
+            if (this.#initialized && newValue !== null && oldValue === null) {
+                this.#initAutoMode();
+            } else if (this.#initialized && newValue === null && oldValue !== null) {
+                this.#cleanupAutoMode();
+                this.#syncVisibility();
             }
             return;
         }
