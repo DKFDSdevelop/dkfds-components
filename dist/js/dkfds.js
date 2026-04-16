@@ -10186,10 +10186,8 @@ function registerDatePicker() {
   }
 }
 /* harmony default export */ const fds_date_picker = (registerDatePicker);
-;// ./src/js/custom-elements/date-picker/fds-date-picker-grid.js
-
-const sheet = new CSSStyleSheet();
-sheet.replaceSync(`
+;// ./src/js/custom-elements/date-picker/fds-date-picker-grid-styling.js
+const styles = `
     *,
     *::before,
     *::after {
@@ -10281,11 +10279,6 @@ sheet.replaceSync(`
         min-width: 2.4rem;
     }
 
-    .select-arrow {
-        position: absolute;
-        max-width: 2.4rem;
-    }
-
     :host {
         display: block;
         border: 1px solid #8E8E8E;
@@ -10320,6 +10313,22 @@ sheet.replaceSync(`
         justify-content: center;
     }
 
+    .month-wrapper,
+    .year-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        margin-left: 4px;
+        margin-right: 4px;
+    }
+
+    .select-arrow {
+        position: absolute;
+        width: 24px;
+        right: 0;
+        pointer-events: none;
+    }
+
     .selected-month,
     .selected-year {
         border: 0;
@@ -10327,12 +10336,10 @@ sheet.replaceSync(`
         border-radius: 8px;
         background-position: 100%;
         background-size: 2.4rem;
-        padding-right: 2.4rem;
+        padding-right: 24px;
         padding-left: 8px;
-        margin-left: 4px;
-        margin-right: 4px;
         font-weight: 600;
-        height: 40px;
+        height: calc(1.6rem + 24px);
     }
 
     .selected-month:hover,
@@ -10459,7 +10466,15 @@ sheet.replaceSync(`
         font-weight: 700;
         text-decoration: underline;
     }
-`);
+`;
+;// ./src/js/custom-elements/date-picker/fds-date-picker-grid.js
+
+
+const CHEVRON_DOWN_PATH = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
+const CHEVRON_LEFT_PATH = 'M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z';
+const CHEVRON_RIGHT_PATH = 'M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z';
+const sheet = new CSSStyleSheet();
+sheet.replaceSync(styles);
 class FDSDatePickerGrid extends HTMLElement {
   /* Private instance fields */
 
@@ -10481,7 +10496,6 @@ class FDSDatePickerGrid extends HTMLElement {
   #handlePrevMonth;
   #handleNextMonth;
   #handleDateClick;
-  #handleFocusOut;
   #textMinDate;
   #textMaxDate;
   #hasDatePickerConnection;
@@ -10542,6 +10556,8 @@ class FDSDatePickerGrid extends HTMLElement {
     monthYearWrapper.classList.add('month-year-wrapper');
 
     // Select month
+    const monthWrapper = document.createElement('div');
+    monthWrapper.classList.add('month-wrapper');
     const monthSelect = document.createElement('select');
     monthSelect.setAttribute('name', 'month');
     monthSelect.setAttribute('aria-label', 'Måned');
@@ -10549,23 +10565,24 @@ class FDSDatePickerGrid extends HTMLElement {
     for (let i = 0; i < this.#MONTHS.length; i++) {
       monthSelect.innerHTML += `<option value="${i}">${this.#MONTHS[i].charAt(0).toUpperCase() + this.#MONTHS[i].slice(1)}</option>`;
     }
-    monthYearWrapper.appendChild(monthSelect);
-    const svgArrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svgArrow.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    svgArrow.setAttribute('viewBox', '0 -960 960 960');
-    svgArrow.setAttribute('aria-hidden', 'true');
-    svgArrow.classList.add('icon-svg', 'select-arrow');
-    const pathArrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    pathArrow.setAttribute('d', 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z');
-    svgArrow.appendChild(pathArrow);
-    monthYearWrapper.appendChild(svgArrow);
+    monthWrapper.appendChild(monthSelect);
+    const svgArrow = createSvgIcon(CHEVRON_DOWN_PATH);
+    svgArrow.classList.add('select-arrow');
+    monthWrapper.appendChild(svgArrow);
+    monthYearWrapper.appendChild(monthWrapper);
 
     // Select year
+    const yearWrapper = document.createElement('div');
+    yearWrapper.classList.add('year-wrapper');
     const yearSelect = document.createElement('select');
     yearSelect.setAttribute('name', 'year');
     yearSelect.setAttribute('aria-label', 'År');
     yearSelect.classList.add('selected-year');
-    monthYearWrapper.appendChild(yearSelect);
+    yearWrapper.appendChild(yearSelect);
+    const svgYearArrow = createSvgIcon(CHEVRON_DOWN_PATH);
+    svgYearArrow.classList.add('select-arrow');
+    yearWrapper.appendChild(svgYearArrow);
+    monthYearWrapper.appendChild(yearWrapper);
     datePickerHeader.appendChild(monthYearWrapper);
 
     // Next button
@@ -10731,7 +10748,6 @@ class FDSDatePickerGrid extends HTMLElement {
       gridcells[i].removeAttribute('aria-selected');
       gridcells[i].removeAttribute('aria-disabled');
       gridcells[i].removeAttribute('aria-current');
-      //gridcells[i].classList.remove('today');
       gridcells[i].innerHTML = '';
     }
 
@@ -10759,7 +10775,6 @@ class FDSDatePickerGrid extends HTMLElement {
       }
       if (datesAreEqual(gridcellDate, TODAY)) {
         gridcells[i + offset - 1].setAttribute('aria-current', 'date');
-        //gridcells[i + offset - 1].classList.add('today');
       }
 
       // Set the content of each cell (a number from 1-31)
@@ -11032,12 +11047,6 @@ class FDSDatePickerGrid extends HTMLElement {
       this.#CELL_DATE_FORMAT = str;
     }
   }
-  #sendFocusOutEvent(event) {
-    if (!this.shadowRoot.contains(event.relatedTarget)) {
-      this.dispatchEvent(new Event('focus-left-grid'));
-      console.log('Focus left grid');
-    }
-  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -11087,9 +11096,6 @@ class FDSDatePickerGrid extends HTMLElement {
     this.#handleDateClick = event => {
       this.#dateClicked(event);
     };
-    this.#handleFocusOut = event => {
-      this.#sendFocusOutEvent(event);
-    };
     this.#hasDatePickerConnection = false;
   }
 
@@ -11123,8 +11129,6 @@ class FDSDatePickerGrid extends HTMLElement {
     this.shadowRoot.querySelector('.previous-month').addEventListener('click', this.#handlePrevMonth, false);
     this.shadowRoot.querySelector('.next-month').addEventListener('click', this.#handleNextMonth, false);
     this.shadowRoot.querySelector('.date-picker-grid').addEventListener('click', this.#handleDateClick, false);
-    //this.shadowRoot.querySelector('.grid-container').addEventListener('focusout', this.#handleFocusOut, false);
-    this.shadowRoot.addEventListener('focusout', this.#handleFocusOut, false);
 
     // If the date picker is part of a "duo" defining start date and end date, add event listeners when both grids exist
     const isStartDate = this.hasAttribute('start-date-id');
@@ -11193,8 +11197,8 @@ class FDSDatePickerGrid extends HTMLElement {
     const monthSelect = this.shadowRoot.querySelector('.selected-month');
     if (!monthSelect) return;
     const ROOT_FONT_SIZE = 10; // px, result of the 62.5% trick
-    const ARROW_OFFSET_REM = 25; // px, is converted to rem
-    const ARROW_OFFSET_PX = 8; // px, kept as pixels
+    const ARROW_OFFSET_PX = 24; // px, is converted to rem
+    const PADDING_PX = 8; // px, kept as pixels
 
     const selectedOption = monthSelect.options?.[monthSelect.selectedIndex];
     if (!selectedOption) return;
@@ -11208,8 +11212,8 @@ class FDSDatePickerGrid extends HTMLElement {
     tempSpan.textContent = selectedOption.text;
     this.shadowRoot.appendChild(tempSpan);
     if (tempSpan.offsetWidth > 0) {
-      const remWidth = (tempSpan.offsetWidth + ARROW_OFFSET_REM) / ROOT_FONT_SIZE;
-      monthSelect.style.width = `calc(${remWidth}rem + ${ARROW_OFFSET_PX}px)`;
+      const remWidth = tempSpan.offsetWidth / ROOT_FONT_SIZE;
+      monthSelect.style.width = `calc(${remWidth}rem + ${PADDING_PX + ARROW_OFFSET_PX}px)`;
     }
     this.shadowRoot.removeChild(tempSpan);
   }
@@ -11282,6 +11286,17 @@ function registerDatePickerGrid() {
   if (customElements.get('fds-date-picker-grid') === undefined) {
     window.customElements.define('fds-date-picker-grid', FDSDatePickerGrid);
   }
+}
+function createSvgIcon(pathD) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  svg.setAttribute('viewBox', '0 -960 960 960');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.classList.add('icon-svg');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', pathD);
+  svg.appendChild(path);
+  return svg;
 }
 /* harmony default export */ const fds_date_picker_grid = (registerDatePickerGrid);
 ;// ./src/js/custom-elements/textarea/fds-textarea.js

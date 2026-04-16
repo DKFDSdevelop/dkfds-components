@@ -1,278 +1,12 @@
 import * as Util from './fds-date-picker-utils';
+import { styles } from './fds-date-picker-grid-styling.js';
+
+const CHEVRON_DOWN_PATH = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
+const CHEVRON_LEFT_PATH = 'M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z';
+const CHEVRON_RIGHT_PATH = 'M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z';
 
 const sheet = new CSSStyleSheet();
-sheet.replaceSync(`
-    *,
-    *::before,
-    *::after {
-        box-sizing: border-box;
-    }
-
-    .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        margin: -1px;
-        padding: 0;
-        overflow: hidden;
-        clip-path: inset(50%);
-        border: 0;
-        user-select: none;
-        white-space: nowrap;
-    }
-
-    button,
-    select {
-        text-transform: none;
-        appearance: none;
-        font-family: inherit;
-        font-size: 100%;
-        line-height: 1.5;
-        margin: 0;
-    }
-
-    .button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1.5;
-        text-align: center;
-        vertical-align: middle;
-        cursor: pointer;
-        margin: 0;
-        overflow-wrap: break-word;
-        max-width: 100%;
-        font-weight: inherit;
-        font-size: 1.6rem;
-        min-height: 32px;
-        padding: 2px;
-        border-width: 2px;
-        border-style: solid;
-        text-decoration: none;
-        border-color: transparent;
-        color: #1a1a1a;
-        background-color: transparent;
-    }
-
-    .button:disabled, 
-    .button.disabled {
-        opacity: 0.25;
-        cursor: not-allowed;
-        box-shadow: none !important;
-    }
-
-    .button.button-icon-only .icon-svg {
-        margin: 0;
-    }
-
-    .button.button-icon-only:hover, 
-    .button.button-icon-only.button-hover {
-        border-color: #F5F5F5;
-        color: #1a1a1a;
-        background-color: #F5F5F5;
-    }
-
-    .button.button-icon-only:active, 
-    .button.button-icon-only.button-active {
-        border-color: #DCDCDC;
-        color: #1a1a1a;
-        background-color: #DCDCDC;
-    }
-
-    .button.button-icon-only:disabled, 
-    .button.button-icon-only.disabled {
-        text-decoration: none;
-        border-color: transparent;
-        color: #1a1a1a;
-        background-color: transparent;
-    }
-
-    .button .icon-svg {
-        margin-right: 8px;
-        fill: currentColor;
-        min-width: 2.4rem;
-    }
-
-    .select-arrow {
-        position: absolute;
-        max-width: 2.4rem;
-    }
-
-    :host {
-        display: block;
-        border: 1px solid #8E8E8E;
-        background-color: white;
-        max-width: calc(7 * 40px + 8 * 0.4rem + 2px);
-        border-radius: 8px;
-        overflow: auto;
-    }
-
-    .grid-container {
-        width: fit-content;
-    }
-
-    .grid-container:focus {
-        outline: 0;
-    }
-
-    .date-picker-header {
-        display: flex;
-        justify-content: space-between;
-        background-color: #F5F5F5;
-        padding-top: 4px;
-        padding-bottom: 4px;
-        min-width: 220px;
-        position: relative;
-        z-index: 3;
-    }
-
-    .month-year-wrapper {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .selected-month,
-    .selected-year {
-        border: 0;
-        background-color: #F5F5F5;
-        border-radius: 8px;
-        background-position: 100%;
-        background-size: 2.4rem;
-        padding-right: 2.4rem;
-        padding-left: 8px;
-        margin-left: 4px;
-        margin-right: 4px;
-        font-weight: 600;
-        height: 40px;
-    }
-
-    .selected-month:hover,
-    .selected-year:hover {
-        background-color: #DCDCDC;
-    }
-
-    .selected-month:active,
-    .selected-year:active {
-        background-color: #BFBFBF;
-    }
-
-    .selected-month:focus,
-    .selected-year:focus {
-        outline-offset: -3px;
-    }
-
-    .selected-month option,
-    .selected-year option {
-        background-color: #ffffff;
-    }
-
-    .previous-month,
-    .next-month {
-        width: 40px;
-        height: 40px;
-        border-radius: 20px;
-    }
-
-    .previous-month:hover,
-    .next-month:hover {
-        background-color: #DCDCDC;
-    }
-
-    .previous-month:active,
-    .next-month:active {
-        background-color: #BFBFBF;
-    }
-
-    .previous-month svg,
-    .next-month svg {
-        pointer-events: none;
-    }
-
-    .previous-month {
-        margin-left: 4px;
-    }
-
-    .next-month {
-        margin-right: 4px;
-    }
-
-    table {
-        border-collapse: separate;
-        border-spacing: 0.4rem;
-        min-width: 220px;
-    }
-
-    thead th {
-        position: relative;
-        font-size: 1.4rem;
-        font-weight: 400;
-        height: 40px;
-    }
-
-    thead th span[aria-hidden="true"] {
-        position: relative;
-        z-index: 1;
-        top: -4px;
-    }
-
-    thead th::before {
-        content: '';
-        position: absolute;
-        z-index: 1;
-        background-color: #F5F5F5;
-        display: block;
-        left: calc(0rem - 0.4rem);
-        top: calc(0rem - 0.4rem - 4px);
-        width: calc(100% + 2 * 0.4rem);
-        height: calc(100% + 2 * 0.4rem);
-        border-bottom: 1px solid #DCDCDC;
-    }
-
-    td {
-        height: 40px;
-        width: 40px;
-        max-width: 40px;
-        text-align: center;
-        border-radius: 20px;
-    }
-
-    td[data-date]:focus {
-        outline: 3px solid #454545;
-        outline-offset: 1px;
-    }
-
-    td:not([data-date]):focus {
-        outline: none;
-    }
-
-    td[aria-selected] {
-        cursor: pointer;
-    }
-
-    td[aria-selected]:hover {
-        background-color: #DCDCDC;
-    }
-
-    td[aria-selected="true"] {
-        background-color: #1a1a1a;
-        color: #ffffff;
-    }
-
-    td[aria-disabled="true"] {
-        color: #BFBFBF;
-    }
-
-    td[aria-disabled="true"]:focus {
-        outline: none;
-    }
-
-    td[aria-current="date"] {
-        font-weight: 700;
-        text-decoration: underline;
-    }
-`);
-
+sheet.replaceSync(styles);
 
 class FDSDatePickerGrid extends HTMLElement {
 
@@ -300,7 +34,6 @@ class FDSDatePickerGrid extends HTMLElement {
     #handlePrevMonth;
     #handleNextMonth;
     #handleDateClick;
-    #handleFocusOut
 
     #textMinDate;
     #textMaxDate;
@@ -367,6 +100,9 @@ class FDSDatePickerGrid extends HTMLElement {
         monthYearWrapper.classList.add('month-year-wrapper');
 
         // Select month
+        const monthWrapper = document.createElement('div');
+        monthWrapper.classList.add('month-wrapper');
+
         const monthSelect = document.createElement('select');
         monthSelect.setAttribute('name', 'month');
         monthSelect.setAttribute('aria-label', 'Måned');
@@ -374,29 +110,31 @@ class FDSDatePickerGrid extends HTMLElement {
         for (let i = 0; i < this.#MONTHS.length; i++) {
             monthSelect.innerHTML += `<option value="${i}">${this.#MONTHS[i].charAt(0).toUpperCase() + this.#MONTHS[i].slice(1)}</option>`;
         }
-        monthYearWrapper.appendChild(monthSelect);
+        monthWrapper.appendChild(monthSelect);
 
-        const svgArrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svgArrow.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-        svgArrow.setAttribute('viewBox', '0 -960 960 960');
-        svgArrow.setAttribute('aria-hidden', 'true');
-        svgArrow.classList.add('icon-svg', 'select-arrow');
-        const pathArrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        pathArrow.setAttribute('d', 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z');
-        svgArrow.appendChild(pathArrow);
+        const svgArrow = createSvgIcon(CHEVRON_DOWN_PATH);
+        svgArrow.classList.add('select-arrow');
+        monthWrapper.appendChild(svgArrow);
 
-        monthYearWrapper.appendChild(svgArrow);
+        monthYearWrapper.appendChild(monthWrapper);
 
         // Select year
+        const yearWrapper = document.createElement('div');
+        yearWrapper.classList.add('year-wrapper');
+
         const yearSelect = document.createElement('select');
         yearSelect.setAttribute('name', 'year');
         yearSelect.setAttribute('aria-label', 'År');
         yearSelect.classList.add('selected-year');
-        monthYearWrapper.appendChild(yearSelect);
+        yearWrapper.appendChild(yearSelect);
+
+        const svgYearArrow = createSvgIcon(CHEVRON_DOWN_PATH);
+        svgYearArrow.classList.add('select-arrow');
+        yearWrapper.appendChild(svgYearArrow);
+
+        monthYearWrapper.appendChild(yearWrapper);
 
         datePickerHeader.appendChild(monthYearWrapper);
-
-        
 
         // Next button
         const nextButton = document.createElement('button');
@@ -573,7 +311,6 @@ class FDSDatePickerGrid extends HTMLElement {
             gridcells[i].removeAttribute('aria-selected');
             gridcells[i].removeAttribute('aria-disabled');
             gridcells[i].removeAttribute('aria-current');
-            //gridcells[i].classList.remove('today');
             gridcells[i].innerHTML = '';
         }
 
@@ -606,7 +343,6 @@ class FDSDatePickerGrid extends HTMLElement {
 
             if (Util.datesAreEqual(gridcellDate, TODAY)) {
                 gridcells[i + offset - 1].setAttribute('aria-current', 'date');
-                //gridcells[i + offset - 1].classList.add('today');
             }
 
             // Set the content of each cell (a number from 1-31)
@@ -887,13 +623,6 @@ class FDSDatePickerGrid extends HTMLElement {
         }
     }
 
-    #sendFocusOutEvent(event) {
-        if (!this.shadowRoot.contains(event.relatedTarget)) {
-            this.dispatchEvent(new Event('focus-left-grid'));
-            console.log('Focus left grid');
-        }
-    }
-
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = ['min-date', 'max-date', 'selected-date', 'default-date', 'text-months', 'text-days', 'text-prevbutton', 'text-nextbutton', 'text-date-announcement', 'text-mindate', 'text-maxdate'];
@@ -933,7 +662,6 @@ class FDSDatePickerGrid extends HTMLElement {
         this.#handlePrevMonth = (event) => { this.#monthButtonClicked(event); };
         this.#handleNextMonth = (event) => { this.#monthButtonClicked(event); };
         this.#handleDateClick = (event) => { this.#dateClicked(event) };
-        this.#handleFocusOut = (event) => { this.#sendFocusOutEvent(event) };
 
         this.#hasDatePickerConnection = false;
     }
@@ -961,8 +689,6 @@ class FDSDatePickerGrid extends HTMLElement {
         this.shadowRoot.querySelector('.previous-month').addEventListener('click', this.#handlePrevMonth, false);
         this.shadowRoot.querySelector('.next-month').addEventListener('click', this.#handleNextMonth, false);
         this.shadowRoot.querySelector('.date-picker-grid').addEventListener('click', this.#handleDateClick, false);
-        //this.shadowRoot.querySelector('.grid-container').addEventListener('focusout', this.#handleFocusOut, false);
-        this.shadowRoot.addEventListener('focusout', this.#handleFocusOut, false);
 
         // If the date picker is part of a "duo" defining start date and end date, add event listeners when both grids exist
         const isStartDate = this.hasAttribute('start-date-id');
@@ -1042,8 +768,8 @@ class FDSDatePickerGrid extends HTMLElement {
         if (!monthSelect) return;
 
         const ROOT_FONT_SIZE = 10;    // px, result of the 62.5% trick
-        const ARROW_OFFSET_REM = 25;  // px, is converted to rem
-        const ARROW_OFFSET_PX = 8;    // px, kept as pixels
+        const ARROW_OFFSET_PX = 24;  // px, is converted to rem
+        const PADDING_PX = 8;    // px, kept as pixels
 
         const selectedOption = monthSelect.options?.[monthSelect.selectedIndex];
         if (!selectedOption) return;
@@ -1059,8 +785,8 @@ class FDSDatePickerGrid extends HTMLElement {
 
         this.shadowRoot.appendChild(tempSpan);
         if (tempSpan.offsetWidth > 0) {
-            const remWidth = (tempSpan.offsetWidth + ARROW_OFFSET_REM) / ROOT_FONT_SIZE;
-            monthSelect.style.width = `calc(${remWidth}rem + ${ARROW_OFFSET_PX}px)`;
+            const remWidth = tempSpan.offsetWidth / ROOT_FONT_SIZE;
+            monthSelect.style.width = `calc(${remWidth}rem + ${PADDING_PX + ARROW_OFFSET_PX}px)`;
         }
         this.shadowRoot.removeChild(tempSpan);
     }
@@ -1136,6 +862,20 @@ function registerDatePickerGrid() {
     if (customElements.get('fds-date-picker-grid') === undefined) {
         window.customElements.define('fds-date-picker-grid', FDSDatePickerGrid);
     }
+}
+
+function createSvgIcon(pathD) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svg.setAttribute('viewBox', '0 -960 960 960');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.classList.add('icon-svg');
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', pathD);
+    svg.appendChild(path);
+
+    return svg;
 }
 
 export default registerDatePickerGrid;
