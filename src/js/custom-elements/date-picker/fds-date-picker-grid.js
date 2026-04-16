@@ -80,17 +80,10 @@ class FDSDatePickerGrid extends HTMLElement {
         // Previous button
         const prevButton = document.createElement('button');
         prevButton.classList.add('previous-month');
-        const svgPrev = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svgPrev.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-        svgPrev.setAttribute('viewBox', '0 -960 960 960');
-        svgPrev.setAttribute('aria-hidden', 'true');
-        svgPrev.classList.add('icon-svg');
+        const svgPrev = createSvgIcon(CHEVRON_LEFT_PATH);
         const prevButtonSR = document.createElement('span');
         prevButtonSR.textContent = 'Forrige';
         prevButtonSR.classList.add('sr-only');
-        const pathPrev = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        pathPrev.setAttribute('d', 'M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z');
-        svgPrev.appendChild(pathPrev);
         prevButton.appendChild(svgPrev);
         prevButton.appendChild(prevButtonSR);
         datePickerHeader.appendChild(prevButton);
@@ -139,17 +132,10 @@ class FDSDatePickerGrid extends HTMLElement {
         // Next button
         const nextButton = document.createElement('button');
         nextButton.classList.add('next-month');
-        const svgNext = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svgNext.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-        svgNext.setAttribute('viewBox', '0 -960 960 960');
-        svgNext.setAttribute('aria-hidden', 'true');
-        svgNext.classList.add('icon-svg');
+        const svgNext = createSvgIcon(CHEVRON_RIGHT_PATH);
         const nextButtonSR = document.createElement('span');
         nextButtonSR.textContent = 'Næste';
         nextButtonSR.classList.add('sr-only');
-        const pathNext = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        pathNext.setAttribute('d', 'M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z');
-        svgNext.appendChild(pathNext);
         nextButton.appendChild(svgNext);
         nextButton.appendChild(nextButtonSR);
         datePickerHeader.appendChild(nextButton);
