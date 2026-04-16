@@ -79,7 +79,7 @@ class FDSDatePickerGrid extends HTMLElement {
 
         // Previous button
         const prevButton = document.createElement('button');
-        prevButton.classList.add('button', 'button-icon-only', 'previous-month');
+        prevButton.classList.add('previous-month');
         const svgPrev = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svgPrev.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
         svgPrev.setAttribute('viewBox', '0 -960 960 960');
@@ -138,7 +138,7 @@ class FDSDatePickerGrid extends HTMLElement {
 
         // Next button
         const nextButton = document.createElement('button');
-        nextButton.classList.add('button', 'button-icon-only', 'next-month');
+        nextButton.classList.add('next-month');
         const svgNext = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svgNext.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
         svgNext.setAttribute('viewBox', '0 -960 960 960');

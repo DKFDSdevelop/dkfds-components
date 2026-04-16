@@ -28,68 +28,6 @@ export const styles = `
         margin: 0;
     }
 
-    .button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1.5;
-        text-align: center;
-        vertical-align: middle;
-        cursor: pointer;
-        margin: 0;
-        overflow-wrap: break-word;
-        max-width: 100%;
-        font-weight: inherit;
-        font-size: 1.6rem;
-        min-height: 32px;
-        padding: 2px;
-        border-width: 2px;
-        border-style: solid;
-        text-decoration: none;
-        border-color: transparent;
-        color: #1a1a1a;
-        background-color: transparent;
-    }
-
-    .button:disabled, 
-    .button.disabled {
-        opacity: 0.25;
-        cursor: not-allowed;
-        box-shadow: none !important;
-    }
-
-    .button.button-icon-only .icon-svg {
-        margin: 0;
-    }
-
-    .button.button-icon-only:hover, 
-    .button.button-icon-only.button-hover {
-        border-color: #F5F5F5;
-        color: #1a1a1a;
-        background-color: #F5F5F5;
-    }
-
-    .button.button-icon-only:active, 
-    .button.button-icon-only.button-active {
-        border-color: #DCDCDC;
-        color: #1a1a1a;
-        background-color: #DCDCDC;
-    }
-
-    .button.button-icon-only:disabled, 
-    .button.button-icon-only.disabled {
-        text-decoration: none;
-        border-color: transparent;
-        color: #1a1a1a;
-        background-color: transparent;
-    }
-
-    .button .icon-svg {
-        margin-right: 8px;
-        fill: currentColor;
-        min-width: 2.4rem;
-    }
-
     :host {
         display: block;
         border: 1px solid #8E8E8E;
@@ -175,24 +113,29 @@ export const styles = `
 
     .previous-month,
     .next-month {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1.5;
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        margin: 0;
+        overflow-wrap: break-word;
+        max-width: 100%;
+        font-weight: inherit;
+        font-size: 1.6rem;
+        min-height: 32px;
+        padding: 2px;
+        border-width: 2px;
+        border-style: solid;
+        text-decoration: none;
+        border-color: transparent;
+        color: #1a1a1a;
+        background-color: transparent;
         width: 40px;
         height: 40px;
         border-radius: 20px;
-    }
-
-    .previous-month:hover,
-    .next-month:hover {
-        background-color: #DCDCDC;
-    }
-
-    .previous-month:active,
-    .next-month:active {
-        background-color: #BFBFBF;
-    }
-
-    .previous-month svg,
-    .next-month svg {
-        pointer-events: none;
     }
 
     .previous-month {
@@ -201,6 +144,38 @@ export const styles = `
 
     .next-month {
         margin-right: 4px;
+    }
+
+    .previous-month:hover,
+    .next-month:hover {
+        border-color: #DCDCDC;
+        color: #1a1a1a;
+        background-color: #DCDCDC;
+    }
+
+    .previous-month:active,
+    .next-month:active {
+        border-color: #BFBFBF;
+        color: #1a1a1a;
+        background-color: #BFBFBF;
+    }
+
+    .previous-month:disabled,
+    .next-month:disabled {
+        opacity: 0.25;
+        cursor: not-allowed;
+        box-shadow: none !important;
+        border-color: transparent;
+        color: #1a1a1a;
+        background-color: transparent;
+    }
+
+    .previous-month svg,
+    .next-month svg {
+        margin: 0;
+        fill: currentColor;
+        width: 2.4rem;
+        pointer-events: none;
     }
 
     table {
@@ -260,7 +235,8 @@ export const styles = `
         background-color: #DCDCDC;
     }
 
-    td[aria-selected="true"] {
+    td[aria-selected="true"],
+    td[aria-selected="true"]:hover {
         background-color: #1a1a1a;
         color: #ffffff;
     }
