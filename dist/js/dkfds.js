@@ -10747,7 +10747,6 @@ class FDSDatePickerGrid extends HTMLElement {
       const noMinNoMax = !isValidDate(this.#correctedMinDate) && !isValidDate(this.#correctedMaxDate);
       if (dateIsBetweenMinAndMax || dateIsGreaterThanMinNoMax || dateIsSmallerThanMaxNoMin || noMinNoMax) {
         gridcells[i + offset - 1].setAttribute('aria-selected', `false`);
-        //gridcells[i + offset - 1].setAttribute('tabindex', '-1');
       } else {
         gridcells[i + offset - 1].setAttribute('aria-disabled', `true`);
       }
@@ -10771,8 +10770,8 @@ class FDSDatePickerGrid extends HTMLElement {
     const nextMonthButton = this.shadowRoot.querySelector('.next-month');
     const visibleMinDate = this.shadowRoot.querySelector(`[data-date="${ISOFormatFromDate(this.#correctedMinDate)}"]`);
     const visibleMaxDate = this.shadowRoot.querySelector(`[data-date="${ISOFormatFromDate(this.#correctedMaxDate)}"]`);
-    visibleMinDate ? prevMonthButton.setAttribute('aria-disabled', 'true') : prevMonthButton.removeAttribute('aria-disabled');
-    visibleMaxDate ? nextMonthButton.setAttribute('aria-disabled', 'true') : nextMonthButton.removeAttribute('aria-disabled');
+    visibleMinDate ? prevMonthButton.setAttribute('disabled', '') : prevMonthButton.removeAttribute('disabled');
+    visibleMaxDate ? nextMonthButton.setAttribute('disabled', '') : nextMonthButton.removeAttribute('disabled');
 
     // If wanted, set focus on the date causing the redraw unless the grid is hidden or the focus is on the date input field
     const isDisplayed = this.offsetParent;
@@ -10930,32 +10929,34 @@ class FDSDatePickerGrid extends HTMLElement {
     event.target.focus();
   }
   #monthButtonClicked(event) {
-    if (event.target.hasAttribute('aria-disabled')) return;
     const focusedDay = this.shadowRoot.querySelector('td[data-date][tabindex="0"]');
     const focusedDayAsDate = stringToDate(focusedDay.getAttribute('data-date'));
     let prevMonth = getPrevMonth(focusedDayAsDate);
     let nextMonth = getNextMonth(focusedDayAsDate);
     if (event.target === this.shadowRoot.querySelector('.previous-month')) {
-      if (prevMonth < this.#correctedMinDate) {
-        prevMonth = this.#correctedMinDate;
-      }
       this.#redraw(prevMonth, false);
-    } else if (event.target === this.shadowRoot.querySelector('.next-month')) {
-      if (this.#correctedMaxDate < nextMonth) {
-        nextMonth = this.#correctedMaxDate;
+      if (event.target.getAttribute('disabled') !== null) {
+        this.shadowRoot.querySelector('.sr-only').textContent = '';
+        // Focus the earliest selectable date for proper sr announcement
+        this.shadowRoot.querySelector('td[tabindex="0"]')?.setAttribute('tabindex', '-1');
+        this.shadowRoot.querySelector('td[aria-selected]')?.setAttribute('tabindex', '0');
+        this.focusFocusableDate();
       }
+    } else if (event.target === this.shadowRoot.querySelector('.next-month')) {
       this.#redraw(nextMonth, false);
+      if (event.target.getAttribute('disabled') !== null) {
+        this.shadowRoot.querySelector('.sr-only').textContent = '';
+        // Focus the last selectable date for proper sr announcement
+        this.shadowRoot.querySelector('td[tabindex="0"]')?.setAttribute('tabindex', '-1');
+        const tds = this.shadowRoot.querySelectorAll('td[aria-selected]');
+        tds[tds.length - 1]?.setAttribute('tabindex', '0');
+        this.focusFocusableDate();
+      }
     }
-    event.target.focus();
-    const visibleMinDate = this.shadowRoot.querySelector(`[data-date="${ISOFormatFromDate(this.#correctedMinDate)}"]`);
-    const visibleMaxDate = this.shadowRoot.querySelector(`[data-date="${ISOFormatFromDate(this.#correctedMaxDate)}"]`);
-    const month = this.#MONTHS[parseInt(this.shadowRoot.querySelector('.selected-month').value, 10)];
-    const year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
-    if (event.target === this.shadowRoot.querySelector('.previous-month') && visibleMinDate) {
-      this.shadowRoot.querySelector('.sr-only').textContent = `${month} ${year}, tidligste måned nået`;
-    } else if (event.target === this.shadowRoot.querySelector('.next-month') && visibleMaxDate) {
-      this.shadowRoot.querySelector('.sr-only').textContent = `${month} ${year}, seneste måned nået`;
-    } else {
+    if (event.target.getAttribute('disabled') === null) {
+      // Update screen reader message so the new month (and year) is announced
+      const month = this.#MONTHS[parseInt(this.shadowRoot.querySelector('.selected-month').value, 10)];
+      const year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
       this.shadowRoot.querySelector('.sr-only').textContent = `${month} ${year}`;
     }
   }
