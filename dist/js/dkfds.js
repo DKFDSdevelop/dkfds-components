@@ -8936,6 +8936,10 @@ class FDSUploadFile extends HTMLElement {
     this.#uploadObserver.observe(this, config);
   }
   #handleMutations = (records, observer) => {
+    const wrapperHiddenChanged = records.some(record => record.attributeName === 'hidden' && record.target === this);
+    if (wrapperHiddenChanged) {
+      this.#notifySummaryOnVisibilityChange();
+    }
     const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
     if (shouldUpdate) {
       this.#setupAccessibility();
@@ -9111,6 +9115,27 @@ class FDSUploadFile extends HTMLElement {
     fileItem.setFileData(file, id);
     return fileItem;
   }
+  #notifySummaryOnDisconnect() {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+      document.dispatchEvent(new CustomEvent('error-message-callback', {
+        detail: {
+          errorId: errorMessage.id,
+          isRemoved: true
+        }
+      }));
+    });
+  }
+  #notifySummaryOnVisibilityChange() {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+      document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+        detail: {
+          errorId: errorMessage.id
+        }
+      }));
+    });
+  }
 
   /* -----------------------------
      State updates
@@ -9261,6 +9286,7 @@ class FDSUploadFile extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
+    this.#notifySummaryOnDisconnect();
     this.#initialized = false;
     this.removeEventListener('click', this.#onClick);
     this.#inputEl?.removeEventListener('change', this.#onInputChange);
@@ -9937,7 +9963,10 @@ class FDSDatePicker extends HTMLElement {
   }
   #handleMutations = (records, observer) => {
     //console.log(`${this.tagName} had mutations at ${Date.now()}`, records);
-
+    const wrapperHiddenChanged = records.some(record => record.attributeName === 'hidden' && record.target === this);
+    if (wrapperHiddenChanged) {
+      this.#notifySummaryOnVisibilityChange();
+    }
     const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
     if (shouldUpdate) {
       this.#setupInput();
@@ -10068,6 +10097,27 @@ class FDSDatePicker extends HTMLElement {
       this.querySelector('fds-date-picker-grid')?.setAttribute('text-months', str);
     }
   }
+  #notifySummaryOnDisconnect() {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+      document.dispatchEvent(new CustomEvent('error-message-callback', {
+        detail: {
+          errorId: errorMessage.id,
+          isRemoved: true
+        }
+      }));
+    });
+  }
+  #notifySummaryOnVisibilityChange() {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+      document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+        detail: {
+          errorId: errorMessage.id
+        }
+      }));
+    });
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -10158,6 +10208,7 @@ class FDSDatePicker extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
+    this.#notifySummaryOnDisconnect();
     this.#initialized = false;
     if (this.#datePickerObserver) {
       this.#datePickerObserver.disconnect();
@@ -11098,8 +11149,10 @@ class FDSTextarea extends HTMLElement {
     this.#textareaObserver.observe(this, config);
   }
   #handleMutations = (records, observer) => {
-    //console.log(`${this.tagName} had mutations at ${Date.now()}`, records);
-
+    const wrapperHiddenChanged = records.some(record => record.attributeName === 'hidden' && record.target === this);
+    if (wrapperHiddenChanged) {
+      this.#notifySummaryOnVisibilityChange();
+    }
     const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
     if (shouldUpdate) {
       this.#setupTextarea();
@@ -11117,6 +11170,27 @@ class FDSTextarea extends HTMLElement {
     const relevantTagNames = ['LABEL', 'TEXTAREA', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
     const allNodes = [...addedNodes, ...removedNodes];
     return allNodes.some(node => relevantTagNames.includes(node?.tagName));
+  }
+  #notifySummaryOnDisconnect() {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+      document.dispatchEvent(new CustomEvent('error-message-callback', {
+        detail: {
+          errorId: errorMessage.id,
+          isRemoved: true
+        }
+      }));
+    });
+  }
+  #notifySummaryOnVisibilityChange() {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+      document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+        detail: {
+          errorId: errorMessage.id
+        }
+      }));
+    });
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
@@ -11147,6 +11221,7 @@ class FDSTextarea extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
+    this.#notifySummaryOnDisconnect();
     this.#initialized = false;
     if (this.#textareaObserver) {
       this.#textareaObserver.disconnect();

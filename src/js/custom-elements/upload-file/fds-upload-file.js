@@ -201,6 +201,14 @@ class FDSUploadFile extends HTMLElement {
     }
 
     #handleMutations = (records, observer) => {
+        const wrapperHiddenChanged = records.some(record =>
+            record.attributeName === 'hidden' && record.target === this
+        );
+
+        if (wrapperHiddenChanged) {
+            this.#notifySummaryOnVisibilityChange();
+        }
+
         const shouldUpdate = records.some(record =>
             this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName)
         );
@@ -418,6 +426,31 @@ class FDSUploadFile extends HTMLElement {
         return fileItem;
     }
 
+    #notifySummaryOnDisconnect() {
+        if (!document.querySelector('fds-error-summary[auto]')) return;
+
+        this.querySelectorAll('fds-error-message[id]').forEach((errorMessage) => {
+            document.dispatchEvent(new CustomEvent('error-message-callback', {
+                detail: {
+                    errorId: errorMessage.id,
+                    isRemoved: true
+                }
+            }));
+        });
+    }
+
+    #notifySummaryOnVisibilityChange() {
+        if (!document.querySelector('fds-error-summary[auto]')) return;
+
+        this.querySelectorAll('fds-error-message[id]').forEach((errorMessage) => {
+            document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+                detail: {
+                    errorId: errorMessage.id
+                }
+            }));
+        });
+    }
+
     /* -----------------------------
        State updates
     ----------------------------- */
@@ -586,6 +619,8 @@ class FDSUploadFile extends HTMLElement {
     -------------------------------------------------- */
 
     disconnectedCallback() {
+        this.#notifySummaryOnDisconnect();
+        
         this.#initialized = false;
 
         this.removeEventListener('click', this.#onClick);
