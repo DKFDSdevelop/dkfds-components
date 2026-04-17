@@ -3215,6 +3215,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerDatePicker: () => (/* reexport */ fds_date_picker),
   registerDatePickerGrid: () => (/* reexport */ fds_date_picker_grid),
   registerErrorMessage: () => (/* reexport */ fds_error_message),
+  registerErrorSummary: () => (/* reexport */ fds_error_summary),
   registerFileItem: () => (/* reexport */ fds_file_item),
   registerHelpText: () => (/* reexport */ fds_help_text),
   registerInputWrapper: () => (/* reexport */ fds_input_wrapper),
@@ -7073,7 +7074,7 @@ class FDSErrorMessage extends HTMLElement {
       svg.appendChild(use);
       const visibleMessage = document.createElement('span');
       visibleMessage.classList.add('visible-message');
-      visibleMessage.textContent = this.textContent;
+      visibleMessage.textContent = this.getAttribute('message') || this.textContent;
       this.textContent = '';
       this.appendChild(svg);
       this.appendChild(visibleMessage);
@@ -7093,6 +7094,17 @@ class FDSErrorMessage extends HTMLElement {
       }
     }));
   }
+  #dispatchErrorMessageCallback() {
+    if (!this.#parentWrapper) return;
+    this.#parentWrapper.dispatchEvent(new CustomEvent('error-message-callback', {
+      bubbles: true,
+      detail: {
+        errorId: this.id,
+        isHidden: this.#shouldBeHidden(this.getAttribute('hidden')),
+        targets: this.getTargets()
+      }
+    }));
+  }
 
   /* --------------------------------------------------
   CUSTOM ELEMENT METHODS
@@ -7106,7 +7118,7 @@ class FDSErrorMessage extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['id', 'icon-text', 'hidden', 'targets'];
+  static observedAttributes = ['id', 'icon-text', 'hidden', 'targets', 'message'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -7131,8 +7143,8 @@ class FDSErrorMessage extends HTMLElement {
     }
 
     // Save reference to parent wrapper
-    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input, fds-upload-file');
-    this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
+    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input, fds-textarea, fds-select, fds-upload-file, fds-date-picker');
+    this.#dispatchErrorMessageCallback();
   }
 
   /* --------------------------------------------------
@@ -7157,14 +7169,17 @@ class FDSErrorMessage extends HTMLElement {
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (!this.#rendered) return;
-    if (name === 'icon-text') {
+    if (name === 'icon-text' && oldValue !== newValue) {
       this.#iconText = newValue;
       this.querySelector(':scope > .alert-icon').setAttribute('aria-label', this.#iconText);
     }
     if (name === 'hidden' && oldValue !== newValue) {
       this.#notifyParent();
     }
-    this.#parentWrapper?.dispatchEvent(new Event('error-message-callback'));
+    if (name === 'message' && oldValue !== newValue) {
+      this.querySelector(':scope > .visible-message').textContent = newValue;
+    }
+    this.#dispatchErrorMessageCallback();
   }
 }
 function registerErrorMessage() {
@@ -8621,9 +8636,33 @@ class FDSSelect extends HTMLElement {
       else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class' && target?.tagName !== 'LABEL') {
         setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
         setInvalid(this.#select, this.#errorMessages);
+        if (attributeName === 'hidden' && target === this) {
+          this.#notifySummaryOnVisibilityChange();
+        }
       }
     }
   };
+  #notifySummaryOnDisconnect() {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+      document.dispatchEvent(new CustomEvent('error-message-callback', {
+        detail: {
+          errorId: errorMessage.id,
+          isRemoved: true
+        }
+      }));
+    });
+  }
+  #notifySummaryOnVisibilityChange() {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+      document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+        detail: {
+          errorId: errorMessage.id
+        }
+      }));
+    });
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -8699,6 +8738,7 @@ class FDSSelect extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
+    this.#notifySummaryOnDisconnect();
     this.#initialized = false;
     if (this.#selectObserver) {
       this.#selectObserver.disconnect();
@@ -8896,6 +8936,10 @@ class FDSUploadFile extends HTMLElement {
     this.#uploadObserver.observe(this, config);
   }
   #handleMutations = (records, observer) => {
+    const wrapperHiddenChanged = records.some(record => record.attributeName === 'hidden' && record.target === this);
+    if (wrapperHiddenChanged) {
+      this.#notifySummaryOnVisibilityChange();
+    }
     const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
     if (shouldUpdate) {
       this.#setupAccessibility();
@@ -9071,6 +9115,27 @@ class FDSUploadFile extends HTMLElement {
     fileItem.setFileData(file, id);
     return fileItem;
   }
+  #notifySummaryOnDisconnect() {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+      document.dispatchEvent(new CustomEvent('error-message-callback', {
+        detail: {
+          errorId: errorMessage.id,
+          isRemoved: true
+        }
+      }));
+    });
+  }
+  #notifySummaryOnVisibilityChange() {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+      document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+        detail: {
+          errorId: errorMessage.id
+        }
+      }));
+    });
+  }
 
   /* -----------------------------
      State updates
@@ -9221,6 +9286,7 @@ class FDSUploadFile extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
+    this.#notifySummaryOnDisconnect();
     this.#initialized = false;
     this.removeEventListener('click', this.#onClick);
     this.#inputEl?.removeEventListener('change', this.#onInputChange);
@@ -9897,7 +9963,10 @@ class FDSDatePicker extends HTMLElement {
   }
   #handleMutations = (records, observer) => {
     //console.log(`${this.tagName} had mutations at ${Date.now()}`, records);
-
+    const wrapperHiddenChanged = records.some(record => record.attributeName === 'hidden' && record.target === this);
+    if (wrapperHiddenChanged) {
+      this.#notifySummaryOnVisibilityChange();
+    }
     const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
     if (shouldUpdate) {
       this.#setupInput();
@@ -10028,6 +10097,27 @@ class FDSDatePicker extends HTMLElement {
       this.querySelector('fds-date-picker-grid')?.setAttribute('text-months', str);
     }
   }
+  #notifySummaryOnDisconnect() {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+      document.dispatchEvent(new CustomEvent('error-message-callback', {
+        detail: {
+          errorId: errorMessage.id,
+          isRemoved: true
+        }
+      }));
+    });
+  }
+  #notifySummaryOnVisibilityChange() {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+      document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+        detail: {
+          errorId: errorMessage.id
+        }
+      }));
+    });
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -10120,6 +10210,7 @@ class FDSDatePicker extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
+    this.#notifySummaryOnDisconnect();
     this.#initialized = false;
     if (this.#datePickerObserver) {
       this.#datePickerObserver.disconnect();
@@ -11093,8 +11184,10 @@ class FDSTextarea extends HTMLElement {
     this.#textareaObserver.observe(this, config);
   }
   #handleMutations = (records, observer) => {
-    //console.log(`${this.tagName} had mutations at ${Date.now()}`, records);
-
+    const wrapperHiddenChanged = records.some(record => record.attributeName === 'hidden' && record.target === this);
+    if (wrapperHiddenChanged) {
+      this.#notifySummaryOnVisibilityChange();
+    }
     const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
     if (shouldUpdate) {
       this.#setupTextarea();
@@ -11112,6 +11205,27 @@ class FDSTextarea extends HTMLElement {
     const relevantTagNames = ['LABEL', 'TEXTAREA', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
     const allNodes = [...addedNodes, ...removedNodes];
     return allNodes.some(node => relevantTagNames.includes(node?.tagName));
+  }
+  #notifySummaryOnDisconnect() {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+      document.dispatchEvent(new CustomEvent('error-message-callback', {
+        detail: {
+          errorId: errorMessage.id,
+          isRemoved: true
+        }
+      }));
+    });
+  }
+  #notifySummaryOnVisibilityChange() {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+      document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+        detail: {
+          errorId: errorMessage.id
+        }
+      }));
+    });
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
@@ -11142,6 +11256,7 @@ class FDSTextarea extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
+    this.#notifySummaryOnDisconnect();
     this.#initialized = false;
     if (this.#textareaObserver) {
       this.#textareaObserver.disconnect();
@@ -11166,6 +11281,321 @@ function registerTextarea() {
   }
 }
 /* harmony default export */ const fds_textarea = (registerTextarea);
+;// ./src/js/custom-elements/error-summary/fds-error-summary.js
+
+
+
+const ERROR_WRAPPER_SELECTORS = ['fds-input-wrapper', 'fds-checkbox', 'fds-checkbox-group', 'fds-radio-button-group', 'fds-date-input', 'fds-textarea', 'fds-select', 'fds-upload-file', 'fds-date-picker'];
+const ERROR_WRAPPER_SELECTOR = ERROR_WRAPPER_SELECTORS.join(', ');
+const ERROR_MESSAGE_SELECTOR = ERROR_WRAPPER_SELECTORS.map(selector => `${selector} fds-error-message`).join(', ');
+class FDSErrorSummary extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized;
+  #handleErrorMessageEvents;
+
+  /* Private methods */
+
+  #getSummaryElements() {
+    const navElement = this.querySelector(':scope > nav');
+    const headingElement = navElement?.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
+    const listElement = navElement?.querySelector(':scope > ul');
+    return {
+      navElement,
+      headingElement,
+      listElement
+    };
+  }
+  #getErrorWrapper(errorMessage) {
+    return errorMessage?.closest(ERROR_WRAPPER_SELECTOR);
+  }
+  #normalizeHeadingLevel(headingLevel) {
+    const normalizedHeadingLevel = (headingLevel || 'h2').toLowerCase();
+    return ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(normalizedHeadingLevel) ? normalizedHeadingLevel : 'h2';
+  }
+  #isErrorMessageHidden(errorMessage) {
+    if (!errorMessage) return true;
+    const hiddenValue = errorMessage.getAttribute('hidden');
+    return hiddenValue === '' || hiddenValue === 'true';
+  }
+  #isWrapperHidden(wrapper) {
+    if (!wrapper) return true;
+    const hiddenValue = wrapper.getAttribute('hidden');
+    return hiddenValue === '' || hiddenValue === 'true';
+  }
+  #isEligibleErrorMessage(errorMessage) {
+    if (!errorMessage?.matches('fds-error-message')) return false;
+    const wrapper = this.#getErrorWrapper(errorMessage);
+    if (!wrapper) return false;
+    return !this.#isWrapperHidden(wrapper);
+  }
+  #syncVisibility() {
+    const {
+      listElement
+    } = this.#getSummaryElements();
+    const hasErrors = !!listElement?.querySelector(':scope > li');
+    this.hidden = !hasErrors;
+  }
+  #ensureDOM() {
+    const headingLevel = this.#normalizeHeadingLevel(this.getAttribute('heading-level'));
+    let navElement = this.querySelector(':scope > nav');
+    if (!navElement) {
+      navElement = document.createElement('nav');
+      const iconElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      iconElement.setAttribute('aria-label', 'Fejl');
+      iconElement.setAttribute('focusable', 'false');
+      const useElement = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+      useElement.setAttributeNS(null, 'href', '#error');
+      iconElement.appendChild(useElement);
+      const headingElement = document.createElement(headingLevel);
+      headingElement.textContent = this.getAttribute('heading') || 'Der er problemer';
+      headingElement.id = generateAndVerifyUniqueId('error-summary-heading');
+      const listElement = document.createElement('ul');
+      navElement.appendChild(iconElement);
+      navElement.appendChild(headingElement);
+      navElement.appendChild(listElement);
+      navElement.setAttribute('aria-labelledby', headingElement.id);
+      this.appendChild(navElement);
+      return true;
+    }
+    const headingElement = navElement.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
+    if (!headingElement) {
+      console.warn('<fds-error-summary> Missing direct child heading inside nav.');
+      return false;
+    }
+    const listElement = navElement.querySelector(':scope > ul');
+    if (!listElement) {
+      console.warn('<fds-error-summary> Missing direct child ul inside nav.');
+      return false;
+    }
+    if (!headingElement.id) {
+      headingElement.id = generateAndVerifyUniqueId('error-summary-heading');
+    }
+    navElement.setAttribute('aria-labelledby', headingElement.id);
+    return true;
+  }
+  #updateHeading(heading) {
+    const {
+      headingElement
+    } = this.#getSummaryElements();
+    if (headingElement) {
+      headingElement.textContent = heading;
+    }
+  }
+  #updateHeadingLevel(headingLevel) {
+    const normalizedHeadingLevel = this.#normalizeHeadingLevel(headingLevel);
+    const {
+      navElement,
+      headingElement
+    } = this.#getSummaryElements();
+    if (!headingElement || headingElement.tagName.toLowerCase() === normalizedHeadingLevel) return;
+    const newHeadingElement = document.createElement(normalizedHeadingLevel);
+    for (const attr of headingElement.attributes) {
+      newHeadingElement.setAttribute(attr.name, attr.value);
+    }
+    newHeadingElement.append(...headingElement.childNodes);
+    headingElement.replaceWith(newHeadingElement);
+    if (navElement && newHeadingElement.id) {
+      navElement.setAttribute('aria-labelledby', newHeadingElement.id);
+    }
+  }
+  #syncAll() {
+    const heading = this.getAttribute('heading');
+    const headingLevel = this.getAttribute('heading-level');
+    if (heading !== null) {
+      this.#updateHeading(heading);
+    }
+    if (headingLevel !== null) {
+      this.#updateHeadingLevel(headingLevel);
+    }
+  }
+  #addError(errorId, message) {
+    const {
+      listElement
+    } = this.#getSummaryElements();
+    if (!listElement || !errorId || !message) return;
+    const sourceError = document.getElementById(errorId);
+    if (!sourceError) return;
+    let li = listElement.querySelector(`[data-error-id="${errorId}"]`);
+    if (!li) {
+      li = document.createElement('li');
+      li.dataset.errorId = errorId;
+      const link = document.createElement('a');
+      link.classList.add('function-link');
+      li.appendChild(link);
+      listElement.appendChild(li);
+    }
+    const link = li.querySelector('a');
+    if (link) {
+      link.href = `#${errorId}`;
+      link.textContent = message;
+    }
+
+    // Reinsert in correct DOM order
+    const items = [...listElement.querySelectorAll(':scope > li')].filter(item => item !== li);
+    let inserted = false;
+    for (const item of items) {
+      const itemErrorId = item.dataset.errorId;
+      const itemSourceError = itemErrorId ? document.getElementById(itemErrorId) : null;
+      if (!itemSourceError) continue;
+      const isBefore = sourceError.compareDocumentPosition(itemSourceError) & Node.DOCUMENT_POSITION_FOLLOWING;
+      if (isBefore) {
+        listElement.insertBefore(li, item);
+        inserted = true;
+        break;
+      }
+    }
+    if (!inserted) {
+      listElement.appendChild(li);
+    }
+    this.#syncVisibility();
+  }
+  #removeError(errorId) {
+    const {
+      listElement
+    } = this.#getSummaryElements();
+    listElement?.querySelector(`[data-error-id="${errorId}"]`)?.remove();
+    this.#syncVisibility();
+  }
+  #syncErrorMessage(errorMessage) {
+    if (!errorMessage?.id || !this.#isEligibleErrorMessage(errorMessage)) {
+      if (errorMessage?.id) {
+        this.#removeError(errorMessage.id);
+      }
+      return;
+    }
+    const isHidden = this.#isErrorMessageHidden(errorMessage);
+    const message = errorMessage.querySelector(':scope > .visible-message')?.textContent?.trim() || errorMessage.textContent?.trim();
+    if (isHidden || !message) {
+      this.#removeError(errorMessage.id);
+      return;
+    }
+    this.#addError(errorMessage.id, message);
+  }
+  #syncErrorById(errorId) {
+    if (!errorId) return;
+    const errorMessage = document.getElementById(errorId);
+    if (!errorMessage || !this.#isEligibleErrorMessage(errorMessage)) {
+      this.#removeError(errorId);
+      return;
+    }
+    this.#syncErrorMessage(errorMessage);
+  }
+  #scanAllErrors() {
+    document.querySelectorAll(ERROR_MESSAGE_SELECTOR).forEach(errorMessage => {
+      this.#syncErrorMessage(errorMessage);
+    });
+    this.#syncVisibility();
+  }
+  #cleanupAutoMode() {
+    if (!this.#handleErrorMessageEvents) return;
+    document.removeEventListener('error-message-visibility-changed', this.#handleErrorMessageEvents);
+    document.removeEventListener('error-message-callback', this.#handleErrorMessageEvents);
+    this.#handleErrorMessageEvents = null;
+  }
+  #initAutoMode() {
+    this.#cleanupAutoMode();
+    const {
+      listElement
+    } = this.#getSummaryElements();
+    if (listElement) {
+      listElement.innerHTML = '';
+    }
+    this.#syncVisibility();
+    this.#scanAllErrors();
+    this.#handleErrorMessageEvents = e => {
+      const {
+        errorId,
+        isRemoved
+      } = e.detail || {};
+      if (e.type === 'error-message-callback' && !errorId) {
+        this.#scanAllErrors();
+        return;
+      }
+      if (!errorId) return;
+      if (isRemoved) {
+        this.#removeError(errorId);
+        return;
+      }
+      this.#syncErrorById(errorId);
+    };
+    document.addEventListener('error-message-visibility-changed', this.#handleErrorMessageEvents);
+    document.addEventListener('error-message-callback', this.#handleErrorMessageEvents);
+  }
+  static observedAttributes = ['heading', 'heading-level', 'ready', 'auto'];
+  constructor() {
+    super();
+    this.#initialized = false;
+    this.#handleErrorMessageEvents = null;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  init() {
+    if (this.#initialized) return;
+    const isValid = this.#ensureDOM();
+    if (!isValid) return;
+    this.#syncAll();
+    if (this.hasAttribute('auto')) {
+      this.#initAutoMode();
+    }
+    this.#initialized = true;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#cleanupAutoMode();
+    this.#initialized = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue === 'true') {
+        this.init();
+      }
+      return;
+    }
+    if (attribute === 'auto') {
+      if (this.#initialized && newValue !== null && oldValue === null) {
+        this.#initAutoMode();
+      } else if (this.#initialized && newValue === null && oldValue !== null) {
+        this.#cleanupAutoMode();
+      }
+      return;
+    }
+    if (!this.#initialized) return;
+    if (attribute === 'heading') {
+      this.#updateHeading(newValue);
+    }
+    if (attribute === 'heading-level') {
+      this.#updateHeadingLevel(newValue);
+    }
+  }
+}
+function registerErrorSummary() {
+  if (customElements.get('fds-error-summary') === undefined) {
+    window.customElements.define('fds-error-summary', FDSErrorSummary);
+  }
+}
+/* harmony default export */ const fds_error_summary = (registerErrorSummary);
 ;// ./src/js/dkfds.js
 
 
@@ -11189,6 +11619,7 @@ function registerTextarea() {
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 // Custom elements
+
 
 
 
@@ -11411,6 +11842,7 @@ const registerCustomElements = () => {
   fds_textarea();
   fds_upload_file();
   fds_file_item();
+  fds_error_summary();
 };
 registerCustomElements();
 

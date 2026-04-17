@@ -142,7 +142,13 @@ class FDSTextarea extends HTMLElement {
     }
 
     #handleMutations = (records, observer) => {
-        //console.log(`${this.tagName} had mutations at ${Date.now()}`, records);
+        const wrapperHiddenChanged = records.some(record =>
+            record.attributeName === 'hidden' && record.target === this
+        );
+
+        if (wrapperHiddenChanged) {
+            this.#notifySummaryOnVisibilityChange();
+        }
 
         const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
 
@@ -172,6 +178,31 @@ class FDSTextarea extends HTMLElement {
         const relevantTagNames = ['LABEL', 'TEXTAREA', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
         const allNodes = [...addedNodes, ...removedNodes];
         return allNodes.some(node => relevantTagNames.includes(node?.tagName));
+    }
+
+    #notifySummaryOnDisconnect() {
+        if (!document.querySelector('fds-error-summary[auto]')) return;
+
+        this.querySelectorAll('fds-error-message[id]').forEach((errorMessage) => {
+            document.dispatchEvent(new CustomEvent('error-message-callback', {
+                detail: {
+                    errorId: errorMessage.id,
+                    isRemoved: true
+                }
+            }));
+        });
+    }
+
+    #notifySummaryOnVisibilityChange() {
+        if (!document.querySelector('fds-error-summary[auto]')) return;
+
+        this.querySelectorAll('fds-error-message[id]').forEach((errorMessage) => {
+            document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+                detail: {
+                    errorId: errorMessage.id
+                }
+            }));
+        });
     }
 
     /* Attributes which can invoke attributeChangedCallback() */
@@ -204,6 +235,8 @@ class FDSTextarea extends HTMLElement {
     -------------------------------------------------- */
 
     disconnectedCallback() {
+        this.#notifySummaryOnDisconnect();
+
         this.#initialized = false;
 
         if (this.#textareaObserver) {

@@ -149,8 +149,8 @@ fds-input-wrapper,
         }
     }
 
-    &:has(fds-error-message:not([hidden])),
-    &:has(.fds-error-message:not([hidden])) {
+    &:has(fds-error-message:not([hidden]), fds-error-message[hidden="false"]),
+    &:has(.fds-error-message:not([hidden]), .fds-error-message[hidden="false"]) {
         &>.form-input,
         &>.form-input-wrapper>.form-input {
             border: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
