@@ -39,6 +39,10 @@ fds-date-picker,
         border-end-end-radius: 0;
         border-start-end-radius: 0;
 
+        &:focus {
+            z-index: 1;
+        }
+
         &:disabled {
             opacity: 1;
             background-color: func.color(vars.$input-disabled-background-color);

@@ -13561,6 +13561,10 @@ fds-date-picker input,
   border-end-end-radius:0;
   border-start-end-radius:0;
 }
+fds-date-picker input:focus,
+.fds-date-picker input:focus{
+  z-index:1;
+}
 fds-date-picker input:disabled,
 .fds-date-picker input:disabled{
   opacity:1;
