@@ -10171,6 +10171,7 @@ class FDSDatePicker extends HTMLElement {
   open() {
     if (!this.querySelector('.ce-date-picker')) return;
     this.querySelector('.ce-date-picker').classList.remove('d-none');
+    this.querySelector('fds-date-picker-grid').resizeMonth();
   }
   close() {
     if (!this.querySelector('.ce-date-picker')) return;
@@ -10179,6 +10180,7 @@ class FDSDatePicker extends HTMLElement {
   toggle() {
     if (!this.querySelector('.ce-date-picker')) return;
     this.querySelector('.ce-date-picker').classList.toggle('d-none');
+    this.querySelector('fds-date-picker-grid').resizeMonth();
   }
 
   /* --------------------------------------------------
@@ -10518,6 +10520,7 @@ class FDSDatePickerGrid extends HTMLElement {
     }
     const month = date.getMonth();
     gridContainer.querySelector('.selected-month').value = month;
+    this.resizeMonth();
 
     /* Remove existing dates in the grid */
 
@@ -10808,6 +10811,7 @@ class FDSDatePickerGrid extends HTMLElement {
       for (let i = 0; i < monthOptions.length; i++) {
         monthOptions[i].textContent = this.#MONTHS[i].charAt(0).toUpperCase() + this.#MONTHS[i].slice(1);
       }
+      this.resizeMonth();
     }
   }
   #updateTextPrevButton(str) {
@@ -10828,6 +10832,30 @@ class FDSDatePickerGrid extends HTMLElement {
     if (dayCount === 1 && monthCount === 1 && yearCount === 1) {
       this.#CELL_DATE_FORMAT = str;
     }
+  }
+  resizeMonth() {
+    const monthSelect = this.querySelector('.selected-month');
+    if (!monthSelect) return;
+    const ROOT_FONT_SIZE = 10; // px, result of the 62.5% trick
+    const ARROW_OFFSET_REM = 25; // px, is converted to rem
+    const ARROW_OFFSET_PX = 8; // px, kept as pixels
+
+    const selectedOption = monthSelect.options?.[monthSelect.selectedIndex];
+    if (!selectedOption) return;
+    const tempSpan = document.createElement('span');
+    tempSpan.style.visibility = 'hidden';
+    tempSpan.style.position = 'absolute';
+    tempSpan.style.fontFamily = '"IBM Plex Sans", "system-ui", system, sans-serif';
+    tempSpan.style.fontSize = '16px';
+    tempSpan.style.lineHeight = '1.5';
+    tempSpan.style.fontWeight = '600';
+    tempSpan.textContent = selectedOption.text;
+    this.appendChild(tempSpan);
+    if (tempSpan.offsetWidth > 0) {
+      const remWidth = (tempSpan.offsetWidth + ARROW_OFFSET_REM) / ROOT_FONT_SIZE;
+      monthSelect.style.width = `calc(${remWidth}rem + ${ARROW_OFFSET_PX}px)`;
+    }
+    this.removeChild(tempSpan);
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
@@ -10944,6 +10972,13 @@ class FDSDatePickerGrid extends HTMLElement {
         }
       });
     }
+
+    // Resize again on load - the font may initially be missing, when the width of the month <select> is calculated
+    const onLoad = () => {
+      this.resizeMonth();
+      window.removeEventListener('load', onLoad);
+    };
+    window.addEventListener('load', onLoad);
   }
 
   /* --------------------------------------------------
