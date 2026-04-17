@@ -7143,7 +7143,7 @@ class FDSErrorMessage extends HTMLElement {
     }
 
     // Save reference to parent wrapper
-    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input, fds-select, fds-upload-file');
+    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input, fds-textarea, fds-select, fds-upload-file, fds-date-picker');
     this.#dispatchErrorMessageCallback();
   }
 
@@ -8636,9 +8636,33 @@ class FDSSelect extends HTMLElement {
       else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class' && target?.tagName !== 'LABEL') {
         setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
         setInvalid(this.#select, this.#errorMessages);
+        if (attributeName === 'hidden' && target === this) {
+          this.#notifySummaryOnVisibilityChange();
+        }
       }
     }
   };
+  #notifySummaryOnDisconnect() {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+      document.dispatchEvent(new CustomEvent('error-message-callback', {
+        detail: {
+          errorId: errorMessage.id,
+          isRemoved: true
+        }
+      }));
+    });
+  }
+  #notifySummaryOnVisibilityChange() {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+      document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+        detail: {
+          errorId: errorMessage.id
+        }
+      }));
+    });
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -8714,6 +8738,7 @@ class FDSSelect extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
+    this.#notifySummaryOnDisconnect();
     this.#initialized = false;
     if (this.#selectObserver) {
       this.#selectObserver.disconnect();
@@ -11150,6 +11175,9 @@ function registerTextarea() {
 
 
 
+const ERROR_WRAPPER_SELECTORS = ['fds-input-wrapper', 'fds-checkbox', 'fds-checkbox-group', 'fds-radio-button-group', 'fds-date-input', 'fds-textarea', 'fds-select', 'fds-upload-file', 'fds-date-picker'];
+const ERROR_WRAPPER_SELECTOR = ERROR_WRAPPER_SELECTORS.join(', ');
+const ERROR_MESSAGE_SELECTOR = ERROR_WRAPPER_SELECTORS.map(selector => `${selector} fds-error-message`).join(', ');
 class FDSErrorSummary extends HTMLElement {
   /* Private instance fields */
 
@@ -11168,6 +11196,9 @@ class FDSErrorSummary extends HTMLElement {
       listElement
     };
   }
+  #getErrorWrapper(errorMessage) {
+    return errorMessage?.closest(ERROR_WRAPPER_SELECTOR);
+  }
   #normalizeHeadingLevel(headingLevel) {
     const normalizedHeadingLevel = (headingLevel || 'h2').toLowerCase();
     return ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(normalizedHeadingLevel) ? normalizedHeadingLevel : 'h2';
@@ -11177,8 +11208,16 @@ class FDSErrorSummary extends HTMLElement {
     const hiddenValue = errorMessage.getAttribute('hidden');
     return hiddenValue === '' || hiddenValue === 'true';
   }
+  #isWrapperHidden(wrapper) {
+    if (!wrapper) return true;
+    const hiddenValue = wrapper.getAttribute('hidden');
+    return hiddenValue === '' || hiddenValue === 'true';
+  }
   #isEligibleErrorMessage(errorMessage) {
-    return errorMessage instanceof HTMLElement && errorMessage.matches('fds-error-message') && !!errorMessage.id && !!errorMessage.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input, fds-select, fds-upload-file');
+    if (!errorMessage?.matches('fds-error-message')) return false;
+    const wrapper = this.#getErrorWrapper(errorMessage);
+    if (!wrapper) return false;
+    return !this.#isWrapperHidden(wrapper);
   }
   #syncVisibility() {
     const {
@@ -11265,6 +11304,8 @@ class FDSErrorSummary extends HTMLElement {
       listElement
     } = this.#getSummaryElements();
     if (!listElement || !errorId || !message) return;
+    const sourceError = document.getElementById(errorId);
+    if (!sourceError) return;
     let li = listElement.querySelector(`[data-error-id="${errorId}"]`);
     if (!li) {
       li = document.createElement('li');
@@ -11278,6 +11319,24 @@ class FDSErrorSummary extends HTMLElement {
     if (link) {
       link.href = `#${errorId}`;
       link.textContent = message;
+    }
+
+    // Reinsert in correct DOM order
+    const items = [...listElement.querySelectorAll(':scope > li')].filter(item => item !== li);
+    let inserted = false;
+    for (const item of items) {
+      const itemErrorId = item.dataset.errorId;
+      const itemSourceError = itemErrorId ? document.getElementById(itemErrorId) : null;
+      if (!itemSourceError) continue;
+      const isBefore = sourceError.compareDocumentPosition(itemSourceError) & Node.DOCUMENT_POSITION_FOLLOWING;
+      if (isBefore) {
+        listElement.insertBefore(li, item);
+        inserted = true;
+        break;
+      }
+    }
+    if (!inserted) {
+      listElement.appendChild(li);
     }
     this.#syncVisibility();
   }
@@ -11313,7 +11372,7 @@ class FDSErrorSummary extends HTMLElement {
     this.#syncErrorMessage(errorMessage);
   }
   #scanAllErrors() {
-    document.querySelectorAll('fds-input-wrapper fds-error-message, ' + 'fds-checkbox fds-error-message, ' + 'fds-checkbox-group fds-error-message, ' + 'fds-radio-button-group fds-error-message, ' + 'fds-date-input fds-error-message, ' + 'fds-select fds-error-message, ' + 'fds-upload-file fds-error-message').forEach(errorMessage => {
+    document.querySelectorAll(ERROR_MESSAGE_SELECTOR).forEach(errorMessage => {
       this.#syncErrorMessage(errorMessage);
     });
     this.#syncVisibility();
@@ -11343,6 +11402,7 @@ class FDSErrorSummary extends HTMLElement {
         this.#scanAllErrors();
         return;
       }
+      if (!errorId) return;
       if (isRemoved) {
         this.#removeError(errorId);
         return;
@@ -11370,8 +11430,6 @@ class FDSErrorSummary extends HTMLElement {
     this.#syncAll();
     if (this.hasAttribute('auto')) {
       this.#initAutoMode();
-    } else {
-      this.#syncVisibility();
     }
     this.#initialized = true;
   }
@@ -11410,7 +11468,6 @@ class FDSErrorSummary extends HTMLElement {
         this.#initAutoMode();
       } else if (this.#initialized && newValue === null && oldValue !== null) {
         this.#cleanupAutoMode();
-        this.#syncVisibility();
       }
       return;
     }
