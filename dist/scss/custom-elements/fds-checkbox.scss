@@ -22,9 +22,8 @@ fds-checkbox,
     margin-top: func.units(3);
     position: relative; // Needed for the nested input buttons using absolute position
 
-    &:has(> fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message:not([hidden])),
-    &:has(> .fds-error-message:not([hidden]),
-        >.form-group-checkbox~.fds-error-message) {
+    &:has(> fds-error-message:not([hidden]), > fds-error-message[hidden="false"], > .form-group-checkbox ~ fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message[hidden="false"]),
+    &:has(> .fds-error-message:not([hidden]), > .fds-error-message[hidden="false"], > .form-group-checkbox ~ .fds-error-message:not([hidden]), > .form-group-checkbox ~ .fds-error-message[hidden="false"]) {
         .form-checkbox+label::before {
             border: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
         }
@@ -131,7 +130,8 @@ fds-checkbox,
             }
         }
 
-        &:has(> fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message:not([hidden])) {
+        &:has(> fds-error-message:not([hidden]), > fds-error-message[hidden="false"], > .form-group-checkbox ~ fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message[hidden="false"]),
+        &:has(> .fds-error-message:not([hidden]), > .fds-error-message[hidden="false"], > .form-group-checkbox ~ .fds-error-message:not([hidden]), > .form-group-checkbox ~ .fds-error-message[hidden="false"]) {
             &::before {
                 height: calc(100% - $-content-wrapper-top-offset - #{$error-space});
             }
