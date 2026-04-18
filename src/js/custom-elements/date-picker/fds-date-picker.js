@@ -1,5 +1,6 @@
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 import * as Util from './fds-date-picker-utils';
+import * as CE from '../custom-element-utils';
 
 class FDSDatePicker extends HTMLElement {
 
@@ -33,11 +34,7 @@ class FDSDatePicker extends HTMLElement {
         const input = this.querySelector('input');
 
         if (input) {
-            label.htmlFor = input.id;
             label.classList.toggle('disabled', input.hasAttribute('disabled'));
-        }
-        else {
-            label.removeAttribute('for');
         }
     }
 
@@ -45,12 +42,6 @@ class FDSDatePicker extends HTMLElement {
         const input = this.querySelector('input');
 
         if (!input) return;
-
-        /* Set id */
-
-        if (!input.id) {
-            input.id = generateAndVerifyUniqueId('inp');
-        }
 
         /* Add or remove aria-describedby */
 
@@ -82,50 +73,50 @@ class FDSDatePicker extends HTMLElement {
     #init() {
         if (this.#initialized) return;
 
+        /* Confirm that the element was initialized with the required elements */
+
+        const label = this.querySelector('label');
+        const input = this.querySelector('div input');
+        const grid = this.querySelector('div fds-date-picker-grid');
+
+        if (!label || !input || !grid) return;
+
+        /* Add mutation observer */
+
         this.#setupObserver();
+
+        /* Setup elements */
+
+        CE.associateLabelWithElement(label, input, 'datp');
 
         this.#setupInput();
         this.#setupLabel();
 
-        const input = this.querySelector('input');
+        /* Update text */
+
+        if (this.hasAttribute('text-open')) { this.#textOpen = this.getAttribute('text-open'); }
+        if (this.hasAttribute('text-selecteddate')) { this.#textSelectedDate = this.getAttribute('text-selecteddate'); }
+        if (this.hasAttribute('text-months')) { this.#updateTextMonths(this.getAttribute('text-months')) }
 
         /* Add date picker button next to the input */
 
-        if (!input.parentElement.classList.contains('input-wrapper')) {
-            const inputWrapper = document.createElement('div');
-            inputWrapper.classList.add('input-wrapper');
-            this.appendChild(inputWrapper);
+        const dateButton = this.querySelector('.date-button') || document.createElement('button');
+        dateButton.setAttribute('aria-haspopup', 'dialog');
+        dateButton.classList.add('button', 'button-icon-only', 'date-button');
+        dateButton.setAttribute('aria-label', this.#textOpen);
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.classList.add('icon-svg');
+        svg.setAttribute('focusable', 'false');
+        svg.setAttribute('aria-hidden', 'true');
+        const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+        use.setAttributeNS(null, 'href', `#calendar-month`);
+        svg.appendChild(use);
+        dateButton.appendChild(svg);
 
-            inputWrapper.appendChild(input);
+        input.insertAdjacentElement('afterend', dateButton);
+        input.parentElement.classList.add('input-wrapper');
 
-            if (this.hasAttribute('text-open')) { this.#textOpen = this.getAttribute('text-open'); }
-            if (this.hasAttribute('text-selecteddate')) { this.#textSelectedDate = this.getAttribute('text-selecteddate'); }
-
-            const dateButton = document.createElement('button');
-            dateButton.setAttribute('aria-haspopup', 'dialog');
-            dateButton.classList.add('button', 'button-icon-only', 'date-button');
-            dateButton.setAttribute('aria-label', this.#textOpen);
-            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svg.classList.add('icon-svg');
-            svg.setAttribute('focusable', 'false');
-            svg.setAttribute('aria-hidden', 'true');
-            const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-            use.setAttributeNS(null, 'href', `#calendar-month`);
-            svg.appendChild(use);
-            dateButton.appendChild(svg);
-            inputWrapper.appendChild(dateButton);
-        }
-
-        /* Create child elements for the dialog */
-
-        let grid = null;
-        if (this.querySelector('fds-date-picker-grid')) {
-            grid = this.querySelector('fds-date-picker-grid');
-        }
-        else {
-            grid = document.createElement('fds-date-picker-grid');
-        }
-        if (this.hasAttribute('text-months')) { this.#updateTextMonths(this.getAttribute('text-months')) }
+        /* Add close button and setup dialog */
 
         const closeButtonContainer = document.createElement('div');
         closeButtonContainer.setAttribute('tabindex', '-1');
@@ -145,13 +136,11 @@ class FDSDatePicker extends HTMLElement {
 
         /* Add wrapper for fds-date-picker-grid and close button */
 
-        const datePicker = document.createElement('div');
+        const datePicker = grid.parentElement;
         datePicker.classList.add('ce-date-picker', 'd-none');
         datePicker.setAttribute('role', 'dialog');
         datePicker.setAttribute('aria-modal', 'false');
-        datePicker.appendChild(grid);
         datePicker.appendChild(closeButtonContainer);
-        this.appendChild(datePicker);
 
         this.#initialized = true;
     }
@@ -202,7 +191,6 @@ class FDSDatePicker extends HTMLElement {
     }
 
     #handleMutations = (records, observer) => {
-        //console.log(`${this.tagName} had mutations at ${Date.now()}`, records);
         const wrapperHiddenChanged = records.some(record =>
             record.attributeName === 'hidden' && record.target === this
         );
@@ -381,7 +369,7 @@ class FDSDatePicker extends HTMLElement {
         }
     }
 
-     #notifySummaryOnDisconnect() {
+    #notifySummaryOnDisconnect() {
         if (!document.querySelector('fds-error-summary[auto]')) return;
 
         this.querySelectorAll('fds-error-message[id]').forEach((errorMessage) => {
@@ -472,13 +460,13 @@ class FDSDatePicker extends HTMLElement {
         if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
 
         // Add event listeners
-        this.querySelector('.date-button').addEventListener('click', this.#handleDatePickerButtonClick, false);
+        this.querySelector('.date-button')?.addEventListener('click', this.#handleDatePickerButtonClick, false);
         this.addEventListener('focusout', this.#handleFocusOut, false);
-        this.querySelector('fds-date-picker-grid').addEventListener('date-selected', this.#handleDateSelection, false);
-        this.querySelector('fds-date-picker-grid').addEventListener('date-clicked', this.#handleDateClick, false);
-        this.querySelector('.close-button').addEventListener('click', this.#handleCloseClick, false);
-        this.querySelector('input').addEventListener('input', this.#handleInput, false);
-        this.querySelector('.ce-date-picker').addEventListener('keydown', this.#handleKeydown, false);
+        this.querySelector('fds-date-picker-grid')?.addEventListener('date-selected', this.#handleDateSelection, false);
+        this.querySelector('fds-date-picker-grid')?.addEventListener('date-clicked', this.#handleDateClick, false);
+        this.querySelector('.close-button')?.addEventListener('click', this.#handleCloseClick, false);
+        this.querySelector('input')?.addEventListener('input', this.#handleInput, false);
+        this.querySelector('.ce-date-picker')?.addEventListener('keydown', this.#handleKeydown, false);
 
         // Handles previously entered input when using the browser's back button
         window.addEventListener('pageshow', this.#handlePageShow, false);
