@@ -28,6 +28,13 @@ export const styles = `
         margin: 0;
     }
 
+    button:focus,
+    input:focus,
+    select:focus {
+        outline: 3px solid #454545;
+        outline-offset: 1px;
+    }
+
     :host {
         display: block;
         border: 1px solid #8E8E8E;

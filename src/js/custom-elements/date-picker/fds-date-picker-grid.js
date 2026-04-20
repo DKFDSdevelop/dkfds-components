@@ -367,13 +367,28 @@ class FDSDatePickerGrid extends HTMLElement {
         const visibleMinDate = this.shadowRoot.querySelector(`[data-date="${Util.ISOFormatFromDate(this.#correctedMinDate)}"]`);
         const visibleMaxDate = this.shadowRoot.querySelector(`[data-date="${Util.ISOFormatFromDate(this.#correctedMaxDate)}"]`);
 
-        visibleMinDate ? prevMonthButton.setAttribute('disabled', '') : prevMonthButton.removeAttribute('disabled');
-        visibleMaxDate ? nextMonthButton.setAttribute('disabled', '') : nextMonthButton.removeAttribute('disabled');
+        const focusedElement = this.shadowRoot?.activeElement ?? document.activeElement;
+
+        if (visibleMinDate) {
+            if (focusedElement.classList.contains('previous-month')) { this.focusFocusableDate(); }
+            prevMonthButton.setAttribute('disabled', '');
+        }
+        else {
+            prevMonthButton.removeAttribute('disabled');
+        }
+
+        if (visibleMaxDate) {
+            if (focusedElement.classList.contains('next-month')) { this.focusFocusableDate(); }
+            nextMonthButton.setAttribute('disabled', '');
+        }
+        else {
+            nextMonthButton.removeAttribute('disabled');
+        }
 
         // If wanted, set focus on the date causing the redraw unless the grid is hidden or the focus is on the date input field
         const isDisplayed = this.offsetParent;
         if (setFocus && isDisplayed && document.activeElement.tagName !== 'INPUT') {
-            this.shadowRoot.querySelector('td[tabindex="0"]').focus();
+            this.focusFocusableDate();
         }
     }
 

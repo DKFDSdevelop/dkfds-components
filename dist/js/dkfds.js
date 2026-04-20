@@ -10091,17 +10091,23 @@ class FDSDatePicker extends HTMLElement {
   #keyboardNavigation(event) {
     switch (event.key) {
       case 'Tab':
+        const previousButton = this.querySelector('fds-date-picker-grid').shadowRoot.querySelector('.previous-month');
+        const monthSelect = this.querySelector('fds-date-picker-grid').shadowRoot.querySelector('.selected-month');
         if (event.shiftKey) {
           const path = event.composedPath();
           const innerTarget = path[0];
-          if (innerTarget === this.querySelector('fds-date-picker-grid').shadowRoot.querySelector('.previous-month')) {
+          if (innerTarget === monthSelect && previousButton.hasAttribute('disabled') || innerTarget === previousButton) {
             event.preventDefault();
             this.querySelector('.close-button').focus();
           }
         } else {
           if (event.target === this.querySelector('.close-button')) {
             event.preventDefault();
-            this.querySelector('fds-date-picker-grid').shadowRoot.querySelector('.previous-month').focus();
+            if (!previousButton.hasAttribute('disabled')) {
+              previousButton.focus();
+            } else {
+              monthSelect.focus();
+            }
           }
         }
         break;
@@ -10325,6 +10331,13 @@ const styles = `
         font-size: 100%;
         line-height: 1.5;
         margin: 0;
+    }
+
+    button:focus,
+    input:focus,
+    select:focus {
+        outline: 3px solid #454545;
+        outline-offset: 1px;
     }
 
     :host {
@@ -10880,13 +10893,28 @@ class FDSDatePickerGrid extends HTMLElement {
     const nextMonthButton = this.shadowRoot.querySelector('.next-month');
     const visibleMinDate = this.shadowRoot.querySelector(`[data-date="${ISOFormatFromDate(this.#correctedMinDate)}"]`);
     const visibleMaxDate = this.shadowRoot.querySelector(`[data-date="${ISOFormatFromDate(this.#correctedMaxDate)}"]`);
-    visibleMinDate ? prevMonthButton.setAttribute('disabled', '') : prevMonthButton.removeAttribute('disabled');
-    visibleMaxDate ? nextMonthButton.setAttribute('disabled', '') : nextMonthButton.removeAttribute('disabled');
+    const focusedElement = this.shadowRoot?.activeElement ?? document.activeElement;
+    if (visibleMinDate) {
+      if (focusedElement.classList.contains('previous-month')) {
+        this.focusFocusableDate();
+      }
+      prevMonthButton.setAttribute('disabled', '');
+    } else {
+      prevMonthButton.removeAttribute('disabled');
+    }
+    if (visibleMaxDate) {
+      if (focusedElement.classList.contains('next-month')) {
+        this.focusFocusableDate();
+      }
+      nextMonthButton.setAttribute('disabled', '');
+    } else {
+      nextMonthButton.removeAttribute('disabled');
+    }
 
     // If wanted, set focus on the date causing the redraw unless the grid is hidden or the focus is on the date input field
     const isDisplayed = this.offsetParent;
     if (setFocus && isDisplayed && document.activeElement.tagName !== 'INPUT') {
-      this.shadowRoot.querySelector('td[tabindex="0"]').focus();
+      this.focusFocusableDate();
     }
   }
   #keyboardNavigation(event) {

@@ -341,10 +341,13 @@ class FDSDatePicker extends HTMLElement {
     #keyboardNavigation(event) {
         switch (event.key) {
             case 'Tab':
+                const previousButton = this.querySelector('fds-date-picker-grid').shadowRoot.querySelector('.previous-month');
+                const monthSelect = this.querySelector('fds-date-picker-grid').shadowRoot.querySelector('.selected-month');
+
                 if (event.shiftKey) {
                     const path = event.composedPath();
-                    const innerTarget = path[0];
-                    if (innerTarget === this.querySelector('fds-date-picker-grid').shadowRoot.querySelector('.previous-month')) {
+                    const innerTarget = path[0];                    
+                    if (innerTarget === monthSelect && previousButton.hasAttribute('disabled') || innerTarget === previousButton) {
                         event.preventDefault();
                         this.querySelector('.close-button').focus();
                     }
@@ -352,7 +355,12 @@ class FDSDatePicker extends HTMLElement {
                 else {
                     if (event.target === this.querySelector('.close-button')) {
                         event.preventDefault();
-                        this.querySelector('fds-date-picker-grid').shadowRoot.querySelector('.previous-month').focus();
+                        if (!previousButton.hasAttribute('disabled')) {
+                            previousButton.focus();
+                        }
+                        else {
+                            monthSelect.focus();
+                        }
                     }
                 }
                 break;
