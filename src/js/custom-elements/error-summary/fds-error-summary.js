@@ -342,7 +342,7 @@ class FDSErrorSummary extends HTMLElement {
         document.addEventListener('error-message-callback', this.#handleErrorMessageEvents);
     }
 
-    static observedAttributes = ['heading', 'heading-level', 'ready', 'auto'];
+    static observedAttributes = ['heading', 'heading-level', 'auto'];
 
     constructor() {
         super();
@@ -375,8 +375,6 @@ class FDSErrorSummary extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
-        if (this.getAttribute('ready') === 'false') return;
-
         this.init();
     }
 
@@ -394,13 +392,6 @@ class FDSErrorSummary extends HTMLElement {
     -------------------------------------------------- */
 
     attributeChangedCallback(attribute, oldValue, newValue) {
-        if (attribute === 'ready') {
-            if (!this.#initialized && this.isConnected && newValue === 'true') {
-                this.init();
-            }
-            return;
-        }
-
         if (attribute === 'auto') {
             if (this.#initialized && newValue !== null && oldValue === null) {
                 this.#initAutoMode();
