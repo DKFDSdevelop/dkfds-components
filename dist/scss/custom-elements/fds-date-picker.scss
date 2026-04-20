@@ -54,8 +54,16 @@ fds-date-picker,
     &:has(input[aria-invalid="true"]) {
 
         input {
-            border: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
+            border-left: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
+            border-top: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
+            border-bottom: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
             padding: $input-top-bottom-padding-feedback $input-left-right-padding-feedback;
+        }
+
+        .date-button, .date-button:hover {
+            border-right: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
+            border-top: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
+            border-bottom: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
         }
 
     }
@@ -77,7 +85,7 @@ fds-date-picker,
         padding-left: func.units(305);
         padding-right: func.units(305);
 
-        &:hover {
+        &:hover, &:disabled {
             border: func.border(vars.$input-border);
             border-left: none;
         }
@@ -93,6 +101,7 @@ fds-date-picker,
             max-width: -webkit-fill-available;
             max-width: stretch;
             overflow: auto;
+            border-radius: func.border-radius('medium');
 
             @include mixins.media-breakpoint-up(sm) {
                 min-width: max-content;
