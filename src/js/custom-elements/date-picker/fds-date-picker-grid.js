@@ -1,4 +1,5 @@
 import * as Util from './fds-date-picker-utils';
+import * as CE from '../custom-element-utils';
 import { styles } from './fds-date-picker-grid-styling.js';
 
 const CHEVRON_DOWN_PATH = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
@@ -80,7 +81,7 @@ class FDSDatePickerGrid extends HTMLElement {
         // Previous button
         const prevButton = document.createElement('button');
         prevButton.classList.add('previous-month');
-        const svgPrev = createSvgIcon(CHEVRON_LEFT_PATH);
+        const svgPrev = CE.createSvgIcon(CHEVRON_LEFT_PATH);
         const prevButtonSR = document.createElement('span');
         prevButtonSR.textContent = 'Forrige';
         prevButtonSR.classList.add('sr-only');
@@ -105,7 +106,7 @@ class FDSDatePickerGrid extends HTMLElement {
         }
         monthWrapper.appendChild(monthSelect);
 
-        const svgArrow = createSvgIcon(CHEVRON_DOWN_PATH);
+        const svgArrow = CE.createSvgIcon(CHEVRON_DOWN_PATH);
         svgArrow.classList.add('select-arrow');
         monthWrapper.appendChild(svgArrow);
 
@@ -121,7 +122,7 @@ class FDSDatePickerGrid extends HTMLElement {
         yearSelect.classList.add('selected-year');
         yearWrapper.appendChild(yearSelect);
 
-        const svgYearArrow = createSvgIcon(CHEVRON_DOWN_PATH);
+        const svgYearArrow = CE.createSvgIcon(CHEVRON_DOWN_PATH);
         svgYearArrow.classList.add('select-arrow');
         yearWrapper.appendChild(svgYearArrow);
 
@@ -132,7 +133,7 @@ class FDSDatePickerGrid extends HTMLElement {
         // Next button
         const nextButton = document.createElement('button');
         nextButton.classList.add('next-month');
-        const svgNext = createSvgIcon(CHEVRON_RIGHT_PATH);
+        const svgNext = CE.createSvgIcon(CHEVRON_RIGHT_PATH);
         const nextButtonSR = document.createElement('span');
         nextButtonSR.textContent = 'Næste';
         nextButtonSR.classList.add('sr-only');
@@ -863,20 +864,6 @@ function registerDatePickerGrid() {
     if (customElements.get('fds-date-picker-grid') === undefined) {
         window.customElements.define('fds-date-picker-grid', FDSDatePickerGrid);
     }
-}
-
-function createSvgIcon(pathD) {
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    svg.setAttribute('viewBox', '0 -960 960 960');
-    svg.setAttribute('aria-hidden', 'true');
-    svg.classList.add('icon-svg');
-
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', pathD);
-    svg.appendChild(path);
-
-    return svg;
 }
 
 export default registerDatePickerGrid;

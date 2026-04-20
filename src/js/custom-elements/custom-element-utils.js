@@ -22,3 +22,25 @@ export function associateLabelWithElement(label, element, prefix) {
         label.removeAttribute('for');
     }
 }
+
+/**
+ * Creates an SVG icon element with a single path.
+ * The SVG is given a fixed viewBox of '0 -960 960 960'.
+ *
+ * @param {string} pathD - The `d` attribute value defining the shape of the SVG path.
+ * @returns {SVGSVGElement} The constructed SVG element containing the specified path.
+ */
+export function createSvgIcon(pathD) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svg.setAttribute('viewBox', '0 -960 960 960');
+    svg.setAttribute('focusable', 'false');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.classList.add('icon-svg');
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', pathD);
+    svg.appendChild(path);
+
+    return svg;
+}

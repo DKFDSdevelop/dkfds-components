@@ -9811,6 +9811,26 @@ function associateLabelWithElement(label, element, prefix) {
     label.removeAttribute('for');
   }
 }
+
+/**
+ * Creates an SVG icon element with a single path.
+ * The SVG is given a fixed viewBox of '0 -960 960 960' and the CSS class 'icon-svg'.
+ *
+ * @param {string} pathD - The `d` attribute value defining the shape of the SVG path.
+ * @returns {SVGSVGElement} The constructed SVG element containing the specified path.
+ */
+function createSvgIcon(pathD) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  svg.setAttribute('viewBox', '0 -960 960 960');
+  svg.setAttribute('focusable', 'false');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.classList.add('icon-svg');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', pathD);
+  svg.appendChild(path);
+  return svg;
+}
 ;// ./src/js/custom-elements/date-picker/fds-date-picker.js
 
 
@@ -9904,37 +9924,30 @@ class FDSDatePicker extends HTMLElement {
     /* Add date picker button next to the input */
 
     const dateButton = this.querySelector('.date-button') || document.createElement('button');
-    dateButton.setAttribute('aria-haspopup', 'dialog');
-    dateButton.classList.add('button', 'button-icon-only', 'date-button');
-    dateButton.setAttribute('aria-label', this.#textOpen);
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.classList.add('icon-svg');
-    svg.setAttribute('focusable', 'false');
-    svg.setAttribute('aria-hidden', 'true');
-    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-    use.setAttributeNS(null, 'href', `#calendar-month`);
-    svg.appendChild(use);
-    dateButton.appendChild(svg);
+    if (!dateButton.querySelector('svg')) {
+      dateButton.setAttribute('aria-haspopup', 'dialog');
+      dateButton.classList.add('button', 'button-icon-only', 'date-button');
+      dateButton.setAttribute('aria-label', this.#textOpen);
+      const svg = createSvgIcon("M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z");
+      dateButton.appendChild(svg);
+    }
     input.insertAdjacentElement('afterend', dateButton);
     input.parentElement.classList.add('input-wrapper');
 
     /* Add close button and setup dialog */
 
-    const closeButtonContainer = document.createElement('div');
+    const closeButtonContainer = this.querySelector('[tabindex="-1"]') || document.createElement('div');
     closeButtonContainer.setAttribute('tabindex', '-1');
-    const closeButton = document.createElement('button');
+    const closeButton = this.querySelector('.close-button') || document.createElement('button');
     closeButton.textContent = 'Luk';
     closeButton.classList.add('close-button', 'function-link');
-    const svgClose = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svgClose.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    svgClose.setAttribute('viewBox', '0 -960 960 960');
-    svgClose.setAttribute('aria-hidden', 'true');
-    svgClose.classList.add('icon-svg');
-    const pathClose = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    pathClose.setAttribute('d', 'm256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z');
-    svgClose.appendChild(pathClose);
-    closeButton.prepend(svgClose);
-    closeButtonContainer.appendChild(closeButton);
+    if (!closeButton.querySelector('svg')) {
+      const svgClose = createSvgIcon('m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z');
+      closeButton.prepend(svgClose);
+    }
+    if (!closeButtonContainer.querySelector('.close-button')) {
+      closeButtonContainer.appendChild(closeButton);
+    }
 
     /* Add wrapper for fds-date-picker-grid and close button */
 
@@ -10567,6 +10580,7 @@ const styles = `
     }
 `;
 ;// ./src/js/custom-elements/date-picker/fds-date-picker-grid.js
+
 
 
 const CHEVRON_DOWN_PATH = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
@@ -11387,17 +11401,6 @@ function registerDatePickerGrid() {
   if (customElements.get('fds-date-picker-grid') === undefined) {
     window.customElements.define('fds-date-picker-grid', FDSDatePickerGrid);
   }
-}
-function createSvgIcon(pathD) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  svg.setAttribute('viewBox', '0 -960 960 960');
-  svg.setAttribute('aria-hidden', 'true');
-  svg.classList.add('icon-svg');
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', pathD);
-  svg.appendChild(path);
-  return svg;
 }
 /* harmony default export */ const fds_date_picker_grid = (registerDatePickerGrid);
 ;// ./src/js/custom-elements/textarea/fds-textarea.js
