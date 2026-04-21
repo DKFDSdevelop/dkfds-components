@@ -13546,7 +13546,6 @@ fds-date-picker,
 .fds-date-picker{
   display:block;
   margin-top:24px;
-  position:relative;
 }
 fds-date-picker:first-child,
 .fds-date-picker:first-child{
@@ -13579,6 +13578,10 @@ fds-date-picker input,
   border-end-end-radius:0;
   border-start-end-radius:0;
 }
+fds-date-picker input:focus,
+.fds-date-picker input:focus{
+  z-index:1;
+}
 fds-date-picker input:disabled,
 .fds-date-picker input:disabled{
   opacity:1;
@@ -13588,13 +13591,23 @@ fds-date-picker input:disabled,
 }
 fds-date-picker:has(input[aria-invalid=true]) input,
 .fds-date-picker:has(input[aria-invalid=true]) input{
-  border:2px solid #CC0000;
+  border-left:2px solid #CC0000;
+  border-top:2px solid #CC0000;
+  border-bottom:2px solid #CC0000;
   padding:calc(8px - 2px) calc(16px - 2px);
+}
+fds-date-picker:has(input[aria-invalid=true]) .date-button, fds-date-picker:has(input[aria-invalid=true]) .date-button:hover,
+.fds-date-picker:has(input[aria-invalid=true]) .date-button,
+.fds-date-picker:has(input[aria-invalid=true]) .date-button:hover{
+  border-right:2px solid #CC0000;
+  border-top:2px solid #CC0000;
+  border-bottom:2px solid #CC0000;
 }
 fds-date-picker .input-wrapper,
 .fds-date-picker .input-wrapper{
   display:flex;
   align-items:center;
+  position:relative;
 }
 fds-date-picker .button.date-button,
 .fds-date-picker .button.date-button{
@@ -13609,8 +13622,9 @@ fds-date-picker .button.date-button,
   padding-left:12px;
   padding-right:12px;
 }
-fds-date-picker .button.date-button:hover,
-.fds-date-picker .button.date-button:hover{
+fds-date-picker .button.date-button:hover, fds-date-picker .button.date-button:disabled,
+.fds-date-picker .button.date-button:hover,
+.fds-date-picker .button.date-button:disabled{
   border:1px solid #8E8E8E;
   border-left:none;
 }
@@ -13625,6 +13639,7 @@ fds-date-picker .ce-date-picker[role=dialog],
   max-width:-moz-available;
   max-width:stretch;
   overflow:auto;
+  border-radius:8px;
 }
 @media (min-width: 576px){
   fds-date-picker .ce-date-picker[role=dialog],
@@ -13826,6 +13841,11 @@ fds-date-picker-grid .grid-container table td[aria-selected=true],
 fds-date-picker-grid .grid-container table td[aria-disabled=true],
 .fds-date-picker-grid .grid-container table td[aria-disabled=true]{
   color:#BFBFBF;
+}
+fds-date-picker-grid .grid-container table td.today,
+.fds-date-picker-grid .grid-container table td.today{
+  font-weight:700;
+  text-decoration:underline;
 }
 
 fds-textarea,
