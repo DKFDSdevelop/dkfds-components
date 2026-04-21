@@ -11569,6 +11569,11 @@ class FDSErrorSummary extends HTMLElement {
   #getErrorWrapper(errorMessage) {
     return errorMessage?.closest(ERROR_WRAPPER_SELECTOR);
   }
+  #findFocusableControl(errorMessage) {
+    const wrapper = this.#getErrorWrapper(errorMessage);
+    if (!wrapper) return null;
+    return wrapper.querySelector('input:not([disabled]), ' + 'select:not([disabled]), ' + 'textarea:not([disabled]), ' + 'button:not([disabled]), ' + '[tabindex]:not([tabindex="-1"])');
+  }
   #normalizeHeadingLevel(headingLevel) {
     const normalizedHeadingLevel = (headingLevel || 'h2').toLowerCase();
     return ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(normalizedHeadingLevel) ? normalizedHeadingLevel : 'h2';
@@ -11599,6 +11604,9 @@ class FDSErrorSummary extends HTMLElement {
   #ensureDOM() {
     const headingLevel = this.#normalizeHeadingLevel(this.getAttribute('heading-level'));
     let navElement = this.querySelector(':scope > nav');
+
+    // Attribute mode:
+    // No nav markup provided, so create canonical structure from attributes
     if (!navElement) {
       navElement = document.createElement('nav');
       const iconElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -11623,6 +11631,9 @@ class FDSErrorSummary extends HTMLElement {
       console.warn('<fds-error-summary> Missing direct child heading inside nav.');
       return false;
     }
+
+    // Enhance mode: 
+    // Nav exists, so the supported prerendered structure must already be present
     const listElement = navElement.querySelector(':scope > ul');
     if (!listElement) {
       console.warn('<fds-error-summary> Missing direct child ul inside nav.');
@@ -11676,6 +11687,7 @@ class FDSErrorSummary extends HTMLElement {
     if (!listElement || !errorId || !message) return;
     const sourceError = document.getElementById(errorId);
     if (!sourceError) return;
+    const focusTarget = this.#findFocusableControl(sourceError);
     let li = listElement.querySelector(`[data-error-id="${errorId}"]`);
     if (!li) {
       li = document.createElement('li');
@@ -11687,8 +11699,14 @@ class FDSErrorSummary extends HTMLElement {
     }
     const link = li.querySelector('a');
     if (link) {
-      link.href = `#${errorId}`;
+      link.href = focusTarget?.id ? `#${focusTarget.id}` : '#';
       link.textContent = message;
+      link.onclick = e => {
+        e.preventDefault();
+        if (focusTarget) {
+          focusTarget.focus();
+        }
+      };
     }
 
     // Reinsert in correct DOM order
@@ -11782,7 +11800,7 @@ class FDSErrorSummary extends HTMLElement {
     document.addEventListener('error-message-visibility-changed', this.#handleErrorMessageEvents);
     document.addEventListener('error-message-callback', this.#handleErrorMessageEvents);
   }
-  static observedAttributes = ['heading', 'heading-level', 'ready', 'auto'];
+  static observedAttributes = ['heading', 'heading-level', 'auto'];
   constructor() {
     super();
     this.#initialized = false;
@@ -11809,7 +11827,6 @@ class FDSErrorSummary extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
-    if (this.getAttribute('ready') === 'false') return;
     this.init();
   }
 
@@ -11827,12 +11844,6 @@ class FDSErrorSummary extends HTMLElement {
   -------------------------------------------------- */
 
   attributeChangedCallback(attribute, oldValue, newValue) {
-    if (attribute === 'ready') {
-      if (!this.#initialized && this.isConnected && newValue === 'true') {
-        this.init();
-      }
-      return;
-    }
     if (attribute === 'auto') {
       if (this.#initialized && newValue !== null && oldValue === null) {
         this.#initAutoMode();
