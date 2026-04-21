@@ -9814,7 +9814,7 @@ function associateLabelWithElement(label, element, prefix) {
 
 /**
  * Creates an SVG icon element with a single path.
- * The SVG is given a fixed viewBox of '0 -960 960 960' and the CSS class 'icon-svg'.
+ * The SVG is given a fixed viewBox of '0 -960 960 960'.
  *
  * @param {string} pathD - The `d` attribute value defining the shape of the SVG path.
  * @returns {SVGSVGElement} The constructed SVG element containing the specified path.

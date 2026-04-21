@@ -10,7 +10,6 @@ fds-date-picker,
 .fds-date-picker {
     display: block;
     margin-top: func.units(5);
-    position: relative;
 
     &:first-child {
         margin-top: 0;
@@ -71,6 +70,7 @@ fds-date-picker,
     .input-wrapper {
         display: flex;
         align-items: center;
+        position: relative;
     }
 
     .button.date-button {

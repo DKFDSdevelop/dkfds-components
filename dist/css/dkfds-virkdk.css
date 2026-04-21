@@ -13545,7 +13545,6 @@ fds-date-picker,
 .fds-date-picker{
   display:block;
   margin-top:24px;
-  position:relative;
 }
 fds-date-picker:first-child,
 .fds-date-picker:first-child{
@@ -13607,6 +13606,7 @@ fds-date-picker .input-wrapper,
 .fds-date-picker .input-wrapper{
   display:flex;
   align-items:center;
+  position:relative;
 }
 fds-date-picker .button.date-button,
 .fds-date-picker .button.date-button{
