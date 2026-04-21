@@ -6,6 +6,7 @@ fds-upload-file,
 .fds-upload-file {
     display: block;
     max-width: vars.$typography-text-max-width;
+    margin-top: func.units(5);
 
     .fds-upload-label {
         display: block;
