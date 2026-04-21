@@ -1,5 +1,6 @@
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 import * as Util from './fds-date-picker-utils';
+import * as CE from '../custom-element-utils';
 
 class FDSDatePicker extends HTMLElement {
 
@@ -33,11 +34,7 @@ class FDSDatePicker extends HTMLElement {
         const input = this.querySelector('input');
 
         if (input) {
-            label.htmlFor = input.id;
             label.classList.toggle('disabled', input.hasAttribute('disabled'));
-        }
-        else {
-            label.removeAttribute('for');
         }
     }
 
@@ -45,12 +42,6 @@ class FDSDatePicker extends HTMLElement {
         const input = this.querySelector('input');
 
         if (!input) return;
-
-        /* Set id */
-
-        if (!input.id) {
-            input.id = generateAndVerifyUniqueId('inp');
-        }
 
         /* Add or remove aria-describedby */
 
@@ -82,76 +73,69 @@ class FDSDatePicker extends HTMLElement {
     #init() {
         if (this.#initialized) return;
 
+        /* Confirm that the element was initialized with the required elements */
+
+        const label = this.querySelector('label');
+        const input = this.querySelector('div input');
+        const grid = this.querySelector('div fds-date-picker-grid');
+
+        if (!label || !input || !grid) return;
+
+        /* Add mutation observer */
+
         this.#setupObserver();
+
+        /* Setup elements */
+
+        CE.associateLabelWithElement(label, input, 'datp');
 
         this.#setupInput();
         this.#setupLabel();
 
-        const input = this.querySelector('input');
+        /* Update text */
+
+        if (this.hasAttribute('text-open')) { this.#textOpen = this.getAttribute('text-open'); }
+        if (this.hasAttribute('text-selecteddate')) { this.#textSelectedDate = this.getAttribute('text-selecteddate'); }
+        if (this.hasAttribute('text-months')) { this.#updateTextMonths(this.getAttribute('text-months')) }
 
         /* Add date picker button next to the input */
 
-        if (!input.parentElement.classList.contains('input-wrapper')) {
-            const inputWrapper = document.createElement('div');
-            inputWrapper.classList.add('input-wrapper');
-            this.appendChild(inputWrapper);
-
-            inputWrapper.appendChild(input);
-
-            if (this.hasAttribute('text-open')) { this.#textOpen = this.getAttribute('text-open'); }
-            if (this.hasAttribute('text-selecteddate')) { this.#textSelectedDate = this.getAttribute('text-selecteddate'); }
-
-            const dateButton = document.createElement('button');
+        const dateButton = this.querySelector('.date-button') || document.createElement('button');
+        if (!dateButton.querySelector('svg')) {
             dateButton.setAttribute('aria-haspopup', 'dialog');
             dateButton.classList.add('button', 'button-icon-only', 'date-button');
             dateButton.setAttribute('aria-label', this.#textOpen);
-            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svg.classList.add('icon-svg');
-            svg.setAttribute('focusable', 'false');
-            svg.setAttribute('aria-hidden', 'true');
-            const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-            use.setAttributeNS(null, 'href', `#calendar-month`);
-            svg.appendChild(use);
+            const svg = CE.createSvgIcon("M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z");
             dateButton.appendChild(svg);
-            inputWrapper.appendChild(dateButton);
         }
+        input.insertAdjacentElement('afterend', dateButton);
+        input.parentElement.classList.add('input-wrapper');
 
-        /* Create child elements for the dialog */
+        /* Add close button and setup dialog */
 
-        let grid = null;
-        if (this.querySelector('fds-date-picker-grid')) {
-            grid = this.querySelector('fds-date-picker-grid');
-        }
-        else {
-            grid = document.createElement('fds-date-picker-grid');
-        }
-        if (this.hasAttribute('text-months')) { this.#updateTextMonths(this.getAttribute('text-months')) }
-
-        const closeButtonContainer = document.createElement('div');
+        const closeButtonContainer = this.querySelector('[tabindex="-1"]') || document.createElement('div');
         closeButtonContainer.setAttribute('tabindex', '-1');
-        const closeButton = document.createElement('button');
+
+        const closeButton = this.querySelector('.close-button') || document.createElement('button');
         closeButton.textContent = 'Luk';
         closeButton.classList.add('close-button', 'function-link');
-        const svgClose = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svgClose.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-        svgClose.setAttribute('viewBox', '0 -960 960 960');
-        svgClose.setAttribute('aria-hidden', 'true');
-        svgClose.classList.add('icon-svg');
-        const pathClose = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        pathClose.setAttribute('d', 'm256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z');
-        svgClose.appendChild(pathClose);
-        closeButton.prepend(svgClose);
-        closeButtonContainer.appendChild(closeButton);
 
+        if (!closeButton.querySelector('svg')) {
+            const svgClose = CE.createSvgIcon('m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z');
+            closeButton.prepend(svgClose);
+        }
+        
+        if (!closeButtonContainer.querySelector('.close-button')) {
+            closeButtonContainer.appendChild(closeButton);
+        }
+        
         /* Add wrapper for fds-date-picker-grid and close button */
 
-        const datePicker = document.createElement('div');
+        const datePicker = grid.parentElement;
         datePicker.classList.add('ce-date-picker', 'd-none');
         datePicker.setAttribute('role', 'dialog');
         datePicker.setAttribute('aria-modal', 'false');
-        datePicker.appendChild(grid);
         datePicker.appendChild(closeButtonContainer);
-        this.appendChild(datePicker);
 
         this.#initialized = true;
     }
@@ -202,7 +186,6 @@ class FDSDatePicker extends HTMLElement {
     }
 
     #handleMutations = (records, observer) => {
-        //console.log(`${this.tagName} had mutations at ${Date.now()}`, records);
         const wrapperHiddenChanged = records.some(record =>
             record.attributeName === 'hidden' && record.target === this
         );
@@ -291,7 +274,7 @@ class FDSDatePicker extends HTMLElement {
         this.toggle();
 
         if (!this.querySelector('.ce-date-picker').classList.contains('d-none')) {
-            this.querySelector('td[tabindex="0"]').focus();
+            this.querySelector('fds-date-picker-grid').focusFocusableDate();
         }
     }
 
@@ -353,8 +336,13 @@ class FDSDatePicker extends HTMLElement {
     #keyboardNavigation(event) {
         switch (event.key) {
             case 'Tab':
+                const previousButton = this.querySelector('fds-date-picker-grid').shadowRoot.querySelector('.previous-month');
+                const monthSelect = this.querySelector('fds-date-picker-grid').shadowRoot.querySelector('.selected-month');
+
                 if (event.shiftKey) {
-                    if (event.target === this.querySelector('.previous-month')) {
+                    const path = event.composedPath();
+                    const innerTarget = path[0];
+                    if (innerTarget === monthSelect && previousButton.hasAttribute('disabled') || innerTarget === previousButton) {
                         event.preventDefault();
                         this.querySelector('.close-button').focus();
                     }
@@ -362,7 +350,12 @@ class FDSDatePicker extends HTMLElement {
                 else {
                     if (event.target === this.querySelector('.close-button')) {
                         event.preventDefault();
-                        this.querySelector('.previous-month').focus();
+                        if (!previousButton.hasAttribute('disabled')) {
+                            previousButton.focus();
+                        }
+                        else {
+                            monthSelect.focus();
+                        }
                     }
                 }
                 break;
@@ -379,7 +372,7 @@ class FDSDatePicker extends HTMLElement {
         }
     }
 
-     #notifySummaryOnDisconnect() {
+    #notifySummaryOnDisconnect() {
         if (!document.querySelector('fds-error-summary[auto]')) return;
 
         this.querySelectorAll('fds-error-message[id]').forEach((errorMessage) => {
@@ -470,13 +463,13 @@ class FDSDatePicker extends HTMLElement {
         if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
 
         // Add event listeners
-        this.querySelector('.date-button').addEventListener('click', this.#handleDatePickerButtonClick, false);
+        this.querySelector('.date-button')?.addEventListener('click', this.#handleDatePickerButtonClick, false);
         this.addEventListener('focusout', this.#handleFocusOut, false);
-        this.querySelector('fds-date-picker-grid').addEventListener('date-selected', this.#handleDateSelection, false);
-        this.querySelector('fds-date-picker-grid').addEventListener('date-clicked', this.#handleDateClick, false);
-        this.querySelector('.close-button').addEventListener('click', this.#handleCloseClick, false);
-        this.querySelector('input').addEventListener('input', this.#handleInput, false);
-        this.querySelector('.ce-date-picker').addEventListener('keydown', this.#handleKeydown, false);
+        this.querySelector('fds-date-picker-grid')?.addEventListener('date-selected', this.#handleDateSelection, false);
+        this.querySelector('fds-date-picker-grid')?.addEventListener('date-clicked', this.#handleDateClick, false);
+        this.querySelector('.close-button')?.addEventListener('click', this.#handleCloseClick, false);
+        this.querySelector('input')?.addEventListener('input', this.#handleInput, false);
+        this.querySelector('.ce-date-picker')?.addEventListener('keydown', this.#handleKeydown, false);
 
         // Handles previously entered input when using the browser's back button
         window.addEventListener('pageshow', this.#handlePageShow, false);

@@ -30,9 +30,7 @@ fds-date-picker-grid,
             background-color: $-background-color;
             padding-top: func.units(2);
             padding-bottom: func.units(2);
-            //min-width: fit-content;
             min-width: $-grid-min-width;
-            //width: fit-content;
             position: relative;
             z-index: vars.$zindex-ce-date-picker-header;
 
@@ -109,8 +107,6 @@ fds-date-picker-grid,
 
             thead th {
                 position: relative;
-                //border-bottom: $-th-border solid $-background-color;
-                //border-top: $-th-border solid $-background-color;
                 font-size: func.font-size('xs');
                 font-weight: func.font-weight('normal');
                 height: func.units(7);
@@ -161,6 +157,11 @@ fds-date-picker-grid,
 
                 &[aria-disabled="true"] {
                     color: func.color('gray-300');
+                }
+
+                &.today {
+                    font-weight: func.font-weight('bold');
+                    text-decoration: underline;
                 }
             }
         }
