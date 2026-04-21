@@ -5,7 +5,7 @@ class FDSSelect extends HTMLElement {
 
     /* Private instance fields */
 
-    #initialized;
+    #initialized = false;
     #selectObserver = null;
 
     #label = null;
@@ -23,6 +23,7 @@ class FDSSelect extends HTMLElement {
     }
 
     #showRequiredStatus(value) {
+        this.#refreshReferences();
         if (!this.#label || !this.#select) return;
 
         let statusIndicator = this.#label.querySelector(':scope > span.weight-normal');
@@ -48,32 +49,11 @@ class FDSSelect extends HTMLElement {
         statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
     }
 
-    #setLabel(value) {
-        if (!this.#label) {
-            const label = document.createElement('label');
-            this.prepend(label);
-            this.#label = label;
-        }
-
-        this.#label.textContent = value;
-    }
-
     #setupObserver() {
         if (this.#selectObserver) return;
 
         this.#selectObserver = new MutationObserver(this.#handleMutations);
-
-        const config = {
-            subtree: true,
-            childList: true,
-            attributes: true,
-            attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required'],
-            attributeOldValue: false,
-            characterData: false,
-            characterDataOldValue: false
-        }
-
-        this.#selectObserver.observe(this, config);
+        this.#selectObserver.observe(this, CE.mutationObserverConfig);
     }
 
     #handleMutations = (records) => {
@@ -147,34 +127,14 @@ class FDSSelect extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['show-required-status', 'ready', 'label'];
+    static observedAttributes = ['show-required-status'];
 
     /* --------------------------------------------------
     GETTERS AND SETTERS
     -------------------------------------------------- */
 
-    #setAttr(name, value) {
-        value === null ? this.removeAttribute(name) : this.setAttribute(name, value);
-    }
-
     get showRequiredStatus() { return this.getAttribute('show-required-status'); }
-    set showRequiredStatus(value) { this.#setAttr('show-required-status', value); }
-
-    get ready() { return this.getAttribute('ready') !== 'false'; }
-    set ready(value) { this.#setAttr('ready', value); }
-
-    get label() { return this.getAttribute('label'); }
-    set label(value) { this.#setAttr('label', value); }
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-    -------------------------------------------------- */
-
-    constructor() {
-        super();
-
-        this.#initialized = false;
-    }
+    set showRequiredStatus(value) { this.setAttribute('show-required-status', value); }
 
     /* --------------------------------------------------
     CUSTOM ELEMENT METHODS
@@ -185,20 +145,12 @@ class FDSSelect extends HTMLElement {
 
         this.#refreshReferences();
 
-        if (this.hasAttribute('label')) this.#setLabel(this.getAttribute('label'));
-
-        if (!this.#select && this.#label) {
-            const select = document.createElement('select');
-            this.append(select);
-            this.#select = select;
-        }
-
         CE.associateLabelWithElement(this.#label, this.#select, 'sel');
         Util.setDisabledClass(this.#label, this.#select);
         Util.setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
         Util.setInvalid(this.#select, this.#errorMessages);
 
-        if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+        if (this.hasAttribute('show-required-status')) { this.#showRequiredStatus(this.getAttribute('show-required-status')); }
 
         this.#initialized = true;
     }
@@ -208,9 +160,7 @@ class FDSSelect extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
-        if (this.getAttribute('ready') === 'false') return;
-
-        if (!this.#initialized) this.init();
+        if (!this.#initialized) { this.init(); }
     }
 
     /* --------------------------------------------------
@@ -238,21 +188,10 @@ class FDSSelect extends HTMLElement {
     -------------------------------------------------- */
 
     attributeChangedCallback(attribute, oldValue, newValue) {
-        if (attribute === 'ready') {
-            if (newValue !== 'false') {
-                this.init();
-            }
-        }
-
         if (!this.#initialized) return;
 
         if (attribute === 'show-required-status' && (oldValue !== newValue)) {
-            this.#refreshReferences();
             this.#showRequiredStatus(newValue);
-        }
-
-        if (attribute === 'label' && (oldValue !== newValue)) {
-            this.#setLabel(newValue);
         }
     }
 }

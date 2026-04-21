@@ -1,6 +1,22 @@
 import { generateAndVerifyUniqueId } from '../utils/generate-unique-id';
 
 /**
+ * Configuration object for a MutationObserver.
+ * Tracked attributes: `hidden`, `aria-hidden`, `id`, `class`, `disabled`, `required`.
+ *
+ * @type {MutationObserverInit}
+ */
+export const mutationObserverConfig = {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required'],
+    attributeOldValue: false,
+    characterData: false,
+    characterDataOldValue: false
+}
+
+/**
  * Associates a label element with an (input) element.
  * If the element lacks an ID, a unique one is generated using the given prefix.
  * If no element is provided, the `for` attribute is removed from the label.

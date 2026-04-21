@@ -8526,6 +8526,22 @@ function setInvalid(select, errorMessages) {
 
 
 /**
+ * Configuration object for a MutationObserver.
+ * Tracked attributes: `hidden`, `aria-hidden`, `id`, `class`, `disabled`, `required`.
+ *
+ * @type {MutationObserverInit}
+ */
+const mutationObserverConfig = {
+  subtree: true,
+  childList: true,
+  attributes: true,
+  attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required'],
+  attributeOldValue: false,
+  characterData: false,
+  characterDataOldValue: false
+};
+
+/**
  * Associates a label element with an (input) element.
  * If the element lacks an ID, a unique one is generated using the given prefix.
  * If no element is provided, the `for` attribute is removed from the label.
@@ -8571,7 +8587,7 @@ function createSvgIcon(pathD) {
 class FDSSelect extends HTMLElement {
   /* Private instance fields */
 
-  #initialized;
+  #initialized = false;
   #selectObserver = null;
   #label = null;
   #select = null;
@@ -8587,6 +8603,7 @@ class FDSSelect extends HTMLElement {
     this.#helpTexts = this.querySelectorAll('fds-help-text');
   }
   #showRequiredStatus(value) {
+    this.#refreshReferences();
     if (!this.#label || !this.#select) return;
     let statusIndicator = this.#label.querySelector(':scope > span.weight-normal');
     if (value === null && statusIndicator) {
@@ -8605,27 +8622,10 @@ class FDSSelect extends HTMLElement {
     if (value === '' && !isRequired) text = 'frivilligt';
     statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
   }
-  #setLabel(value) {
-    if (!this.#label) {
-      const label = document.createElement('label');
-      this.prepend(label);
-      this.#label = label;
-    }
-    this.#label.textContent = value;
-  }
   #setupObserver() {
     if (this.#selectObserver) return;
     this.#selectObserver = new MutationObserver(this.#handleMutations);
-    const config = {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required'],
-      attributeOldValue: false,
-      characterData: false,
-      characterDataOldValue: false
-    };
-    this.#selectObserver.observe(this, config);
+    this.#selectObserver.observe(this, mutationObserverConfig);
   }
   #handleMutations = records => {
     for (const {
@@ -8692,41 +8692,17 @@ class FDSSelect extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['show-required-status', 'ready', 'label'];
+  static observedAttributes = ['show-required-status'];
 
   /* --------------------------------------------------
   GETTERS AND SETTERS
   -------------------------------------------------- */
 
-  #setAttr(name, value) {
-    value === null ? this.removeAttribute(name) : this.setAttribute(name, value);
-  }
   get showRequiredStatus() {
     return this.getAttribute('show-required-status');
   }
   set showRequiredStatus(value) {
-    this.#setAttr('show-required-status', value);
-  }
-  get ready() {
-    return this.getAttribute('ready') !== 'false';
-  }
-  set ready(value) {
-    this.#setAttr('ready', value);
-  }
-  get label() {
-    return this.getAttribute('label');
-  }
-  set label(value) {
-    this.#setAttr('label', value);
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
-
-  constructor() {
-    super();
-    this.#initialized = false;
+    this.setAttribute('show-required-status', value);
   }
 
   /* --------------------------------------------------
@@ -8736,17 +8712,13 @@ class FDSSelect extends HTMLElement {
   init() {
     this.#setupObserver();
     this.#refreshReferences();
-    if (this.hasAttribute('label')) this.#setLabel(this.getAttribute('label'));
-    if (!this.#select && this.#label) {
-      const select = document.createElement('select');
-      this.append(select);
-      this.#select = select;
-    }
     associateLabelWithElement(this.#label, this.#select, 'sel');
     setDisabledClass(this.#label, this.#select);
     setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
     setInvalid(this.#select, this.#errorMessages);
-    if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+    if (this.hasAttribute('show-required-status')) {
+      this.#showRequiredStatus(this.getAttribute('show-required-status'));
+    }
     this.#initialized = true;
   }
 
@@ -8755,8 +8727,9 @@ class FDSSelect extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
-    if (this.getAttribute('ready') === 'false') return;
-    if (!this.#initialized) this.init();
+    if (!this.#initialized) {
+      this.init();
+    }
   }
 
   /* --------------------------------------------------
@@ -8781,18 +8754,9 @@ class FDSSelect extends HTMLElement {
   -------------------------------------------------- */
 
   attributeChangedCallback(attribute, oldValue, newValue) {
-    if (attribute === 'ready') {
-      if (newValue !== 'false') {
-        this.init();
-      }
-    }
     if (!this.#initialized) return;
     if (attribute === 'show-required-status' && oldValue !== newValue) {
-      this.#refreshReferences();
       this.#showRequiredStatus(newValue);
-    }
-    if (attribute === 'label' && oldValue !== newValue) {
-      this.#setLabel(newValue);
     }
   }
 }
@@ -9963,17 +9927,9 @@ class FDSDatePicker extends HTMLElement {
     statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
   }
   #setupObserver() {
+    if (this.#datePickerObserver) return;
     this.#datePickerObserver = new MutationObserver(this.#handleMutations);
-    const config = {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required'],
-      attributeOldValue: false,
-      characterData: false,
-      characterDataOldValue: false
-    };
-    this.#datePickerObserver.observe(this, config);
+    this.#datePickerObserver.observe(this, mutationObserverConfig);
   }
   #handleMutations = (records, observer) => {
     const wrapperHiddenChanged = records.some(record => record.attributeName === 'hidden' && record.target === this);
@@ -10574,19 +10530,148 @@ sheet.replaceSync(styles);
 class FDSDatePickerGrid extends HTMLElement {
   /* Private instance fields */
 
-  #initialized;
+  #initialized = false;
   #previousMinDate;
   #previousMaxDate;
   #correctedMinDate;
   #correctedMaxDate;
-  #MONTHS;
-  #DAYS;
-  #GRID_ROWS;
+  #MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
+  #DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
+  #GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
   #TOTAL_GRIDCELLS;
-  #CELL_DATE_FORMAT;
+  #CELL_DATE_FORMAT = 'DAY. MONTH YEAR';
   #DEFAULT_MIN_DATE;
   #DEFAULT_MAX_DATE;
-  #handleKeydown;
+  #handleKeydown = event => {
+    if (event.target.hasAttribute('data-date')) {
+      const focusedDay = stringToDate(event.target.getAttribute('data-date'));
+      const minDate = this.#correctedMinDate;
+      const maxDate = this.#correctedMaxDate;
+      switch (event.key) {
+        case 'ArrowLeft':
+          event.preventDefault();
+          let yesterday = getYesterday(focusedDay);
+          if (yesterday < minDate) {
+            yesterday = minDate;
+          }
+          this.#redraw(yesterday, true);
+          break;
+        case 'ArrowRight':
+          event.preventDefault();
+          let tomorrow = getTomorrow(focusedDay);
+          if (maxDate < tomorrow) {
+            tomorrow = maxDate;
+          }
+          this.#redraw(tomorrow, true);
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          let prevWeek = getPrevWeek(focusedDay);
+          if (prevWeek < minDate) {
+            prevWeek = minDate;
+          }
+          this.#redraw(prevWeek, true);
+          break;
+        case 'ArrowDown':
+          event.preventDefault();
+          let nextWeek = getNextWeek(focusedDay);
+          if (maxDate < nextWeek) {
+            nextWeek = maxDate;
+          }
+          this.#redraw(nextWeek, true);
+          break;
+        case 'Enter':
+        case ' ':
+          event.preventDefault();
+          this.setAttribute('selected-date', event.target.getAttribute('data-date'));
+          this.dispatchEvent(new Event('date-clicked'));
+          break;
+        case 'PageDown':
+          event.preventDefault();
+          if (event.shiftKey) {
+            let nextYear = getNextYear(focusedDay);
+            if (maxDate < nextYear) {
+              nextYear = maxDate;
+            }
+            this.#redraw(nextYear, true);
+          } else {
+            let nextMonth = getNextMonth(focusedDay);
+            if (maxDate < nextMonth) {
+              nextMonth = maxDate;
+            }
+            this.#redraw(nextMonth, true);
+          }
+          break;
+        case 'PageUp':
+          event.preventDefault();
+          if (event.shiftKey) {
+            let prevYear = getPrevYear(focusedDay);
+            if (prevYear < minDate) {
+              prevYear = minDate;
+            }
+            this.#redraw(prevYear, true);
+          } else {
+            let prevMonth = getPrevMonth(focusedDay);
+            if (prevMonth < minDate) {
+              prevMonth = minDate;
+            }
+            this.#redraw(prevMonth, true);
+          }
+          break;
+        case 'Home':
+          event.preventDefault();
+          // Go to first day of the month
+          if (event.ctrlKey) {
+            const month = parseInt(this.shadowRoot.querySelector('.selected-month').value, 10);
+            const year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
+            let firstDay = dateFromIntegers(year, month, 1);
+            if (firstDay < minDate) {
+              firstDay = minDate;
+            }
+            this.#redraw(firstDay, true);
+          }
+          // Go to first day of the week (Monday)
+          else {
+            const weekDay = getWeekday(focusedDay);
+            if (weekDay !== 0) {
+              let monday = new Date(focusedDay);
+              monday.setDate(focusedDay.getDate() - weekDay);
+              if (monday < minDate) {
+                monday = minDate;
+              }
+              this.#redraw(monday, true);
+            }
+          }
+          break;
+        case 'End':
+          event.preventDefault();
+          // Go to last day of the month
+          if (event.ctrlKey) {
+            const month = parseInt(this.shadowRoot.querySelector('.selected-month').value, 10);
+            const year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
+            const day = totalDaysInMonth(dateFromIntegers(year, month, 1));
+            let lastDay = dateFromIntegers(year, month, day);
+            if (maxDate < lastDay) {
+              lastDay = maxDate;
+            }
+            this.#redraw(lastDay, true);
+          }
+          // Go to last day of the week (Sunday)
+          else {
+            const weekDay = getWeekday(focusedDay);
+            if (weekDay !== 6) {
+              let sunday = new Date(focusedDay);
+              sunday.setDate(focusedDay.getDate() + (6 - weekDay));
+              if (maxDate < sunday) {
+                sunday = maxDate;
+              }
+              this.#redraw(sunday, true);
+            }
+          }
+          break;
+      }
+    }
+  };
   #handleChangeMonth;
   #handleChangeYear;
   #handlePrevMonth;
@@ -10914,136 +10999,6 @@ class FDSDatePickerGrid extends HTMLElement {
       this.focusFocusableDate();
     }
   }
-  #keyboardNavigation(event) {
-    if (event.target.hasAttribute('data-date')) {
-      const focusedDay = stringToDate(event.target.getAttribute('data-date'));
-      const minDate = this.#correctedMinDate;
-      const maxDate = this.#correctedMaxDate;
-      switch (event.key) {
-        case 'ArrowLeft':
-          event.preventDefault();
-          let yesterday = getYesterday(focusedDay);
-          if (yesterday < minDate) {
-            yesterday = minDate;
-          }
-          this.#redraw(yesterday, true);
-          break;
-        case 'ArrowRight':
-          event.preventDefault();
-          let tomorrow = getTomorrow(focusedDay);
-          if (maxDate < tomorrow) {
-            tomorrow = maxDate;
-          }
-          this.#redraw(tomorrow, true);
-          break;
-        case 'ArrowUp':
-          event.preventDefault();
-          let prevWeek = getPrevWeek(focusedDay);
-          if (prevWeek < minDate) {
-            prevWeek = minDate;
-          }
-          this.#redraw(prevWeek, true);
-          break;
-        case 'ArrowDown':
-          event.preventDefault();
-          let nextWeek = getNextWeek(focusedDay);
-          if (maxDate < nextWeek) {
-            nextWeek = maxDate;
-          }
-          this.#redraw(nextWeek, true);
-          break;
-        case 'Enter':
-        case ' ':
-          event.preventDefault();
-          this.setAttribute('selected-date', event.target.getAttribute('data-date'));
-          this.dispatchEvent(new Event('date-clicked'));
-          break;
-        case 'PageDown':
-          event.preventDefault();
-          if (event.shiftKey) {
-            let nextYear = getNextYear(focusedDay);
-            if (maxDate < nextYear) {
-              nextYear = maxDate;
-            }
-            this.#redraw(nextYear, true);
-          } else {
-            let nextMonth = getNextMonth(focusedDay);
-            if (maxDate < nextMonth) {
-              nextMonth = maxDate;
-            }
-            this.#redraw(nextMonth, true);
-          }
-          break;
-        case 'PageUp':
-          event.preventDefault();
-          if (event.shiftKey) {
-            let prevYear = getPrevYear(focusedDay);
-            if (prevYear < minDate) {
-              prevYear = minDate;
-            }
-            this.#redraw(prevYear, true);
-          } else {
-            let prevMonth = getPrevMonth(focusedDay);
-            if (prevMonth < minDate) {
-              prevMonth = minDate;
-            }
-            this.#redraw(prevMonth, true);
-          }
-          break;
-        case 'Home':
-          event.preventDefault();
-          // Go to first day of the month
-          if (event.ctrlKey) {
-            const month = parseInt(this.shadowRoot.querySelector('.selected-month').value, 10);
-            const year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
-            let firstDay = dateFromIntegers(year, month, 1);
-            if (firstDay < minDate) {
-              firstDay = minDate;
-            }
-            this.#redraw(firstDay, true);
-          }
-          // Go to first day of the week (Monday)
-          else {
-            const weekDay = getWeekday(focusedDay);
-            if (weekDay !== 0) {
-              let monday = new Date(focusedDay);
-              monday.setDate(focusedDay.getDate() - weekDay);
-              if (monday < minDate) {
-                monday = minDate;
-              }
-              this.#redraw(monday, true);
-            }
-          }
-          break;
-        case 'End':
-          event.preventDefault();
-          // Go to last day of the month
-          if (event.ctrlKey) {
-            const month = parseInt(this.shadowRoot.querySelector('.selected-month').value, 10);
-            const year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
-            const day = totalDaysInMonth(dateFromIntegers(year, month, 1));
-            let lastDay = dateFromIntegers(year, month, day);
-            if (maxDate < lastDay) {
-              lastDay = maxDate;
-            }
-            this.#redraw(lastDay, true);
-          }
-          // Go to last day of the week (Sunday)
-          else {
-            const weekDay = getWeekday(focusedDay);
-            if (weekDay !== 6) {
-              let sunday = new Date(focusedDay);
-              sunday.setDate(focusedDay.getDate() + (6 - weekDay));
-              if (maxDate < sunday) {
-                sunday = maxDate;
-              }
-              this.#redraw(sunday, true);
-            }
-          }
-          break;
-      }
-    }
-  }
   #selectChange(event) {
     const focusedDay = this.shadowRoot.querySelector('td[data-date][tabindex="0"]');
     const focusedDayAsDate = stringToDate(focusedDay.getAttribute('data-date'));
@@ -11160,10 +11115,6 @@ class FDSDatePickerGrid extends HTMLElement {
       mode: 'open'
     });
     this.shadowRoot.adoptedStyleSheets = [sheet];
-    this.#initialized = false;
-    this.#MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
-    this.#DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
-    this.#GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
     this.#TOTAL_GRIDCELLS = this.#GRID_ROWS * this.#DAYS.length;
     this.#CELL_DATE_FORMAT = 'DAY. MONTH YEAR';
     this.#textMinDate = 'tidligste valgbare dato';
@@ -11176,9 +11127,6 @@ class FDSDatePickerGrid extends HTMLElement {
     this.#previousMaxDate = 0;
     this.#correctedMinDate = null;
     this.#correctedMaxDate = null;
-    this.#handleKeydown = event => {
-      this.#keyboardNavigation(event);
-    };
     this.#handleChangeMonth = event => {
       this.#selectChange(event);
     };

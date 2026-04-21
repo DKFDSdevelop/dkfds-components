@@ -13,23 +13,132 @@ class FDSDatePickerGrid extends HTMLElement {
 
     /* Private instance fields */
 
-    #initialized;
+    #initialized = false;
 
     #previousMinDate;
     #previousMaxDate;
     #correctedMinDate;
     #correctedMaxDate;
 
-    #MONTHS;
-    #DAYS;
-    #GRID_ROWS;
+    #MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
+    #DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
+    #GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
     #TOTAL_GRIDCELLS;
-    #CELL_DATE_FORMAT;
+    #CELL_DATE_FORMAT = 'DAY. MONTH YEAR';
 
     #DEFAULT_MIN_DATE;
     #DEFAULT_MAX_DATE;
 
-    #handleKeydown;
+    #handleKeydown = (event) => {
+        if (event.target.hasAttribute('data-date')) {
+
+            const focusedDay = Util.stringToDate(event.target.getAttribute('data-date'));
+            const minDate = this.#correctedMinDate;
+            const maxDate = this.#correctedMaxDate;
+
+            switch (event.key) {
+                case 'ArrowLeft':
+                    event.preventDefault();
+                    let yesterday = Util.getYesterday(focusedDay);
+                    if (yesterday < minDate) { yesterday = minDate; }
+                    this.#redraw(yesterday, true);
+                    break;
+                case 'ArrowRight':
+                    event.preventDefault();
+                    let tomorrow = Util.getTomorrow(focusedDay);
+                    if (maxDate < tomorrow) { tomorrow = maxDate; }
+                    this.#redraw(tomorrow, true);
+                    break;
+                case 'ArrowUp':
+                    event.preventDefault();
+                    let prevWeek = Util.getPrevWeek(focusedDay);
+                    if (prevWeek < minDate) { prevWeek = minDate; }
+                    this.#redraw(prevWeek, true);
+                    break;
+                case 'ArrowDown':
+                    event.preventDefault();
+                    let nextWeek = Util.getNextWeek(focusedDay);
+                    if (maxDate < nextWeek) { nextWeek = maxDate; }
+                    this.#redraw(nextWeek, true);
+                    break;
+                case 'Enter':
+                case ' ':
+                    event.preventDefault();
+                    this.setAttribute('selected-date', event.target.getAttribute('data-date'));
+                    this.dispatchEvent(new Event('date-clicked'));
+                    break;
+                case 'PageDown':
+                    event.preventDefault();
+                    if (event.shiftKey) {
+                        let nextYear = Util.getNextYear(focusedDay);
+                        if (maxDate < nextYear) { nextYear = maxDate; }
+                        this.#redraw(nextYear, true);
+                    }
+                    else {
+                        let nextMonth = Util.getNextMonth(focusedDay);
+                        if (maxDate < nextMonth) { nextMonth = maxDate; }
+                        this.#redraw(nextMonth, true);
+                    }
+                    break;
+                case 'PageUp':
+                    event.preventDefault();
+                    if (event.shiftKey) {
+                        let prevYear = Util.getPrevYear(focusedDay);
+                        if (prevYear < minDate) { prevYear = minDate; }
+                        this.#redraw(prevYear, true);
+                    }
+                    else {
+                        let prevMonth = Util.getPrevMonth(focusedDay);
+                        if (prevMonth < minDate) { prevMonth = minDate; }
+                        this.#redraw(prevMonth, true);
+                    }
+                    break;
+                case 'Home':
+                    event.preventDefault();
+                    // Go to first day of the month
+                    if (event.ctrlKey) {
+                        const month = parseInt(this.shadowRoot.querySelector('.selected-month').value, 10);
+                        const year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
+                        let firstDay = Util.dateFromIntegers(year, month, 1);
+                        if (firstDay < minDate) { firstDay = minDate; }
+                        this.#redraw(firstDay, true);
+                    }
+                    // Go to first day of the week (Monday)
+                    else {
+                        const weekDay = Util.getWeekday(focusedDay);
+                        if (weekDay !== 0) {
+                            let monday = new Date(focusedDay);
+                            monday.setDate(focusedDay.getDate() - weekDay);
+                            if (monday < minDate) { monday = minDate; }
+                            this.#redraw(monday, true);
+                        }
+                    }
+                    break;
+                case 'End':
+                    event.preventDefault();
+                    // Go to last day of the month
+                    if (event.ctrlKey) {
+                        const month = parseInt(this.shadowRoot.querySelector('.selected-month').value, 10);
+                        const year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
+                        const day = Util.totalDaysInMonth(Util.dateFromIntegers(year, month, 1));
+                        let lastDay = Util.dateFromIntegers(year, month, day);
+                        if (maxDate < lastDay) { lastDay = maxDate; }
+                        this.#redraw(lastDay, true);
+                    }
+                    // Go to last day of the week (Sunday)
+                    else {
+                        const weekDay = Util.getWeekday(focusedDay);
+                        if (weekDay !== 6) {
+                            let sunday = new Date(focusedDay);
+                            sunday.setDate(focusedDay.getDate() + (6 - weekDay));
+                            if (maxDate < sunday) { sunday = maxDate; }
+                            this.#redraw(sunday, true);
+                        }
+                    }
+                    break;
+            }
+        }
+    };
     #handleChangeMonth;
     #handleChangeYear;
     #handlePrevMonth;
@@ -393,117 +502,6 @@ class FDSDatePickerGrid extends HTMLElement {
         }
     }
 
-    #keyboardNavigation(event) {
-        if (event.target.hasAttribute('data-date')) {
-
-            const focusedDay = Util.stringToDate(event.target.getAttribute('data-date'));
-            const minDate = this.#correctedMinDate;
-            const maxDate = this.#correctedMaxDate;
-
-            switch (event.key) {
-                case 'ArrowLeft':
-                    event.preventDefault();
-                    let yesterday = Util.getYesterday(focusedDay);
-                    if (yesterday < minDate) { yesterday = minDate; }
-                    this.#redraw(yesterday, true);
-                    break;
-                case 'ArrowRight':
-                    event.preventDefault();
-                    let tomorrow = Util.getTomorrow(focusedDay);
-                    if (maxDate < tomorrow) { tomorrow = maxDate; }
-                    this.#redraw(tomorrow, true);
-                    break;
-                case 'ArrowUp':
-                    event.preventDefault();
-                    let prevWeek = Util.getPrevWeek(focusedDay);
-                    if (prevWeek < minDate) { prevWeek = minDate; }
-                    this.#redraw(prevWeek, true);
-                    break;
-                case 'ArrowDown':
-                    event.preventDefault();
-                    let nextWeek = Util.getNextWeek(focusedDay);
-                    if (maxDate < nextWeek) { nextWeek = maxDate; }
-                    this.#redraw(nextWeek, true);
-                    break;
-                case 'Enter':
-                case ' ':
-                    event.preventDefault();
-                    this.setAttribute('selected-date', event.target.getAttribute('data-date'));
-                    this.dispatchEvent(new Event('date-clicked'));
-                    break;
-                case 'PageDown':
-                    event.preventDefault();
-                    if (event.shiftKey) {
-                        let nextYear = Util.getNextYear(focusedDay);
-                        if (maxDate < nextYear) { nextYear = maxDate; }
-                        this.#redraw(nextYear, true);
-                    }
-                    else {
-                        let nextMonth = Util.getNextMonth(focusedDay);
-                        if (maxDate < nextMonth) { nextMonth = maxDate; }
-                        this.#redraw(nextMonth, true);
-                    }
-                    break;
-                case 'PageUp':
-                    event.preventDefault();
-                    if (event.shiftKey) {
-                        let prevYear = Util.getPrevYear(focusedDay);
-                        if (prevYear < minDate) { prevYear = minDate; }
-                        this.#redraw(prevYear, true);
-                    }
-                    else {
-                        let prevMonth = Util.getPrevMonth(focusedDay);
-                        if (prevMonth < minDate) { prevMonth = minDate; }
-                        this.#redraw(prevMonth, true);
-                    }
-                    break;
-                case 'Home':
-                    event.preventDefault();
-                    // Go to first day of the month
-                    if (event.ctrlKey) {
-                        const month = parseInt(this.shadowRoot.querySelector('.selected-month').value, 10);
-                        const year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
-                        let firstDay = Util.dateFromIntegers(year, month, 1);
-                        if (firstDay < minDate) { firstDay = minDate; }
-                        this.#redraw(firstDay, true);
-                    }
-                    // Go to first day of the week (Monday)
-                    else {
-                        const weekDay = Util.getWeekday(focusedDay);
-                        if (weekDay !== 0) {
-                            let monday = new Date(focusedDay);
-                            monday.setDate(focusedDay.getDate() - weekDay);
-                            if (monday < minDate) { monday = minDate; }
-                            this.#redraw(monday, true);
-                        }
-                    }
-                    break;
-                case 'End':
-                    event.preventDefault();
-                    // Go to last day of the month
-                    if (event.ctrlKey) {
-                        const month = parseInt(this.shadowRoot.querySelector('.selected-month').value, 10);
-                        const year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
-                        const day = Util.totalDaysInMonth(Util.dateFromIntegers(year, month, 1));
-                        let lastDay = Util.dateFromIntegers(year, month, day);
-                        if (maxDate < lastDay) { lastDay = maxDate; }
-                        this.#redraw(lastDay, true);
-                    }
-                    // Go to last day of the week (Sunday)
-                    else {
-                        const weekDay = Util.getWeekday(focusedDay);
-                        if (weekDay !== 6) {
-                            let sunday = new Date(focusedDay);
-                            sunday.setDate(focusedDay.getDate() + (6 - weekDay));
-                            if (maxDate < sunday) { sunday = maxDate; }
-                            this.#redraw(sunday, true);
-                        }
-                    }
-                    break;
-            }
-        }
-    }
-
     #selectChange(event) {
         const focusedDay = this.shadowRoot.querySelector('td[data-date][tabindex="0"]');
         const focusedDayAsDate = Util.stringToDate(focusedDay.getAttribute('data-date'));
@@ -638,11 +636,6 @@ class FDSDatePickerGrid extends HTMLElement {
         this.attachShadow({ mode: 'open' });
         this.shadowRoot.adoptedStyleSheets = [sheet];
 
-        this.#initialized = false;
-
-        this.#MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
-        this.#DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
-        this.#GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
         this.#TOTAL_GRIDCELLS = this.#GRID_ROWS * this.#DAYS.length;
         this.#CELL_DATE_FORMAT = 'DAY. MONTH YEAR';
         this.#textMinDate = 'tidligste valgbare dato';
@@ -658,7 +651,6 @@ class FDSDatePickerGrid extends HTMLElement {
         this.#correctedMinDate = null;
         this.#correctedMaxDate = null;
 
-        this.#handleKeydown = (event) => { this.#keyboardNavigation(event); };
         this.#handleChangeMonth = (event) => { this.#selectChange(event); };
         this.#handleChangeYear = (event) => { this.#selectChange(event); };
         this.#handlePrevMonth = (event) => { this.#monthButtonClicked(event); };
