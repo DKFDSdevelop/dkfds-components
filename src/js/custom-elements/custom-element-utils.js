@@ -60,3 +60,38 @@ export function createSvgIcon(pathD) {
 
     return svg;
 }
+
+/**
+ * Shows or hides a required status indicator in a label element based on the given value.
+ * If value is null, the indicator is removed. If value is an empty string, a default
+ * text is used based on whether the element is required or not.
+ *
+ * @param {HTMLLabelElement} label - The label element to update.
+ * @param {HTMLElement} element - The form element to check for required status.
+ * @param {string|null} value - The value to display in the status indicator.
+ */
+export function showRequiredStatus(label, element, value) {
+    if (!label || !element) return;
+
+    let statusIndicator = label.querySelector(':scope > span.weight-normal');
+
+    if (value === null && statusIndicator) {
+        statusIndicator.remove();
+        return;
+    }
+
+    if (!statusIndicator) {
+        const span = document.createElement('span');
+        span.className = 'weight-normal';
+        label.appendChild(span);
+        statusIndicator = span;
+    }
+
+    const isRequired = element.hasAttribute('required') || (element.hasAttribute('aria-required') && element.getAttribute('aria-required') !== 'false');
+
+    let text = value;
+    if (value === '' && isRequired) text = 'skal udfyldes';
+    if (value === '' && !isRequired) text = 'frivilligt';
+
+    statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
+}

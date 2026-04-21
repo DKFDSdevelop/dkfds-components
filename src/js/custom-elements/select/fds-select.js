@@ -8,46 +8,7 @@ class FDSSelect extends HTMLElement {
     #initialized = false;
     #selectObserver = null;
 
-    #label = null;
-    #select = null;
-    #errorMessages = null;
-    #helpTexts = null;
-
     /* Private methods */
-
-    #refreshReferences() {
-        this.#label = this.querySelector('label');
-        this.#select = this.querySelector('select');
-        this.#errorMessages = this.querySelectorAll('fds-error-message');
-        this.#helpTexts = this.querySelectorAll('fds-help-text');
-    }
-
-    #showRequiredStatus(value) {
-        this.#refreshReferences();
-        if (!this.#label || !this.#select) return;
-
-        let statusIndicator = this.#label.querySelector(':scope > span.weight-normal');
-
-        if (value === null && statusIndicator) {
-            statusIndicator.remove();
-            return;
-        }
-
-        if (!statusIndicator) {
-            const span = document.createElement('span');
-            span.className = 'weight-normal';
-            this.#label.appendChild(span);
-            statusIndicator = span;
-        }
-
-        const isRequired = this.#select.hasAttribute('required') || (this.#select.hasAttribute('aria-required') && this.#select.getAttribute('aria-required') !== 'false');
-
-        let text = value;
-        if (value === '' && isRequired) text = 'skal udfyldes';
-        if (value === '' && !isRequired) text = 'frivilligt';
-
-        statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
-    }
 
     #setupObserver() {
         if (this.#selectObserver) return;
@@ -60,27 +21,38 @@ class FDSSelect extends HTMLElement {
         for (const { attributeName, target, addedNodes, removedNodes } of records) {
 
             // A relevant child element was added or removed.
-            // Refresh everything as multiple mutations may occur simultaneously.
             const relevantTagNames = ['LABEL', 'SELECT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
             const allNodes = [...addedNodes, ...removedNodes];
             if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
-                this.#refreshReferences();
-                CE.associateLabelWithElement(this.#label, this.#select, 'sel');
-                Util.setDisabledClass(this.#label, this.#select);
-                Util.setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
-                Util.setInvalid(this.#select, this.#errorMessages);
-                if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+                const label = this.querySelector('label');
+                const select = this.querySelector('select');
+                const errorMessages = this.querySelectorAll('fds-error-message');
+                const helpTexts = this.querySelectorAll('fds-help-text');
+
+                CE.associateLabelWithElement(label, select, 'sel');
+                Util.setDisabledClass(label, select);
+                Util.setAriaDescribedBy(select, errorMessages, helpTexts);
+                Util.setInvalid(select, errorMessages);
+
+                if (this.hasAttribute('show-required-status')) {
+                    CE.showRequiredStatus(label, select, this.getAttribute('show-required-status'));
+                }
+
                 break;
             }
 
             // The select's disabled attribute changed
             if (attributeName === 'disabled' && target?.tagName === 'SELECT') {
-                Util.setDisabledClass(this.#label, this.#select);
+                const label = this.querySelector('label');
+                Util.setDisabledClass(label, target);
             }
 
             // The select's required attribute changed
             else if (attributeName === 'required' && target?.tagName === 'SELECT') {
-                if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+                if (this.hasAttribute('show-required-status')) {
+                    const label = this.querySelector('label');
+                    CE.showRequiredStatus(label, target, this.getAttribute('show-required-status'));
+                }
             }
 
             // Class changes on the label are excluded to prevent an infinite loop, as setDisabledClass adds/removes the 'disabled' class on the label.
@@ -90,8 +62,12 @@ class FDSSelect extends HTMLElement {
                 attributeName === 'aria-hidden' ||
                 (attributeName === 'class' && target?.tagName !== 'LABEL')
             ) {
-                Util.setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
-                Util.setInvalid(this.#select, this.#errorMessages);
+                const select = this.querySelector('select');
+                const errorMessages = this.querySelectorAll('fds-error-message');
+                const helpTexts = this.querySelectorAll('fds-help-text');
+
+                Util.setAriaDescribedBy(select, errorMessages, helpTexts);
+                Util.setInvalid(select, errorMessages);
 
                 if (attributeName === 'hidden' && target === this) {
                     this.#notifySummaryOnVisibilityChange();
@@ -134,7 +110,7 @@ class FDSSelect extends HTMLElement {
     -------------------------------------------------- */
 
     get showRequiredStatus() { return this.getAttribute('show-required-status'); }
-    set showRequiredStatus(value) { this.setAttribute('show-required-status', value); }
+    set showRequiredStatus(value) { value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
 
     /* --------------------------------------------------
     CUSTOM ELEMENT METHODS
@@ -143,14 +119,19 @@ class FDSSelect extends HTMLElement {
     init() {
         this.#setupObserver();
 
-        this.#refreshReferences();
+        const label = this.querySelector('label');
+        const select = this.querySelector('select');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
 
-        CE.associateLabelWithElement(this.#label, this.#select, 'sel');
-        Util.setDisabledClass(this.#label, this.#select);
-        Util.setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
-        Util.setInvalid(this.#select, this.#errorMessages);
+        CE.associateLabelWithElement(label, select, 'sel');
+        Util.setDisabledClass(label, select);
+        Util.setAriaDescribedBy(select, errorMessages, helpTexts);
+        Util.setInvalid(select, errorMessages);
 
-        if (this.hasAttribute('show-required-status')) { this.#showRequiredStatus(this.getAttribute('show-required-status')); }
+        if (this.hasAttribute('show-required-status')) {
+            CE.showRequiredStatus(label, select, this.getAttribute('show-required-status'));
+        }
 
         this.#initialized = true;
     }
@@ -176,11 +157,6 @@ class FDSSelect extends HTMLElement {
             this.#selectObserver.disconnect();
             this.#selectObserver = null;
         }
-
-        this.#label = null;
-        this.#select = null;
-        this.#errorMessages = null;
-        this.#helpTexts = null;
     }
 
     /* --------------------------------------------------
@@ -191,8 +167,11 @@ class FDSSelect extends HTMLElement {
         if (!this.#initialized) return;
 
         if (attribute === 'show-required-status' && (oldValue !== newValue)) {
-            this.#showRequiredStatus(newValue);
+            const label = this.querySelector('label');
+            const select = this.querySelector('select');
+            CE.showRequiredStatus(label, select, newValue);
         }
+
     }
 }
 
