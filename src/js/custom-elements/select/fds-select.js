@@ -1,4 +1,5 @@
 import * as Util from './fds-select-utils';
+import * as CE from '../custom-element-utils';
 
 class FDSSelect extends HTMLElement {
 
@@ -84,7 +85,7 @@ class FDSSelect extends HTMLElement {
             const allNodes = [...addedNodes, ...removedNodes];
             if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
                 this.#refreshReferences();
-                Util.associateLabelWithSelect(this.#label, this.#select);
+                CE.associateLabelWithElement(this.#label, this.#select, 'sel');
                 Util.setDisabledClass(this.#label, this.#select);
                 Util.setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
                 Util.setInvalid(this.#select, this.#errorMessages);
@@ -192,7 +193,7 @@ class FDSSelect extends HTMLElement {
             this.#select = select;
         }
 
-        Util.associateLabelWithSelect(this.#label, this.#select);
+        CE.associateLabelWithElement(this.#label, this.#select, 'sel');
         Util.setDisabledClass(this.#label, this.#select);
         Util.setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
         Util.setInvalid(this.#select, this.#errorMessages);

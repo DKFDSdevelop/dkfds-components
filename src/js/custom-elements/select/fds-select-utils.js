@@ -14,27 +14,6 @@ export function isVisibleToScreenReader(element) {
 }
 
 /**
- * Associates a label element with a select element.
- *
- * @param {HTMLLabelElement} label - The label element to associate.
- * @param {HTMLSelectElement} select - The select element to associate the label with.
- */
-export function associateLabelWithSelect(label, select) {
-    if (!label) return;
-
-    if (select) {
-        if (!select.id) {
-            select.id = generateAndVerifyUniqueId('sel');
-        }
-
-        label.htmlFor = select.id;
-    }
-    else {
-        label.removeAttribute('for');
-    }
-}
-
-/**
  * Matches the disabled class of a label element to the disabled attribute of a select element.
  *
  * @param {HTMLLabelElement} label - The label element to update.

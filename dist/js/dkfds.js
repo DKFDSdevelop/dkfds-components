@@ -8486,24 +8486,6 @@ function isVisibleToScreenReader(element) {
 }
 
 /**
- * Associates a label element with a select element.
- *
- * @param {HTMLLabelElement} label - The label element to associate.
- * @param {HTMLSelectElement} select - The select element to associate the label with.
- */
-function associateLabelWithSelect(label, select) {
-  if (!label) return;
-  if (select) {
-    if (!select.id) {
-      select.id = generateAndVerifyUniqueId('sel');
-    }
-    label.htmlFor = select.id;
-  } else {
-    label.removeAttribute('for');
-  }
-}
-
-/**
  * Matches the disabled class of a label element to the disabled attribute of a select element.
  *
  * @param {HTMLLabelElement} label - The label element to update.
@@ -8540,7 +8522,51 @@ function setInvalid(select, errorMessages) {
   const invalid = Array.from(errorMessages).some(element => isVisibleToScreenReader(element));
   invalid ? select.setAttribute('aria-invalid', 'true') : select.removeAttribute('aria-invalid');
 }
+;// ./src/js/custom-elements/custom-element-utils.js
+
+
+/**
+ * Associates a label element with an (input) element.
+ * If the element lacks an ID, a unique one is generated using the given prefix.
+ * If no element is provided, the `for` attribute is removed from the label.
+ *
+ * @param {HTMLLabelElement} label - The label element to associate.
+ * @param {HTMLElement} element - The element to associate the label with.
+ * @param {string} prefix - The prefix used when generating a unique ID for the element.
+ */
+function associateLabelWithElement(label, element, prefix) {
+  if (!label) return;
+  if (element) {
+    if (!element.id) {
+      element.id = generateAndVerifyUniqueId(prefix);
+    }
+    label.htmlFor = element.id;
+  } else {
+    label.removeAttribute('for');
+  }
+}
+
+/**
+ * Creates an SVG icon element with a single path.
+ * The SVG is given a fixed viewBox of '0 -960 960 960'.
+ *
+ * @param {string} pathD - The `d` attribute value defining the shape of the SVG path.
+ * @returns {SVGSVGElement} The constructed SVG element containing the specified path.
+ */
+function createSvgIcon(pathD) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  svg.setAttribute('viewBox', '0 -960 960 960');
+  svg.setAttribute('focusable', 'false');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.classList.add('icon-svg');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', pathD);
+  svg.appendChild(path);
+  return svg;
+}
 ;// ./src/js/custom-elements/select/fds-select.js
+
 
 class FDSSelect extends HTMLElement {
   /* Private instance fields */
@@ -8614,7 +8640,7 @@ class FDSSelect extends HTMLElement {
       const allNodes = [...addedNodes, ...removedNodes];
       if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
         this.#refreshReferences();
-        associateLabelWithSelect(this.#label, this.#select);
+        associateLabelWithElement(this.#label, this.#select, 'sel');
         setDisabledClass(this.#label, this.#select);
         setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
         setInvalid(this.#select, this.#errorMessages);
@@ -8716,7 +8742,7 @@ class FDSSelect extends HTMLElement {
       this.append(select);
       this.#select = select;
     }
-    associateLabelWithSelect(this.#label, this.#select);
+    associateLabelWithElement(this.#label, this.#select, 'sel');
     setDisabledClass(this.#label, this.#select);
     setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
     setInvalid(this.#select, this.#errorMessages);
@@ -9787,49 +9813,6 @@ function datesAreEqual(date1, date2) {
     return false;
   }
   return date1.getTime() === date2.getTime();
-}
-;// ./src/js/custom-elements/custom-element-utils.js
-
-
-/**
- * Associates a label element with an (input) element.
- * If the element lacks an ID, a unique one is generated using the given prefix.
- * If no element is provided, the `for` attribute is removed from the label.
- *
- * @param {HTMLLabelElement} label - The label element to associate.
- * @param {HTMLElement} element - The element to associate the label with.
- * @param {string} prefix - The prefix used when generating a unique ID for the element.
- */
-function associateLabelWithElement(label, element, prefix) {
-  if (!label) return;
-  if (element) {
-    if (!element.id) {
-      element.id = generateAndVerifyUniqueId(prefix);
-    }
-    label.htmlFor = element.id;
-  } else {
-    label.removeAttribute('for');
-  }
-}
-
-/**
- * Creates an SVG icon element with a single path.
- * The SVG is given a fixed viewBox of '0 -960 960 960'.
- *
- * @param {string} pathD - The `d` attribute value defining the shape of the SVG path.
- * @returns {SVGSVGElement} The constructed SVG element containing the specified path.
- */
-function createSvgIcon(pathD) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  svg.setAttribute('viewBox', '0 -960 960 960');
-  svg.setAttribute('focusable', 'false');
-  svg.setAttribute('aria-hidden', 'true');
-  svg.classList.add('icon-svg');
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', pathD);
-  svg.appendChild(path);
-  return svg;
 }
 ;// ./src/js/custom-elements/date-picker/fds-date-picker.js
 
