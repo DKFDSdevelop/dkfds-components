@@ -1,4 +1,3 @@
-import * as Util from './fds-select-utils';
 import * as CE from '../custom-element-utils';
 
 class FDSSelect extends HTMLElement {
@@ -30,9 +29,9 @@ class FDSSelect extends HTMLElement {
                 const helpTexts = this.querySelectorAll('fds-help-text');
 
                 CE.associateLabelWithElement(label, select, 'sel');
-                Util.setDisabledClass(label, select);
-                Util.setAriaDescribedBy(select, errorMessages, helpTexts);
-                Util.setInvalid(select, errorMessages);
+                CE.setDisabledClass(label, select);
+                CE.setAriaDescribedBy(select, errorMessages, helpTexts);
+                CE.setInvalid(select, errorMessages);
 
                 if (this.hasAttribute('show-required-status')) {
                     CE.showRequiredStatus(label, select, this.getAttribute('show-required-status'));
@@ -44,7 +43,7 @@ class FDSSelect extends HTMLElement {
             // The select's disabled attribute changed
             if (attributeName === 'disabled' && target?.tagName === 'SELECT') {
                 const label = this.querySelector('label');
-                Util.setDisabledClass(label, target);
+                CE.setDisabledClass(label, target);
             }
 
             // The select's required attribute changed
@@ -66,8 +65,8 @@ class FDSSelect extends HTMLElement {
                 const errorMessages = this.querySelectorAll('fds-error-message');
                 const helpTexts = this.querySelectorAll('fds-help-text');
 
-                Util.setAriaDescribedBy(select, errorMessages, helpTexts);
-                Util.setInvalid(select, errorMessages);
+                CE.setAriaDescribedBy(select, errorMessages, helpTexts);
+                CE.setInvalid(select, errorMessages);
 
                 if (attributeName === 'hidden' && target === this) {
                     CE.notifySummaryOnVisibilityChange(this);
@@ -100,9 +99,9 @@ class FDSSelect extends HTMLElement {
         const helpTexts = this.querySelectorAll('fds-help-text');
 
         CE.associateLabelWithElement(label, select, 'sel');
-        Util.setDisabledClass(label, select);
-        Util.setAriaDescribedBy(select, errorMessages, helpTexts);
-        Util.setInvalid(select, errorMessages);
+        CE.setDisabledClass(label, select);
+        CE.setAriaDescribedBy(select, errorMessages, helpTexts);
+        CE.setInvalid(select, errorMessages);
 
         if (this.hasAttribute('show-required-status')) {
             CE.showRequiredStatus(label, select, this.getAttribute('show-required-status'));
@@ -146,7 +145,6 @@ class FDSSelect extends HTMLElement {
             const select = this.querySelector('select');
             CE.showRequiredStatus(label, select, newValue);
         }
-
     }
 }
 

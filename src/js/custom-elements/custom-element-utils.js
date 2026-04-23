@@ -132,3 +132,61 @@ export function notifySummaryOnVisibilityChange(element) {
         }));
     });
 }
+
+/**
+ * Determines whether an element is visible to screen readers.
+ *
+ * @param {HTMLElement} element - The element to check.
+ * @returns {boolean} True if the element is visible to screen readers, false otherwise.
+ */
+export function isVisibleToScreenReader(element) {
+    const notDNone = !element.classList.contains('d-none');
+    const notHidden = !element.hasAttribute('hidden') || element.getAttribute('hidden') === 'false';
+    const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
+    return notDNone && notHidden && notAriaHidden;
+}
+
+/**
+ * Matches the disabled class of a label element to the disabled attribute of a form element.
+ *
+ * @param {HTMLLabelElement} label - The label element to update.
+ * @param {HTMLElement} element - The form element to match the disabled state from.
+ */
+export function setDisabledClass(label, element) {
+    if (!label || !element) return;
+
+    label.classList.toggle('disabled', element.hasAttribute('disabled'));
+}
+
+/**
+ * Sets the `aria-describedby` attribute on a form element based on
+ * the IDs of visible error messages and help texts.
+ *
+ * @param {HTMLElement} element - The form element to update.
+ * @param {NodeList} errorMessages - Error message elements to consider.
+ * @param {NodeList} helpTexts - Help text elements to consider.
+ */
+export function setAriaDescribedBy(element, errorMessages, helpTexts) {
+    if (!element) return;
+
+    const ids = [...errorMessages, ...helpTexts]
+        .filter(el => el.id && isVisibleToScreenReader(el))
+        .map(el => el.id);
+
+    ids.length > 0 ? element.setAttribute('aria-describedby', ids.join(' ')) : element.removeAttribute('aria-describedby');
+}
+
+/**
+ * Sets or removes the `aria-invalid` attribute on a form element
+ * based on whether any error messages are visible to screen readers.
+ *
+ * @param {HTMLElement} element - The form element to update.
+ * @param {NodeList} errorMessages - Error message elements to evaluate.
+ */
+export function setInvalid(element, errorMessages) {
+    if (!element) return;
+
+    const invalid = Array.from(errorMessages).some(el => isVisibleToScreenReader(el));
+
+    invalid ? element.setAttribute('aria-invalid', 'true') : element.removeAttribute('aria-invalid');
+}
