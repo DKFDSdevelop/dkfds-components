@@ -9229,6 +9229,17 @@ class FDSUploadFile extends HTMLElement {
       this.#render();
     }
   }
+  #hydrateExistingDropzone() {
+    const input = this.querySelector('.fds-upload-input');
+    if (!input) return;
+    this.#inputEl = input;
+    input.removeEventListener('change', this.#onInputChange);
+    input.addEventListener('change', this.#onInputChange);
+    const mainLabel = this.querySelector('.fds-upload-label');
+    if (mainLabel && input.id) {
+      mainLabel.setAttribute('for', input.id);
+    }
+  }
 
   /* --------------------------------------------------
   CUSTOM ELEMENT METHODS
@@ -9310,9 +9321,13 @@ class FDSUploadFile extends HTMLElement {
     if (existingDropzone || existingFileList) {
       this.#dropzoneEl = existingDropzone;
       this.#fileListEl = existingFileList;
+      if (existingDropzone) {
+        this.#hydrateExistingDropzone();
+      }
     } else {
       this.#render();
     }
+    this.#setupAccessibility();
     if (this.#shouldHaveDisabled(this.getAttribute('upload-disabled'))) {
       this.#setDisabled();
     }
