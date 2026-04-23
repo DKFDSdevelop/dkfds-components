@@ -1,4 +1,5 @@
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
+import { notifySummaryOnDisconnect, notifySummaryOnVisibilityChange } from '../custom-element-utils'
 
 class FDSUploadFile extends HTMLElement {
 
@@ -206,7 +207,7 @@ class FDSUploadFile extends HTMLElement {
         );
 
         if (wrapperHiddenChanged) {
-            this.#notifySummaryOnVisibilityChange();
+            notifySummaryOnVisibilityChange(this);
         }
 
         const shouldUpdate = records.some(record =>
@@ -426,31 +427,6 @@ class FDSUploadFile extends HTMLElement {
         return fileItem;
     }
 
-    #notifySummaryOnDisconnect() {
-        if (!document.querySelector('fds-error-summary[auto]')) return;
-
-        this.querySelectorAll('fds-error-message[id]').forEach((errorMessage) => {
-            document.dispatchEvent(new CustomEvent('error-message-callback', {
-                detail: {
-                    errorId: errorMessage.id,
-                    isRemoved: true
-                }
-            }));
-        });
-    }
-
-    #notifySummaryOnVisibilityChange() {
-        if (!document.querySelector('fds-error-summary[auto]')) return;
-
-        this.querySelectorAll('fds-error-message[id]').forEach((errorMessage) => {
-            document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
-                detail: {
-                    errorId: errorMessage.id
-                }
-            }));
-        });
-    }
-
     /* -----------------------------
        State updates
     ----------------------------- */
@@ -619,7 +595,7 @@ class FDSUploadFile extends HTMLElement {
     -------------------------------------------------- */
 
     disconnectedCallback() {
-        this.#notifySummaryOnDisconnect();
+        notifySummaryOnDisconnect(this);
         
         this.#initialized = false;
 

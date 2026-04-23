@@ -182,7 +182,7 @@ class FDSDatePicker extends HTMLElement {
         );
 
         if (wrapperHiddenChanged) {
-            this.#notifySummaryOnVisibilityChange();
+            CE.notifySummaryOnVisibilityChange(this);
         }
 
         const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
@@ -363,31 +363,6 @@ class FDSDatePicker extends HTMLElement {
         }
     }
 
-    #notifySummaryOnDisconnect() {
-        if (!document.querySelector('fds-error-summary[auto]')) return;
-
-        this.querySelectorAll('fds-error-message[id]').forEach((errorMessage) => {
-            document.dispatchEvent(new CustomEvent('error-message-callback', {
-                detail: {
-                    errorId: errorMessage.id,
-                    isRemoved: true
-                }
-            }));
-        });
-    }
-
-    #notifySummaryOnVisibilityChange() {
-        if (!document.querySelector('fds-error-summary[auto]')) return;
-
-        this.querySelectorAll('fds-error-message[id]').forEach((errorMessage) => {
-            document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
-                detail: {
-                    errorId: errorMessage.id
-                }
-            }));
-        });
-    }
-
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = ['show-required-status', 'format', 'text-open', 'text-selecteddate', 'text-months'];
@@ -471,7 +446,7 @@ class FDSDatePicker extends HTMLElement {
     -------------------------------------------------- */
 
     disconnectedCallback() {
-        this.#notifySummaryOnDisconnect()
+        CE.notifySummaryOnDisconnect(this)
 
         this.#initialized = false;
 

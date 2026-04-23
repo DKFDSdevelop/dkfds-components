@@ -70,35 +70,10 @@ class FDSSelect extends HTMLElement {
                 Util.setInvalid(select, errorMessages);
 
                 if (attributeName === 'hidden' && target === this) {
-                    this.#notifySummaryOnVisibilityChange();
+                    CE.notifySummaryOnVisibilityChange(this);
                 }
             }
         }
-    }
-
-    #notifySummaryOnDisconnect() {
-        if (!document.querySelector('fds-error-summary[auto]')) return;
-
-        this.querySelectorAll('fds-error-message[id]').forEach((errorMessage) => {
-            document.dispatchEvent(new CustomEvent('error-message-callback', {
-                detail: {
-                    errorId: errorMessage.id,
-                    isRemoved: true
-                }
-            }));
-        });
-    }
-
-    #notifySummaryOnVisibilityChange() {
-        if (!document.querySelector('fds-error-summary[auto]')) return;
-
-        this.querySelectorAll('fds-error-message[id]').forEach((errorMessage) => {
-            document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
-                detail: {
-                    errorId: errorMessage.id
-                }
-            }));
-        });
     }
 
     /* Attributes which can invoke attributeChangedCallback() */
@@ -149,7 +124,7 @@ class FDSSelect extends HTMLElement {
     -------------------------------------------------- */
 
     disconnectedCallback() {
-        this.#notifySummaryOnDisconnect();
+        CE.notifySummaryOnDisconnect(this);
 
         this.#initialized = false;
 
