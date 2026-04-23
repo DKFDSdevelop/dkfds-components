@@ -170,19 +170,10 @@ class FDSDatePicker extends HTMLElement {
     }
 
     #setupObserver() {
+        if (this.#datePickerObserver) return;
+
         this.#datePickerObserver = new MutationObserver(this.#handleMutations);
-
-        const config = {
-            subtree: true,
-            childList: true,
-            attributes: true,
-            attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required'],
-            attributeOldValue: false,
-            characterData: false,
-            characterDataOldValue: false
-        }
-
-        this.#datePickerObserver.observe(this, config);
+        this.#datePickerObserver.observe(this, CE.mutationObserverConfig);
     }
 
     #handleMutations = (records, observer) => {
