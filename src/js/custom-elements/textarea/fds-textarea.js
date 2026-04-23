@@ -1,4 +1,5 @@
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
+import { notifySummaryOnDisconnect, notifySummaryOnVisibilityChange } from '../custom-element-utils'
 
 class FDSTextarea extends HTMLElement {
 
@@ -147,7 +148,7 @@ class FDSTextarea extends HTMLElement {
         );
 
         if (wrapperHiddenChanged) {
-            this.#notifySummaryOnVisibilityChange();
+            notifySummaryOnVisibilityChange(this);
         }
 
         const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
@@ -180,30 +181,6 @@ class FDSTextarea extends HTMLElement {
         return allNodes.some(node => relevantTagNames.includes(node?.tagName));
     }
 
-    #notifySummaryOnDisconnect() {
-        if (!document.querySelector('fds-error-summary[auto]')) return;
-
-        this.querySelectorAll('fds-error-message[id]').forEach((errorMessage) => {
-            document.dispatchEvent(new CustomEvent('error-message-callback', {
-                detail: {
-                    errorId: errorMessage.id,
-                    isRemoved: true
-                }
-            }));
-        });
-    }
-
-    #notifySummaryOnVisibilityChange() {
-        if (!document.querySelector('fds-error-summary[auto]')) return;
-
-        this.querySelectorAll('fds-error-message[id]').forEach((errorMessage) => {
-            document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
-                detail: {
-                    errorId: errorMessage.id
-                }
-            }));
-        });
-    }
 
     /* Attributes which can invoke attributeChangedCallback() */
 
@@ -235,7 +212,7 @@ class FDSTextarea extends HTMLElement {
     -------------------------------------------------- */
 
     disconnectedCallback() {
-        this.#notifySummaryOnDisconnect();
+        notifySummaryOnDisconnect(this);
 
         this.#initialized = false;
 

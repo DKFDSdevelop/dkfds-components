@@ -8540,7 +8540,86 @@ function setInvalid(select, errorMessages) {
   const invalid = Array.from(errorMessages).some(element => isVisibleToScreenReader(element));
   invalid ? select.setAttribute('aria-invalid', 'true') : select.removeAttribute('aria-invalid');
 }
+;// ./src/js/custom-elements/custom-element-utils.js
+
+
+/**
+ * Associates a label element with an (input) element.
+ * If the element lacks an ID, a unique one is generated using the given prefix.
+ * If no element is provided, the `for` attribute is removed from the label.
+ *
+ * @param {HTMLLabelElement} label - The label element to associate.
+ * @param {HTMLElement} element - The element to associate the label with.
+ * @param {string} prefix - The prefix used when generating a unique ID for the element.
+ */
+function associateLabelWithElement(label, element, prefix) {
+  if (!label) return;
+  if (element) {
+    if (!element.id) {
+      element.id = generateAndVerifyUniqueId(prefix);
+    }
+    label.htmlFor = element.id;
+  } else {
+    label.removeAttribute('for');
+  }
+}
+
+/**
+ * Creates an SVG icon element with a single path.
+ * The SVG is given a fixed viewBox of '0 -960 960 960'.
+ *
+ * @param {string} pathD - The `d` attribute value defining the shape of the SVG path.
+ * @returns {SVGSVGElement} The constructed SVG element containing the specified path.
+ */
+function createSvgIcon(pathD) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  svg.setAttribute('viewBox', '0 -960 960 960');
+  svg.setAttribute('focusable', 'false');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.classList.add('icon-svg');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', pathD);
+  svg.appendChild(path);
+  return svg;
+}
+
+/**
+ * Notifies the error summary that error messages have been disconnected/removed.
+ * The parent wrapper dispatches 'error-message-callback' events for each error message found.
+ *
+ * @param {HTMLElement} element - The element to query for error messages.
+ */
+function notifySummaryOnDisconnect(element) {
+  if (!document.querySelector('fds-error-summary[auto]')) return;
+  element.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+    document.dispatchEvent(new CustomEvent('error-message-callback', {
+      detail: {
+        errorId: errorMessage.id,
+        isRemoved: true
+      }
+    }));
+  });
+}
+
+/**
+ * Notifies the error summary of visibility changes in error messages.
+ * The parent wrapper dispatches 'error-message-visibility-changed' events for each error message found.
+ *
+ * @param {HTMLElement} element - The element to query for error messages.
+ */
+function notifySummaryOnVisibilityChange(element) {
+  if (!document.querySelector('fds-error-summary[auto]')) return;
+  element.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+    document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+      detail: {
+        errorId: errorMessage.id
+      }
+    }));
+  });
+}
 ;// ./src/js/custom-elements/select/fds-select.js
+
 
 class FDSSelect extends HTMLElement {
   /* Private instance fields */
@@ -8637,32 +8716,11 @@ class FDSSelect extends HTMLElement {
         setAriaDescribedBy(this.#select, this.#errorMessages, this.#helpTexts);
         setInvalid(this.#select, this.#errorMessages);
         if (attributeName === 'hidden' && target === this) {
-          this.#notifySummaryOnVisibilityChange();
+          notifySummaryOnVisibilityChange(this);
         }
       }
     }
   };
-  #notifySummaryOnDisconnect() {
-    if (!document.querySelector('fds-error-summary[auto]')) return;
-    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
-      document.dispatchEvent(new CustomEvent('error-message-callback', {
-        detail: {
-          errorId: errorMessage.id,
-          isRemoved: true
-        }
-      }));
-    });
-  }
-  #notifySummaryOnVisibilityChange() {
-    if (!document.querySelector('fds-error-summary[auto]')) return;
-    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
-      document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
-        detail: {
-          errorId: errorMessage.id
-        }
-      }));
-    });
-  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -8738,7 +8796,7 @@ class FDSSelect extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
-    this.#notifySummaryOnDisconnect();
+    notifySummaryOnDisconnect(this);
     this.#initialized = false;
     if (this.#selectObserver) {
       this.#selectObserver.disconnect();
@@ -8777,6 +8835,7 @@ function registerSelect() {
 }
 /* harmony default export */ const fds_select = (registerSelect);
 ;// ./src/js/custom-elements/upload-file/fds-upload-file.js
+
 
 class FDSUploadFile extends HTMLElement {
   /**
@@ -8938,7 +8997,7 @@ class FDSUploadFile extends HTMLElement {
   #handleMutations = (records, observer) => {
     const wrapperHiddenChanged = records.some(record => record.attributeName === 'hidden' && record.target === this);
     if (wrapperHiddenChanged) {
-      this.#notifySummaryOnVisibilityChange();
+      notifySummaryOnVisibilityChange(this);
     }
     const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
     if (shouldUpdate) {
@@ -9115,27 +9174,6 @@ class FDSUploadFile extends HTMLElement {
     fileItem.setFileData(file, id);
     return fileItem;
   }
-  #notifySummaryOnDisconnect() {
-    if (!document.querySelector('fds-error-summary[auto]')) return;
-    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
-      document.dispatchEvent(new CustomEvent('error-message-callback', {
-        detail: {
-          errorId: errorMessage.id,
-          isRemoved: true
-        }
-      }));
-    });
-  }
-  #notifySummaryOnVisibilityChange() {
-    if (!document.querySelector('fds-error-summary[auto]')) return;
-    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
-      document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
-        detail: {
-          errorId: errorMessage.id
-        }
-      }));
-    });
-  }
 
   /* -----------------------------
      State updates
@@ -9286,7 +9324,7 @@ class FDSUploadFile extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
-    this.#notifySummaryOnDisconnect();
+    notifySummaryOnDisconnect(this);
     this.#initialized = false;
     this.removeEventListener('click', this.#onClick);
     this.#inputEl?.removeEventListener('change', this.#onInputChange);
@@ -9788,49 +9826,6 @@ function datesAreEqual(date1, date2) {
   }
   return date1.getTime() === date2.getTime();
 }
-;// ./src/js/custom-elements/custom-element-utils.js
-
-
-/**
- * Associates a label element with an (input) element.
- * If the element lacks an ID, a unique one is generated using the given prefix.
- * If no element is provided, the `for` attribute is removed from the label.
- *
- * @param {HTMLLabelElement} label - The label element to associate.
- * @param {HTMLElement} element - The element to associate the label with.
- * @param {string} prefix - The prefix used when generating a unique ID for the element.
- */
-function associateLabelWithElement(label, element, prefix) {
-  if (!label) return;
-  if (element) {
-    if (!element.id) {
-      element.id = generateAndVerifyUniqueId(prefix);
-    }
-    label.htmlFor = element.id;
-  } else {
-    label.removeAttribute('for');
-  }
-}
-
-/**
- * Creates an SVG icon element with a single path.
- * The SVG is given a fixed viewBox of '0 -960 960 960'.
- *
- * @param {string} pathD - The `d` attribute value defining the shape of the SVG path.
- * @returns {SVGSVGElement} The constructed SVG element containing the specified path.
- */
-function createSvgIcon(pathD) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  svg.setAttribute('viewBox', '0 -960 960 960');
-  svg.setAttribute('focusable', 'false');
-  svg.setAttribute('aria-hidden', 'true');
-  svg.classList.add('icon-svg');
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', pathD);
-  svg.appendChild(path);
-  return svg;
-}
 ;// ./src/js/custom-elements/date-picker/fds-date-picker.js
 
 
@@ -9995,7 +9990,7 @@ class FDSDatePicker extends HTMLElement {
   #handleMutations = (records, observer) => {
     const wrapperHiddenChanged = records.some(record => record.attributeName === 'hidden' && record.target === this);
     if (wrapperHiddenChanged) {
-      this.#notifySummaryOnVisibilityChange();
+      notifySummaryOnVisibilityChange(this);
     }
     const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
     if (shouldUpdate) {
@@ -10135,27 +10130,6 @@ class FDSDatePicker extends HTMLElement {
       this.querySelector('fds-date-picker-grid')?.setAttribute('text-months', str);
     }
   }
-  #notifySummaryOnDisconnect() {
-    if (!document.querySelector('fds-error-summary[auto]')) return;
-    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
-      document.dispatchEvent(new CustomEvent('error-message-callback', {
-        detail: {
-          errorId: errorMessage.id,
-          isRemoved: true
-        }
-      }));
-    });
-  }
-  #notifySummaryOnVisibilityChange() {
-    if (!document.querySelector('fds-error-summary[auto]')) return;
-    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
-      document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
-        detail: {
-          errorId: errorMessage.id
-        }
-      }));
-    });
-  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -10248,7 +10222,7 @@ class FDSDatePicker extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
-    this.#notifySummaryOnDisconnect();
+    notifySummaryOnDisconnect(this);
     this.#initialized = false;
     if (this.#datePickerObserver) {
       this.#datePickerObserver.disconnect();
@@ -11405,6 +11379,7 @@ function registerDatePickerGrid() {
 /* harmony default export */ const fds_date_picker_grid = (registerDatePickerGrid);
 ;// ./src/js/custom-elements/textarea/fds-textarea.js
 
+
 class FDSTextarea extends HTMLElement {
   /* Private instance fields */
 
@@ -11515,7 +11490,7 @@ class FDSTextarea extends HTMLElement {
   #handleMutations = (records, observer) => {
     const wrapperHiddenChanged = records.some(record => record.attributeName === 'hidden' && record.target === this);
     if (wrapperHiddenChanged) {
-      this.#notifySummaryOnVisibilityChange();
+      notifySummaryOnVisibilityChange(this);
     }
     const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
     if (shouldUpdate) {
@@ -11534,27 +11509,6 @@ class FDSTextarea extends HTMLElement {
     const relevantTagNames = ['LABEL', 'TEXTAREA', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
     const allNodes = [...addedNodes, ...removedNodes];
     return allNodes.some(node => relevantTagNames.includes(node?.tagName));
-  }
-  #notifySummaryOnDisconnect() {
-    if (!document.querySelector('fds-error-summary[auto]')) return;
-    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
-      document.dispatchEvent(new CustomEvent('error-message-callback', {
-        detail: {
-          errorId: errorMessage.id,
-          isRemoved: true
-        }
-      }));
-    });
-  }
-  #notifySummaryOnVisibilityChange() {
-    if (!document.querySelector('fds-error-summary[auto]')) return;
-    this.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
-      document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
-        detail: {
-          errorId: errorMessage.id
-        }
-      }));
-    });
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
@@ -11585,7 +11539,7 @@ class FDSTextarea extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
-    this.#notifySummaryOnDisconnect();
+    notifySummaryOnDisconnect(this);
     this.#initialized = false;
     if (this.#textareaObserver) {
       this.#textareaObserver.disconnect();

@@ -44,3 +44,40 @@ export function createSvgIcon(pathD) {
 
     return svg;
 }
+
+/**
+ * Notifies the error summary that error messages have been disconnected/removed.
+ * The parent wrapper dispatches 'error-message-callback' events for each error message found.
+ *
+ * @param {HTMLElement} element - The element to query for error messages.
+ */
+export function notifySummaryOnDisconnect(element) {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+
+    element.querySelectorAll('fds-error-message[id]').forEach((errorMessage) => {
+        document.dispatchEvent(new CustomEvent('error-message-callback', {
+            detail: {
+                errorId: errorMessage.id,
+                isRemoved: true
+            }
+        }));
+    });
+}
+
+/**
+ * Notifies the error summary of visibility changes in error messages.
+ * The parent wrapper dispatches 'error-message-visibility-changed' events for each error message found.
+ *
+ * @param {HTMLElement} element - The element to query for error messages.
+ */
+export function notifySummaryOnVisibilityChange(element) {
+    if (!document.querySelector('fds-error-summary[auto]')) return;
+
+    element.querySelectorAll('fds-error-message[id]').forEach((errorMessage) => {
+        document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+            detail: {
+                errorId: errorMessage.id
+            }
+        }));
+    });
+}
