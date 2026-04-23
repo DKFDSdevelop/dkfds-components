@@ -11616,21 +11616,16 @@ class FDSErrorSummary extends HTMLElement {
     const normalizedHeadingLevel = (headingLevel || 'h2').toLowerCase();
     return ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(normalizedHeadingLevel) ? normalizedHeadingLevel : 'h2';
   }
-  #isErrorMessageHidden(errorMessage) {
-    if (!errorMessage) return true;
-    const hiddenValue = errorMessage.getAttribute('hidden');
-    return hiddenValue === '' || hiddenValue === 'true';
-  }
-  #isWrapperHidden(wrapper) {
-    if (!wrapper) return true;
-    const hiddenValue = wrapper.getAttribute('hidden');
+  #hasHiddenAttribute(element) {
+    if (!element) return true;
+    const hiddenValue = element.getAttribute('hidden');
     return hiddenValue === '' || hiddenValue === 'true';
   }
   #isEligibleErrorMessage(errorMessage) {
     if (!errorMessage?.matches('fds-error-message')) return false;
     const wrapper = this.#getErrorWrapper(errorMessage);
     if (!wrapper) return false;
-    return !this.#isWrapperHidden(wrapper);
+    return !this.#hasHiddenAttribute(wrapper);
   }
   #syncVisibility() {
     const {
@@ -11638,6 +11633,15 @@ class FDSErrorSummary extends HTMLElement {
     } = this.#getSummaryElements();
     const hasErrors = !!listElement?.querySelector(':scope > li');
     this.hidden = !hasErrors;
+  }
+  #updateHeadingId(headingId) {
+    const {
+      navElement,
+      headingElement
+    } = this.#getSummaryElements();
+    if (!navElement || !headingElement) return;
+    headingElement.id = headingId || headingElement.id || generateAndVerifyUniqueId('error-summary-heading');
+    navElement.setAttribute('aria-labelledby', headingElement.id);
   }
   #ensureDOM() {
     const headingLevel = this.#normalizeHeadingLevel(this.getAttribute('heading-level'));
@@ -11655,13 +11659,12 @@ class FDSErrorSummary extends HTMLElement {
       iconElement.appendChild(useElement);
       const headingElement = document.createElement(headingLevel);
       headingElement.textContent = this.getAttribute('heading') || 'Der er problemer';
-      headingElement.id = generateAndVerifyUniqueId('error-summary-heading');
       const listElement = document.createElement('ul');
       navElement.appendChild(iconElement);
       navElement.appendChild(headingElement);
       navElement.appendChild(listElement);
-      navElement.setAttribute('aria-labelledby', headingElement.id);
       this.appendChild(navElement);
+      this.#updateHeadingId();
       return true;
     }
     const headingElement = navElement.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
@@ -11677,10 +11680,7 @@ class FDSErrorSummary extends HTMLElement {
       console.warn('<fds-error-summary> Missing direct child ul inside nav.');
       return false;
     }
-    if (!headingElement.id) {
-      headingElement.id = generateAndVerifyUniqueId('error-summary-heading');
-    }
-    navElement.setAttribute('aria-labelledby', headingElement.id);
+    this.#updateHeadingId();
     return true;
   }
   #updateHeading(heading) {
@@ -11711,12 +11711,14 @@ class FDSErrorSummary extends HTMLElement {
   #syncAll() {
     const heading = this.getAttribute('heading');
     const headingLevel = this.getAttribute('heading-level');
+    const headingId = this.getAttribute('heading-id');
     if (heading !== null) {
       this.#updateHeading(heading);
     }
     if (headingLevel !== null) {
       this.#updateHeadingLevel(headingLevel);
     }
+    this.#updateHeadingId(headingId);
   }
   #addError(errorId, message) {
     const {
@@ -11780,7 +11782,7 @@ class FDSErrorSummary extends HTMLElement {
       }
       return;
     }
-    const isHidden = this.#isErrorMessageHidden(errorMessage);
+    const isHidden = this.#hasHiddenAttribute(errorMessage);
     const message = errorMessage.querySelector(':scope > .visible-message')?.textContent?.trim() || errorMessage.textContent?.trim();
     if (isHidden || !message) {
       this.#removeError(errorMessage.id);
@@ -11838,7 +11840,7 @@ class FDSErrorSummary extends HTMLElement {
     document.addEventListener('error-message-visibility-changed', this.#handleErrorMessageEvents);
     document.addEventListener('error-message-callback', this.#handleErrorMessageEvents);
   }
-  static observedAttributes = ['heading', 'heading-level', 'auto'];
+  static observedAttributes = ['heading', 'heading-level', 'heading-id', 'auto'];
   constructor() {
     super();
     this.#initialized = false;
@@ -11893,6 +11895,9 @@ class FDSErrorSummary extends HTMLElement {
     if (!this.#initialized) return;
     if (attribute === 'heading') {
       this.#updateHeading(newValue);
+    }
+    if (attribute === 'heading-id') {
+      this.#updateHeadingId(newValue);
     }
     if (attribute === 'heading-level') {
       this.#updateHeadingLevel(newValue);
