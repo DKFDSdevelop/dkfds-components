@@ -6487,20 +6487,6 @@ class FDSInput extends HTMLElement {
     return this.querySelector(':scope > fds-character-limit');
   }
 
-  /* Readonly */
-
-  #shouldHaveReadonly(value) {
-    return value !== null && value !== 'false' && value !== false;
-  }
-  #setReadonly() {
-    this.#getInputElement()?.setAttribute('readonly', '');
-    this.querySelector(':scope > .form-input-wrapper')?.classList.add('readonly');
-  }
-  #removeReadonly() {
-    this.#getInputElement()?.removeAttribute('readonly');
-    this.querySelector(':scope > .form-input-wrapper')?.classList.remove('readonly');
-  }
-
   /* Prefix */
 
   #shouldHavePrefix(value) {
@@ -6515,7 +6501,6 @@ class FDSInput extends HTMLElement {
       wrapper.appendChild(this.#getInputElement());
     }
     wrapper.classList.add('form-input-wrapper', 'form-input-wrapper--prefix');
-    this.#shouldHaveReadonly(this.#getInputElement()?.hasAttribute('readonly')) ? wrapper.classList.add('readonly') : wrapper.classList.remove('readonly');
     let prefixEl = wrapper.querySelector('.form-input-prefix');
     if (!prefixEl) {
       prefixEl = document.createElement('div');
@@ -6550,7 +6535,6 @@ class FDSInput extends HTMLElement {
       wrapper.appendChild(this.#getInputElement());
     }
     wrapper.classList.add('form-input-wrapper', 'form-input-wrapper--suffix');
-    this.#shouldHaveReadonly(this.#getInputElement()?.hasAttribute('readonly')) ? wrapper.classList.add('readonly') : wrapper.classList.remove('readonly');
     let suffixEl = wrapper.querySelector('.form-input-suffix');
     if (!suffixEl) {
       suffixEl = document.createElement('div');
@@ -6653,7 +6637,7 @@ class FDSInput extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['show-required-status', 'input-readonly', 'input-prefix', 'input-suffix', 'input-maxwidth'];
+  static observedAttributes = ['show-required-status', 'input-prefix', 'input-suffix', 'input-maxwidth'];
 
   /* --------------------------------------------------
   GETTERS AND SETTERS
@@ -6794,7 +6778,6 @@ class FDSInput extends HTMLElement {
       this.#init();
     }
     this.setClasses();
-    if (this.#shouldHaveReadonly(this.getAttribute('input-readonly'))) this.#setReadonly();
     if (this.#shouldHavePrefix(this.getAttribute('input-prefix'))) this.#setPrefix(this.getAttribute('input-prefix'));
     if (this.#shouldHaveSuffix(this.getAttribute('input-suffix'))) this.#setSuffix(this.getAttribute('input-suffix'));
     if (this.#shouldHaveMaxwidth(this.getAttribute('input-maxwidth'))) this.#setMaxwidth(this.getAttribute('input-maxwidth'));
@@ -6843,9 +6826,6 @@ class FDSInput extends HTMLElement {
       const label = this.querySelector('label');
       const input = this.querySelector('input');
       showRequiredStatus(label, input, newValue);
-    }
-    if (attribute === 'input-readonly' && oldValue !== newValue) {
-      this.#shouldHaveReadonly(newValue) ? this.#setReadonly() : this.#removeReadonly();
     }
     if (attribute === 'input-prefix' && oldValue !== newValue) {
       this.#shouldHavePrefix(newValue) ? this.#setPrefix(newValue) : this.#removePrefix();

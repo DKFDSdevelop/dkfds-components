@@ -12799,19 +12799,6 @@ fds-input .form-input-wrapper .form-input-prefix,
   border-top-left-radius:8px;
   border-bottom-left-radius:8px;
 }
-fds-input .form-input-wrapper.disabled .form-input-suffix,
-fds-input .form-input-wrapper.disabled .form-input-prefix,
-.fds-input .form-input-wrapper.disabled .form-input-suffix,
-.fds-input .form-input-wrapper.disabled .form-input-prefix{
-  border-color:#DCDCDC;
-  color:#707070;
-}
-fds-input .form-input-wrapper.readonly .form-input-suffix,
-fds-input .form-input-wrapper.readonly .form-input-prefix,
-.fds-input .form-input-wrapper.readonly .form-input-suffix,
-.fds-input .form-input-wrapper.readonly .form-input-prefix{
-  border-color:#DCDCDC;
-}
 fds-input:has(fds-error-message:not([hidden]), fds-error-message[hidden=false]) > .form-input, fds-input:has(fds-error-message:not([hidden]), fds-error-message[hidden=false]) > .form-input-wrapper > .form-input, fds-input:has(.fds-error-message:not([hidden]), .fds-error-message[hidden=false]) > .form-input, fds-input:has(.fds-error-message:not([hidden]), .fds-error-message[hidden=false]) > .form-input-wrapper > .form-input,
 .fds-input:has(fds-error-message:not([hidden]), fds-error-message[hidden=false]) > .form-input,
 .fds-input:has(fds-error-message:not([hidden]), fds-error-message[hidden=false]) > .form-input-wrapper > .form-input,
@@ -12831,6 +12818,12 @@ fds-input:has(input[disabled]) .form-input-prefix,
 .fds-input:has(input[disabled]) .form-input-prefix{
   border-color:#DCDCDC;
   color:#707070;
+}
+fds-input:has(input[readonly]) .form-input-suffix,
+fds-input:has(input[readonly]) .form-input-prefix,
+.fds-input:has(input[readonly]) .form-input-suffix,
+.fds-input:has(input[readonly]) .form-input-prefix{
+  border-color:#DCDCDC;
 }
 
 fds-help-text,

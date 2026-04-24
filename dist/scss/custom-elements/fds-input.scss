@@ -69,8 +69,8 @@ fds-input,
             font-weight: func.font-weight("normal");
         }
 
-        &+fds-character-limit,
-        &+.fds-character-limit {
+        & + fds-character-limit,
+        & + .fds-character-limit {
             margin-top: func.units(2);
         }
     }
@@ -130,29 +130,12 @@ fds-input,
             border-top-left-radius: func.border-radius('medium');
             border-bottom-left-radius: func.border-radius('medium');
         }
-
-        &.disabled {
-
-            .form-input-suffix,
-            .form-input-prefix {
-                border-color: func.color(vars.$input-disabled-border-color);
-                color: func.color(vars.$input-disabled-text-color);
-            }
-        }
-
-        &.readonly {
-
-            .form-input-suffix,
-            .form-input-prefix {
-                border-color: func.color('gray-200');
-            }
-        }
     }
 
     &:has(fds-error-message:not([hidden]), fds-error-message[hidden="false"]),
     &:has(.fds-error-message:not([hidden]), .fds-error-message[hidden="false"]) {
         & > .form-input,
-        & > .form-input-wrapper>.form-input {
+        & > .form-input-wrapper > .form-input {
             border: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
             padding: $input-top-bottom-padding-feedback $input-left-right-padding-feedback;
         }
@@ -168,6 +151,14 @@ fds-input,
         .form-input-prefix {
             border-color: func.color(vars.$input-disabled-border-color);
             color: func.color(vars.$input-disabled-text-color);
+        }
+    }
+
+    &:has(input[readonly]) {
+
+        .form-input-suffix,
+        .form-input-prefix {
+            border-color: func.color('gray-200');
         }
     }
 }
