@@ -8886,7 +8886,12 @@ class FDSUploadFile extends HTMLElement {
     this.#fileListEl?.remove();
     this.#fileListEl = null;
     if (!this.contains(this.#dropzoneEl)) {
-      this.appendChild(this.#dropzoneEl);
+      const label = this.querySelector(':scope > .fds-upload-label');
+      if (label) {
+        this.insertBefore(this.#dropzoneEl, label.nextSibling);
+      } else {
+        this.appendChild(this.#dropzoneEl);
+      }
     }
   }
   #showFileList() {
@@ -8936,36 +8941,40 @@ class FDSUploadFile extends HTMLElement {
   /* Mutation observer */
 
   #setupObserver() {
+    if (this.#uploadObserver) return;
     this.#uploadObserver = new MutationObserver(this.#handleMutations);
-    const config = {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      attributeFilter: ['hidden', 'aria-hidden', 'id'],
-      attributeOldValue: false,
-      characterData: false,
-      characterDataOldValue: false
-    };
-    this.#uploadObserver.observe(this, config);
+    this.#uploadObserver.observe(this, mutationObserverConfig);
   }
-  #handleMutations = (records, observer) => {
-    const wrapperHiddenChanged = records.some(record => record.attributeName === 'hidden' && record.target === this);
-    if (wrapperHiddenChanged) {
-      notifySummaryOnVisibilityChange(this);
+  #handleMutations = records => {
+    let shouldUpdateAccessibility = false;
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      if (attributeName === 'hidden' && target === this) {
+        notifySummaryOnVisibilityChange(this);
+      }
+      if (attributeName === 'required' && target?.tagName === 'INPUT') {
+        if (this.hasAttribute('show-required-status')) {
+          this.#updateRequiredStatus();
+        }
+      }
+      if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
+        shouldUpdateAccessibility = true;
+        continue;
+      }
+      const relevantTagNames = ['FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        shouldUpdateAccessibility = true;
+      }
     }
-    const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
-    if (shouldUpdate) {
+    if (shouldUpdateAccessibility) {
       this.#setupAccessibility();
     }
   };
-  #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
-    if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
-      return true;
-    }
-    const relevantTagNames = ['FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
-    const allNodes = [...addedNodes, ...removedNodes];
-    return allNodes.some(node => relevantTagNames.includes(node?.tagName));
-  }
   #setupAccessibility() {
     const input = this.#inputEl;
     if (!input) return;
@@ -9022,11 +9031,6 @@ class FDSUploadFile extends HTMLElement {
       input.disabled = false;
     }
   }
-  #moveErrorsToBottom() {
-    const errors = this.querySelectorAll('fds-error-message:not([targets])');
-    if (errors.length === 0) return;
-    this.append(...errors);
-  }
 
   /* -----------------------------
      Rendering
@@ -9039,8 +9043,10 @@ class FDSUploadFile extends HTMLElement {
     } else {
       this.#showFileList();
     }
+    if (this.hasAttribute('show-required-status')) {
+      this.#updateRequiredStatus();
+    }
     this.#setupAccessibility();
-    this.#moveErrorsToBottom();
   }
   #renderDropzone() {
     const dropzone = document.createElement('div');
@@ -9193,6 +9199,14 @@ class FDSUploadFile extends HTMLElement {
     if (mainLabel && input.id) {
       mainLabel.setAttribute('for', input.id);
     }
+    if (this.hasAttribute('show-required-status')) {
+      this.#updateRequiredStatus();
+    }
+  }
+  #updateRequiredStatus() {
+    const label = this.querySelector('.fds-upload-label');
+    const input = this.#inputEl || this.querySelector('.fds-upload-input');
+    showRequiredStatus(label, input, this.getAttribute('show-required-status'));
   }
 
   /* --------------------------------------------------
@@ -9225,7 +9239,18 @@ class FDSUploadFile extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['upload-label', 'upload-id', 'dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'upload-disabled', 'file-list-header', 'file-list-more', 'remove-text', 'heading-level'];
+  static observedAttributes = ['upload-label', 'upload-id', 'dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'upload-disabled', 'file-list-header', 'file-list-more', 'remove-text', 'heading-level', 'show-required-status'];
+
+  /* --------------------------------------------------
+  GETTERS AND SETTERS
+  -------------------------------------------------- */
+
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
+  }
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -9311,12 +9336,18 @@ class FDSUploadFile extends HTMLElement {
     if (!this.#initialized) return;
     if (name === 'upload-label' && oldValue !== newValue) {
       this.#setUploadLabel();
+      if (this.hasAttribute('show-required-status')) {
+        this.#updateRequiredStatus();
+      }
     }
     if (name === 'upload-id' && oldValue !== newValue) {
       this.#updateUploadId(newValue);
     }
     if (name === 'upload-disabled' && oldValue !== newValue) {
       this.#shouldHaveDisabled(newValue) ? this.#setDisabled() : this.#removeDisabled();
+    }
+    if (name === 'show-required-status' && oldValue !== newValue) {
+      this.#updateRequiredStatus();
     }
     if (['dropzone-prefix', 'dropzone-link', 'dropzone-suffix'].includes(name) && oldValue !== newValue) {
       if (this.#files.length === 0) {

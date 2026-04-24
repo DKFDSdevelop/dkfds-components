@@ -1,5 +1,5 @@
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
-import { notifySummaryOnDisconnect, notifySummaryOnVisibilityChange } from '../custom-element-utils'
+import * as CE from '../custom-element-utils';
 
 class FDSUploadFile extends HTMLElement {
 
@@ -121,7 +121,13 @@ class FDSUploadFile extends HTMLElement {
         this.#fileListEl = null;
 
         if (!this.contains(this.#dropzoneEl)) {
-            this.appendChild(this.#dropzoneEl);
+            const label = this.querySelector(':scope > .fds-upload-label');
+
+            if (label) {
+                this.insertBefore(this.#dropzoneEl, label.nextSibling);
+            } else {
+                this.appendChild(this.#dropzoneEl);
+            }
         }
     }
 
@@ -186,47 +192,47 @@ class FDSUploadFile extends HTMLElement {
     /* Mutation observer */
 
     #setupObserver() {
+        if (this.#uploadObserver) return;
+
         this.#uploadObserver = new MutationObserver(this.#handleMutations);
-
-        const config = {
-            subtree: true,
-            childList: true,
-            attributes: true,
-            attributeFilter: ['hidden', 'aria-hidden', 'id'],
-            attributeOldValue: false,
-            characterData: false,
-            characterDataOldValue: false
-        };
-
-        this.#uploadObserver.observe(this, config);
+        this.#uploadObserver.observe(this, CE.mutationObserverConfig);
     }
 
-    #handleMutations = (records, observer) => {
-        const wrapperHiddenChanged = records.some(record =>
-            record.attributeName === 'hidden' && record.target === this
-        );
+    #handleMutations = (records) => {
+        let shouldUpdateAccessibility = false;
 
-        if (wrapperHiddenChanged) {
-            notifySummaryOnVisibilityChange(this);
+        for (const { attributeName, target, addedNodes, removedNodes } of records) {
+
+            if (attributeName === 'hidden' && target === this) {
+                CE.notifySummaryOnVisibilityChange(this);
+            }
+
+            if (attributeName === 'required' && target?.tagName === 'INPUT') {
+                if (this.hasAttribute('show-required-status')) {
+                    this.#updateRequiredStatus();
+                }
+            }
+
+            if (
+                attributeName === 'id' ||
+                attributeName === 'hidden' ||
+                attributeName === 'aria-hidden'
+            ) {
+                shouldUpdateAccessibility = true;
+                continue;
+            }
+
+            const relevantTagNames = ['FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+            const allNodes = [...addedNodes, ...removedNodes];
+
+            if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+                shouldUpdateAccessibility = true;
+            }
         }
 
-        const shouldUpdate = records.some(record =>
-            this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName)
-        );
-
-        if (shouldUpdate) {
+        if (shouldUpdateAccessibility) {
             this.#setupAccessibility();
         }
-    }
-
-    #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
-        if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
-            return true;
-        }
-
-        const relevantTagNames = ['FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
-        const allNodes = [...addedNodes, ...removedNodes];
-        return allNodes.some(node => relevantTagNames.includes(node?.tagName));
     }
 
     #setupAccessibility() {
@@ -297,13 +303,6 @@ class FDSUploadFile extends HTMLElement {
         }
     }
 
-    #moveErrorsToBottom() {
-        const errors = this.querySelectorAll('fds-error-message:not([targets])');
-        if (errors.length === 0) return;
-
-        this.append(...errors);
-    }
-
     /* -----------------------------
        Rendering
     ----------------------------- */
@@ -317,8 +316,11 @@ class FDSUploadFile extends HTMLElement {
             this.#showFileList();
         }
 
+        if (this.hasAttribute('show-required-status')) {
+            this.#updateRequiredStatus();
+        }
+
         this.#setupAccessibility();
-        this.#moveErrorsToBottom();
     }
 
     #renderDropzone() {
@@ -339,7 +341,7 @@ class FDSUploadFile extends HTMLElement {
         if (isDisabled) {
             input.disabled = true;
         }
-        
+
         const mainLabel = this.querySelector('.fds-upload-label');
         if (mainLabel) {
             mainLabel.setAttribute('for', input.id);
@@ -500,6 +502,21 @@ class FDSUploadFile extends HTMLElement {
         if (mainLabel && input.id) {
             mainLabel.setAttribute('for', input.id);
         }
+
+        if (this.hasAttribute('show-required-status')) {
+            this.#updateRequiredStatus();
+        }
+    }
+
+    #updateRequiredStatus() {
+        const label = this.querySelector('.fds-upload-label');
+        const input = this.#inputEl || this.querySelector('.fds-upload-input');
+
+        CE.showRequiredStatus(
+            label,
+            input,
+            this.getAttribute('show-required-status')
+        );
     }
 
     /* --------------------------------------------------
@@ -536,7 +553,14 @@ class FDSUploadFile extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['upload-label', 'upload-id', 'dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'upload-disabled', 'file-list-header', 'file-list-more', 'remove-text', 'heading-level'];
+    static observedAttributes = ['upload-label', 'upload-id', 'dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'upload-disabled', 'file-list-header', 'file-list-more', 'remove-text', 'heading-level', 'show-required-status'];
+
+    /* --------------------------------------------------
+    GETTERS AND SETTERS
+    -------------------------------------------------- */
+
+    get showRequiredStatus() { return this.getAttribute('show-required-status'); }
+    set showRequiredStatus(value) { value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
 
     /* --------------------------------------------------
    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -615,8 +639,8 @@ class FDSUploadFile extends HTMLElement {
     -------------------------------------------------- */
 
     disconnectedCallback() {
-        notifySummaryOnDisconnect(this);
-        
+        CE.notifySummaryOnDisconnect(this);
+
         this.#initialized = false;
 
         this.removeEventListener('click', this.#onClick);
@@ -636,6 +660,10 @@ class FDSUploadFile extends HTMLElement {
 
         if (name === 'upload-label' && oldValue !== newValue) {
             this.#setUploadLabel();
+
+            if (this.hasAttribute('show-required-status')) {
+                this.#updateRequiredStatus();
+            }
         }
 
         if (name === 'upload-id' && oldValue !== newValue) {
@@ -644,6 +672,10 @@ class FDSUploadFile extends HTMLElement {
 
         if (name === 'upload-disabled' && oldValue !== newValue) {
             this.#shouldHaveDisabled(newValue) ? this.#setDisabled() : this.#removeDisabled();
+        }
+
+        if (name === 'show-required-status' && oldValue !== newValue) {
+            this.#updateRequiredStatus();
         }
 
         if (['dropzone-prefix', 'dropzone-link', 'dropzone-suffix'].includes(name) && oldValue !== newValue) {
