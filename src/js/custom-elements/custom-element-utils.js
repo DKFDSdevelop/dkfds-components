@@ -1,6 +1,22 @@
 import { generateAndVerifyUniqueId } from '../utils/generate-unique-id';
 
 /**
+ * Configuration object for a MutationObserver.
+ * Tracked attributes: `hidden`, `aria-hidden`, `id`, `class`, `disabled`, `required`.
+ *
+ * @type {MutationObserverInit}
+ */
+export const mutationObserverConfig = {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required'],
+    attributeOldValue: false,
+    characterData: false,
+    characterDataOldValue: false
+}
+
+/**
  * Associates a label element with an (input) element.
  * If the element lacks an ID, a unique one is generated using the given prefix.
  * If no element is provided, the `for` attribute is removed from the label.
@@ -46,6 +62,41 @@ export function createSvgIcon(pathD) {
 }
 
 /**
+ * Shows or hides a required status indicator in a label element based on the given value.
+ * If value is null, the indicator is removed. If value is an empty string, a default
+ * text is used based on whether the element is required or not.
+ *
+ * @param {HTMLLabelElement} label - The label element to update.
+ * @param {HTMLElement} element - The form element to check for required status.
+ * @param {string|null} value - The value to display in the status indicator.
+ */
+export function showRequiredStatus(label, element, value) {
+    if (!label || !element) return;
+
+    let statusIndicator = label.querySelector(':scope > span.weight-normal');
+
+    if (value === null && statusIndicator) {
+        statusIndicator.remove();
+        return;
+    }
+
+    if (!statusIndicator) {
+        const span = document.createElement('span');
+        span.className = 'weight-normal';
+        label.appendChild(span);
+        statusIndicator = span;
+    }
+
+    const isRequired = element.hasAttribute('required') || (element.hasAttribute('aria-required') && element.getAttribute('aria-required') !== 'false');
+
+    let text = value;
+    if (value === '' && isRequired) text = 'skal udfyldes';
+    if (value === '' && !isRequired) text = 'frivilligt';
+
+    statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
+}
+
+/**
  * Notifies the error summary that error messages have been disconnected/removed.
  * The parent wrapper dispatches 'error-message-callback' events for each error message found.
  *
@@ -80,4 +131,62 @@ export function notifySummaryOnVisibilityChange(element) {
             }
         }));
     });
+}
+
+/**
+ * Determines whether an element is visible to screen readers.
+ *
+ * @param {HTMLElement} element - The element to check.
+ * @returns {boolean} True if the element is visible to screen readers, false otherwise.
+ */
+export function isVisibleToScreenReader(element) {
+    const notDNone = !element.classList.contains('d-none');
+    const notHidden = !element.hasAttribute('hidden') || element.getAttribute('hidden') === 'false';
+    const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
+    return notDNone && notHidden && notAriaHidden;
+}
+
+/**
+ * Matches the disabled class of a label element to the disabled attribute of a form element.
+ *
+ * @param {HTMLLabelElement} label - The label element to update.
+ * @param {HTMLElement} element - The form element to match the disabled state from.
+ */
+export function setDisabledClass(label, element) {
+    if (!label || !element) return;
+
+    label.classList.toggle('disabled', element.hasAttribute('disabled'));
+}
+
+/**
+ * Sets the `aria-describedby` attribute on a form element based on
+ * the IDs of visible error messages and help texts.
+ *
+ * @param {HTMLElement} element - The form element to update.
+ * @param {NodeList} errorMessages - Error message elements to consider.
+ * @param {NodeList} helpTexts - Help text elements to consider.
+ */
+export function setAriaDescribedBy(element, errorMessages, helpTexts) {
+    if (!element) return;
+
+    const ids = [...errorMessages, ...helpTexts]
+        .filter(el => el.id && isVisibleToScreenReader(el))
+        .map(el => el.id);
+
+    ids.length > 0 ? element.setAttribute('aria-describedby', ids.join(' ')) : element.removeAttribute('aria-describedby');
+}
+
+/**
+ * Sets or removes the `aria-invalid` attribute on a form element
+ * based on whether any error messages are visible to screen readers.
+ *
+ * @param {HTMLElement} element - The form element to update.
+ * @param {NodeList} errorMessages - Error message elements to evaluate.
+ */
+export function setInvalid(element, errorMessages) {
+    if (!element) return;
+
+    const invalid = Array.from(errorMessages).some(el => isVisibleToScreenReader(el));
+
+    invalid ? element.setAttribute('aria-invalid', 'true') : element.removeAttribute('aria-invalid');
 }
