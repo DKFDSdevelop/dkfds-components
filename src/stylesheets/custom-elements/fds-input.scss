@@ -151,10 +151,23 @@ fds-input,
 
     &:has(fds-error-message:not([hidden]), fds-error-message[hidden="false"]),
     &:has(.fds-error-message:not([hidden]), .fds-error-message[hidden="false"]) {
-        &>.form-input,
-        &>.form-input-wrapper>.form-input {
+        & > .form-input,
+        & > .form-input-wrapper>.form-input {
             border: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
             padding: $input-top-bottom-padding-feedback $input-left-right-padding-feedback;
+        }
+    }
+
+    &:has(input[disabled]) {
+        label {
+            color: func.color(vars.$input-disabled-text-color);
+            font-weight: func.font-weight('medium');
+        }
+
+        .form-input-suffix,
+        .form-input-prefix {
+            border-color: func.color(vars.$input-disabled-border-color);
+            color: func.color(vars.$input-disabled-text-color);
         }
     }
 }

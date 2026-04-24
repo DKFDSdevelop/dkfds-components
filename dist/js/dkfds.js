@@ -6501,22 +6501,6 @@ class FDSInput extends HTMLElement {
     this.querySelector(':scope > .form-input-wrapper')?.classList.remove('readonly');
   }
 
-  /* Disabled */
-
-  #shouldHaveDisabled(value) {
-    return value !== null && value !== 'false' && value !== false;
-  }
-  #setDisabled() {
-    this.#getInputElement()?.setAttribute('disabled', '');
-    this.#getLabelElement()?.classList.add('disabled');
-    this.querySelector(':scope > .form-input-wrapper')?.classList.add('disabled');
-  }
-  #removeDisabled() {
-    this.#getInputElement()?.removeAttribute('disabled');
-    this.#getLabelElement()?.classList.remove('disabled');
-    this.querySelector(':scope > .form-input-wrapper')?.classList.remove('disabled');
-  }
-
   /* Prefix */
 
   #shouldHavePrefix(value) {
@@ -6531,7 +6515,6 @@ class FDSInput extends HTMLElement {
       wrapper.appendChild(this.#getInputElement());
     }
     wrapper.classList.add('form-input-wrapper', 'form-input-wrapper--prefix');
-    this.#shouldHaveDisabled(this.#getInputElement()?.hasAttribute('disabled')) ? wrapper.classList.add('disabled') : wrapper.classList.remove('disabled');
     this.#shouldHaveReadonly(this.#getInputElement()?.hasAttribute('readonly')) ? wrapper.classList.add('readonly') : wrapper.classList.remove('readonly');
     let prefixEl = wrapper.querySelector('.form-input-prefix');
     if (!prefixEl) {
@@ -6567,7 +6550,6 @@ class FDSInput extends HTMLElement {
       wrapper.appendChild(this.#getInputElement());
     }
     wrapper.classList.add('form-input-wrapper', 'form-input-wrapper--suffix');
-    this.#shouldHaveDisabled(this.#getInputElement()?.hasAttribute('disabled')) ? wrapper.classList.add('disabled') : wrapper.classList.remove('disabled');
     this.#shouldHaveReadonly(this.#getInputElement()?.hasAttribute('readonly')) ? wrapper.classList.add('readonly') : wrapper.classList.remove('readonly');
     let suffixEl = wrapper.querySelector('.form-input-suffix');
     if (!suffixEl) {
@@ -6671,7 +6653,7 @@ class FDSInput extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['show-required-status', 'input-readonly', 'input-disabled', 'input-prefix', 'input-suffix', 'input-maxwidth'];
+  static observedAttributes = ['show-required-status', 'input-readonly', 'input-prefix', 'input-suffix', 'input-maxwidth'];
 
   /* --------------------------------------------------
   GETTERS AND SETTERS
@@ -6813,7 +6795,6 @@ class FDSInput extends HTMLElement {
     }
     this.setClasses();
     if (this.#shouldHaveReadonly(this.getAttribute('input-readonly'))) this.#setReadonly();
-    if (this.#shouldHaveDisabled(this.getAttribute('input-disabled'))) this.#setDisabled();
     if (this.#shouldHavePrefix(this.getAttribute('input-prefix'))) this.#setPrefix(this.getAttribute('input-prefix'));
     if (this.#shouldHaveSuffix(this.getAttribute('input-suffix'))) this.#setSuffix(this.getAttribute('input-suffix'));
     if (this.#shouldHaveMaxwidth(this.getAttribute('input-maxwidth'))) this.#setMaxwidth(this.getAttribute('input-maxwidth'));
@@ -6865,9 +6846,6 @@ class FDSInput extends HTMLElement {
     }
     if (attribute === 'input-readonly' && oldValue !== newValue) {
       this.#shouldHaveReadonly(newValue) ? this.#setReadonly() : this.#removeReadonly();
-    }
-    if (attribute === 'input-disabled' && oldValue !== newValue) {
-      this.#shouldHaveDisabled(newValue) ? this.#setDisabled() : this.#removeDisabled();
     }
     if (attribute === 'input-prefix' && oldValue !== newValue) {
       this.#shouldHavePrefix(newValue) ? this.#setPrefix(newValue) : this.#removePrefix();

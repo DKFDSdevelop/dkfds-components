@@ -12820,6 +12820,18 @@ fds-input:has(fds-error-message:not([hidden]), fds-error-message[hidden=false]) 
   border:2px solid #CC0000;
   padding:calc(8px - 2px) calc(16px - 2px);
 }
+fds-input:has(input[disabled]) label,
+.fds-input:has(input[disabled]) label{
+  color:#707070;
+  font-weight:500;
+}
+fds-input:has(input[disabled]) .form-input-suffix,
+fds-input:has(input[disabled]) .form-input-prefix,
+.fds-input:has(input[disabled]) .form-input-suffix,
+.fds-input:has(input[disabled]) .form-input-prefix{
+  border-color:#DCDCDC;
+  color:#707070;
+}
 
 fds-help-text,
 .fds-help-text{
