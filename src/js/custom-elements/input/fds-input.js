@@ -1,10 +1,14 @@
 'use strict';
 
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
+import * as CE from '../custom-element-utils';
 
 class FDSInput extends HTMLElement {
 
     /* Private instance fields */
+
+    #initialized = false;
+    #inputObserver = null;
 
     #input;
     #label;
@@ -26,6 +30,53 @@ class FDSInput extends HTMLElement {
 
     /* Private methods */
 
+    #setupObserver() {
+        if (this.#inputObserver) return;
+
+        this.#inputObserver = new MutationObserver(this.#handleMutations);
+        this.#inputObserver.observe(this, CE.mutationObserverConfig);
+    }
+
+    #handleMutations = (records) => {
+        for (const { attributeName, target, addedNodes, removedNodes } of records) {
+
+            // A relevant child element was added or removed.
+            const relevantTagNames = ['LABEL', 'INPUT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+            const allNodes = [...addedNodes, ...removedNodes];
+            if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+                const label = this.querySelector('label');
+                const input = this.querySelector('input');
+
+                if (this.hasAttribute('show-required-status')) {
+                    CE.showRequiredStatus(label, input, this.getAttribute('show-required-status'));
+                }
+
+                break;
+            }
+
+            // The input's required attribute changed
+            if (attributeName === 'required' && target?.tagName === 'INPUT') {
+                if (this.hasAttribute('show-required-status')) {
+                    const label = this.querySelector('label');
+                    CE.showRequiredStatus(label, target, this.getAttribute('show-required-status'));
+                }
+            }
+        }
+    }
+
+    #init() {
+        this.#setupObserver();
+
+        const label = this.querySelector('label');
+        const input = this.querySelector('input');
+
+        if (this.hasAttribute('show-required-status')) {
+            CE.showRequiredStatus(label, input, this.getAttribute('show-required-status'));
+        }
+
+        this.#initialized = true;
+    }
+
     #getInputElement() {
         if (this.#input) return this.#input;
 
@@ -42,41 +93,6 @@ class FDSInput extends HTMLElement {
 
     #getCharacterLimit() {
         return this.querySelector(':scope > fds-character-limit');
-    }
-
-    /* Indicator */
-
-    #shouldHaveIndicator(value) {
-        return value !== null;
-    }
-
-    #setIndicator(value = '') {
-        if (!this.#getLabelElement() || !this.#getInputElement()) return;
-
-        if (!this.#getLabelElement().querySelector(':scope > span.weight-normal')) {
-            const span = document.createElement('span');
-            span.className = 'weight-normal';
-            this.#getLabelElement().appendChild(span);
-        }
-
-        const isRequired =
-            this.#getInputElement().hasAttribute('required') ||
-            (this.#getInputElement().hasAttribute('aria-required') && this.#getInputElement().getAttribute('aria-required') !== 'false');
-
-        let text = value;
-        if (value === '' && isRequired) text = 'skal udfyldes';
-        if (value === '' && !isRequired) text = 'frivilligt';
-
-        if (isRequired) {
-            this.#getLabelElement().querySelector(':scope > span.weight-normal').textContent = ` (*${text})`;
-        }
-        else {
-            this.#getLabelElement().querySelector(':scope > span.weight-normal').textContent = ` (${text})`;
-        }
-    }
-
-    #removeIndicator() {
-        this.#getLabelElement()?.querySelector(':scope > span.weight-normal')?.remove();
     }
 
     /* Readonly */
@@ -296,7 +312,14 @@ class FDSInput extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['input-indicator', 'input-readonly', 'input-disabled', 'input-prefix', 'input-suffix', 'input-maxwidth'];
+    static observedAttributes = ['show-required-status', 'input-readonly', 'input-disabled', 'input-prefix', 'input-suffix', 'input-maxwidth'];
+
+    /* --------------------------------------------------
+    GETTERS AND SETTERS
+    -------------------------------------------------- */
+
+    get showRequiredStatus() { return this.getAttribute('show-required-status'); }
+    set showRequiredStatus(value) { value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
 
     /* --------------------------------------------------
     CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -416,8 +439,9 @@ class FDSInput extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
+        if (!this.#initialized) { this.#init(); }
+
         this.setClasses();
-        if (this.#shouldHaveIndicator(this.getAttribute('input-indicator'))) this.#setIndicator(this.getAttribute('input-indicator'));
         if (this.#shouldHaveReadonly(this.getAttribute('input-readonly'))) this.#setReadonly();
         if (this.#shouldHaveDisabled(this.getAttribute('input-disabled'))) this.#setDisabled();
         if (this.#shouldHavePrefix(this.getAttribute('input-prefix'))) this.#setPrefix(this.getAttribute('input-prefix'));
@@ -452,6 +476,15 @@ class FDSInput extends HTMLElement {
         this.removeEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
         this.removeEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
         this.removeEventListener('character-limit-visibility-changed', this.#handleVisibilityChange);
+
+        CE.notifySummaryOnDisconnect(this);
+
+        this.#initialized = false;
+
+        if (this.#inputObserver) {
+            this.#inputObserver.disconnect();
+            this.#inputObserver = null;
+        }
     }
 
     /* --------------------------------------------------
@@ -459,10 +492,12 @@ class FDSInput extends HTMLElement {
     -------------------------------------------------- */
 
     attributeChangedCallback(attribute, oldValue, newValue) {
-        if (!this.isConnected) return;
+        if (!this.#initialized) return;
 
-        if (attribute === 'input-indicator') {
-            this.#shouldHaveIndicator(newValue) ? this.#setIndicator(newValue) : this.#removeIndicator();
+        if (attribute === 'show-required-status' && (oldValue !== newValue)) {
+            const label = this.querySelector('label');
+            const input = this.querySelector('input');
+            CE.showRequiredStatus(label, input, newValue);
         }
 
         if (attribute === 'input-readonly' && (oldValue !== newValue)) {

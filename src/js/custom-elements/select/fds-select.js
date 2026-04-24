@@ -67,22 +67,7 @@ class FDSSelect extends HTMLElement {
         }
     }
 
-    /* Attributes which can invoke attributeChangedCallback() */
-
-    static observedAttributes = ['show-required-status'];
-
-    /* --------------------------------------------------
-    GETTERS AND SETTERS
-    -------------------------------------------------- */
-
-    get showRequiredStatus() { return this.getAttribute('show-required-status'); }
-    set showRequiredStatus(value) { value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT METHODS
-    -------------------------------------------------- */
-
-    init() {
+    #init() {
         this.#setupObserver();
 
         const label = this.querySelector('label');
@@ -101,12 +86,23 @@ class FDSSelect extends HTMLElement {
         this.#initialized = true;
     }
 
+    /* Attributes which can invoke attributeChangedCallback() */
+
+    static observedAttributes = ['show-required-status'];
+
+    /* --------------------------------------------------
+    GETTERS AND SETTERS
+    -------------------------------------------------- */
+
+    get showRequiredStatus() { return this.getAttribute('show-required-status'); }
+    set showRequiredStatus(value) { value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
+
     /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
     -------------------------------------------------- */
 
     connectedCallback() {
-        if (!this.#initialized) { this.init(); }
+        if (!this.#initialized) { this.#init(); }
     }
 
     /* --------------------------------------------------

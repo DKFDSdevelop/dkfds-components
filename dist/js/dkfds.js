@@ -6229,13 +6229,190 @@ function registerAccordionGroup() {
   }
 }
 /* harmony default export */ const fds_accordion_group = (registerAccordionGroup);
+;// ./src/js/custom-elements/custom-element-utils.js
+
+
+/**
+ * Configuration object for a MutationObserver.
+ * Tracked attributes: `hidden`, `aria-hidden`, `id`, `class`, `disabled`, `required`.
+ *
+ * @type {MutationObserverInit}
+ */
+const mutationObserverConfig = {
+  subtree: true,
+  childList: true,
+  attributes: true,
+  attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required'],
+  attributeOldValue: false,
+  characterData: false,
+  characterDataOldValue: false
+};
+
+/**
+ * Associates a label element with an (input) element.
+ * If the element lacks an ID, a unique one is generated using the given prefix.
+ * If no element is provided, the `for` attribute is removed from the label.
+ *
+ * @param {HTMLLabelElement} label - The label element to associate.
+ * @param {HTMLElement} element - The element to associate the label with.
+ * @param {string} prefix - The prefix used when generating a unique ID for the element.
+ */
+function associateLabelWithElement(label, element, prefix) {
+  if (!label) return;
+  if (element) {
+    if (!element.id) {
+      element.id = generateAndVerifyUniqueId(prefix);
+    }
+    label.htmlFor = element.id;
+  } else {
+    label.removeAttribute('for');
+  }
+}
+
+/**
+ * Creates an SVG icon element with a single path.
+ * The SVG is given a fixed viewBox of '0 -960 960 960'.
+ *
+ * @param {string} pathD - The `d` attribute value defining the shape of the SVG path.
+ * @returns {SVGSVGElement} The constructed SVG element containing the specified path.
+ */
+function createSvgIcon(pathD) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  svg.setAttribute('viewBox', '0 -960 960 960');
+  svg.setAttribute('focusable', 'false');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.classList.add('icon-svg');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', pathD);
+  svg.appendChild(path);
+  return svg;
+}
+
+/**
+ * Shows or hides a required status indicator in a label element based on the given value.
+ * If value is null, the indicator is removed. If value is an empty string, a default
+ * text is used based on whether the element is required or not.
+ *
+ * @param {HTMLLabelElement} label - The label element to update.
+ * @param {HTMLElement} element - The form element to check for required status.
+ * @param {string|null} value - The value to display in the status indicator.
+ */
+function showRequiredStatus(label, element, value) {
+  if (!label || !element) return;
+  let statusIndicator = label.querySelector(':scope > span.weight-normal');
+  if (value === null && statusIndicator) {
+    statusIndicator.remove();
+    return;
+  }
+  if (!statusIndicator) {
+    const span = document.createElement('span');
+    span.className = 'weight-normal';
+    label.appendChild(span);
+    statusIndicator = span;
+  }
+  const isRequired = element.hasAttribute('required') || element.hasAttribute('aria-required') && element.getAttribute('aria-required') !== 'false';
+  let text = value;
+  if (value === '' && isRequired) text = 'skal udfyldes';
+  if (value === '' && !isRequired) text = 'frivilligt';
+  statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
+}
+
+/**
+ * Notifies the error summary that error messages have been disconnected/removed.
+ * The parent wrapper dispatches 'error-message-callback' events for each error message found.
+ *
+ * @param {HTMLElement} element - The element to query for error messages.
+ */
+function notifySummaryOnDisconnect(element) {
+  if (!document.querySelector('fds-error-summary[auto]')) return;
+  element.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+    document.dispatchEvent(new CustomEvent('error-message-callback', {
+      detail: {
+        errorId: errorMessage.id,
+        isRemoved: true
+      }
+    }));
+  });
+}
+
+/**
+ * Notifies the error summary of visibility changes in error messages.
+ * The parent wrapper dispatches 'error-message-visibility-changed' events for each error message found.
+ *
+ * @param {HTMLElement} element - The element to query for error messages.
+ */
+function notifySummaryOnVisibilityChange(element) {
+  if (!document.querySelector('fds-error-summary[auto]')) return;
+  element.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+    document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+      detail: {
+        errorId: errorMessage.id
+      }
+    }));
+  });
+}
+
+/**
+ * Determines whether an element is visible to screen readers.
+ *
+ * @param {HTMLElement} element - The element to check.
+ * @returns {boolean} True if the element is visible to screen readers, false otherwise.
+ */
+function isVisibleToScreenReader(element) {
+  const notDNone = !element.classList.contains('d-none');
+  const notHidden = !element.hasAttribute('hidden') || element.getAttribute('hidden') === 'false';
+  const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
+  return notDNone && notHidden && notAriaHidden;
+}
+
+/**
+ * Matches the disabled class of a label element to the disabled attribute of a form element.
+ *
+ * @param {HTMLLabelElement} label - The label element to update.
+ * @param {HTMLElement} element - The form element to match the disabled state from.
+ */
+function setDisabledClass(label, element) {
+  if (!label || !element) return;
+  label.classList.toggle('disabled', element.hasAttribute('disabled'));
+}
+
+/**
+ * Sets the `aria-describedby` attribute on a form element based on
+ * the IDs of visible error messages and help texts.
+ *
+ * @param {HTMLElement} element - The form element to update.
+ * @param {NodeList} errorMessages - Error message elements to consider.
+ * @param {NodeList} helpTexts - Help text elements to consider.
+ */
+function setAriaDescribedBy(element, errorMessages, helpTexts) {
+  if (!element) return;
+  const ids = [...errorMessages, ...helpTexts].filter(el => el.id && isVisibleToScreenReader(el)).map(el => el.id);
+  ids.length > 0 ? element.setAttribute('aria-describedby', ids.join(' ')) : element.removeAttribute('aria-describedby');
+}
+
+/**
+ * Sets or removes the `aria-invalid` attribute on a form element
+ * based on whether any error messages are visible to screen readers.
+ *
+ * @param {HTMLElement} element - The form element to update.
+ * @param {NodeList} errorMessages - Error message elements to evaluate.
+ */
+function setInvalid(element, errorMessages) {
+  if (!element) return;
+  const invalid = Array.from(errorMessages).some(el => isVisibleToScreenReader(el));
+  invalid ? element.setAttribute('aria-invalid', 'true') : element.removeAttribute('aria-invalid');
+}
 ;// ./src/js/custom-elements/input/fds-input.js
+
 
 
 
 class FDSInput extends HTMLElement {
   /* Private instance fields */
 
+  #initialized = false;
+  #inputObserver = null;
   #input;
   #label;
   #limit;
@@ -6254,6 +6431,48 @@ class FDSInput extends HTMLElement {
 
   /* Private methods */
 
+  #setupObserver() {
+    if (this.#inputObserver) return;
+    this.#inputObserver = new MutationObserver(this.#handleMutations);
+    this.#inputObserver.observe(this, mutationObserverConfig);
+  }
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      // A relevant child element was added or removed.
+      const relevantTagNames = ['LABEL', 'INPUT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        const label = this.querySelector('label');
+        const input = this.querySelector('input');
+        if (this.hasAttribute('show-required-status')) {
+          showRequiredStatus(label, input, this.getAttribute('show-required-status'));
+        }
+        break;
+      }
+
+      // The input's required attribute changed
+      if (attributeName === 'required' && target?.tagName === 'INPUT') {
+        if (this.hasAttribute('show-required-status')) {
+          const label = this.querySelector('label');
+          showRequiredStatus(label, target, this.getAttribute('show-required-status'));
+        }
+      }
+    }
+  };
+  #init() {
+    this.#setupObserver();
+    const label = this.querySelector('label');
+    const input = this.querySelector('input');
+    if (this.hasAttribute('show-required-status')) {
+      showRequiredStatus(label, input, this.getAttribute('show-required-status'));
+    }
+    this.#initialized = true;
+  }
   #getInputElement() {
     if (this.#input) return this.#input;
     this.#input = this.querySelector('input');
@@ -6266,33 +6485,6 @@ class FDSInput extends HTMLElement {
   }
   #getCharacterLimit() {
     return this.querySelector(':scope > fds-character-limit');
-  }
-
-  /* Indicator */
-
-  #shouldHaveIndicator(value) {
-    return value !== null;
-  }
-  #setIndicator() {
-    let value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-    if (!this.#getLabelElement() || !this.#getInputElement()) return;
-    if (!this.#getLabelElement().querySelector(':scope > span.weight-normal')) {
-      const span = document.createElement('span');
-      span.className = 'weight-normal';
-      this.#getLabelElement().appendChild(span);
-    }
-    const isRequired = this.#getInputElement().hasAttribute('required') || this.#getInputElement().hasAttribute('aria-required') && this.#getInputElement().getAttribute('aria-required') !== 'false';
-    let text = value;
-    if (value === '' && isRequired) text = 'skal udfyldes';
-    if (value === '' && !isRequired) text = 'frivilligt';
-    if (isRequired) {
-      this.#getLabelElement().querySelector(':scope > span.weight-normal').textContent = ` (*${text})`;
-    } else {
-      this.#getLabelElement().querySelector(':scope > span.weight-normal').textContent = ` (${text})`;
-    }
-  }
-  #removeIndicator() {
-    this.#getLabelElement()?.querySelector(':scope > span.weight-normal')?.remove();
   }
 
   /* Readonly */
@@ -6479,7 +6671,18 @@ class FDSInput extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['input-indicator', 'input-readonly', 'input-disabled', 'input-prefix', 'input-suffix', 'input-maxwidth'];
+  static observedAttributes = ['show-required-status', 'input-readonly', 'input-disabled', 'input-prefix', 'input-suffix', 'input-maxwidth'];
+
+  /* --------------------------------------------------
+  GETTERS AND SETTERS
+  -------------------------------------------------- */
+
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
+  }
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -6605,8 +6808,10 @@ class FDSInput extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
+    if (!this.#initialized) {
+      this.#init();
+    }
     this.setClasses();
-    if (this.#shouldHaveIndicator(this.getAttribute('input-indicator'))) this.#setIndicator(this.getAttribute('input-indicator'));
     if (this.#shouldHaveReadonly(this.getAttribute('input-readonly'))) this.#setReadonly();
     if (this.#shouldHaveDisabled(this.getAttribute('input-disabled'))) this.#setDisabled();
     if (this.#shouldHavePrefix(this.getAttribute('input-prefix'))) this.#setPrefix(this.getAttribute('input-prefix'));
@@ -6639,6 +6844,12 @@ class FDSInput extends HTMLElement {
     this.removeEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
     this.removeEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
     this.removeEventListener('character-limit-visibility-changed', this.#handleVisibilityChange);
+    notifySummaryOnDisconnect(this);
+    this.#initialized = false;
+    if (this.#inputObserver) {
+      this.#inputObserver.disconnect();
+      this.#inputObserver = null;
+    }
   }
 
   /* --------------------------------------------------
@@ -6646,9 +6857,11 @@ class FDSInput extends HTMLElement {
   -------------------------------------------------- */
 
   attributeChangedCallback(attribute, oldValue, newValue) {
-    if (!this.isConnected) return;
-    if (attribute === 'input-indicator') {
-      this.#shouldHaveIndicator(newValue) ? this.#setIndicator(newValue) : this.#removeIndicator();
+    if (!this.#initialized) return;
+    if (attribute === 'show-required-status' && oldValue !== newValue) {
+      const label = this.querySelector('label');
+      const input = this.querySelector('input');
+      showRequiredStatus(label, input, newValue);
     }
     if (attribute === 'input-readonly' && oldValue !== newValue) {
       this.#shouldHaveReadonly(newValue) ? this.#setReadonly() : this.#removeReadonly();
@@ -8469,180 +8682,6 @@ function registerDateInput() {
   }
 }
 /* harmony default export */ const fds_date_input = (registerDateInput);
-;// ./src/js/custom-elements/custom-element-utils.js
-
-
-/**
- * Configuration object for a MutationObserver.
- * Tracked attributes: `hidden`, `aria-hidden`, `id`, `class`, `disabled`, `required`.
- *
- * @type {MutationObserverInit}
- */
-const mutationObserverConfig = {
-  subtree: true,
-  childList: true,
-  attributes: true,
-  attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required'],
-  attributeOldValue: false,
-  characterData: false,
-  characterDataOldValue: false
-};
-
-/**
- * Associates a label element with an (input) element.
- * If the element lacks an ID, a unique one is generated using the given prefix.
- * If no element is provided, the `for` attribute is removed from the label.
- *
- * @param {HTMLLabelElement} label - The label element to associate.
- * @param {HTMLElement} element - The element to associate the label with.
- * @param {string} prefix - The prefix used when generating a unique ID for the element.
- */
-function associateLabelWithElement(label, element, prefix) {
-  if (!label) return;
-  if (element) {
-    if (!element.id) {
-      element.id = generateAndVerifyUniqueId(prefix);
-    }
-    label.htmlFor = element.id;
-  } else {
-    label.removeAttribute('for');
-  }
-}
-
-/**
- * Creates an SVG icon element with a single path.
- * The SVG is given a fixed viewBox of '0 -960 960 960'.
- *
- * @param {string} pathD - The `d` attribute value defining the shape of the SVG path.
- * @returns {SVGSVGElement} The constructed SVG element containing the specified path.
- */
-function createSvgIcon(pathD) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  svg.setAttribute('viewBox', '0 -960 960 960');
-  svg.setAttribute('focusable', 'false');
-  svg.setAttribute('aria-hidden', 'true');
-  svg.classList.add('icon-svg');
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', pathD);
-  svg.appendChild(path);
-  return svg;
-}
-
-/**
- * Shows or hides a required status indicator in a label element based on the given value.
- * If value is null, the indicator is removed. If value is an empty string, a default
- * text is used based on whether the element is required or not.
- *
- * @param {HTMLLabelElement} label - The label element to update.
- * @param {HTMLElement} element - The form element to check for required status.
- * @param {string|null} value - The value to display in the status indicator.
- */
-function showRequiredStatus(label, element, value) {
-  if (!label || !element) return;
-  let statusIndicator = label.querySelector(':scope > span.weight-normal');
-  if (value === null && statusIndicator) {
-    statusIndicator.remove();
-    return;
-  }
-  if (!statusIndicator) {
-    const span = document.createElement('span');
-    span.className = 'weight-normal';
-    label.appendChild(span);
-    statusIndicator = span;
-  }
-  const isRequired = element.hasAttribute('required') || element.hasAttribute('aria-required') && element.getAttribute('aria-required') !== 'false';
-  let text = value;
-  if (value === '' && isRequired) text = 'skal udfyldes';
-  if (value === '' && !isRequired) text = 'frivilligt';
-  statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
-}
-
-/**
- * Notifies the error summary that error messages have been disconnected/removed.
- * The parent wrapper dispatches 'error-message-callback' events for each error message found.
- *
- * @param {HTMLElement} element - The element to query for error messages.
- */
-function notifySummaryOnDisconnect(element) {
-  if (!document.querySelector('fds-error-summary[auto]')) return;
-  element.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
-    document.dispatchEvent(new CustomEvent('error-message-callback', {
-      detail: {
-        errorId: errorMessage.id,
-        isRemoved: true
-      }
-    }));
-  });
-}
-
-/**
- * Notifies the error summary of visibility changes in error messages.
- * The parent wrapper dispatches 'error-message-visibility-changed' events for each error message found.
- *
- * @param {HTMLElement} element - The element to query for error messages.
- */
-function notifySummaryOnVisibilityChange(element) {
-  if (!document.querySelector('fds-error-summary[auto]')) return;
-  element.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
-    document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
-      detail: {
-        errorId: errorMessage.id
-      }
-    }));
-  });
-}
-
-/**
- * Determines whether an element is visible to screen readers.
- *
- * @param {HTMLElement} element - The element to check.
- * @returns {boolean} True if the element is visible to screen readers, false otherwise.
- */
-function isVisibleToScreenReader(element) {
-  const notDNone = !element.classList.contains('d-none');
-  const notHidden = !element.hasAttribute('hidden') || element.getAttribute('hidden') === 'false';
-  const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
-  return notDNone && notHidden && notAriaHidden;
-}
-
-/**
- * Matches the disabled class of a label element to the disabled attribute of a form element.
- *
- * @param {HTMLLabelElement} label - The label element to update.
- * @param {HTMLElement} element - The form element to match the disabled state from.
- */
-function setDisabledClass(label, element) {
-  if (!label || !element) return;
-  label.classList.toggle('disabled', element.hasAttribute('disabled'));
-}
-
-/**
- * Sets the `aria-describedby` attribute on a form element based on
- * the IDs of visible error messages and help texts.
- *
- * @param {HTMLElement} element - The form element to update.
- * @param {NodeList} errorMessages - Error message elements to consider.
- * @param {NodeList} helpTexts - Help text elements to consider.
- */
-function setAriaDescribedBy(element, errorMessages, helpTexts) {
-  if (!element) return;
-  const ids = [...errorMessages, ...helpTexts].filter(el => el.id && isVisibleToScreenReader(el)).map(el => el.id);
-  ids.length > 0 ? element.setAttribute('aria-describedby', ids.join(' ')) : element.removeAttribute('aria-describedby');
-}
-
-/**
- * Sets or removes the `aria-invalid` attribute on a form element
- * based on whether any error messages are visible to screen readers.
- *
- * @param {HTMLElement} element - The form element to update.
- * @param {NodeList} errorMessages - Error message elements to evaluate.
- */
-function setInvalid(element, errorMessages) {
-  if (!element) return;
-  const invalid = Array.from(errorMessages).some(el => isVisibleToScreenReader(el));
-  invalid ? element.setAttribute('aria-invalid', 'true') : element.removeAttribute('aria-invalid');
-}
 ;// ./src/js/custom-elements/select/fds-select.js
 
 class FDSSelect extends HTMLElement {
@@ -8702,6 +8741,20 @@ class FDSSelect extends HTMLElement {
       }
     }
   };
+  #init() {
+    this.#setupObserver();
+    const label = this.querySelector('label');
+    const select = this.querySelector('select');
+    const errorMessages = this.querySelectorAll('fds-error-message');
+    const helpTexts = this.querySelectorAll('fds-help-text');
+    associateLabelWithElement(label, select, 'sel');
+    setAriaDescribedBy(select, errorMessages, helpTexts);
+    setInvalid(select, errorMessages);
+    if (this.hasAttribute('show-required-status')) {
+      showRequiredStatus(label, select, this.getAttribute('show-required-status'));
+    }
+    this.#initialized = true;
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -8719,31 +8772,12 @@ class FDSSelect extends HTMLElement {
   }
 
   /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
-
-  init() {
-    this.#setupObserver();
-    const label = this.querySelector('label');
-    const select = this.querySelector('select');
-    const errorMessages = this.querySelectorAll('fds-error-message');
-    const helpTexts = this.querySelectorAll('fds-help-text');
-    associateLabelWithElement(label, select, 'sel');
-    setAriaDescribedBy(select, errorMessages, helpTexts);
-    setInvalid(select, errorMessages);
-    if (this.hasAttribute('show-required-status')) {
-      showRequiredStatus(label, select, this.getAttribute('show-required-status'));
-    }
-    this.#initialized = true;
-  }
-
-  /* --------------------------------------------------
   CUSTOM ELEMENT ADDED TO DOCUMENT
   -------------------------------------------------- */
 
   connectedCallback() {
     if (!this.#initialized) {
-      this.init();
+      this.#init();
     }
   }
 
