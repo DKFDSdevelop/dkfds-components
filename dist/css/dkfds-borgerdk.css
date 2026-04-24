@@ -13375,6 +13375,11 @@ fds-select:has(select[aria-invalid=true]) select,
   padding:calc(8px - 2px) calc(16px - 2px);
   padding-right:32px;
 }
+fds-select:has(select[disabled]) label,
+.fds-select:has(select[disabled]) label{
+  color:#707070;
+  font-weight:500;
+}
 
 fds-upload-file,
 .fds-upload-file{

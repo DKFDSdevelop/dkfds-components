@@ -60,6 +60,15 @@ fds-select,
             padding: $input-top-bottom-padding-feedback $input-left-right-padding-feedback;
             padding-right: func.units(6);
         }
-        
+
+    }
+
+    &:has(select[disabled]) {
+
+        label {
+            color: func.color(vars.$input-disabled-text-color);
+            font-weight: func.font-weight('medium');
+        }
+
     }
 }
