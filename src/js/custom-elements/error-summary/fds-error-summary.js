@@ -60,17 +60,10 @@ class FDSErrorSummary extends HTMLElement {
             : 'h2';
     }
 
-    #isErrorMessageHidden(errorMessage) {
-        if (!errorMessage) return true;
+    #hasHiddenAttribute(element) {
+        if (!element) return true;
 
-        const hiddenValue = errorMessage.getAttribute('hidden');
-        return hiddenValue === '' || hiddenValue === 'true';
-    }
-
-    #isWrapperHidden(wrapper) {
-        if (!wrapper) return true;
-
-        const hiddenValue = wrapper.getAttribute('hidden');
+        const hiddenValue = element.getAttribute('hidden');
         return hiddenValue === '' || hiddenValue === 'true';
     }
 
@@ -80,7 +73,7 @@ class FDSErrorSummary extends HTMLElement {
         const wrapper = this.#getErrorWrapper(errorMessage);
         if (!wrapper) return false;
 
-        return !this.#isWrapperHidden(wrapper);
+        return !this.#hasHiddenAttribute(wrapper);
     }
 
     #syncVisibility() {
@@ -88,6 +81,14 @@ class FDSErrorSummary extends HTMLElement {
         const hasErrors = !!listElement?.querySelector(':scope > li');
 
         this.hidden = !hasErrors;
+    }
+
+    #updateHeadingId(headingId) {
+        const { navElement, headingElement } = this.#getSummaryElements();
+        if (!navElement || !headingElement) return;
+
+        headingElement.id = headingId || headingElement.id || generateAndVerifyUniqueId('error-summary-heading');
+        navElement.setAttribute('aria-labelledby', headingElement.id);
     }
 
     #ensureDOM() {
@@ -110,7 +111,6 @@ class FDSErrorSummary extends HTMLElement {
 
             const headingElement = document.createElement(headingLevel);
             headingElement.textContent = this.getAttribute('heading') || 'Der er problemer';
-            headingElement.id = generateAndVerifyUniqueId('error-summary-heading');
 
             const listElement = document.createElement('ul');
 
@@ -118,10 +118,8 @@ class FDSErrorSummary extends HTMLElement {
             navElement.appendChild(headingElement);
             navElement.appendChild(listElement);
 
-            navElement.setAttribute('aria-labelledby', headingElement.id);
-
             this.appendChild(navElement);
-
+            this.#updateHeadingId();
             return true;
         }
 
@@ -139,12 +137,7 @@ class FDSErrorSummary extends HTMLElement {
             return false;
         }
 
-        if (!headingElement.id) {
-            headingElement.id = generateAndVerifyUniqueId('error-summary-heading');
-        }
-
-        navElement.setAttribute('aria-labelledby', headingElement.id);
-
+        this.#updateHeadingId();
         return true;
     }
 
@@ -178,6 +171,7 @@ class FDSErrorSummary extends HTMLElement {
     #syncAll() {
         const heading = this.getAttribute('heading');
         const headingLevel = this.getAttribute('heading-level');
+        const headingId = this.getAttribute('heading-id');
 
         if (heading !== null) {
             this.#updateHeading(heading);
@@ -186,6 +180,8 @@ class FDSErrorSummary extends HTMLElement {
         if (headingLevel !== null) {
             this.#updateHeadingLevel(headingLevel);
         }
+
+        this.#updateHeadingId(headingId);
     }
 
     #addError(errorId, message) {
@@ -268,7 +264,7 @@ class FDSErrorSummary extends HTMLElement {
             return;
         }
 
-        const isHidden = this.#isErrorMessageHidden(errorMessage);
+        const isHidden = this.#hasHiddenAttribute(errorMessage);
         const message = errorMessage.querySelector(':scope > .visible-message')?.textContent?.trim()
             || errorMessage.textContent?.trim();
 
@@ -342,7 +338,7 @@ class FDSErrorSummary extends HTMLElement {
         document.addEventListener('error-message-callback', this.#handleErrorMessageEvents);
     }
 
-    static observedAttributes = ['heading', 'heading-level', 'auto'];
+    static observedAttributes = ['heading', 'heading-level', 'heading-id', 'auto'];
 
     constructor() {
         super();
@@ -405,6 +401,10 @@ class FDSErrorSummary extends HTMLElement {
 
         if (attribute === 'heading') {
             this.#updateHeading(newValue);
+        }
+
+        if (attribute === 'heading-id') {
+            this.#updateHeadingId(newValue)
         }
 
         if (attribute === 'heading-level') {
