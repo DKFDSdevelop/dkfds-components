@@ -21,7 +21,7 @@ const datePicker = require('./components/date-picker').default;
 // Custom elements
 import registerAccordion from './custom-elements/accordion/fds-accordion';
 import registerAccordionGroup from './custom-elements/accordion/fds-accordion-group';
-import registerInputWrapper from './custom-elements/input/fds-input-wrapper';
+import registerInput from './custom-elements/input/fds-input';
 import registerHelpText from './custom-elements/help-text/fds-help-text';
 import registerCharacterLimit from './custom-elements/character-limit/fds-character-limit';
 import registerErrorMessage from './custom-elements/error-message/fds-error-message';
@@ -230,7 +230,7 @@ var init = function (options) {
 const registerCustomElements = () => {
   registerAccordion();
   registerAccordionGroup();
-  registerInputWrapper();
+  registerInput();
   registerHelpText();
   registerCharacterLimit();
   registerErrorMessage();
@@ -250,4 +250,4 @@ const registerCustomElements = () => {
 
 registerCustomElements();
 
-export { init, registerCustomElements, registerAccordion, registerAccordionGroup, registerInputWrapper, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
+export { init, registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };

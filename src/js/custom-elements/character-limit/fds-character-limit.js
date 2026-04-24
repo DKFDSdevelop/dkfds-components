@@ -247,7 +247,7 @@ class FDSCharacterLimit extends HTMLElement {
 
         // During disconnect, the custom element may lose connection to the input-wrapper.
         // Save the input-wrapper and use it to dispatch events - otherwise, the events may be lost.
-        this.#parentWrapper = this.closest('fds-input-wrapper');
+        this.#parentWrapper = this.closest('fds-input');
         this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
         this.#parentWrapper?.dispatchEvent(new Event('character-limit-connection'));
     }

@@ -2,7 +2,7 @@
 
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
-class FDSInputWrapper extends HTMLElement {
+class FDSInput extends HTMLElement {
 
     /* Private instance fields */
 
@@ -487,10 +487,10 @@ class FDSInputWrapper extends HTMLElement {
     }
 }
 
-function registerInputWrapper() {
-    if (customElements.get('fds-input-wrapper') === undefined) {
-        window.customElements.define('fds-input-wrapper', FDSInputWrapper);
+function registerInput() {
+    if (customElements.get('fds-input') === undefined) {
+        window.customElements.define('fds-input', FDSInput);
     }
 }
 
-export default registerInputWrapper;
+export default registerInput;

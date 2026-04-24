@@ -6,8 +6,8 @@
 $input-top-bottom-padding-feedback: calc(8px - #{vars.$input-border-width-feedback});
 $input-left-right-padding-feedback: calc(16px - #{vars.$input-border-width-feedback});
 
-fds-input-wrapper,
-.fds-input-wrapper {
+fds-input,
+.fds-input {
     display: block;
     margin-top: func.units(5);
 

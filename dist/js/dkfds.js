@@ -3218,7 +3218,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerErrorSummary: () => (/* reexport */ fds_error_summary),
   registerFileItem: () => (/* reexport */ fds_file_item),
   registerHelpText: () => (/* reexport */ fds_help_text),
-  registerInputWrapper: () => (/* reexport */ fds_input_wrapper),
+  registerInput: () => (/* reexport */ fds_input),
   registerRadioButton: () => (/* reexport */ fds_radio_button),
   registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
   registerSelect: () => (/* reexport */ fds_select),
@@ -6229,11 +6229,11 @@ function registerAccordionGroup() {
   }
 }
 /* harmony default export */ const fds_accordion_group = (registerAccordionGroup);
-;// ./src/js/custom-elements/input/fds-input-wrapper.js
+;// ./src/js/custom-elements/input/fds-input.js
 
 
 
-class FDSInputWrapper extends HTMLElement {
+class FDSInput extends HTMLElement {
   /* Private instance fields */
 
   #input;
@@ -6667,12 +6667,12 @@ class FDSInputWrapper extends HTMLElement {
     }
   }
 }
-function registerInputWrapper() {
-  if (customElements.get('fds-input-wrapper') === undefined) {
-    window.customElements.define('fds-input-wrapper', FDSInputWrapper);
+function registerInput() {
+  if (customElements.get('fds-input') === undefined) {
+    window.customElements.define('fds-input', FDSInput);
   }
 }
-/* harmony default export */ const fds_input_wrapper = (registerInputWrapper);
+/* harmony default export */ const fds_input = (registerInput);
 ;// ./src/js/custom-elements/help-text/fds-help-text.js
 
 
@@ -6741,7 +6741,7 @@ class FDSHelpText extends HTMLElement {
 
     // During disconnect, the custom element may lose connection to the wrapper.
     // Save the wrapper and use it to dispatch events - otherwise, the events may be lost.
-    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button, fds-radio-button-group, fds-date-input, fds-upload-file');
+    this.#parentWrapper = this.closest('fds-input, fds-checkbox, fds-checkbox-group, fds-radio-button, fds-radio-button-group, fds-date-input, fds-upload-file');
     this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
   }
 
@@ -6982,7 +6982,7 @@ class FDSCharacterLimit extends HTMLElement {
 
     // During disconnect, the custom element may lose connection to the input-wrapper.
     // Save the input-wrapper and use it to dispatch events - otherwise, the events may be lost.
-    this.#parentWrapper = this.closest('fds-input-wrapper');
+    this.#parentWrapper = this.closest('fds-input');
     this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
     this.#parentWrapper?.dispatchEvent(new Event('character-limit-connection'));
   }
@@ -7143,7 +7143,7 @@ class FDSErrorMessage extends HTMLElement {
     }
 
     // Save reference to parent wrapper
-    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input, fds-textarea, fds-select, fds-upload-file, fds-date-picker');
+    this.#parentWrapper = this.closest('fds-input, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input, fds-textarea, fds-select, fds-upload-file, fds-date-picker');
     this.#dispatchErrorMessageCallback();
   }
 
@@ -11504,7 +11504,7 @@ function registerTextarea() {
 
 
 
-const ERROR_WRAPPER_SELECTORS = ['fds-input-wrapper', 'fds-checkbox', 'fds-checkbox-group', 'fds-radio-button-group', 'fds-date-input', 'fds-textarea', 'fds-select', 'fds-upload-file', 'fds-date-picker'];
+const ERROR_WRAPPER_SELECTORS = ['fds-input', 'fds-checkbox', 'fds-checkbox-group', 'fds-radio-button-group', 'fds-date-input', 'fds-textarea', 'fds-select', 'fds-upload-file', 'fds-date-picker'];
 const ERROR_WRAPPER_SELECTOR = ERROR_WRAPPER_SELECTORS.join(', ');
 const ERROR_MESSAGE_SELECTOR = ERROR_WRAPPER_SELECTORS.map(selector => `${selector} fds-error-message`).join(', ');
 class FDSErrorSummary extends HTMLElement {
@@ -12062,7 +12062,7 @@ var init = function (options) {
 const registerCustomElements = () => {
   fds_accordion();
   fds_accordion_group();
-  fds_input_wrapper();
+  fds_input();
   fds_help_text();
   fds_character_limit();
   fds_error_message();
