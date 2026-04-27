@@ -115,6 +115,13 @@ class FDSUploadFile extends HTMLElement {
         }
     }
 
+    #syncAddMoreVisibility() {
+        const addMore = this.#fileListEl?.querySelector('.fds-upload-add-more');
+        if (addMore) {
+            addMore.hidden = !this.#inputEl?.multiple;
+        }
+    }
+
     #showDropzone() {
         if (!this.#dropzoneEl) {
             const input = this.#inputEl || this.querySelector('input[type="file"]');
@@ -154,6 +161,7 @@ class FDSUploadFile extends HTMLElement {
             this.#updateFileList();
         }
 
+        this.#syncAddMoreVisibility();
         this.#dropzoneEl?.remove();
         this.#dropzoneEl = null;
 
@@ -238,11 +246,7 @@ class FDSUploadFile extends HTMLElement {
                 }
             }
 
-            if (
-                attributeName === 'id' ||
-                attributeName === 'hidden' ||
-                attributeName === 'aria-hidden'
-            ) {
+            if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
                 shouldUpdateAccessibility = true;
                 continue;
             }
@@ -332,7 +336,6 @@ class FDSUploadFile extends HTMLElement {
         const content = document.createElement('div');
         content.className = 'fds-upload-dropzone-content';
         content.id = `dropzone-${input.id}`;;
-        input.setAttribute('aria-describedby', content.id);
 
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.classList.add('icon-svg');
@@ -369,6 +372,7 @@ class FDSUploadFile extends HTMLElement {
         addMore.type = 'button';
         addMore.className = 'fds-upload-add-more';
         addMore.textContent = this.#getFileListMore();
+        addMore.hidden = !this.#inputEl?.multiple;
 
         header.append(title, addMore);
 
@@ -404,7 +408,12 @@ class FDSUploadFile extends HTMLElement {
     #addFiles(fileList) {
         const isFirstFile = this.#files.length === 0;
 
-        const newFiles = Array.from(fileList).map(file => ({
+        const incomingFiles = Array.from(fileList);
+        const allowedFiles = this.#inputEl?.multiple ? incomingFiles : incomingFiles.slice(0, Math.max(0, 1 - this.#files.length));
+
+        if (allowedFiles.length === 0) return;
+
+        const newFiles = allowedFiles.map(file => ({
             id: generateAndVerifyUniqueId('file'),
             file
         }));
@@ -535,14 +544,26 @@ class FDSUploadFile extends HTMLElement {
 
             const addMore = e.target.closest('.fds-upload-add-more');
             if (addMore) {
+                if (!this.#inputEl?.multiple) return;
+
                 const input = document.createElement('input');
                 input.type = 'file';
                 input.multiple = true;
                 input.style.display = 'none';
-                input.addEventListener('change', e => {
-                    this.#addFiles(e.target.files);
+
+                const cleanup = () => {
                     input.remove();
-                });
+                    window.removeEventListener('focus', cleanup);
+                };
+
+                input.addEventListener('change', e => {
+                    if (e.target.files?.length) {
+                        this.#addFiles(e.target.files);
+                    }
+                    cleanup();
+                }, { once: true });
+
+                window.addEventListener('focus', cleanup, { once: true });
                 document.body.appendChild(input);
                 input.click();
             }
@@ -624,11 +645,11 @@ class FDSUploadFile extends HTMLElement {
         }
 
         if (name === 'remove-text' && oldValue !== newValue) {
-            this.#setFileItemsRemoveText()
+            this.#setFileItemsRemoveText();
         }
 
         if (name === 'heading-level' && oldValue !== newValue) {
-            this.#updateFileListHeadingLevel()
+            this.#updateFileListHeadingLevel();
         }
     }
 }
