@@ -22,14 +22,6 @@ class FDSUploadFile extends HTMLElement {
 
     /* Private methods */
 
-    #getLabel() {
-        return this.getAttribute('upload-label') ?? 'Vedhæft filer';
-    }
-
-    #getUploadId() {
-        return this.getAttribute('upload-id') ?? null;
-    }
-
     #getDropzonePrefix() {
         return this.getAttribute('dropzone-prefix') ?? 'Træk dine filer herhen eller';
     }
@@ -58,30 +50,40 @@ class FDSUploadFile extends HTMLElement {
         return headingLevel;
     }
 
-    #setUploadLabel() {
-        let label = this.querySelector('.fds-upload-label');
+    #setupInput(input) {
+        const label = this.querySelector('label');
 
-        if (!label) {
-            label = document.createElement('label');
-            label.className = 'fds-upload-label';
-            this.prepend(label);
+        if (!label || !input) return;
+
+        label.classList.add('fds-upload-label');
+        input.classList.add('fds-upload-input');
+
+        if (!input.id) {
+            input.id = generateAndVerifyUniqueId('file-input');
         }
 
-        label.textContent = this.#getLabel();
-        return label;
-    }
+        label.setAttribute('for', input.id);
 
-    #setFileListHeader() {
-        const title = this.querySelector('.fds-upload-title');
-        if (title) {
-            title.textContent = this.#getFileListHeader();
+        input.removeEventListener('change', this.#onInputChange);
+        input.addEventListener('change', this.#onInputChange);
+
+        this.#inputEl = input;
+
+        CE.setDisabledClass(label, input);
+
+        if (this.hasAttribute('show-required-status')) {
+            this.#updateRequiredStatus();
         }
     }
 
-    #setFileListMore() {
-        const moreText = this.querySelector('.fds-upload-add-more');
-        if (moreText) {
-            moreText.textContent = this.#getFileListMore();
+    #hydrateExistingDropzone() {
+        this.#setupInput(this.querySelector('.fds-upload-dropzone input[type="file"]'));
+    }
+
+    #setText(selector, value) {
+        const element = this.querySelector(selector);
+        if (element) {
+            element.textContent = value;
         }
     }
 
@@ -91,6 +93,91 @@ class FDSUploadFile extends HTMLElement {
 
         fileItems.forEach(item => {
             item.setAttribute('remove-text', removeText);
+        });
+    }
+
+    #setDropzoneText(container) {
+        container.replaceChildren();
+
+        const prefix = this.#getDropzonePrefix();
+        if (prefix) {
+            container.append(prefix + ' ');
+        }
+
+        const linkText = document.createElement('span');
+        linkText.className = 'fds-upload-choose';
+        linkText.textContent = this.#getDropzoneLink();
+        container.appendChild(linkText);
+
+        const suffix = this.#getDropzoneSuffix();
+        if (suffix) {
+            container.append(' ' + suffix);
+        }
+    }
+
+    #showDropzone() {
+        if (!this.#dropzoneEl) {
+            const input = this.#inputEl || this.querySelector('input[type="file"]');
+            if (!input) return;
+
+            const originalParent = input.parentNode;
+            const originalNextSibling = input.nextSibling;
+
+            this.#dropzoneEl = this.#renderDropzone();
+            if (!this.#dropzoneEl) return;
+
+            if (originalParent === this) {
+                this.insertBefore(this.#dropzoneEl, originalNextSibling);
+            }
+        }
+
+        this.#fileListEl?.remove();
+        this.#fileListEl = null;
+
+        if (!this.contains(this.#dropzoneEl)) {
+            const errorMessage = this.querySelector('fds-error-message');
+
+            if (errorMessage) {
+                this.insertBefore(this.#dropzoneEl, errorMessage);
+            } else {
+                this.appendChild(this.#dropzoneEl);
+            }
+        }
+    }
+
+    #showFileList() {
+        const dropzoneNextSibling = this.#dropzoneEl?.nextSibling ?? null;
+
+        if (!this.#fileListEl) {
+            this.#fileListEl = this.#renderFileList();
+        } else {
+            this.#updateFileList();
+        }
+
+        this.#dropzoneEl?.remove();
+        this.#dropzoneEl = null;
+
+        if (!this.contains(this.#fileListEl)) {
+            const errorMessage = this.querySelector('fds-error-message');
+
+            if (dropzoneNextSibling && this.contains(dropzoneNextSibling)) {
+                this.insertBefore(this.#fileListEl, dropzoneNextSibling);
+            } else if (errorMessage) {
+                this.insertBefore(this.#fileListEl, errorMessage);
+            } else {
+                this.appendChild(this.#fileListEl);
+            }
+        }
+    }
+
+    #updateFileList() {
+        const filesContainer = this.#fileListEl.querySelector('.fds-upload-files');
+        if (!filesContainer) return;
+
+        filesContainer.replaceChildren();
+
+        this.#files.forEach(fileObj => {
+            filesContainer.appendChild(this.#renderFileItem(fileObj));
         });
     }
 
@@ -112,80 +199,11 @@ class FDSUploadFile extends HTMLElement {
         currentTitle.replaceWith(newTitle);
     }
 
-    #showDropzone() {
-        if (!this.#dropzoneEl) {
-            this.#dropzoneEl = this.#renderDropzone();
-        }
-
-        this.#fileListEl?.remove();
-        this.#fileListEl = null;
-
-        if (!this.contains(this.#dropzoneEl)) {
-            const label = this.querySelector(':scope > .fds-upload-label');
-
-            if (label) {
-                this.insertBefore(this.#dropzoneEl, label.nextSibling);
-            } else {
-                this.appendChild(this.#dropzoneEl);
-            }
-        }
-    }
-
-    #showFileList() {
-        if (!this.#fileListEl) {
-            this.#fileListEl = this.#renderFileList();
-        } else {
-            this.#updateFileList();
-        }
-
-        this.#dropzoneEl?.remove();
-        this.#dropzoneEl = null;
-
-        if (!this.contains(this.#fileListEl)) {
-            this.appendChild(this.#fileListEl);
-        }
-    }
-
-    #updateUploadId(newValue) {
-        if (this.#inputEl) {
-            this.#inputEl.id = newValue || generateAndVerifyUniqueId('file-input');
-            const mainLabel = this.querySelector('.fds-upload-label');
-            if (mainLabel) {
-                mainLabel.setAttribute('for', this.#inputEl.id);
-            }
-        }
-    }
-
-    #updateFileList() {
-        const filesContainer = this.#fileListEl.querySelector('.fds-upload-files');
-        if (!filesContainer) return;
-
-        filesContainer.replaceChildren();
-
-        this.#files.forEach(fileObj => {
-            filesContainer.appendChild(this.#renderFileItem(fileObj));
-        });
-    }
-
     #updateDropzoneContent() {
-        if (!this.#dropzoneEl) return;
-
-        const content = this.#dropzoneEl.querySelector('.fds-upload-dropzone-content p');
+        const content = this.#dropzoneEl?.querySelector('.fds-upload-dropzone-content p');
         if (!content) return;
 
-        const linkSpan = content.querySelector('.fds-upload-choose');
-        if (!linkSpan) return;
-
-        linkSpan.textContent = this.#getDropzoneLink();
-
-        content.innerHTML = '';
-        const prefix = this.#getDropzonePrefix();
-        if (prefix) content.append(prefix + ' ');
-
-        content.appendChild(linkSpan);
-
-        const suffix = this.#getDropzoneSuffix();
-        if (suffix) content.append(' ' + suffix);
+        this.#setDropzoneText(content);
     }
 
 
@@ -207,7 +225,14 @@ class FDSUploadFile extends HTMLElement {
                 CE.notifySummaryOnVisibilityChange(this);
             }
 
-            if (attributeName === 'required' && target?.tagName === 'INPUT') {
+            // The input's disabled attribute changed
+            if (attributeName === 'disabled' && target?.tagName === 'INPUT') {
+                const label = this.querySelector('label');
+                CE.setDisabledClass(label, target);
+            }
+
+            // The input's required attribute changed
+            else if (attributeName === 'required' && target?.tagName === 'INPUT') {
                 if (this.hasAttribute('show-required-status')) {
                     this.#updateRequiredStatus();
                 }
@@ -279,45 +304,15 @@ class FDSUploadFile extends HTMLElement {
         }
     }
 
-    /* Disabled */
-
-    #shouldHaveDisabled(value) {
-        return value !== null && value !== 'false' && value !== false;
-    }
-
-    #setDisabled() {
-        this.classList.add('fds-upload-file-disabled');
-
-        const input = this.#inputEl;
-        if (input) {
-            input.disabled = true;
-        }
-    }
-
-    #removeDisabled() {
-        this.classList.remove('fds-upload-file-disabled');
-
-        const input = this.#inputEl;
-        if (input) {
-            input.disabled = false;
-        }
-    }
-
     /* -----------------------------
        Rendering
     ----------------------------- */
 
     #render() {
-        this.#setUploadLabel();
-
         if (this.#files.length === 0) {
             this.#showDropzone();
         } else {
             this.#showFileList();
-        }
-
-        if (this.hasAttribute('show-required-status')) {
-            this.#updateRequiredStatus();
         }
 
         this.#setupAccessibility();
@@ -328,24 +323,10 @@ class FDSUploadFile extends HTMLElement {
         dropzone.className = 'fds-upload-dropzone';
 
         // Input
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.multiple = true;
-        input.id = this.#getUploadId() || generateAndVerifyUniqueId('file-input');
-        input.className = 'fds-upload-input';
+        const input = this.#inputEl || this.querySelector('input[type="file"]');
+        if (!input) return null;
 
-        input.addEventListener('change', this.#onInputChange);
-        this.#inputEl = input;
-
-        const isDisabled = this.#shouldHaveDisabled(this.getAttribute('upload-disabled'));
-        if (isDisabled) {
-            input.disabled = true;
-        }
-
-        const mainLabel = this.querySelector('.fds-upload-label');
-        if (mainLabel) {
-            mainLabel.setAttribute('for', input.id);
-        }
+        this.#setupInput(input);
 
         // Dropzone content
         const content = document.createElement('div');
@@ -364,20 +345,7 @@ class FDSUploadFile extends HTMLElement {
         const p = document.createElement('p');
 
         // Text content: prefix + link + suffix
-        const prefix = this.#getDropzonePrefix();
-        if (prefix) {
-            p.append(prefix + ' ');
-        }
-
-        const linkText = document.createElement('span');
-        linkText.className = 'fds-upload-choose';
-        linkText.textContent = this.#getDropzoneLink();
-        p.appendChild(linkText);
-
-        const suffix = this.#getDropzoneSuffix();
-        if (suffix) {
-            p.append(' ' + suffix);
-        }
+        this.#setDropzoneText(p);
 
         content.append(svg, p);
         dropzone.append(input, content);
@@ -490,27 +458,9 @@ class FDSUploadFile extends HTMLElement {
         }
     }
 
-    #hydrateExistingDropzone() {
-        const input = this.querySelector('.fds-upload-input');
-        if (!input) return;
-
-        this.#inputEl = input;
-        input.removeEventListener('change', this.#onInputChange);
-        input.addEventListener('change', this.#onInputChange);
-
-        const mainLabel = this.querySelector('.fds-upload-label');
-        if (mainLabel && input.id) {
-            mainLabel.setAttribute('for', input.id);
-        }
-
-        if (this.hasAttribute('show-required-status')) {
-            this.#updateRequiredStatus();
-        }
-    }
-
     #updateRequiredStatus() {
-        const label = this.querySelector('.fds-upload-label');
-        const input = this.#inputEl || this.querySelector('.fds-upload-input');
+        const label = this.querySelector('label');
+        const input = this.#inputEl || this.querySelector('input[type="file"]');
 
         CE.showRequiredStatus(
             label,
@@ -553,7 +503,7 @@ class FDSUploadFile extends HTMLElement {
 
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['upload-label', 'upload-id', 'dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'upload-disabled', 'file-list-header', 'file-list-more', 'remove-text', 'heading-level', 'show-required-status'];
+    static observedAttributes = ['dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'file-list-header', 'file-list-more', 'remove-text', 'heading-level', 'show-required-status'];
 
     /* --------------------------------------------------
     GETTERS AND SETTERS
@@ -572,7 +522,7 @@ class FDSUploadFile extends HTMLElement {
         this.#onInputChange = e => this.#addFiles(e.target.files);
 
         this.#onClick = e => {
-            if (this.#shouldHaveDisabled(this.getAttribute('upload-disabled'))) return;
+            if (this.#inputEl?.disabled) return;
 
             const removeBtn = e.target.closest('.fds-upload-remove');
             if (removeBtn) {
@@ -613,23 +563,20 @@ class FDSUploadFile extends HTMLElement {
         const existingDropzone = this.querySelector('.fds-upload-dropzone');
         const existingFileList = this.querySelector('.fds-upload-file-list');
 
-        // Caching existing elements so show/hide logic works
-        if (existingDropzone || existingFileList) {
-            this.#dropzoneEl = existingDropzone;
-            this.#fileListEl = existingFileList;
+        this.#dropzoneEl = existingDropzone;
+        this.#fileListEl = existingFileList;
 
-            if (existingDropzone) {
-                this.#hydrateExistingDropzone();
-            }
+        if (existingDropzone) {
+            this.#hydrateExistingDropzone();
         } else {
+            this.#setupInput(this.querySelector('input[type="file"]'));
+        }
+
+        if (!existingDropzone && !existingFileList) {
             this.#render();
         }
 
         this.#setupAccessibility();
-
-        if (this.#shouldHaveDisabled(this.getAttribute('upload-disabled'))) {
-            this.#setDisabled();
-        }
 
         this.#initialized = true;
     }
@@ -658,22 +605,6 @@ class FDSUploadFile extends HTMLElement {
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.#initialized) return;
 
-        if (name === 'upload-label' && oldValue !== newValue) {
-            this.#setUploadLabel();
-
-            if (this.hasAttribute('show-required-status')) {
-                this.#updateRequiredStatus();
-            }
-        }
-
-        if (name === 'upload-id' && oldValue !== newValue) {
-            this.#updateUploadId(newValue);
-        }
-
-        if (name === 'upload-disabled' && oldValue !== newValue) {
-            this.#shouldHaveDisabled(newValue) ? this.#setDisabled() : this.#removeDisabled();
-        }
-
         if (name === 'show-required-status' && oldValue !== newValue) {
             this.#updateRequiredStatus();
         }
@@ -685,11 +616,11 @@ class FDSUploadFile extends HTMLElement {
         }
 
         if (name === 'file-list-header' && oldValue !== newValue) {
-            this.#setFileListHeader();
+            this.#setText('.fds-upload-title', this.#getFileListHeader());
         }
 
         if (name === 'file-list-more' && oldValue !== newValue) {
-            this.#setFileListMore();
+            this.#setText('.fds-upload-add-more', this.#getFileListMore());
         }
 
         if (name === 'remove-text' && oldValue !== newValue) {

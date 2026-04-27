@@ -13518,28 +13518,29 @@ fds-upload-file .fds-upload-remove,
   cursor:pointer;
   text-decoration:underline;
 }
-fds-upload-file.fds-upload-file-disabled .fds-upload-dropzone,
-.fds-upload-file.fds-upload-file-disabled .fds-upload-dropzone{
+fds-upload-file .fds-upload-dropzone:has(.fds-upload-input:disabled),
+.fds-upload-file .fds-upload-dropzone:has(.fds-upload-input:disabled){
   cursor:not-allowed;
   opacity:0.6;
   border-color:#ccc;
   background-color:#f9f9f9;
 }
-fds-upload-file.fds-upload-file-disabled .fds-upload-label,
-.fds-upload-file.fds-upload-file-disabled .fds-upload-label{
-  color:#707070;
-}
-fds-upload-file.fds-upload-file-disabled .fds-upload-dropzone-content,
-fds-upload-file.fds-upload-file-disabled .fds-upload-choose,
-.fds-upload-file.fds-upload-file-disabled .fds-upload-dropzone-content,
-.fds-upload-file.fds-upload-file-disabled .fds-upload-choose{
+fds-upload-file .fds-upload-dropzone:has(.fds-upload-input:disabled) .fds-upload-dropzone-content,
+fds-upload-file .fds-upload-dropzone:has(.fds-upload-input:disabled) .fds-upload-choose,
+.fds-upload-file .fds-upload-dropzone:has(.fds-upload-input:disabled) .fds-upload-dropzone-content,
+.fds-upload-file .fds-upload-dropzone:has(.fds-upload-input:disabled) .fds-upload-choose{
   cursor:not-allowed;
   color:#1a1a1a;
   pointer-events:none;
 }
-fds-upload-file.fds-upload-file-disabled .fds-upload-input,
-.fds-upload-file.fds-upload-file-disabled .fds-upload-input{
+fds-upload-file .fds-upload-dropzone:has(.fds-upload-input:disabled) .fds-upload-input,
+.fds-upload-file .fds-upload-dropzone:has(.fds-upload-input:disabled) .fds-upload-input{
+  cursor:not-allowed;
   pointer-events:none;
+}
+fds-upload-file .fds-upload-label.disabled,
+.fds-upload-file .fds-upload-label.disabled{
+  color:#707070;
 }
 
 fds-date-picker,
