@@ -1,17 +1,17 @@
 'use strict';
 
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
+import * as CE from '../custom-element-utils';
 
 class FDSCheckbox extends HTMLElement {
 
     /* Private instance fields */
 
+    #initialized = false;
+    #checkboxObserver = null;
     #input;
     #label;
 
-    #handleHelpTextCallback;
-    #handleErrorMessageCallback;
-    #handleVisibilityChange;
     #onInputChange;
 
     /* Private methods */
@@ -36,6 +36,64 @@ class FDSCheckbox extends HTMLElement {
 
     #getTooltipElement() {
         return this.querySelector('span.tooltip-wrapper');
+    }
+
+    #setupObserver() {
+        if (this.#checkboxObserver) return;
+
+        this.#checkboxObserver = new MutationObserver(this.#handleMutations);
+        this.#checkboxObserver.observe(this, CE.mutationObserverConfig);
+    }
+
+    #handleMutations = (records) => {
+        for (const { attributeName, target, addedNodes, removedNodes } of records) {
+            const relevantTagNames = ['LABEL', 'INPUT', 'FDS-HELP-TEXT', 'FDS-ERROR-MESSAGE'];
+            const allNodes = [...addedNodes, ...removedNodes];
+
+            if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+                this.#input = this.#getInputElement();
+                this.#label = this.#getLabelElement();
+
+                this.setClasses();
+                this.#updateAccessibilityState();
+
+                if (this.hasAttribute('show-required-status')) {
+                    CE.showRequiredStatus(this.#label, this.#input, this.getAttribute('show-required-status'));
+                }
+
+                break;
+            }
+
+            if (attributeName === 'disabled' && target?.tagName === 'INPUT' && target.type === 'checkbox') {
+                CE.setDisabledClass(this.#getLabelElement(), target);
+            }
+
+            else if (
+                (attributeName === 'required' || attributeName === 'aria-required') &&
+                target?.tagName === 'INPUT' && target.type === 'checkbox'
+            ) {
+                if (this.hasAttribute('show-required-status')) {
+                    CE.showRequiredStatus(
+                        this.#getLabelElement(),
+                        target,
+                        this.getAttribute('show-required-status')
+                    );
+                }
+            }
+
+            else if (
+                attributeName === 'id' ||
+                attributeName === 'hidden' ||
+                attributeName === 'aria-hidden' ||
+                (attributeName === 'class' && target?.tagName !== 'LABEL')
+            ) {
+                this.#updateAccessibilityState();
+
+                if (attributeName === 'hidden' && target === this) {
+                    CE.notifySummaryOnVisibilityChange(this);
+                }
+            }
+        }
     }
 
     #setStructure() {
@@ -64,35 +122,15 @@ class FDSCheckbox extends HTMLElement {
         }
     }
 
-    /* Indicator */
+    #updateAccessibilityState() {
+        const label = this.#getLabelElement();
+        const input = this.#getInputElement();
+        const errorMessages = this.#getErrorMessages();
+        const helpTexts = this.#getHelpTextElements();
 
-    #setIndicator(value = '') {
-        if (!this.#getLabelElement() || !this.#getInputElement()) return;
-
-        if (!this.#getLabelElement().querySelector(':scope > span.weight-normal')) {
-            const span = document.createElement('span');
-            span.className = 'weight-normal';
-            this.#getLabelElement().appendChild(span);
-        }
-
-        const isRequired = 
-            this.#getInputElement().hasAttribute('required') || 
-            (this.#getInputElement().hasAttribute('aria-required') && this.#getInputElement().getAttribute('aria-required') !== 'false');
-
-        let text = value;
-        if (value === '' && isRequired) text = 'skal udfyldes';
-        if (value === '' && !isRequired) text = 'frivilligt';
-
-        if (isRequired) {
-            this.#getLabelElement().querySelector(':scope > span.weight-normal').textContent = ` (*${text})`;
-        }
-        else {
-            this.#getLabelElement().querySelector(':scope > span.weight-normal').textContent = ` (${text})`;
-        }
-    }
-
-    #removeIndicator() {
-        this.#getLabelElement()?.querySelector(':scope > span.weight-normal')?.remove();
+        CE.associateLabelWithElement(label, input, 'chk');
+        CE.setAriaDescribedBy(input, errorMessages, helpTexts);
+        CE.setInvalid(input, errorMessages);
     }
 
     /* Collapsible content */
@@ -103,111 +141,41 @@ class FDSCheckbox extends HTMLElement {
         if (!input || !possibleContent) return;
 
         // Ensure the div has the expected classes
-        possibleContent.classList.add('checkbox-content', 'collapsed');
+        possibleContent.classList.add('checkbox-content');
 
         // Ensure the content has an ID
         if (!possibleContent.id) {
             possibleContent.id = generateAndVerifyUniqueId('exp');
         }
 
-        possibleContent.setAttribute('aria-hidden', 'true');
-        input.setAttribute('data-aria-controls', possibleContent.id);
-        input.setAttribute('data-aria-expanded', 'false');
-
-        this.#onInputChange = () => {
+        const updateState = () => {
             const expanded = input.checked;
+
+            input.setAttribute('data-aria-controls', possibleContent.id);
             input.setAttribute('data-aria-expanded', String(expanded));
+
             possibleContent.setAttribute('aria-hidden', String(!expanded));
             possibleContent.classList.toggle('collapsed', !expanded);
         };
 
+        if (this.#onInputChange) {
+            input.removeEventListener('change', this.#onInputChange);
+        }
+
+        this.#onInputChange = updateState;
+
+        updateState();
+
         input.addEventListener('change', this.#onInputChange);
     }
 
-    #processVisibilityChange(event) {
-        const { detail } = event;
-
-        // Extract ID and hidden status - works for both error and help-text events
-        const elementId = detail.errorId || detail.helptextId;
-        const isHidden = detail.isHidden;
-
-        const element = this.querySelector(`#${elementId}`);
-        if (element) {
-            element.hiddenStatus = isHidden;
-        }
-        this.handleIdReferences();
-    }
-
-    #isElementHidden = (element) => {
-        return element.hiddenStatus !== undefined
-            ? element.hiddenStatus
-            : (element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'false');
-    };
-
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['checkbox-indicator'];
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-    -------------------------------------------------- */
-
-    constructor() {
-        super();
-
-        this.#handleHelpTextCallback = () => { this.handleIdReferences(); };
-        this.#handleErrorMessageCallback = () => { this.handleIdReferences(); };
-        this.#handleVisibilityChange = (event) => { this.#processVisibilityChange(event); };
-    }
+    static observedAttributes = ['show-required-status'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT METHODS
     -------------------------------------------------- */
-
-    handleIdReferences() {
-        if (!this.#input || !this.#label) return;
-
-        if (!this.#input.id) {
-            this.#input.id = generateAndVerifyUniqueId('chk');
-        }
-
-        this.#label.htmlFor = this.#input.id;
-
-        const idsForAriaDescribedby = [];
-
-        // Add help text IDs
-        const helpTexts = this.#getHelpTextElements();
-        helpTexts.forEach(helptext => {
-            if (helptext.hasAttribute('id')) {
-                const isHidden = this.#isElementHidden(helptext);
-                if (!isHidden) {
-                    idsForAriaDescribedby.push(helptext.id);
-                }
-            }
-        });
-
-        // Add error message IDs
-        let hasError = false;
-        let hasVisibleError = false;
-        const errorMessages = this.#getErrorMessages();
-        errorMessages.forEach(errorText => {
-            if (errorText?.id) {
-                hasError = true;
-                const isHidden = this.#isElementHidden(errorText);
-                if (!isHidden) {
-                    idsForAriaDescribedby.push(errorText.id);
-                    hasVisibleError = true;
-                }
-            }
-        });
-
-        // Set or remove aria-describedby
-        if (idsForAriaDescribedby.length > 0) {
-            this.#input.setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
-        } else {
-            this.#input.removeAttribute('aria-describedby');
-        }
-    }
 
     setClasses() {
         if (!this.#label || !this.#input) return;
@@ -216,24 +184,39 @@ class FDSCheckbox extends HTMLElement {
         this.#input.classList.add('form-checkbox');
     }
 
+    init() {
+        this.#setupObserver();
+
+        this.#input = this.#getInputElement();
+        this.#label = this.#getLabelElement();
+
+        this.#setStructure();
+
+        if (this.hasAttribute('show-required-status')) {
+            CE.showRequiredStatus(this.#label, this.#input, this.getAttribute('show-required-status'));
+        }
+        CE.setDisabledClass(this.#label, this.#input);
+
+        this.setClasses();
+        this.#updateAccessibilityState();
+        this.#handleCollapsibleCheckboxes();
+
+        this.#initialized = true;
+    }
+
+    /* --------------------------------------------------
+    GETTERS AND SETTERS
+    -------------------------------------------------- */
+
+    get showRequiredStatus() { return this.getAttribute('show-required-status'); }
+    set showRequiredStatus(value) { value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
+
     /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
     -------------------------------------------------- */
 
     connectedCallback() {
-        this.#input = this.#getInputElement();
-        this.#label = this.#getLabelElement();
-
-        this.#setStructure();
-        if (this.hasAttribute('checkbox-indicator')) this.#setIndicator(this.getAttribute('checkbox-indicator'));
-        this.setClasses();
-        this.handleIdReferences();
-        this.#handleCollapsibleCheckboxes()
-
-        this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
-        this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
-        this.addEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
-        this.addEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
+        if (!this.#initialized) { this.init(); }
     }
 
     /* --------------------------------------------------
@@ -241,13 +224,17 @@ class FDSCheckbox extends HTMLElement {
     -------------------------------------------------- */
 
     disconnectedCallback() {
-        this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
-        this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
-        this.removeEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
-        this.removeEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
+        CE.notifySummaryOnDisconnect(this);
 
         if (this.#input) {
             this.#input.removeEventListener('change', this.#onInputChange);
+        }
+
+        this.#initialized = false;
+
+        if (this.#checkboxObserver) {
+            this.#checkboxObserver.disconnect();
+            this.#checkboxObserver = null;
         }
     }
 
@@ -256,10 +243,12 @@ class FDSCheckbox extends HTMLElement {
     -------------------------------------------------- */
 
     attributeChangedCallback(attribute, oldValue, newValue) {
-        if (!this.isConnected) return;
+        if (!this.#initialized) return;
 
-        if (attribute === 'checkbox-indicator') {
-            newValue !== null ? this.#setIndicator(newValue) : this.#removeIndicator();
+        if (attribute === 'show-required-status' && (oldValue !== newValue)) {
+            const label = this.#getLabelElement();
+            const input = this.#getInputElement();
+            CE.showRequiredStatus(label, input, newValue);
         }
     }
 }

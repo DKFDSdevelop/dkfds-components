@@ -7188,18 +7188,192 @@ function registerErrorMessage() {
   }
 }
 /* harmony default export */ const fds_error_message = (registerErrorMessage);
+;// ./src/js/custom-elements/custom-element-utils.js
+
+
+/**
+ * Configuration object for a MutationObserver.
+ * Tracked attributes: `hidden`, `aria-hidden`, `id`, `class`, `disabled`, `required`.
+ *
+ * @type {MutationObserverInit}
+ */
+const mutationObserverConfig = {
+  subtree: true,
+  childList: true,
+  attributes: true,
+  attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required', 'aria-required'],
+  attributeOldValue: false,
+  characterData: false,
+  characterDataOldValue: false
+};
+
+/**
+ * Associates a label element with an (input) element.
+ * If the element lacks an ID, a unique one is generated using the given prefix.
+ * If no element is provided, the `for` attribute is removed from the label.
+ *
+ * @param {HTMLLabelElement} label - The label element to associate.
+ * @param {HTMLElement} element - The element to associate the label with.
+ * @param {string} prefix - The prefix used when generating a unique ID for the element.
+ */
+function associateLabelWithElement(label, element, prefix) {
+  if (!label) return;
+  if (element) {
+    if (!element.id) {
+      element.id = generateAndVerifyUniqueId(prefix);
+    }
+    label.htmlFor = element.id;
+  } else {
+    label.removeAttribute('for');
+  }
+}
+
+/**
+ * Creates an SVG icon element with a single path.
+ * The SVG is given a fixed viewBox of '0 -960 960 960'.
+ *
+ * @param {string} pathD - The `d` attribute value defining the shape of the SVG path.
+ * @returns {SVGSVGElement} The constructed SVG element containing the specified path.
+ */
+function createSvgIcon(pathD) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  svg.setAttribute('viewBox', '0 -960 960 960');
+  svg.setAttribute('focusable', 'false');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.classList.add('icon-svg');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', pathD);
+  svg.appendChild(path);
+  return svg;
+}
+
+/**
+ * Shows or hides a required status indicator in a label element based on the given value.
+ * If value is null, the indicator is removed. If value is an empty string, a default
+ * text is used based on whether the element is required or not.
+ *
+ * @param {HTMLLabelElement} label - The label element to update.
+ * @param {HTMLElement} element - The form element to check for required status.
+ * @param {string|null} value - The value to display in the status indicator.
+ */
+function showRequiredStatus(label, element, value) {
+  if (!label || !element) return;
+  let statusIndicator = label.querySelector(':scope > span.weight-normal');
+  if (value === null && statusIndicator) {
+    statusIndicator.remove();
+    return;
+  }
+  if (!statusIndicator) {
+    const span = document.createElement('span');
+    span.className = 'weight-normal';
+    label.appendChild(span);
+    statusIndicator = span;
+  }
+  const isRequired = element.hasAttribute('required') || element.hasAttribute('aria-required') && element.getAttribute('aria-required') !== 'false';
+  let text = value;
+  if (value === '' && isRequired) text = 'skal udfyldes';
+  if (value === '' && !isRequired) text = 'frivilligt';
+  statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
+}
+
+/**
+ * Notifies the error summary that error messages have been disconnected/removed.
+ * The parent wrapper dispatches 'error-message-callback' events for each error message found.
+ *
+ * @param {HTMLElement} element - The element to query for error messages.
+ */
+function notifySummaryOnDisconnect(element) {
+  if (!document.querySelector('fds-error-summary[auto]')) return;
+  element.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+    document.dispatchEvent(new CustomEvent('error-message-callback', {
+      detail: {
+        errorId: errorMessage.id,
+        isRemoved: true
+      }
+    }));
+  });
+}
+
+/**
+ * Notifies the error summary of visibility changes in error messages.
+ * The parent wrapper dispatches 'error-message-visibility-changed' events for each error message found.
+ *
+ * @param {HTMLElement} element - The element to query for error messages.
+ */
+function notifySummaryOnVisibilityChange(element) {
+  if (!document.querySelector('fds-error-summary[auto]')) return;
+  element.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+    document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+      detail: {
+        errorId: errorMessage.id
+      }
+    }));
+  });
+}
+
+/**
+ * Determines whether an element is visible to screen readers.
+ *
+ * @param {HTMLElement} element - The element to check.
+ * @returns {boolean} True if the element is visible to screen readers, false otherwise.
+ */
+function isVisibleToScreenReader(element) {
+  const notDNone = !element.classList.contains('d-none');
+  const notHidden = !element.hasAttribute('hidden') || element.getAttribute('hidden') === 'false';
+  const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
+  return notDNone && notHidden && notAriaHidden;
+}
+
+/**
+ * Matches the disabled class of a label element to the disabled attribute of a form element.
+ *
+ * @param {HTMLLabelElement} label - The label element to update.
+ * @param {HTMLElement} element - The form element to match the disabled state from.
+ */
+function setDisabledClass(label, element) {
+  if (!label || !element) return;
+  label.classList.toggle('disabled', element.hasAttribute('disabled'));
+}
+
+/**
+ * Sets the `aria-describedby` attribute on a form element based on
+ * the IDs of visible error messages and help texts.
+ *
+ * @param {HTMLElement} element - The form element to update.
+ * @param {NodeList} errorMessages - Error message elements to consider.
+ * @param {NodeList} helpTexts - Help text elements to consider.
+ */
+function setAriaDescribedBy(element, errorMessages, helpTexts) {
+  if (!element) return;
+  const ids = [...errorMessages, ...helpTexts].filter(el => el.id && isVisibleToScreenReader(el)).map(el => el.id);
+  ids.length > 0 ? element.setAttribute('aria-describedby', ids.join(' ')) : element.removeAttribute('aria-describedby');
+}
+
+/**
+ * Sets or removes the `aria-invalid` attribute on a form element
+ * based on whether any error messages are visible to screen readers.
+ *
+ * @param {HTMLElement} element - The form element to update.
+ * @param {NodeList} errorMessages - Error message elements to evaluate.
+ */
+function setInvalid(element, errorMessages) {
+  if (!element) return;
+  const invalid = Array.from(errorMessages).some(el => isVisibleToScreenReader(el));
+  invalid ? element.setAttribute('aria-invalid', 'true') : element.removeAttribute('aria-invalid');
+}
 ;// ./src/js/custom-elements/checkbox/fds-checkbox.js
+
 
 
 
 class FDSCheckbox extends HTMLElement {
   /* Private instance fields */
 
+  #initialized = false;
+  #checkboxObserver = null;
   #input;
   #label;
-  #handleHelpTextCallback;
-  #handleErrorMessageCallback;
-  #handleVisibilityChange;
   #onInputChange;
 
   /* Private methods */
@@ -7221,6 +7395,44 @@ class FDSCheckbox extends HTMLElement {
   #getTooltipElement() {
     return this.querySelector('span.tooltip-wrapper');
   }
+  #setupObserver() {
+    if (this.#checkboxObserver) return;
+    this.#checkboxObserver = new MutationObserver(this.#handleMutations);
+    this.#checkboxObserver.observe(this, mutationObserverConfig);
+  }
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      const relevantTagNames = ['LABEL', 'INPUT', 'FDS-HELP-TEXT', 'FDS-ERROR-MESSAGE'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        this.#input = this.#getInputElement();
+        this.#label = this.#getLabelElement();
+        this.setClasses();
+        this.#updateAccessibilityState();
+        if (this.hasAttribute('show-required-status')) {
+          showRequiredStatus(this.#label, this.#input, this.getAttribute('show-required-status'));
+        }
+        break;
+      }
+      if (attributeName === 'disabled' && target?.tagName === 'INPUT' && target.type === 'checkbox') {
+        setDisabledClass(this.#getLabelElement(), target);
+      } else if ((attributeName === 'required' || attributeName === 'aria-required') && target?.tagName === 'INPUT' && target.type === 'checkbox') {
+        if (this.hasAttribute('show-required-status')) {
+          showRequiredStatus(this.#getLabelElement(), target, this.getAttribute('show-required-status'));
+        }
+      } else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class' && target?.tagName !== 'LABEL') {
+        this.#updateAccessibilityState();
+        if (attributeName === 'hidden' && target === this) {
+          notifySummaryOnVisibilityChange(this);
+        }
+      }
+    }
+  };
   #setStructure() {
     if (this.#input && this.#label) {
       if (this.#input.closest('.form-group-checkbox')) {
@@ -7243,29 +7455,14 @@ class FDSCheckbox extends HTMLElement {
       });
     }
   }
-
-  /* Indicator */
-
-  #setIndicator() {
-    let value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-    if (!this.#getLabelElement() || !this.#getInputElement()) return;
-    if (!this.#getLabelElement().querySelector(':scope > span.weight-normal')) {
-      const span = document.createElement('span');
-      span.className = 'weight-normal';
-      this.#getLabelElement().appendChild(span);
-    }
-    const isRequired = this.#getInputElement().hasAttribute('required') || this.#getInputElement().hasAttribute('aria-required') && this.#getInputElement().getAttribute('aria-required') !== 'false';
-    let text = value;
-    if (value === '' && isRequired) text = 'skal udfyldes';
-    if (value === '' && !isRequired) text = 'frivilligt';
-    if (isRequired) {
-      this.#getLabelElement().querySelector(':scope > span.weight-normal').textContent = ` (*${text})`;
-    } else {
-      this.#getLabelElement().querySelector(':scope > span.weight-normal').textContent = ` (${text})`;
-    }
-  }
-  #removeIndicator() {
-    this.#getLabelElement()?.querySelector(':scope > span.weight-normal')?.remove();
+  #updateAccessibilityState() {
+    const label = this.#getLabelElement();
+    const input = this.#getInputElement();
+    const errorMessages = this.#getErrorMessages();
+    const helpTexts = this.#getHelpTextElements();
+    associateLabelWithElement(label, input, 'chk');
+    setAriaDescribedBy(input, errorMessages, helpTexts);
+    setInvalid(input, errorMessages);
   }
 
   /* Collapsible content */
@@ -7276,111 +7473,64 @@ class FDSCheckbox extends HTMLElement {
     if (!input || !possibleContent) return;
 
     // Ensure the div has the expected classes
-    possibleContent.classList.add('checkbox-content', 'collapsed');
+    possibleContent.classList.add('checkbox-content');
 
     // Ensure the content has an ID
     if (!possibleContent.id) {
       possibleContent.id = generateAndVerifyUniqueId('exp');
     }
-    possibleContent.setAttribute('aria-hidden', 'true');
-    input.setAttribute('data-aria-controls', possibleContent.id);
-    input.setAttribute('data-aria-expanded', 'false');
-    this.#onInputChange = () => {
+    const updateState = () => {
       const expanded = input.checked;
+      input.setAttribute('data-aria-controls', possibleContent.id);
       input.setAttribute('data-aria-expanded', String(expanded));
       possibleContent.setAttribute('aria-hidden', String(!expanded));
       possibleContent.classList.toggle('collapsed', !expanded);
     };
+    if (this.#onInputChange) {
+      input.removeEventListener('change', this.#onInputChange);
+    }
+    this.#onInputChange = updateState;
+    updateState();
     input.addEventListener('change', this.#onInputChange);
   }
-  #processVisibilityChange(event) {
-    const {
-      detail
-    } = event;
-
-    // Extract ID and hidden status - works for both error and help-text events
-    const elementId = detail.errorId || detail.helptextId;
-    const isHidden = detail.isHidden;
-    const element = this.querySelector(`#${elementId}`);
-    if (element) {
-      element.hiddenStatus = isHidden;
-    }
-    this.handleIdReferences();
-  }
-  #isElementHidden = element => {
-    return element.hiddenStatus !== undefined ? element.hiddenStatus : element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'false';
-  };
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['checkbox-indicator'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
-
-  constructor() {
-    super();
-    this.#handleHelpTextCallback = () => {
-      this.handleIdReferences();
-    };
-    this.#handleErrorMessageCallback = () => {
-      this.handleIdReferences();
-    };
-    this.#handleVisibilityChange = event => {
-      this.#processVisibilityChange(event);
-    };
-  }
+  static observedAttributes = ['show-required-status'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT METHODS
   -------------------------------------------------- */
 
-  handleIdReferences() {
-    if (!this.#input || !this.#label) return;
-    if (!this.#input.id) {
-      this.#input.id = generateAndVerifyUniqueId('chk');
-    }
-    this.#label.htmlFor = this.#input.id;
-    const idsForAriaDescribedby = [];
-
-    // Add help text IDs
-    const helpTexts = this.#getHelpTextElements();
-    helpTexts.forEach(helptext => {
-      if (helptext.hasAttribute('id')) {
-        const isHidden = this.#isElementHidden(helptext);
-        if (!isHidden) {
-          idsForAriaDescribedby.push(helptext.id);
-        }
-      }
-    });
-
-    // Add error message IDs
-    let hasError = false;
-    let hasVisibleError = false;
-    const errorMessages = this.#getErrorMessages();
-    errorMessages.forEach(errorText => {
-      if (errorText?.id) {
-        hasError = true;
-        const isHidden = this.#isElementHidden(errorText);
-        if (!isHidden) {
-          idsForAriaDescribedby.push(errorText.id);
-          hasVisibleError = true;
-        }
-      }
-    });
-
-    // Set or remove aria-describedby
-    if (idsForAriaDescribedby.length > 0) {
-      this.#input.setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
-    } else {
-      this.#input.removeAttribute('aria-describedby');
-    }
-  }
   setClasses() {
     if (!this.#label || !this.#input) return;
     this.#label.classList.add('form-label');
     this.#input.classList.add('form-checkbox');
+  }
+  init() {
+    this.#setupObserver();
+    this.#input = this.#getInputElement();
+    this.#label = this.#getLabelElement();
+    this.#setStructure();
+    if (this.hasAttribute('show-required-status')) {
+      showRequiredStatus(this.#label, this.#input, this.getAttribute('show-required-status'));
+    }
+    setDisabledClass(this.#label, this.#input);
+    this.setClasses();
+    this.#updateAccessibilityState();
+    this.#handleCollapsibleCheckboxes();
+    this.#initialized = true;
+  }
+
+  /* --------------------------------------------------
+  GETTERS AND SETTERS
+  -------------------------------------------------- */
+
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
   }
 
   /* --------------------------------------------------
@@ -7388,17 +7538,9 @@ class FDSCheckbox extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
-    this.#input = this.#getInputElement();
-    this.#label = this.#getLabelElement();
-    this.#setStructure();
-    if (this.hasAttribute('checkbox-indicator')) this.#setIndicator(this.getAttribute('checkbox-indicator'));
-    this.setClasses();
-    this.handleIdReferences();
-    this.#handleCollapsibleCheckboxes();
-    this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
-    this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
-    this.addEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
-    this.addEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
+    if (!this.#initialized) {
+      this.init();
+    }
   }
 
   /* --------------------------------------------------
@@ -7406,12 +7548,14 @@ class FDSCheckbox extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
-    this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
-    this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
-    this.removeEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
-    this.removeEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
+    notifySummaryOnDisconnect(this);
     if (this.#input) {
       this.#input.removeEventListener('change', this.#onInputChange);
+    }
+    this.#initialized = false;
+    if (this.#checkboxObserver) {
+      this.#checkboxObserver.disconnect();
+      this.#checkboxObserver = null;
     }
   }
 
@@ -7420,9 +7564,11 @@ class FDSCheckbox extends HTMLElement {
   -------------------------------------------------- */
 
   attributeChangedCallback(attribute, oldValue, newValue) {
-    if (!this.isConnected) return;
-    if (attribute === 'checkbox-indicator') {
-      newValue !== null ? this.#setIndicator(newValue) : this.#removeIndicator();
+    if (!this.#initialized) return;
+    if (attribute === 'show-required-status' && oldValue !== newValue) {
+      const label = this.#getLabelElement();
+      const input = this.#getInputElement();
+      showRequiredStatus(label, input, newValue);
     }
   }
 }
@@ -8469,180 +8615,6 @@ function registerDateInput() {
   }
 }
 /* harmony default export */ const fds_date_input = (registerDateInput);
-;// ./src/js/custom-elements/custom-element-utils.js
-
-
-/**
- * Configuration object for a MutationObserver.
- * Tracked attributes: `hidden`, `aria-hidden`, `id`, `class`, `disabled`, `required`.
- *
- * @type {MutationObserverInit}
- */
-const mutationObserverConfig = {
-  subtree: true,
-  childList: true,
-  attributes: true,
-  attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required'],
-  attributeOldValue: false,
-  characterData: false,
-  characterDataOldValue: false
-};
-
-/**
- * Associates a label element with an (input) element.
- * If the element lacks an ID, a unique one is generated using the given prefix.
- * If no element is provided, the `for` attribute is removed from the label.
- *
- * @param {HTMLLabelElement} label - The label element to associate.
- * @param {HTMLElement} element - The element to associate the label with.
- * @param {string} prefix - The prefix used when generating a unique ID for the element.
- */
-function associateLabelWithElement(label, element, prefix) {
-  if (!label) return;
-  if (element) {
-    if (!element.id) {
-      element.id = generateAndVerifyUniqueId(prefix);
-    }
-    label.htmlFor = element.id;
-  } else {
-    label.removeAttribute('for');
-  }
-}
-
-/**
- * Creates an SVG icon element with a single path.
- * The SVG is given a fixed viewBox of '0 -960 960 960'.
- *
- * @param {string} pathD - The `d` attribute value defining the shape of the SVG path.
- * @returns {SVGSVGElement} The constructed SVG element containing the specified path.
- */
-function createSvgIcon(pathD) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  svg.setAttribute('viewBox', '0 -960 960 960');
-  svg.setAttribute('focusable', 'false');
-  svg.setAttribute('aria-hidden', 'true');
-  svg.classList.add('icon-svg');
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', pathD);
-  svg.appendChild(path);
-  return svg;
-}
-
-/**
- * Shows or hides a required status indicator in a label element based on the given value.
- * If value is null, the indicator is removed. If value is an empty string, a default
- * text is used based on whether the element is required or not.
- *
- * @param {HTMLLabelElement} label - The label element to update.
- * @param {HTMLElement} element - The form element to check for required status.
- * @param {string|null} value - The value to display in the status indicator.
- */
-function showRequiredStatus(label, element, value) {
-  if (!label || !element) return;
-  let statusIndicator = label.querySelector(':scope > span.weight-normal');
-  if (value === null && statusIndicator) {
-    statusIndicator.remove();
-    return;
-  }
-  if (!statusIndicator) {
-    const span = document.createElement('span');
-    span.className = 'weight-normal';
-    label.appendChild(span);
-    statusIndicator = span;
-  }
-  const isRequired = element.hasAttribute('required') || element.hasAttribute('aria-required') && element.getAttribute('aria-required') !== 'false';
-  let text = value;
-  if (value === '' && isRequired) text = 'skal udfyldes';
-  if (value === '' && !isRequired) text = 'frivilligt';
-  statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
-}
-
-/**
- * Notifies the error summary that error messages have been disconnected/removed.
- * The parent wrapper dispatches 'error-message-callback' events for each error message found.
- *
- * @param {HTMLElement} element - The element to query for error messages.
- */
-function notifySummaryOnDisconnect(element) {
-  if (!document.querySelector('fds-error-summary[auto]')) return;
-  element.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
-    document.dispatchEvent(new CustomEvent('error-message-callback', {
-      detail: {
-        errorId: errorMessage.id,
-        isRemoved: true
-      }
-    }));
-  });
-}
-
-/**
- * Notifies the error summary of visibility changes in error messages.
- * The parent wrapper dispatches 'error-message-visibility-changed' events for each error message found.
- *
- * @param {HTMLElement} element - The element to query for error messages.
- */
-function notifySummaryOnVisibilityChange(element) {
-  if (!document.querySelector('fds-error-summary[auto]')) return;
-  element.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
-    document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
-      detail: {
-        errorId: errorMessage.id
-      }
-    }));
-  });
-}
-
-/**
- * Determines whether an element is visible to screen readers.
- *
- * @param {HTMLElement} element - The element to check.
- * @returns {boolean} True if the element is visible to screen readers, false otherwise.
- */
-function isVisibleToScreenReader(element) {
-  const notDNone = !element.classList.contains('d-none');
-  const notHidden = !element.hasAttribute('hidden') || element.getAttribute('hidden') === 'false';
-  const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
-  return notDNone && notHidden && notAriaHidden;
-}
-
-/**
- * Matches the disabled class of a label element to the disabled attribute of a form element.
- *
- * @param {HTMLLabelElement} label - The label element to update.
- * @param {HTMLElement} element - The form element to match the disabled state from.
- */
-function setDisabledClass(label, element) {
-  if (!label || !element) return;
-  label.classList.toggle('disabled', element.hasAttribute('disabled'));
-}
-
-/**
- * Sets the `aria-describedby` attribute on a form element based on
- * the IDs of visible error messages and help texts.
- *
- * @param {HTMLElement} element - The form element to update.
- * @param {NodeList} errorMessages - Error message elements to consider.
- * @param {NodeList} helpTexts - Help text elements to consider.
- */
-function setAriaDescribedBy(element, errorMessages, helpTexts) {
-  if (!element) return;
-  const ids = [...errorMessages, ...helpTexts].filter(el => el.id && isVisibleToScreenReader(el)).map(el => el.id);
-  ids.length > 0 ? element.setAttribute('aria-describedby', ids.join(' ')) : element.removeAttribute('aria-describedby');
-}
-
-/**
- * Sets or removes the `aria-invalid` attribute on a form element
- * based on whether any error messages are visible to screen readers.
- *
- * @param {HTMLElement} element - The form element to update.
- * @param {NodeList} errorMessages - Error message elements to evaluate.
- */
-function setInvalid(element, errorMessages) {
-  if (!element) return;
-  const invalid = Array.from(errorMessages).some(el => isVisibleToScreenReader(el));
-  invalid ? element.setAttribute('aria-invalid', 'true') : element.removeAttribute('aria-invalid');
-}
 ;// ./src/js/custom-elements/select/fds-select.js
 
 class FDSSelect extends HTMLElement {
