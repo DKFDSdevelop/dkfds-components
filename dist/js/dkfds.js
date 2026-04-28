@@ -3219,6 +3219,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerFileItem: () => (/* reexport */ fds_file_item),
   registerHelpText: () => (/* reexport */ fds_help_text),
   registerInput: () => (/* reexport */ fds_input),
+  registerInputAffix: () => (/* reexport */ input_affix),
   registerRadioButton: () => (/* reexport */ fds_radio_button),
   registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
   registerSelect: () => (/* reexport */ fds_select),
@@ -6487,74 +6488,6 @@ class FDSInput extends HTMLElement {
     return this.querySelector(':scope > fds-character-limit');
   }
 
-  /* Prefix */
-
-  #shouldHavePrefix(value) {
-    return value !== null && value !== '';
-  }
-  #setPrefix(value) {
-    if (!this.#getInputElement()) return;
-    let wrapper = this.querySelector(':scope > .form-input-wrapper');
-    if (!wrapper) {
-      wrapper = document.createElement('div');
-      this.insertBefore(wrapper, this.#getInputElement());
-      wrapper.appendChild(this.#getInputElement());
-    }
-    wrapper.classList.add('form-input-wrapper', 'form-input-wrapper--prefix');
-    let prefixEl = wrapper.querySelector('.form-input-prefix');
-    if (!prefixEl) {
-      prefixEl = document.createElement('div');
-      prefixEl.className = 'form-input-prefix';
-      prefixEl.setAttribute('aria-hidden', 'true');
-      wrapper.insertBefore(prefixEl, this.#getInputElement());
-    }
-    prefixEl.textContent = value;
-  }
-  #removePrefix() {
-    let wrapper = this.querySelector(':scope > .form-input-wrapper');
-    if (!wrapper || !this.#getInputElement()) return;
-    let prefixEl = wrapper.querySelector('.form-input-prefix');
-    prefixEl?.remove();
-    wrapper.classList.remove('form-input-wrapper--prefix');
-    if (!wrapper.classList.contains('form-input-wrapper--prefix') && !wrapper.classList.contains('form-input-wrapper--suffix')) {
-      wrapper.replaceWith(this.#getInputElement());
-    }
-  }
-
-  /* Suffix */
-
-  #shouldHaveSuffix(value) {
-    return value !== null && value !== '';
-  }
-  #setSuffix(value) {
-    if (!this.#getInputElement()) return;
-    let wrapper = this.querySelector(':scope > .form-input-wrapper');
-    if (!wrapper) {
-      wrapper = document.createElement('div');
-      this.insertBefore(wrapper, this.#getInputElement());
-      wrapper.appendChild(this.#getInputElement());
-    }
-    wrapper.classList.add('form-input-wrapper', 'form-input-wrapper--suffix');
-    let suffixEl = wrapper.querySelector('.form-input-suffix');
-    if (!suffixEl) {
-      suffixEl = document.createElement('div');
-      suffixEl.className = 'form-input-suffix';
-      suffixEl.setAttribute('aria-hidden', 'true');
-      wrapper.appendChild(suffixEl);
-    }
-    suffixEl.textContent = value;
-  }
-  #removeSuffix() {
-    let wrapper = this.querySelector(':scope > .form-input-wrapper');
-    if (!wrapper || !this.#getInputElement()) return;
-    let suffixEl = wrapper.querySelector('.form-input-suffix');
-    suffixEl?.remove();
-    wrapper.classList.remove('form-input-wrapper--suffix');
-    if (!wrapper.classList.contains('form-input-wrapper--prefix') && !wrapper.classList.contains('form-input-wrapper--suffix')) {
-      wrapper.replaceWith(this.#getInputElement());
-    }
-  }
-
   /* Maxwidth */
 
   #shouldHaveMaxwidth(value) {
@@ -6637,7 +6570,7 @@ class FDSInput extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['show-required-status', 'input-prefix', 'input-suffix', 'input-maxwidth'];
+  static observedAttributes = ['show-required-status', 'input-maxwidth'];
 
   /* --------------------------------------------------
   GETTERS AND SETTERS
@@ -6778,8 +6711,6 @@ class FDSInput extends HTMLElement {
       this.#init();
     }
     this.setClasses();
-    if (this.#shouldHavePrefix(this.getAttribute('input-prefix'))) this.#setPrefix(this.getAttribute('input-prefix'));
-    if (this.#shouldHaveSuffix(this.getAttribute('input-suffix'))) this.#setSuffix(this.getAttribute('input-suffix'));
     if (this.#shouldHaveMaxwidth(this.getAttribute('input-maxwidth'))) this.#setMaxwidth(this.getAttribute('input-maxwidth'));
     this.updateIdReferences();
     this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
@@ -6826,12 +6757,6 @@ class FDSInput extends HTMLElement {
       const label = this.querySelector('label');
       const input = this.querySelector('input');
       showRequiredStatus(label, input, newValue);
-    }
-    if (attribute === 'input-prefix' && oldValue !== newValue) {
-      this.#shouldHavePrefix(newValue) ? this.#setPrefix(newValue) : this.#removePrefix();
-    }
-    if (attribute === 'input-suffix' && oldValue !== newValue) {
-      this.#shouldHaveSuffix(newValue) ? this.#setSuffix(newValue) : this.#removeSuffix();
     }
     if (attribute === 'input-maxwidth' && oldValue !== newValue) {
       this.#shouldHaveMaxwidth(newValue) ? this.#setMaxwidth(newValue) : this.#removeMaxwidth();
@@ -11814,6 +11739,99 @@ function registerErrorSummary() {
   }
 }
 /* harmony default export */ const fds_error_summary = (registerErrorSummary);
+;// ./src/js/custom-elements/input-affix/input-affix.js
+
+
+
+class FDSInputAffix extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+
+  /* Private methods */
+
+  #init() {
+    const input = this.querySelector('input');
+    if (!input) return;
+    if (this.hasAttribute('input-prefix')) {
+      this.#setPrefix(this.getAttribute('input-prefix'));
+    }
+    if (this.hasAttribute('input-suffix')) {
+      this.#setSuffix(this.getAttribute('input-suffix'));
+    }
+    this.#initialized = true;
+  }
+  #setPrefix(value) {
+    let prefixEl = this.querySelector('.form-input-prefix');
+    if (value !== null && value !== '') {
+      if (!prefixEl) {
+        prefixEl = document.createElement('div');
+        prefixEl.className = 'form-input-prefix';
+        this.prepend(prefixEl);
+      }
+      prefixEl.setAttribute('aria-hidden', 'true');
+      prefixEl.textContent = value;
+    } else {
+      prefixEl?.remove();
+    }
+  }
+  #setSuffix(value) {
+    let suffixEl = this.querySelector('.form-input-suffix');
+    if (value !== null && value !== '') {
+      if (!suffixEl) {
+        suffixEl = document.createElement('div');
+        suffixEl.className = 'form-input-suffix';
+        this.appendChild(suffixEl);
+      }
+      suffixEl.setAttribute('aria-hidden', 'true');
+      suffixEl.textContent = value;
+    } else {
+      suffixEl?.remove();
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['input-prefix', 'input-suffix'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (!this.#initialized) {
+      this.#init();
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#initialized = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (attribute === 'input-prefix' && oldValue !== newValue) {
+      this.#setPrefix(newValue);
+    }
+    if (attribute === 'input-suffix' && oldValue !== newValue) {
+      this.#setSuffix(newValue);
+    }
+  }
+}
+function registerInputAffix() {
+  if (customElements.get('fds-input-affix') === undefined) {
+    window.customElements.define('fds-input-affix', FDSInputAffix);
+  }
+}
+/* harmony default export */ const input_affix = (registerInputAffix);
 ;// ./src/js/dkfds.js
 
 
@@ -11837,6 +11855,7 @@ function registerErrorSummary() {
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 // Custom elements
+
 
 
 
@@ -12061,6 +12080,7 @@ const registerCustomElements = () => {
   fds_upload_file();
   fds_file_item();
   fds_error_summary();
+  input_affix();
 };
 registerCustomElements();
 
