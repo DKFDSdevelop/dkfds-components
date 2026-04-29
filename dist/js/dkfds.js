@@ -6380,15 +6380,17 @@ function setDisabledClass(label, element) {
 
 /**
  * Sets the `aria-describedby` attribute on a form element based on
- * the IDs of visible error messages and help texts.
+ * the IDs of visible error messages, help texts, and an optional character limit element.
  *
  * @param {HTMLElement} element - The form element to update.
  * @param {NodeList} errorMessages - Error message elements to consider.
  * @param {NodeList} helpTexts - Help text elements to consider.
+ * @param {HTMLElement|null} [characterLimit=null] - Optional character limit element to consider.
  */
 function setAriaDescribedBy(element, errorMessages, helpTexts) {
+  let characterLimit = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
   if (!element) return;
-  const ids = [...errorMessages, ...helpTexts].filter(el => el.id && isVisibleToScreenReader(el)).map(el => el.id);
+  const ids = [...errorMessages, ...helpTexts, characterLimit].filter(el => el && el.id && isVisibleToScreenReader(el)).map(el => el.id);
   ids.length > 0 ? element.setAttribute('aria-describedby', ids.join(' ')) : element.removeAttribute('aria-describedby');
 }
 
@@ -6414,18 +6416,11 @@ class FDSInput extends HTMLElement {
 
   #initialized = false;
   #inputObserver = null;
-  #input;
-  #label;
-  #limit;
-  #handleHelpTextCallback;
-  #handleErrorMessageCallback;
-  #handleCharacterLimitCallback;
   #handleCharacterLimitConnection;
   #handleKeyUp;
   #handlePageshow;
   #handleFocus;
   #handleBlur;
-  #handleVisibilityChange;
   #lastKeyUpTimestamp;
   #oldValue;
   #intervalID;
@@ -6445,11 +6440,17 @@ class FDSInput extends HTMLElement {
       removedNodes
     } of records) {
       // A relevant child element was added or removed.
-      const relevantTagNames = ['LABEL', 'INPUT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+      const relevantTagNames = ['LABEL', 'INPUT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT', 'FDS-CHARACTER-LIMIT'];
       const allNodes = [...addedNodes, ...removedNodes];
       if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
         const label = this.querySelector('label');
         const input = this.querySelector('input');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+        associateLabelWithElement(label, input, 'inp');
+        setAriaDescribedBy(input, errorMessages, helpTexts, characterLimit);
+        setInvalid(input, errorMessages);
         if (this.hasAttribute('show-required-status')) {
           showRequiredStatus(label, input, this.getAttribute('show-required-status'));
         }
@@ -6463,26 +6464,34 @@ class FDSInput extends HTMLElement {
           showRequiredStatus(label, target, this.getAttribute('show-required-status'));
         }
       }
+      // Attributes which might affect aria-describedby
+      else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class') {
+        const input = this.querySelector('input');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+        setAriaDescribedBy(input, errorMessages, helpTexts, characterLimit);
+        setInvalid(input, errorMessages);
+        if (attributeName === 'hidden' && target === this) {
+          notifySummaryOnVisibilityChange(this);
+        }
+      }
     }
   };
   #init() {
     this.#setupObserver();
     const label = this.querySelector('label');
     const input = this.querySelector('input');
+    const errorMessages = this.querySelectorAll('fds-error-message');
+    const helpTexts = this.querySelectorAll('fds-help-text');
+    const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+    associateLabelWithElement(label, input, 'inp');
+    setAriaDescribedBy(input, errorMessages, helpTexts, characterLimit);
+    setInvalid(input, errorMessages);
     if (this.hasAttribute('show-required-status')) {
       showRequiredStatus(label, input, this.getAttribute('show-required-status'));
     }
     this.#initialized = true;
-  }
-  #getInputElement() {
-    if (this.#input) return this.#input;
-    this.#input = this.querySelector('input');
-    return this.#input;
-  }
-  #getLabelElement() {
-    if (this.#label) return this.#label;
-    this.#label = this.querySelector('label');
-    return this.#label;
   }
   #getCharacterLimit() {
     return this.querySelector(':scope > fds-character-limit');
@@ -6494,31 +6503,35 @@ class FDSInput extends HTMLElement {
     return value !== null && value !== '';
   }
   #setMaxwidth(value) {
-    if (!this.#getInputElement()) return;
-    const maxwidthClass = [...this.#getInputElement().classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
-    this.#getInputElement().classList.remove(maxwidthClass);
+    const input = this.querySelector('input');
+    if (!input) return;
+    const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
+    input.classList.remove(maxwidthClass);
     if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
-      this.#getInputElement().classList.add(`input-width-${value}`);
+      input.classList.add(`input-width-${value}`);
     } else if (/^\d+$/.test(value)) {
-      this.#getInputElement().classList.add(`input-char-${value}`);
+      input.classList.add(`input-char-${value}`);
     }
   }
   #removeMaxwidth() {
-    if (!this.#getInputElement()) return;
-    const maxwidthClass = [...this.#getInputElement().classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
-    this.#getInputElement().classList.remove(maxwidthClass);
+    const input = this.querySelector('input');
+    if (!input) return;
+    const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
+    input.classList.remove(maxwidthClass);
   }
 
   /* Character limitation */
 
   #callUpdateVisibleMessage() {
-    this.#getCharacterLimit()?.setCharactersUsed(this.#getInputElement().value.length);
+    const input = this.querySelector('input');
+    this.#getCharacterLimit()?.setCharactersUsed(input.value.length);
     this.#getCharacterLimit()?.updateVisibleMessage();
   }
   #setCharacterLimitListeners() {
-    this.#getInputElement().addEventListener('keyup', this.#handleKeyUp);
-    this.#getInputElement().addEventListener('focus', this.#handleFocus);
-    this.#getInputElement().addEventListener('blur', this.#handleBlur);
+    const input = this.querySelector('input');
+    input.addEventListener('keyup', this.#handleKeyUp);
+    input.addEventListener('focus', this.#handleFocus);
+    input.addEventListener('blur', this.#handleBlur);
 
     /* If the browser supports the pageshow event, use it to update the character limit
     message and sr-message once a page has loaded. Second best, use the DOMContentLoaded event. 
@@ -6542,31 +6555,15 @@ class FDSInput extends HTMLElement {
       with audio notifications while typing. */
       if (this.#getCharacterLimit()) {
         if (!this.#lastKeyUpTimestamp || Date.now() - 500 >= this.#lastKeyUpTimestamp) {
-          if (this.#oldValue !== this.#getInputElement().value || !this.#getCharacterLimit().hasMatchingMessages()) {
-            this.#oldValue = this.#getInputElement().value;
+          const input = this.querySelector('input');
+          if (this.#oldValue !== input.value || !this.#getCharacterLimit().hasMatchingMessages()) {
+            this.#oldValue = input.value;
             this.#getCharacterLimit().updateMessages();
           }
         }
       }
     }, 1000);
   }
-  #processVisibilityChange(event) {
-    const {
-      detail
-    } = event;
-
-    // Extract ID and hidden status - works for both error and help-text events
-    const elementId = detail.errorId || detail.helptextId || detail.characterLimitId;
-    const isHidden = detail.isHidden;
-    const element = this.querySelector(`#${elementId}`);
-    if (element) {
-      element.hiddenStatus = isHidden;
-    }
-    this.updateIdReferences();
-  }
-  #isElementHidden = element => {
-    return element.hiddenStatus !== undefined ? element.hiddenStatus : element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'false';
-  };
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -6602,8 +6599,9 @@ class FDSInput extends HTMLElement {
     this.#handleBlur = () => {
       window.clearInterval(this.#intervalID);
       this.#intervalID = null;
-      if (this.#oldValue !== this.#getInputElement().value) {
-        this.#oldValue = this.#getInputElement().value;
+      const input = this.querySelector('input');
+      if (this.#oldValue !== input.value) {
+        this.#oldValue = input.value;
         this.#getCharacterLimit().updateVisibleMessage();
       }
       this.#getCharacterLimit().silenceSrMessage();
@@ -6611,95 +6609,9 @@ class FDSInput extends HTMLElement {
     this.#handlePageshow = () => {
       this.#callUpdateVisibleMessage();
     };
-    this.#handleHelpTextCallback = () => {
-      this.updateIdReferences();
-    };
-    this.#handleErrorMessageCallback = () => {
-      this.updateIdReferences();
-    };
-    this.#handleCharacterLimitCallback = () => {
-      this.updateIdReferences();
-    };
     this.#handleCharacterLimitConnection = () => {
       this.#setCharacterLimitListeners();
     };
-    this.#handleVisibilityChange = event => {
-      this.#processVisibilityChange(event);
-    };
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
-
-  updateIdReferences() {
-    if (!this.#getInputElement()) return;
-
-    // Set/remove 'for' on label
-    if (this.#getLabelElement()) {
-      if (!this.#getInputElement().id) {
-        this.#getInputElement().id = generateAndVerifyUniqueId('inp');
-      }
-      this.#getLabelElement().htmlFor = this.#getInputElement().id;
-    }
-
-    // IDs to be used in aria-describedby
-    const idsForAriaDescribedby = [];
-
-    // Help text ID
-    this.querySelectorAll('fds-help-text').forEach(helptext => {
-      if (helptext.hasAttribute('id')) {
-        const isHidden = this.#isElementHidden(helptext);
-        if (!isHidden) {
-          idsForAriaDescribedby.push(helptext.id);
-        }
-      }
-    });
-
-    // Error message IDs
-    let hasError = false;
-    let hasVisibleError = false;
-    this.querySelectorAll('fds-error-message').forEach(errorText => {
-      if (errorText?.id) {
-        hasError = true;
-        const isHidden = this.#isElementHidden(errorText);
-        if (!isHidden) {
-          idsForAriaDescribedby.push(errorText.id);
-          hasVisibleError = true;
-        }
-      }
-    });
-
-    // Character limit ID
-    const characterLimit = this.#getCharacterLimit();
-    if (characterLimit) {
-      const spanId = characterLimit.querySelector(':scope > span');
-      if (spanId?.hasAttribute('id')) {
-        const isHidden = this.#isElementHidden(characterLimit);
-        if (!isHidden) {
-          idsForAriaDescribedby.push(spanId.id);
-        }
-      }
-    }
-
-    // Set/remove aria-describedby on input
-    if (idsForAriaDescribedby.length > 0) {
-      this.#getInputElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
-    } else {
-      this.#getInputElement().removeAttribute('aria-describedby');
-    }
-
-    // Set aria-invalid if wrapper has error messages
-    if (hasError && hasVisibleError) {
-      this.#getInputElement().setAttribute('aria-invalid', 'true');
-    } else {
-      this.#getInputElement().removeAttribute('aria-invalid');
-    }
-  }
-  setClasses() {
-    if (!this.#getLabelElement() || !this.#getInputElement()) return;
-    this.#getLabelElement().classList.add('form-label');
-    this.#getInputElement().classList.add('form-input');
   }
 
   /* --------------------------------------------------
@@ -6710,16 +6622,8 @@ class FDSInput extends HTMLElement {
     if (!this.#initialized) {
       this.#init();
     }
-    this.setClasses();
     if (this.#shouldHaveMaxwidth(this.getAttribute('input-maxwidth'))) this.#setMaxwidth(this.getAttribute('input-maxwidth'));
-    this.updateIdReferences();
-    this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
-    this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
-    this.addEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
     this.addEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
-    this.addEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
-    this.addEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
-    this.addEventListener('character-limit-visibility-changed', this.#handleVisibilityChange);
   }
 
   /* --------------------------------------------------
@@ -6727,18 +6631,13 @@ class FDSInput extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
-    this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
-    this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
-    this.removeEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
     this.removeEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
-    this.#getInputElement().removeEventListener('keyup', this.#handleKeyUp);
-    this.#getInputElement().removeEventListener('focus', this.#handleFocus);
-    this.#getInputElement().removeEventListener('blur', this.#handleBlur);
+    const input = this.querySelector('input');
+    input.removeEventListener('keyup', this.#handleKeyUp);
+    input.removeEventListener('focus', this.#handleFocus);
+    input.removeEventListener('blur', this.#handleBlur);
     window.removeEventListener('pageshow', this.#handlePageshow);
     document.removeEventListener('DOMContentLoaded', this.#handlePageshow);
-    this.removeEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
-    this.removeEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
-    this.removeEventListener('character-limit-visibility-changed', this.#handleVisibilityChange);
     notifySummaryOnDisconnect(this);
     this.#initialized = false;
     if (this.#inputObserver) {
@@ -11754,39 +11653,35 @@ class FDSInputAffix extends HTMLElement {
     const input = this.querySelector('input');
     if (!input) return;
     if (this.hasAttribute('input-prefix')) {
-      this.#setPrefix(this.getAttribute('input-prefix'));
+      this.#setAffix(this.getAttribute('input-prefix'), 'prefix');
     }
     if (this.hasAttribute('input-suffix')) {
-      this.#setSuffix(this.getAttribute('input-suffix'));
+      this.#setAffix(this.getAttribute('input-suffix'), 'suffix');
     }
     this.#initialized = true;
   }
-  #setPrefix(value) {
-    let prefixEl = this.querySelector('.form-input-prefix');
-    if (value !== null && value !== '') {
-      if (!prefixEl) {
-        prefixEl = document.createElement('div');
-        prefixEl.className = 'form-input-prefix';
-        this.prepend(prefixEl);
-      }
-      prefixEl.setAttribute('aria-hidden', 'true');
-      prefixEl.textContent = value;
-    } else {
-      prefixEl?.remove();
+  #setAffix(value, affix) {
+    let element = null;
+    if (affix === 'prefix') {
+      element = this.querySelector('.form-input-prefix');
+    } else if (affix === 'suffix') {
+      element = this.querySelector('.form-input-suffix');
     }
-  }
-  #setSuffix(value) {
-    let suffixEl = this.querySelector('.form-input-suffix');
     if (value !== null && value !== '') {
-      if (!suffixEl) {
-        suffixEl = document.createElement('div');
-        suffixEl.className = 'form-input-suffix';
-        this.appendChild(suffixEl);
+      if (!element) {
+        element = document.createElement('div');
+        if (affix === 'prefix') {
+          element.className = 'form-input-prefix';
+          this.prepend(element);
+        } else if (affix === 'suffix') {
+          element.className = 'form-input-suffix';
+          this.appendChild(element);
+        }
       }
-      suffixEl.setAttribute('aria-hidden', 'true');
-      suffixEl.textContent = value;
+      element.setAttribute('aria-hidden', 'true');
+      element.textContent = value;
     } else {
-      suffixEl?.remove();
+      element?.remove();
     }
   }
 
@@ -11819,10 +11714,10 @@ class FDSInputAffix extends HTMLElement {
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
     if (attribute === 'input-prefix' && oldValue !== newValue) {
-      this.#setPrefix(newValue);
+      this.#setAffix(newValue, 'prefix');
     }
     if (attribute === 'input-suffix' && oldValue !== newValue) {
-      this.#setSuffix(newValue);
+      this.#setAffix(newValue, 'suffix');
     }
   }
 }

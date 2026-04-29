@@ -15,47 +15,39 @@ class FDSInputAffix extends HTMLElement {
 
         if (!input) return;
 
-        if (this.hasAttribute('input-prefix')) { this.#setPrefix(this.getAttribute('input-prefix')); }
-        if (this.hasAttribute('input-suffix')) { this.#setSuffix(this.getAttribute('input-suffix')); }
+        if (this.hasAttribute('input-prefix')) { this.#setAffix(this.getAttribute('input-prefix'), 'prefix'); }
+        if (this.hasAttribute('input-suffix')) { this.#setAffix(this.getAttribute('input-suffix'), 'suffix'); }
 
         this.#initialized = true;
     }
 
-    #setPrefix(value) {
-        let prefixEl = this.querySelector('.form-input-prefix');
+    #setAffix(value, affix) {
+        let element = null;
+
+        if (affix === 'prefix') { element = this.querySelector('.form-input-prefix'); }
+        else if (affix === 'suffix') { element = this.querySelector('.form-input-suffix'); }
 
         if (value !== null && value !== '') {
-            if (!prefixEl) {
-                prefixEl = document.createElement('div');
-                prefixEl.className = 'form-input-prefix';
-                this.prepend(prefixEl);
+            if (!element) {
+                element = document.createElement('div');
+
+                if (affix === 'prefix') {
+                    element.className = 'form-input-prefix';
+                    this.prepend(element);
+                }
+                else if (affix === 'suffix') {
+                    element.className = 'form-input-suffix';
+                    this.appendChild(element);
+                }
             }
-            prefixEl.setAttribute('aria-hidden', 'true');
-            prefixEl.textContent = value;
+            element.setAttribute('aria-hidden', 'true');
+            element.textContent = value;
         }
         else {
-            prefixEl?.remove();
+            element?.remove();
         }
     }
 
-    #setSuffix(value) {
-        let suffixEl = this.querySelector('.form-input-suffix');
-
-        if (value !== null && value !== '') {
-            if (!suffixEl) {
-                suffixEl = document.createElement('div');
-                suffixEl.className = 'form-input-suffix';
-                this.appendChild(suffixEl);
-            }
-            suffixEl.setAttribute('aria-hidden', 'true');
-            suffixEl.textContent = value;
-        }
-        else {
-            suffixEl?.remove();
-        }
-    }
-
-    
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = ['input-prefix', 'input-suffix'];
@@ -84,11 +76,11 @@ class FDSInputAffix extends HTMLElement {
         if (!this.#initialized) return;
 
         if (attribute === 'input-prefix' && (oldValue !== newValue)) {
-            this.#setPrefix(newValue);
+            this.#setAffix(newValue, 'prefix');
         }
 
         if (attribute === 'input-suffix' && (oldValue !== newValue)) {
-            this.#setSuffix(newValue);
+            this.#setAffix(newValue, 'suffix');
         }
     }
 }
