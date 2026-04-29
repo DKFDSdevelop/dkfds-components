@@ -7379,21 +7379,16 @@ class FDSCheckbox extends HTMLElement {
   /* Private methods */
 
   #getInputElement() {
-    // Look for input as direct child first, then in wrapper
-    return this.querySelector(':scope > input[type="checkbox"], :scope > .form-group-checkbox > input[type="checkbox"]');
+    return this.querySelector(':scope > input[type="checkbox"]');
   }
   #getLabelElement() {
-    // Look for label as direct child first, then in wrapper  
-    return this.querySelector(':scope > label, :scope > .form-group-checkbox > label');
+    return this.querySelector(':scope > label');
   }
   #getHelpTextElements() {
-    return this.querySelectorAll(':scope > fds-help-text, :scope > .form-group-checkbox > fds-help-text');
+    return this.querySelectorAll(':scope > fds-help-text');
   }
   #getErrorMessages() {
-    return this.querySelectorAll(':scope > fds-error-message, :scope > .form-group-checkbox > fds-error-message');
-  }
-  #getTooltipElement() {
-    return this.querySelector('span.tooltip-wrapper');
+    return this.querySelectorAll(':scope > fds-error-message');
   }
   #setupObserver() {
     if (this.#checkboxObserver) return;
@@ -7412,16 +7407,17 @@ class FDSCheckbox extends HTMLElement {
       if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
         this.#input = this.#getInputElement();
         this.#label = this.#getLabelElement();
-        this.setClasses();
+        this.#setClasses();
+        setDisabledClass(this.#label, this.#input);
         this.#updateAccessibilityState();
         if (this.hasAttribute('show-required-status')) {
           showRequiredStatus(this.#label, this.#input, this.getAttribute('show-required-status'));
         }
         break;
       }
-      if (attributeName === 'disabled' && target?.tagName === 'INPUT' && target.type === 'checkbox') {
+      if (attributeName === 'disabled' && target === this.#getInputElement()) {
         setDisabledClass(this.#getLabelElement(), target);
-      } else if ((attributeName === 'required' || attributeName === 'aria-required') && target?.tagName === 'INPUT' && target.type === 'checkbox') {
+      } else if ((attributeName === 'required' || attributeName === 'aria-required') && target === this.#getInputElement()) {
         if (this.hasAttribute('show-required-status')) {
           showRequiredStatus(this.#getLabelElement(), target, this.getAttribute('show-required-status'));
         }
@@ -7433,28 +7429,6 @@ class FDSCheckbox extends HTMLElement {
       }
     }
   };
-  #setStructure() {
-    if (this.#input && this.#label) {
-      if (this.#input.closest('.form-group-checkbox')) {
-        return;
-      }
-      const wrapper = document.createElement('div');
-      wrapper.className = "form-group-checkbox";
-      this.insertBefore(wrapper, this.#input);
-
-      // Ensure input comes before label
-      wrapper.appendChild(this.#input);
-      wrapper.appendChild(this.#label);
-      const tooltipElement = this.#getTooltipElement();
-      if (tooltipElement) {
-        wrapper.appendChild(tooltipElement);
-      }
-      const helpTextElements = this.#getHelpTextElements();
-      helpTextElements.forEach(helpText => {
-        wrapper.appendChild(helpText);
-      });
-    }
-  }
   #updateAccessibilityState() {
     const label = this.#getLabelElement();
     const input = this.#getInputElement();
@@ -7463,6 +7437,11 @@ class FDSCheckbox extends HTMLElement {
     associateLabelWithElement(label, input, 'chk');
     setAriaDescribedBy(input, errorMessages, helpTexts);
     setInvalid(input, errorMessages);
+  }
+  #setClasses() {
+    if (!this.#label || !this.#input) return;
+    this.#label.classList.add('form-label');
+    this.#input.classList.add('form-checkbox');
   }
 
   /* Collapsible content */
@@ -7496,29 +7475,22 @@ class FDSCheckbox extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['show-required-status'];
+  static observedAttributes = ['show-required-status', 'ready'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT METHODS
   -------------------------------------------------- */
-
-  setClasses() {
-    if (!this.#label || !this.#input) return;
-    this.#label.classList.add('form-label');
-    this.#input.classList.add('form-checkbox');
-  }
   init() {
-    this.#setupObserver();
     this.#input = this.#getInputElement();
     this.#label = this.#getLabelElement();
-    this.#setStructure();
+    this.#setClasses();
+    setDisabledClass(this.#label, this.#input);
+    this.#updateAccessibilityState();
     if (this.hasAttribute('show-required-status')) {
       showRequiredStatus(this.#label, this.#input, this.getAttribute('show-required-status'));
     }
-    setDisabledClass(this.#label, this.#input);
-    this.setClasses();
-    this.#updateAccessibilityState();
     this.#handleCollapsibleCheckboxes();
+    this.#setupObserver();
     this.#initialized = true;
   }
 
@@ -7538,6 +7510,7 @@ class FDSCheckbox extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
+    if (this.getAttribute('ready') === 'false') return;
     if (!this.#initialized) {
       this.init();
     }
@@ -7564,6 +7537,12 @@ class FDSCheckbox extends HTMLElement {
   -------------------------------------------------- */
 
   attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue === 'true') {
+        this.init();
+      }
+      return;
+    }
     if (!this.#initialized) return;
     if (attribute === 'show-required-status' && oldValue !== newValue) {
       const label = this.#getLabelElement();
