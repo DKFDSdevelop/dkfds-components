@@ -17,12 +17,12 @@ class FDSCheckbox extends HTMLElement {
     /* Private methods */
 
     #getInputElement() {
-    return this.querySelector(':scope > input[type="checkbox"]');
-}
+        return this.querySelector(':scope > input[type="checkbox"]');
+    }
 
-#getLabelElement() {
-    return this.querySelector(':scope > label');
-}
+    #getLabelElement() {
+        return this.querySelector(':scope > label');
+    }
 
     #getHelpTextElements() {
         return this.querySelectorAll(':scope > fds-help-text');
