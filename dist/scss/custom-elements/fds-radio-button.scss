@@ -27,7 +27,7 @@ fds-radio-button,
     }
 
     // Checkbox label/text
-    .form-radio+label {
+    input[type="radio"]+label {
         cursor: pointer;
         font-weight: func.font-weight(vars.$input-checkbox-radio-label-font-weight);
         line-height: func.units(vars.$input-checkbox-radio-size, 'rem');
@@ -39,7 +39,7 @@ fds-radio-button,
         padding-bottom: $expand-hit-area;
     }
 
-    .form-radio+label::before {
+    input[type="radio"]+label::before {
         content: '';
         position: absolute;
         left: 0;
@@ -55,12 +55,12 @@ fds-radio-button,
     }
 
     // Unchecked radio button border radius
-    .form-radio+label::before {
+    input[type="radio"]+label::before {
         border-radius: 100%;
     }
 
     // Checked radio
-    .form-radio:checked+label {
+    input[type="radio"]:checked+label {
 
         // Radio button background
         &::before {
@@ -84,18 +84,18 @@ fds-radio-button,
     }
 
     // Focus
-    .form-radio:focus+label::before,
-    .form-radio.focus+label::before {
+    input[type="radio"]:focus+label::before,
+    input[type="radio"].focus+label::before {
         @include mixins.focus;
     }
 
     // Disabled
-    .form-radio:disabled {
+    input[type="radio"]:disabled {
         cursor: not-allowed;
     }
 
     // Disabled label and button
-    .form-radio:disabled+label {
+    input[type="radio"]:disabled+label {
         cursor: not-allowed;
         color: func.color(vars.$input-checkbox-radio-disabled-label-color);
 

@@ -107,7 +107,6 @@ class FDSCheckboxGroup extends HTMLElement {
         this.#legend = this.#getLegendElement();
 
         this.#setClasses();
-        // this.#setGroupLabel();
         this.#setDisabledClass();
         this.#updateAccessibilityState();
 
