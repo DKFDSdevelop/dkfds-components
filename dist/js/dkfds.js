@@ -6689,7 +6689,7 @@ class FDSCharacterLimit extends HTMLElement {
   #spanSrUpdate = (() => document.createElement('span'))();
   #spanVisualUpdate = (() => document.createElement('span'))();
   #parentWrapper = null;
-  #input = null;
+  #field = null;
   #intervalID = null;
   #lastKeyUpTimestamp = null;
   #oldValue = null;
@@ -6710,18 +6710,18 @@ class FDSCharacterLimit extends HTMLElement {
       window.clearInterval(this.#intervalID);
       this.#intervalID = null;
     }
-    if (!this.#input) return;
+    if (!this.#field) return;
     this.#spanVisualUpdate.setAttribute('aria-hidden', 'true');
     this.#spanSrUpdate.setAttribute('aria-hidden', 'false');
 
     // Set a timer to prevent SR users from being spammed with audio notifications while typing
     this.#intervalID = window.setInterval(() => {
       if (!this.#lastKeyUpTimestamp || Date.now() - 500 >= this.#lastKeyUpTimestamp) {
-        const inputValueChanged = this.#oldValue !== this.#input.value;
+        const inputValueChanged = this.#oldValue !== this.#field.value;
         const messageInconsistency = this.#spanSrUpdate.textContent !== this.#spanVisualUpdate.textContent;
         if (inputValueChanged || messageInconsistency || this.#forceSRUpdate) {
           this.#forceSRUpdate = false;
-          this.#oldValue = this.#input.value;
+          this.#oldValue = this.#field.value;
           this.#updateMessages(this.#charactersLeft());
         }
       }
@@ -6733,7 +6733,7 @@ class FDSCharacterLimit extends HTMLElement {
       window.clearInterval(this.#intervalID);
       this.#intervalID = null;
     }
-    if (!this.#input) return;
+    if (!this.#field) return;
     this.#updateVisibleMessage(this.#charactersLeft());
     this.#spanSrUpdate.textContent = '';
     this.#spanSrUpdate.setAttribute('aria-hidden', 'true');
@@ -6746,10 +6746,10 @@ class FDSCharacterLimit extends HTMLElement {
   /* Private methods */
 
   #charactersLeft() {
-    if (!this.#input) return;
+    if (!this.#field) return;
     const parsedLimit = parseInt(this.getAttribute('limit'), 10);
     if (!Number.isNaN(parsedLimit)) {
-      return parsedLimit - this.#input.value.length;
+      return parsedLimit - this.#field.value.length;
     } else {
       return null;
     }
@@ -6812,9 +6812,9 @@ class FDSCharacterLimit extends HTMLElement {
       this.appendChild(this.#spanSrUpdate);
       this.appendChild(this.#spanVisualUpdate);
     }
-    this.#parentWrapper = this.closest('fds-input');
-    this.#input = this.#parentWrapper?.querySelector('input');
-    if (!this.#input) return;
+    this.#parentWrapper = this.closest('fds-input, fds-textarea');
+    this.#field = this.#parentWrapper?.querySelector('input, textarea');
+    if (!this.#field) return;
     const charactersLeft = this.#charactersLeft();
 
     // Update the default text used in the component
@@ -6855,9 +6855,9 @@ class FDSCharacterLimit extends HTMLElement {
     this.#spanSrUpdate.setAttribute('aria-live', 'polite');
 
     // Add event listeners
-    this.#input.addEventListener('keyup', this.#handleKeyUp);
-    this.#input.addEventListener('focus', this.#handleFocus);
-    this.#input.addEventListener('blur', this.#handleBlur);
+    this.#field.addEventListener('keyup', this.#handleKeyUp);
+    this.#field.addEventListener('focus', this.#handleFocus);
+    this.#field.addEventListener('blur', this.#handleBlur);
     if ('onpageshow' in window) {
       window.addEventListener('pageshow', this.#handlePageshow);
     } else {
@@ -6871,9 +6871,9 @@ class FDSCharacterLimit extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
-    this.#input?.removeEventListener('keyup', this.#handleKeyUp);
-    this.#input?.removeEventListener('focus', this.#handleFocus);
-    this.#input?.removeEventListener('blur', this.#handleBlur);
+    this.#field?.removeEventListener('keyup', this.#handleKeyUp);
+    this.#field?.removeEventListener('focus', this.#handleFocus);
+    this.#field?.removeEventListener('blur', this.#handleBlur);
     window.removeEventListener('pageshow', this.#handlePageshow);
     document.removeEventListener('DOMContentLoaded', this.#handlePageshow);
     this.#initialized = false;
@@ -11004,132 +11004,76 @@ function registerDatePickerGrid() {
 class FDSTextarea extends HTMLElement {
   /* Private instance fields */
 
-  #initialized;
+  #initialized = false;
   #textareaObserver = null;
 
   /* Private methods */
 
-  #setupLabel() {
-    const label = this.querySelector('label');
-    if (!label) return;
-    if (!label.classList.contains('form-label')) {
-      label.classList.add('form-label');
-    }
-    const textarea = this.querySelector('textarea');
-    if (textarea) {
-      label.htmlFor = textarea.id;
-      label.classList.toggle('disabled', textarea.hasAttribute('disabled'));
-    } else {
-      label.removeAttribute('for');
-    }
+  #setupObserver() {
+    if (this.#textareaObserver) return;
+    this.#textareaObserver = new MutationObserver(this.#handleMutations);
+    this.#textareaObserver.observe(this, mutationObserverConfig);
   }
-  #setupTextarea() {
-    const textarea = this.querySelector('textarea');
-    if (!textarea) return;
-    if (!textarea.classList.contains('form-input')) {
-      textarea.classList.add('form-input');
-    }
-    if (!textarea.id) {
-      textarea.id = generateAndVerifyUniqueId('txt');
-    }
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      // A relevant child element was added or removed.
+      const relevantTagNames = ['LABEL', 'TEXTAREA', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT', 'FDS-CHARACTER-LIMIT'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        const label = this.querySelector('label');
+        const textarea = this.querySelector('textarea');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+        associateLabelWithElement(label, textarea, 'tex');
+        setAriaDescribedBy(textarea, errorMessages, helpTexts, characterLimit);
+        setInvalid(textarea, errorMessages);
+        if (this.hasAttribute('show-required-status')) {
+          showRequiredStatus(label, textarea, this.getAttribute('show-required-status'));
+        }
+        break;
+      }
 
-    // /* Add or remove aria-describedby */
-
-    textarea.removeAttribute('aria-describedby');
-    const idsForAriaDescribedby = [];
-    let isInvalid = false;
-    const errorMessages = this.querySelectorAll('fds-error-message');
-    const helpTexts = this.querySelectorAll('fds-help-text');
-    const ariaDescribedbyElements = [...errorMessages, ...helpTexts];
-    for (const element of ariaDescribedbyElements) {
-      const notDisplayNone = window.getComputedStyle(element).display !== 'none';
-      const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
-      const visibleToScreenReaders = notDisplayNone && notAriaHidden;
-      if (element.id && visibleToScreenReaders) {
-        idsForAriaDescribedby.push(element.id);
-        if (element.tagName === 'FDS-ERROR-MESSAGE') {
-          isInvalid = true;
+      // The textarea's required attribute changed
+      if (attributeName === 'required' && target?.tagName === 'TEXTAREA') {
+        if (this.hasAttribute('show-required-status')) {
+          const label = this.querySelector('label');
+          showRequiredStatus(label, target, this.getAttribute('show-required-status'));
+        }
+      }
+      // Attributes which might affect aria-describedby
+      else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class') {
+        const textarea = this.querySelector('textarea');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+        setAriaDescribedBy(textarea, errorMessages, helpTexts, characterLimit);
+        setInvalid(textarea, errorMessages);
+        if (attributeName === 'hidden' && target === this) {
+          notifySummaryOnVisibilityChange(this);
         }
       }
     }
-    idsForAriaDescribedby.length > 0 ? textarea.setAttribute('aria-describedby', idsForAriaDescribedby.join(' ')) : textarea.removeAttribute('aria-describedby');
-    isInvalid ? textarea.setAttribute('aria-invalid', 'true') : textarea.removeAttribute('aria-invalid');
-  }
-  #setupCharacterLimitListener() {
-    const textarea = this.querySelector('textarea');
-    if (!textarea) return;
-    textarea.addEventListener('input', () => {
-      const characterLimit = this.querySelector('fds-character-limit');
-      if (characterLimit) {
-        characterLimit.setCharactersUsed(textarea.value.length);
-        characterLimit.updateMessages();
-      }
-    });
-  }
+  };
   #init() {
-    if (this.#initialized) return;
     this.#setupObserver();
-    this.#setupTextarea();
-    this.#setupLabel();
-    this.#setupCharacterLimitListener();
-    this.#initialized = true;
-  }
-  #showRequiredStatus(value) {
     const label = this.querySelector('label');
     const textarea = this.querySelector('textarea');
-    if (!label || !textarea) return;
-    let statusIndicator = label.querySelector(':scope > span.weight-normal');
-    if (value === null && statusIndicator) {
-      statusIndicator.remove();
-      return;
+    const errorMessages = this.querySelectorAll('fds-error-message');
+    const helpTexts = this.querySelectorAll('fds-help-text');
+    const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+    associateLabelWithElement(label, textarea, 'tex');
+    setAriaDescribedBy(textarea, errorMessages, helpTexts, characterLimit);
+    setInvalid(textarea, errorMessages);
+    if (this.hasAttribute('show-required-status')) {
+      showRequiredStatus(label, textarea, this.getAttribute('show-required-status'));
     }
-    if (!statusIndicator) {
-      const span = document.createElement('span');
-      span.className = 'weight-normal';
-      label.appendChild(span);
-      statusIndicator = span;
-    }
-    const isRequired = textarea.hasAttribute('required') || textarea.hasAttribute('aria-required') && textarea.getAttribute('aria-required') !== 'false';
-    let text = value;
-    if (value === '' && isRequired) text = 'skal udfyldes';
-    if (value === '' && !isRequired) text = 'frivilligt';
-    statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
-  }
-  #setupObserver() {
-    this.#textareaObserver = new MutationObserver(this.#handleMutations);
-    const config = {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required'],
-      attributeOldValue: false,
-      characterData: false,
-      characterDataOldValue: false
-    };
-    this.#textareaObserver.observe(this, config);
-  }
-  #handleMutations = (records, observer) => {
-    const wrapperHiddenChanged = records.some(record => record.attributeName === 'hidden' && record.target === this);
-    if (wrapperHiddenChanged) {
-      notifySummaryOnVisibilityChange(this);
-    }
-    const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
-    if (shouldUpdate) {
-      this.#setupTextarea();
-      this.#setupLabel();
-      if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
-    }
-  };
-  #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
-    if (attributeName === 'disabled' && target?.tagName === 'TEXTAREA' || attributeName === 'required' && target?.tagName === 'TEXTAREA' || attributeName === 'class' && target?.tagName !== 'LABEL' || attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
-      return true;
-    }
-    if (target?.tagName === 'FDS-CHARACTER-LIMIT') {
-      return true;
-    }
-    const relevantTagNames = ['LABEL', 'TEXTAREA', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
-    const allNodes = [...addedNodes, ...removedNodes];
-    return allNodes.some(node => relevantTagNames.includes(node?.tagName));
+    this.#initialized = true;
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
@@ -11137,12 +11081,14 @@ class FDSTextarea extends HTMLElement {
   static observedAttributes = ['show-required-status'];
 
   /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  GETTERS AND SETTERS
   -------------------------------------------------- */
 
-  constructor() {
-    super();
-    this.#initialized = false;
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
   }
 
   /* --------------------------------------------------
@@ -11150,9 +11096,9 @@ class FDSTextarea extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
-    if (this.#initialized) return;
-    this.#init();
-    if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+    if (!this.#initialized) {
+      this.#init();
+    }
   }
 
   /* --------------------------------------------------
@@ -11175,7 +11121,9 @@ class FDSTextarea extends HTMLElement {
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
     if (attribute === 'show-required-status' && oldValue !== newValue) {
-      this.#showRequiredStatus(newValue);
+      const label = this.querySelector('label');
+      const textarea = this.querySelector('textarea');
+      showRequiredStatus(label, textarea, newValue);
     }
   }
 }

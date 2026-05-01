@@ -18,11 +18,6 @@ fds-input,
     label {
         display: inline-block;
         @include mixins.form-label-text;
-
-        &.disabled {
-            color: func.color(vars.$input-disabled-text-color);
-            font-weight: func.font-weight('medium');
-        }
     }
 
     input[type="text"],
@@ -48,7 +43,7 @@ fds-input,
     }
 
     &:has(span.limit-exceeded) {
-        .form-input {
+        input {
             border: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
             padding: calc(8px - #{vars.$input-border-width-feedback}) calc(16px - #{vars.$input-border-width-feedback});
         }
@@ -69,8 +64,8 @@ fds-input,
             font-weight: func.font-weight("normal");
         }
 
-        & + fds-character-limit,
-        & + .fds-character-limit {
+        &+fds-character-limit,
+        &+.fds-character-limit {
             margin-top: func.units(2);
         }
     }

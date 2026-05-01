@@ -21,7 +21,7 @@ class FDSCharacterLimit extends HTMLElement {
     #spanVisualUpdate = document.createElement('span');
 
     #parentWrapper = null;
-    #input = null;
+    #field = null;
 
     #intervalID = null;
     #lastKeyUpTimestamp = null;
@@ -46,7 +46,7 @@ class FDSCharacterLimit extends HTMLElement {
             this.#intervalID = null;
         }
 
-        if (!this.#input) return;
+        if (!this.#field) return;
 
         this.#spanVisualUpdate.setAttribute('aria-hidden', 'true');
         this.#spanSrUpdate.setAttribute('aria-hidden', 'false');
@@ -54,12 +54,12 @@ class FDSCharacterLimit extends HTMLElement {
         // Set a timer to prevent SR users from being spammed with audio notifications while typing
         this.#intervalID = window.setInterval(() => {
             if (!this.#lastKeyUpTimestamp || (Date.now() - 500) >= this.#lastKeyUpTimestamp) {
-                const inputValueChanged = this.#oldValue !== this.#input.value;
+                const inputValueChanged = this.#oldValue !== this.#field.value;
                 const messageInconsistency = this.#spanSrUpdate.textContent !== this.#spanVisualUpdate.textContent;
 
                 if (inputValueChanged || messageInconsistency || this.#forceSRUpdate) {
                     this.#forceSRUpdate = false;
-                    this.#oldValue = this.#input.value;
+                    this.#oldValue = this.#field.value;
                     this.#updateMessages(this.#charactersLeft());
                 }
             }
@@ -73,7 +73,7 @@ class FDSCharacterLimit extends HTMLElement {
             this.#intervalID = null;
         }
 
-        if (!this.#input) return;
+        if (!this.#field) return;
 
         this.#updateVisibleMessage(this.#charactersLeft());
         this.#spanSrUpdate.textContent = '';
@@ -88,11 +88,11 @@ class FDSCharacterLimit extends HTMLElement {
     /* Private methods */
 
     #charactersLeft() {
-        if (!this.#input) return;
+        if (!this.#field) return;
 
         const parsedLimit = parseInt(this.getAttribute('limit'), 10);
         if (!Number.isNaN(parsedLimit)) {
-            return parsedLimit - this.#input.value.length;
+            return parsedLimit - this.#field.value.length;
         }
         else {
             return null;
@@ -181,10 +181,11 @@ class FDSCharacterLimit extends HTMLElement {
             this.appendChild(this.#spanVisualUpdate);
         }
 
-        this.#parentWrapper = this.closest('fds-input');
-        this.#input = this.#parentWrapper?.querySelector('input');
+        this.#parentWrapper = this.closest('fds-input, fds-textarea');
+        this.#field = this.#parentWrapper?.querySelector('input, textarea');
 
-        if (!this.#input) return;
+
+        if (!this.#field) return;
 
         const charactersLeft = this.#charactersLeft();
 
@@ -213,9 +214,9 @@ class FDSCharacterLimit extends HTMLElement {
         this.#spanSrUpdate.setAttribute('aria-live', 'polite');
 
         // Add event listeners
-        this.#input.addEventListener('keyup', this.#handleKeyUp);
-        this.#input.addEventListener('focus', this.#handleFocus);
-        this.#input.addEventListener('blur', this.#handleBlur);
+        this.#field.addEventListener('keyup', this.#handleKeyUp);
+        this.#field.addEventListener('focus', this.#handleFocus);
+        this.#field.addEventListener('blur', this.#handleBlur);
         if ('onpageshow' in window) {
             window.addEventListener('pageshow', this.#handlePageshow);
         }
@@ -231,9 +232,9 @@ class FDSCharacterLimit extends HTMLElement {
     -------------------------------------------------- */
 
     disconnectedCallback() {
-        this.#input?.removeEventListener('keyup', this.#handleKeyUp);
-        this.#input?.removeEventListener('focus', this.#handleFocus);
-        this.#input?.removeEventListener('blur', this.#handleBlur);
+        this.#field?.removeEventListener('keyup', this.#handleKeyUp);
+        this.#field?.removeEventListener('focus', this.#handleFocus);
+        this.#field?.removeEventListener('blur', this.#handleBlur);
         window.removeEventListener('pageshow', this.#handlePageshow);
         document.removeEventListener('DOMContentLoaded', this.#handlePageshow);
 
