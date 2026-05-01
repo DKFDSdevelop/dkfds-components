@@ -140,10 +140,7 @@ export function notifySummaryOnVisibilityChange(element) {
  * @returns {boolean} True if the element is visible to screen readers, false otherwise.
  */
 export function isVisibleToScreenReader(element) {
-    const notDNone = !element.classList.contains('d-none');
-    const notHidden = !element.hasAttribute('hidden') || element.getAttribute('hidden') === 'false';
-    const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
-    return notDNone && notHidden && notAriaHidden;
+    return !element.closest('.d-none, [hidden]:not([hidden="false"]), [aria-hidden="true"]');
 }
 
 /**
