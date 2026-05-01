@@ -6,8 +6,8 @@ class FDSDatePicker extends HTMLElement {
 
     /* Private instance fields */
 
-    #initialized;
-    #datePickerObserver;
+    #initialized = false;
+    #datePickerObserver = null;
 
     #handleDatePickerButtonClick;
     #handleFocusOut;
@@ -18,11 +18,11 @@ class FDSDatePicker extends HTMLElement {
     #handlePageShow;
     #handleKeydown;
 
-    #MONTHS;
-    #FORMATS;
+    #MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
+    #FORMATS = ['DD/MM/YYYY', 'DD-MM-YYYY', 'DD.MM.YYYY', 'DD MM YYYY', 'DD/MM-YYYY'];
 
-    #textOpen;
-    #textSelectedDate;
+    #textOpen = 'Åbn datovælger';
+    #textSelectedDate = 'valgt dato er DAY. MONTH YEAR';
 
     /* Private methods */
 
@@ -124,11 +124,11 @@ class FDSDatePicker extends HTMLElement {
             const svgClose = CE.createSvgIcon('m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z');
             closeButton.prepend(svgClose);
         }
-        
+
         if (!closeButtonContainer.querySelector('.close-button')) {
             closeButtonContainer.appendChild(closeButton);
         }
-        
+
         /* Add wrapper for fds-date-picker-grid and close button */
 
         const datePicker = grid.parentElement;
@@ -138,35 +138,6 @@ class FDSDatePicker extends HTMLElement {
         datePicker.appendChild(closeButtonContainer);
 
         this.#initialized = true;
-    }
-
-    #showRequiredStatus(value) {
-        const label = this.querySelector('label');
-        const input = this.querySelector('input');
-
-        if (!label || !input) return;
-
-        let statusIndicator = label.querySelector(':scope > span.weight-normal');
-
-        if (value === null && statusIndicator) {
-            statusIndicator.remove();
-            return;
-        }
-
-        if (!statusIndicator) {
-            const span = document.createElement('span');
-            span.className = 'weight-normal';
-            label.appendChild(span);
-            statusIndicator = span;
-        }
-
-        const isRequired = input.hasAttribute('required') || (input.hasAttribute('aria-required') && input.getAttribute('aria-required') !== 'false');
-
-        let text = value;
-        if (value === '' && isRequired) text = 'skal udfyldes';
-        if (value === '' && !isRequired) text = 'frivilligt';
-
-        statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
     }
 
     #setupObserver() {
@@ -190,7 +161,11 @@ class FDSDatePicker extends HTMLElement {
         if (shouldUpdate) {
             this.#setupInput();
             this.#setupLabel();
-            if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+            if (this.hasAttribute('show-required-status')) {
+                const label = this.querySelector('label');
+                const input = this.querySelector('input');
+                CE.showRequiredStatus(label, input, this.getAttribute('show-required-status'));
+            }
             if (this.querySelector('.date-button')) {
                 this.querySelector('input')?.hasAttribute('disabled') ? this.querySelector('.date-button').setAttribute('disabled', '') : this.querySelector('.date-button').removeAttribute('disabled');
             }
@@ -374,9 +349,6 @@ class FDSDatePicker extends HTMLElement {
     constructor() {
         super();
 
-        this.#initialized = false;
-        this.#datePickerObserver = null;
-
         /* Set up instance fields for event handling */
 
         this.#handleDatePickerButtonClick = () => { this.#datePickerButtonClicked(); };
@@ -387,11 +359,6 @@ class FDSDatePicker extends HTMLElement {
         this.#handleInput = (event) => { this.#inputUpdated(event) };
         this.#handlePageShow = () => { this.#updateOnPageshow() };
         this.#handleKeydown = (event) => { this.#keyboardNavigation(event); };
-
-        this.#MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
-        this.#FORMATS = ['DD/MM/YYYY', 'DD-MM-YYYY', 'DD.MM.YYYY', 'DD MM YYYY', 'DD/MM-YYYY'];
-        this.#textOpen = 'Åbn datovælger';
-        this.#textSelectedDate = 'valgt dato er DAY. MONTH YEAR';
     }
 
     /* --------------------------------------------------
@@ -426,7 +393,11 @@ class FDSDatePicker extends HTMLElement {
         if (this.#initialized) return;
 
         this.#init();
-        if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+
+        const label = this.querySelector('label');
+        const input = this.querySelector('input');
+
+        if (this.hasAttribute('show-required-status')) { CE.showRequiredStatus(label, input, this.getAttribute('show-required-status')); }
 
         // Add event listeners
         this.querySelector('.date-button')?.addEventListener('click', this.#handleDatePickerButtonClick, false);
@@ -473,7 +444,9 @@ class FDSDatePicker extends HTMLElement {
         if (!this.#initialized) return;
 
         if (attribute === 'show-required-status' && (oldValue !== newValue)) {
-            this.#showRequiredStatus(newValue);
+            const label = this.querySelector('label');
+            const input = this.querySelector('input');
+            CE.showRequiredStatus(label, input, newValue);
         }
 
         if (attribute === 'format' && (oldValue !== newValue)) {
