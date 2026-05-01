@@ -6406,8 +6406,6 @@ function setInvalid(element, errorMessages) {
 ;// ./src/js/custom-elements/input/fds-input.js
 
 
-
-
 class FDSInput extends HTMLElement {
   /* Private instance fields */
 
@@ -6676,7 +6674,6 @@ function registerHelpText() {
 
 
 
-
 class FDSCharacterLimit extends HTMLElement {
   /* Private instance fields */
 
@@ -6804,8 +6801,17 @@ class FDSCharacterLimit extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
-    this.innerHTML = '';
     if (!this.hasAttribute('limit')) return;
+    if (this.children.length === 3) {
+      const [spanSrMaxLimit, spanSrUpdate, spanVisualUpdate] = this.children;
+      this.#spanSrMaxLimit = spanSrMaxLimit;
+      this.#spanSrUpdate = spanSrUpdate;
+      this.#spanVisualUpdate = spanVisualUpdate;
+    } else {
+      this.appendChild(this.#spanSrMaxLimit);
+      this.appendChild(this.#spanSrUpdate);
+      this.appendChild(this.#spanVisualUpdate);
+    }
     this.#parentWrapper = this.closest('fds-input');
     this.#input = this.#parentWrapper?.querySelector('input');
     if (!this.#input) return;
@@ -6841,16 +6847,12 @@ class FDSCharacterLimit extends HTMLElement {
     this.#spanVisualUpdate.classList.add('visual-message');
     this.#spanVisualUpdate.setAttribute('aria-hidden', 'false');
     this.#spanVisualUpdate.textContent = this.#getMessage(charactersLeft);
-    ;
 
     // <span> announcing characters left to SR users (updates are slightly delayed compared to the visual message)
     this.#spanSrUpdate.classList.add('sr-only');
     this.#spanSrUpdate.textContent = '';
     this.#spanSrUpdate.setAttribute('aria-hidden', true);
     this.#spanSrUpdate.setAttribute('aria-live', 'polite');
-    this.appendChild(this.#spanSrMaxLimit);
-    this.appendChild(this.#spanSrUpdate);
-    this.appendChild(this.#spanVisualUpdate);
 
     // Add event listeners
     this.#input.addEventListener('keyup', this.#handleKeyUp);
@@ -6887,7 +6889,6 @@ class FDSCharacterLimit extends HTMLElement {
       this.#updateMessages(this.#charactersLeft());
     }
     if (attribute === 'one-character-remaining-text') {
-      console.log('one-character-remaining-text', newValue);
       this.#messages.one_character_remaining = newValue;
       this.#updateMessages(this.#charactersLeft());
     }

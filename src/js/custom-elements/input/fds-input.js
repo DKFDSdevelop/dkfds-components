@@ -1,5 +1,3 @@
-'use strict';
-
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 import * as CE from '../custom-element-utils';
 
