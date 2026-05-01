@@ -43,8 +43,8 @@ fds-upload-file,
     }
 
     .fds-upload-file-item-error {
-            background-color: #FFE0E0;
-        }
+        background-color: #FFE0E0;
+    }
 
     .fds-upload-input {
         position: absolute;
@@ -142,17 +142,11 @@ fds-upload-file,
         text-decoration: underline;
     }
 
-    &.fds-upload-file-disabled {
-        .fds-upload-dropzone {
-            cursor: not-allowed;
-            opacity: 0.6;
-            border-color: #ccc;
-            background-color: #f9f9f9;
-        }
-
-        .fds-upload-label {
-            color: func.color(vars.$input-disabled-text-color);
-        }
+    .fds-upload-dropzone:has(.fds-upload-input:disabled) {
+        cursor: not-allowed;
+        opacity: 0.6;
+        border-color: #ccc;
+        background-color: #f9f9f9;
 
         .fds-upload-dropzone-content,
         .fds-upload-choose {
@@ -162,7 +156,12 @@ fds-upload-file,
         }
 
         .fds-upload-input {
+            cursor: not-allowed;
             pointer-events: none;
         }
+    }
+
+    .fds-upload-label.disabled {
+        color: func.color(vars.$input-disabled-text-color);
     }
 }
