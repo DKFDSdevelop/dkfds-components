@@ -18,12 +18,10 @@ class FDSRadioButton extends HTMLElement {
     /* Private methods */
 
     #getInputElement() {
-        // Look for input as direct child first, then in wrapper
         return this.querySelector(':scope > input[type="radio"]');
     }
 
     #getLabelElement() {
-        // Look for label as direct child first, then in wrapper  
         return this.querySelector(':scope > label');
     }
 
@@ -72,7 +70,6 @@ class FDSRadioButton extends HTMLElement {
     #updateAccessibilityState() {
         const label = this.#getLabelElement();
         const input = this.#getInputElement();
-        // const errorMessages = this.#getErrorMessages();
         const helpTexts = this.#getHelpTextElements();
 
         CE.associateLabelWithElement(label, input, 'rad');
@@ -120,6 +117,10 @@ class FDSRadioButton extends HTMLElement {
             content.classList.add('collapsed');
         }
     }
+
+    /* Attributes which can invoke attributeChangedCallback() */
+
+    static observedAttributes = ['ready'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT METHODS
@@ -173,6 +174,8 @@ class FDSRadioButton extends HTMLElement {
     -------------------------------------------------- */
 
     connectedCallback() {
+        if (this.getAttribute('ready') === 'false') return;
+
         if (!this.#initialized) { this.init(); }
     }
 
@@ -190,6 +193,19 @@ class FDSRadioButton extends HTMLElement {
         if (this.#radioButtonObserver) {
             this.#radioButtonObserver.disconnect();
             this.#radioButtonObserver = null;
+        }
+    }
+
+    /* --------------------------------------------------
+    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+    -------------------------------------------------- */
+
+    attributeChangedCallback(attribute, oldValue, newValue) {
+        if (attribute === 'ready') {
+            if (!this.#initialized && this.isConnected && newValue === 'true') {
+                this.init();
+            }
+            return;
         }
     }
 }

@@ -7690,11 +7690,9 @@ class FDSRadioButton extends HTMLElement {
   /* Private methods */
 
   #getInputElement() {
-    // Look for input as direct child first, then in wrapper
     return this.querySelector(':scope > input[type="radio"]');
   }
   #getLabelElement() {
-    // Look for label as direct child first, then in wrapper  
     return this.querySelector(':scope > label');
   }
   #getHelpTextElements() {
@@ -7732,7 +7730,6 @@ class FDSRadioButton extends HTMLElement {
   #updateAccessibilityState() {
     const label = this.#getLabelElement();
     const input = this.#getInputElement();
-    // const errorMessages = this.#getErrorMessages();
     const helpTexts = this.#getHelpTextElements();
     associateLabelWithElement(label, input, 'rad');
     setAriaDescribedBy(input, [], helpTexts);
@@ -7768,6 +7765,10 @@ class FDSRadioButton extends HTMLElement {
       content.classList.add('collapsed');
     }
   }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['ready'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT METHODS
@@ -7814,6 +7815,7 @@ class FDSRadioButton extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
+    if (this.getAttribute('ready') === 'false') return;
     if (!this.#initialized) {
       this.init();
     }
@@ -7833,6 +7835,19 @@ class FDSRadioButton extends HTMLElement {
       this.#radioButtonObserver = null;
     }
   }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue === 'true') {
+        this.init();
+      }
+      return;
+    }
+  }
 }
 function registerRadioButton() {
   if (customElements.get('fds-radio-button') === undefined) {
@@ -7847,111 +7862,71 @@ function registerRadioButton() {
 class FDSRadioButtonGroup extends HTMLElement {
   /* Private instance fields */
 
+  #initialized = false;
+  #radioButtonGroupObserver = null;
   #fieldset;
   #legend;
-  #handleErrorMessageCallback;
-  #handleHelpTextCallback;
-  #handleVisibilityChange;
 
   /* Private methods */
 
   #getFieldsetElement() {
-    if (this.#fieldset) return this.#fieldset;
-    this.#fieldset = this.querySelector('fieldset');
-    return this.#fieldset;
+    return this.querySelector('fieldset');
   }
-  #handleLegend() {
-    let legend = this.#fieldset.querySelector('legend') || this.querySelector(':scope > legend');
-    if (legend && legend.parentNode !== this.#fieldset) {
-      legend.remove();
-      this.#fieldset.prepend(legend);
-    } else if (!legend) {
-      legend = document.createElement('legend');
-      this.#fieldset.prepend(legend);
-    }
-    legend.classList.add('form-label');
-
-    // Move tooltip into the legend
-    const tooltip = this.querySelector(':scope > .tooltip-wrapper');
-    if (tooltip) legend.appendChild(tooltip);
-    return legend;
+  #getLegendElement() {
+    return this.querySelector(':scope > fieldset > legend');
   }
   #getGroupHelpTexts() {
-    const direct = Array.from(this.querySelectorAll(':scope > fds-help-text'));
-    // Help-texts inside a manually written <fieldset>
-    const orphaned = Array.from(this.querySelectorAll(':scope > fieldset > fds-help-text'));
-    return [...direct, ...orphaned];
+    return this.querySelectorAll(':scope > fieldset > fds-help-text');
   }
   #getErrorMessages() {
-    const directErrors = Array.from(this.querySelectorAll(':scope > fds-error-message'));
-    const orphanedErrors = Array.from(this.querySelectorAll(':scope > fieldset > fds-error-message'));
-    return [...directErrors, ...orphanedErrors];
+    return this.querySelectorAll(':scope > fieldset > fds-error-message');
   }
-  #setStructure() {
-    this.#fieldset = this.querySelector('fieldset') || (() => {
-      const fieldset = document.createElement('fieldset');
-      this.prepend(fieldset);
-      return fieldset;
-    })();
-    this.#legend = this.#handleLegend();
-    const helpTexts = this.#getGroupHelpTexts();
-    const errors = this.#getErrorMessages();
-    helpTexts.forEach(el => el.remove());
-    let insertionPoint = this.#legend.nextSibling;
-    helpTexts.forEach(ht => {
-      this.#fieldset.insertBefore(ht, insertionPoint);
-    });
-
-    // Move remaining children
-    const toMove = Array.from(this.children).filter(el => el !== this.#fieldset);
-    toMove.forEach(el => this.#fieldset.appendChild(el));
-    return {
-      helpTexts,
-      errors
-    };
+  #setupObserver() {
+    if (this.#radioButtonGroupObserver) return;
+    this.#radioButtonGroupObserver = new MutationObserver(this.#handleMutations);
+    this.#radioButtonGroupObserver.observe(this, mutationObserverConfig);
   }
-  #setGroupLabel() {
-    if (!this.#legend) return;
-    const label = this.getAttribute('group-label');
-    if (label == null) return;
-    let textNode = Array.from(this.#legend.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
-    if (!textNode) {
-      textNode = document.createTextNode('');
-      this.#legend.prepend(textNode);
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      const relevantTagNames = ['FIELDSET', 'LEGEND', 'FDS-HELP-TEXT', 'FDS-ERROR-MESSAGE'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        this.#fieldset = this.#getFieldsetElement();
+        this.#legend = this.#getLegendElement();
+        this.#setClasses();
+        this.#setDisabledClass();
+        this.#updateAccessibilityState();
+        break;
+      }
+      if (attributeName === 'disabled' && target === this.#getFieldsetElement()) {
+        target.classList.toggle('disabled', target.hasAttribute('disabled'));
+      } else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class' && !['LEGEND', 'FIELDSET'].includes(target?.tagName)) {
+        this.#updateAccessibilityState();
+        if (attributeName === 'hidden' && target === this) {
+          notifySummaryOnVisibilityChange(this);
+        }
+      }
     }
-    textNode.nodeValue = label;
-  }
-
-  /* Disabled */
-
-  #shouldHaveDisabled(value) {
-    return value !== null && value !== 'false' && value !== false;
-  }
-  #setDisabled() {
-    this.#getFieldsetElement()?.setAttribute('disabled', '');
-    this.#getFieldsetElement()?.classList.add('disabled');
-  }
-  #removeDisabled() {
-    this.#getFieldsetElement()?.removeAttribute('disabled');
-    this.#getFieldsetElement()?.classList.remove('disabled');
-  }
-  #processVisibilityChange(event) {
-    const {
-      detail
-    } = event;
-
-    // Extract ID and hidden status - works for both error and help-text events
-    const elementId = detail.errorId || detail.helptextId;
-    const isHidden = detail.isHidden;
-    const element = this.querySelector(`#${elementId}`);
-    if (element) {
-      element.hiddenStatus = isHidden;
-    }
-    this.handleIdReferences();
-  }
-  #isElementHidden = element => {
-    return element.hiddenStatus !== undefined ? element.hiddenStatus : element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'false';
   };
+  #updateAccessibilityState() {
+    const fieldset = this.#getFieldsetElement();
+    const errorMessages = this.#getErrorMessages();
+    const helpTexts = this.#getGroupHelpTexts();
+    setAriaDescribedBy(fieldset, errorMessages, helpTexts);
+  }
+  #setClasses() {
+    this.#legend?.classList.add('form-label');
+  }
+  #setDisabledClass() {
+    const fieldset = this.#getFieldsetElement();
+    if (!fieldset) return;
+    fieldset.classList.toggle('disabled', fieldset.hasAttribute('disabled'));
+  }
   #handleRadioChange = event => {
     const changedRadioButton = event.target.closest('fds-radio-button');
     if (event.detail.checked) {
@@ -7964,67 +7939,20 @@ class FDSRadioButtonGroup extends HTMLElement {
     }
   };
 
-  /* Attributes which can invoke attributeChangedCallback() */
-
-  static observedAttributes = ['group-label', 'group-disabled'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
-
-  constructor() {
-    super();
-    this.#handleErrorMessageCallback = () => {
-      this.handleIdReferences();
-    };
-    this.#handleHelpTextCallback = () => {
-      this.handleIdReferences();
-    };
-    this.#handleVisibilityChange = event => {
-      this.#processVisibilityChange(event);
-    };
-  }
-
   /* --------------------------------------------------
   CUSTOM ELEMENT METHODS
   -------------------------------------------------- */
 
-  handleIdReferences() {
-    if (!this.#fieldset) return;
-    const idsForAriaDescribedby = [];
-
-    // Add help text IDs
-    const helpTexts = this.#getGroupHelpTexts();
-    helpTexts.forEach(helptext => {
-      if (helptext?.hasAttribute('id')) {
-        const isHidden = this.#isElementHidden(helptext);
-        if (!isHidden) {
-          idsForAriaDescribedby.push(helptext.id);
-        }
-      }
-    });
-
-    // Add error message IDs
-    let hasError = false;
-    let hasVisibleError = false;
-    const errorMessages = this.#getErrorMessages();
-    errorMessages.forEach(errorText => {
-      if (errorText?.id) {
-        hasError = true;
-        const isHidden = this.#isElementHidden(errorText);
-        if (!isHidden) {
-          idsForAriaDescribedby.push(errorText.id);
-          hasVisibleError = true;
-        }
-      }
-    });
-
-    // Set or remove aria-describedby
-    if (idsForAriaDescribedby.length > 0) {
-      this.#fieldset.setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
-    } else {
-      this.#fieldset.removeAttribute('aria-describedby');
-    }
+  init() {
+    this.#fieldset = this.#getFieldsetElement();
+    this.#legend = this.#getLegendElement();
+    this.#setClasses();
+    this.#setDisabledClass();
+    this.#updateAccessibilityState();
+    this.removeEventListener('radio-changed', this.#handleRadioChange);
+    this.addEventListener('radio-changed', this.#handleRadioChange);
+    this.#setupObserver();
+    this.#initialized = true;
   }
 
   /* --------------------------------------------------
@@ -8032,18 +7960,9 @@ class FDSRadioButtonGroup extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
-    const {
-      helpTexts,
-      errors
-    } = this.#setStructure();
-    this.#setGroupLabel();
-    if (this.#shouldHaveDisabled(this.getAttribute('group-disabled'))) this.#setDisabled();
-    this.handleIdReferences();
-    this.addEventListener('radio-changed', this.#handleRadioChange);
-    this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
-    this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
-    this.addEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
-    this.addEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
+    if (!this.#initialized) {
+      this.init();
+    }
   }
 
   /* --------------------------------------------------
@@ -8051,24 +7970,12 @@ class FDSRadioButtonGroup extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
+    notifySummaryOnDisconnect(this);
     this.removeEventListener('radio-changed', this.#handleRadioChange);
-    this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
-    this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
-    this.removeEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
-    this.removeEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
-
-  attributeChangedCallback(name, oldValue, newValue) {
-    if (!this.isConnected) return;
-    if (name === 'group-label') {
-      this.#setGroupLabel();
-    }
-    if (name === 'group-disabled' && oldValue !== newValue) {
-      this.#shouldHaveDisabled(newValue) ? this.#setDisabled() : this.#removeDisabled();
+    this.#initialized = false;
+    if (this.#radioButtonGroupObserver) {
+      this.#radioButtonGroupObserver.disconnect();
+      this.#radioButtonGroupObserver = null;
     }
   }
 }
