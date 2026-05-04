@@ -29,7 +29,6 @@ class FDSSelect extends HTMLElement {
                 const helpTexts = this.querySelectorAll('fds-help-text');
 
                 CE.associateLabelWithElement(label, select, 'sel');
-                CE.setDisabledClass(label, select);
                 CE.setAriaDescribedBy(select, errorMessages, helpTexts);
                 CE.setInvalid(select, errorMessages);
 
@@ -40,27 +39,20 @@ class FDSSelect extends HTMLElement {
                 break;
             }
 
-            // The select's disabled attribute changed
-            if (attributeName === 'disabled' && target?.tagName === 'SELECT') {
-                const label = this.querySelector('label');
-                CE.setDisabledClass(label, target);
-            }
-
             // The select's required attribute changed
-            else if (attributeName === 'required' && target?.tagName === 'SELECT') {
+            if (attributeName === 'required' && target?.tagName === 'SELECT') {
                 if (this.hasAttribute('show-required-status')) {
                     const label = this.querySelector('label');
                     CE.showRequiredStatus(label, target, this.getAttribute('show-required-status'));
                 }
             }
-
-            // Class changes on the label are excluded to prevent an infinite loop, as setDisabledClass adds/removes the 'disabled' class on the label.
+            // Attributes which might affect aria-describedby
             else if (
                 attributeName === 'id' ||
                 attributeName === 'hidden' ||
                 attributeName === 'aria-hidden' ||
-                (attributeName === 'class' && target?.tagName !== 'LABEL')
-            ) {
+                attributeName === 'class')
+            {
                 const select = this.querySelector('select');
                 const errorMessages = this.querySelectorAll('fds-error-message');
                 const helpTexts = this.querySelectorAll('fds-help-text');
@@ -75,6 +67,25 @@ class FDSSelect extends HTMLElement {
         }
     }
 
+    #init() {
+        this.#setupObserver();
+
+        const label = this.querySelector('label');
+        const select = this.querySelector('select');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+
+        CE.associateLabelWithElement(label, select, 'sel');
+        CE.setAriaDescribedBy(select, errorMessages, helpTexts);
+        CE.setInvalid(select, errorMessages);
+
+        if (this.hasAttribute('show-required-status')) {
+            CE.showRequiredStatus(label, select, this.getAttribute('show-required-status'));
+        }
+
+        this.#initialized = true;
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = ['show-required-status'];
@@ -87,35 +98,11 @@ class FDSSelect extends HTMLElement {
     set showRequiredStatus(value) { value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
 
     /* --------------------------------------------------
-    CUSTOM ELEMENT METHODS
-    -------------------------------------------------- */
-
-    init() {
-        this.#setupObserver();
-
-        const label = this.querySelector('label');
-        const select = this.querySelector('select');
-        const errorMessages = this.querySelectorAll('fds-error-message');
-        const helpTexts = this.querySelectorAll('fds-help-text');
-
-        CE.associateLabelWithElement(label, select, 'sel');
-        CE.setDisabledClass(label, select);
-        CE.setAriaDescribedBy(select, errorMessages, helpTexts);
-        CE.setInvalid(select, errorMessages);
-
-        if (this.hasAttribute('show-required-status')) {
-            CE.showRequiredStatus(label, select, this.getAttribute('show-required-status'));
-        }
-
-        this.#initialized = true;
-    }
-
-    /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
     -------------------------------------------------- */
 
     connectedCallback() {
-        if (!this.#initialized) { this.init(); }
+        if (!this.#initialized) { this.#init(); }
     }
 
     /* --------------------------------------------------

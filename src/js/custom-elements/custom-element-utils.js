@@ -140,10 +140,7 @@ export function notifySummaryOnVisibilityChange(element) {
  * @returns {boolean} True if the element is visible to screen readers, false otherwise.
  */
 export function isVisibleToScreenReader(element) {
-    const notDNone = !element.classList.contains('d-none');
-    const notHidden = !element.hasAttribute('hidden') || element.getAttribute('hidden') === 'false';
-    const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
-    return notDNone && notHidden && notAriaHidden;
+    return !element.closest('.d-none, [hidden]:not([hidden="false"]), [aria-hidden="true"]');
 }
 
 /**
@@ -160,17 +157,18 @@ export function setDisabledClass(label, element) {
 
 /**
  * Sets the `aria-describedby` attribute on a form element based on
- * the IDs of visible error messages and help texts.
+ * the IDs of visible error messages, help texts, and an optional character limit element.
  *
  * @param {HTMLElement} element - The form element to update.
  * @param {NodeList} errorMessages - Error message elements to consider.
  * @param {NodeList} helpTexts - Help text elements to consider.
+ * @param {HTMLElement|null} [characterLimit=null] - Optional character limit element to consider.
  */
-export function setAriaDescribedBy(element, errorMessages, helpTexts) {
+export function setAriaDescribedBy(element, errorMessages, helpTexts, characterLimit = null) {
     if (!element) return;
 
-    const ids = [...errorMessages, ...helpTexts]
-        .filter(el => el.id && isVisibleToScreenReader(el))
+    const ids = [...errorMessages, ...helpTexts, characterLimit]
+        .filter(el => el && el.id && isVisibleToScreenReader(el))
         .map(el => el.id);
 
     ids.length > 0 ? element.setAttribute('aria-describedby', ids.join(' ')) : element.removeAttribute('aria-describedby');

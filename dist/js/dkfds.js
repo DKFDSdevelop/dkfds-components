@@ -3218,7 +3218,8 @@ __webpack_require__.d(__webpack_exports__, {
   registerErrorSummary: () => (/* reexport */ fds_error_summary),
   registerFileItem: () => (/* reexport */ fds_file_item),
   registerHelpText: () => (/* reexport */ fds_help_text),
-  registerInputWrapper: () => (/* reexport */ fds_input_wrapper),
+  registerInput: () => (/* reexport */ fds_input),
+  registerInputAffix: () => (/* reexport */ input_affix),
   registerRadioButton: () => (/* reexport */ fds_radio_button),
   registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
   registerSelect: () => (/* reexport */ fds_select),
@@ -6229,965 +6230,6 @@ function registerAccordionGroup() {
   }
 }
 /* harmony default export */ const fds_accordion_group = (registerAccordionGroup);
-;// ./src/js/custom-elements/input/fds-input-wrapper.js
-
-
-
-class FDSInputWrapper extends HTMLElement {
-  /* Private instance fields */
-
-  #input;
-  #label;
-  #limit;
-  #handleHelpTextCallback;
-  #handleErrorMessageCallback;
-  #handleCharacterLimitCallback;
-  #handleCharacterLimitConnection;
-  #handleKeyUp;
-  #handlePageshow;
-  #handleFocus;
-  #handleBlur;
-  #handleVisibilityChange;
-  #lastKeyUpTimestamp;
-  #oldValue;
-  #intervalID;
-
-  /* Private methods */
-
-  #getInputElement() {
-    if (this.#input) return this.#input;
-    this.#input = this.querySelector('input');
-    return this.#input;
-  }
-  #getLabelElement() {
-    if (this.#label) return this.#label;
-    this.#label = this.querySelector('label');
-    return this.#label;
-  }
-  #getCharacterLimit() {
-    return this.querySelector(':scope > fds-character-limit');
-  }
-
-  /* Indicator */
-
-  #shouldHaveIndicator(value) {
-    return value !== null;
-  }
-  #setIndicator() {
-    let value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-    if (!this.#getLabelElement() || !this.#getInputElement()) return;
-    if (!this.#getLabelElement().querySelector(':scope > span.weight-normal')) {
-      const span = document.createElement('span');
-      span.className = 'weight-normal';
-      this.#getLabelElement().appendChild(span);
-    }
-    const isRequired = this.#getInputElement().hasAttribute('required') || this.#getInputElement().hasAttribute('aria-required') && this.#getInputElement().getAttribute('aria-required') !== 'false';
-    let text = value;
-    if (value === '' && isRequired) text = 'skal udfyldes';
-    if (value === '' && !isRequired) text = 'frivilligt';
-    if (isRequired) {
-      this.#getLabelElement().querySelector(':scope > span.weight-normal').textContent = ` (*${text})`;
-    } else {
-      this.#getLabelElement().querySelector(':scope > span.weight-normal').textContent = ` (${text})`;
-    }
-  }
-  #removeIndicator() {
-    this.#getLabelElement()?.querySelector(':scope > span.weight-normal')?.remove();
-  }
-
-  /* Readonly */
-
-  #shouldHaveReadonly(value) {
-    return value !== null && value !== 'false' && value !== false;
-  }
-  #setReadonly() {
-    this.#getInputElement()?.setAttribute('readonly', '');
-    this.querySelector(':scope > .form-input-wrapper')?.classList.add('readonly');
-  }
-  #removeReadonly() {
-    this.#getInputElement()?.removeAttribute('readonly');
-    this.querySelector(':scope > .form-input-wrapper')?.classList.remove('readonly');
-  }
-
-  /* Disabled */
-
-  #shouldHaveDisabled(value) {
-    return value !== null && value !== 'false' && value !== false;
-  }
-  #setDisabled() {
-    this.#getInputElement()?.setAttribute('disabled', '');
-    this.#getLabelElement()?.classList.add('disabled');
-    this.querySelector(':scope > .form-input-wrapper')?.classList.add('disabled');
-  }
-  #removeDisabled() {
-    this.#getInputElement()?.removeAttribute('disabled');
-    this.#getLabelElement()?.classList.remove('disabled');
-    this.querySelector(':scope > .form-input-wrapper')?.classList.remove('disabled');
-  }
-
-  /* Prefix */
-
-  #shouldHavePrefix(value) {
-    return value !== null && value !== '';
-  }
-  #setPrefix(value) {
-    if (!this.#getInputElement()) return;
-    let wrapper = this.querySelector(':scope > .form-input-wrapper');
-    if (!wrapper) {
-      wrapper = document.createElement('div');
-      this.insertBefore(wrapper, this.#getInputElement());
-      wrapper.appendChild(this.#getInputElement());
-    }
-    wrapper.classList.add('form-input-wrapper', 'form-input-wrapper--prefix');
-    this.#shouldHaveDisabled(this.#getInputElement()?.hasAttribute('disabled')) ? wrapper.classList.add('disabled') : wrapper.classList.remove('disabled');
-    this.#shouldHaveReadonly(this.#getInputElement()?.hasAttribute('readonly')) ? wrapper.classList.add('readonly') : wrapper.classList.remove('readonly');
-    let prefixEl = wrapper.querySelector('.form-input-prefix');
-    if (!prefixEl) {
-      prefixEl = document.createElement('div');
-      prefixEl.className = 'form-input-prefix';
-      prefixEl.setAttribute('aria-hidden', 'true');
-      wrapper.insertBefore(prefixEl, this.#getInputElement());
-    }
-    prefixEl.textContent = value;
-  }
-  #removePrefix() {
-    let wrapper = this.querySelector(':scope > .form-input-wrapper');
-    if (!wrapper || !this.#getInputElement()) return;
-    let prefixEl = wrapper.querySelector('.form-input-prefix');
-    prefixEl?.remove();
-    wrapper.classList.remove('form-input-wrapper--prefix');
-    if (!wrapper.classList.contains('form-input-wrapper--prefix') && !wrapper.classList.contains('form-input-wrapper--suffix')) {
-      wrapper.replaceWith(this.#getInputElement());
-    }
-  }
-
-  /* Suffix */
-
-  #shouldHaveSuffix(value) {
-    return value !== null && value !== '';
-  }
-  #setSuffix(value) {
-    if (!this.#getInputElement()) return;
-    let wrapper = this.querySelector(':scope > .form-input-wrapper');
-    if (!wrapper) {
-      wrapper = document.createElement('div');
-      this.insertBefore(wrapper, this.#getInputElement());
-      wrapper.appendChild(this.#getInputElement());
-    }
-    wrapper.classList.add('form-input-wrapper', 'form-input-wrapper--suffix');
-    this.#shouldHaveDisabled(this.#getInputElement()?.hasAttribute('disabled')) ? wrapper.classList.add('disabled') : wrapper.classList.remove('disabled');
-    this.#shouldHaveReadonly(this.#getInputElement()?.hasAttribute('readonly')) ? wrapper.classList.add('readonly') : wrapper.classList.remove('readonly');
-    let suffixEl = wrapper.querySelector('.form-input-suffix');
-    if (!suffixEl) {
-      suffixEl = document.createElement('div');
-      suffixEl.className = 'form-input-suffix';
-      suffixEl.setAttribute('aria-hidden', 'true');
-      wrapper.appendChild(suffixEl);
-    }
-    suffixEl.textContent = value;
-  }
-  #removeSuffix() {
-    let wrapper = this.querySelector(':scope > .form-input-wrapper');
-    if (!wrapper || !this.#getInputElement()) return;
-    let suffixEl = wrapper.querySelector('.form-input-suffix');
-    suffixEl?.remove();
-    wrapper.classList.remove('form-input-wrapper--suffix');
-    if (!wrapper.classList.contains('form-input-wrapper--prefix') && !wrapper.classList.contains('form-input-wrapper--suffix')) {
-      wrapper.replaceWith(this.#getInputElement());
-    }
-  }
-
-  /* Maxwidth */
-
-  #shouldHaveMaxwidth(value) {
-    return value !== null && value !== '';
-  }
-  #setMaxwidth(value) {
-    if (!this.#getInputElement()) return;
-    const maxwidthClass = [...this.#getInputElement().classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
-    this.#getInputElement().classList.remove(maxwidthClass);
-    if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
-      this.#getInputElement().classList.add(`input-width-${value}`);
-    } else if (/^\d+$/.test(value)) {
-      this.#getInputElement().classList.add(`input-char-${value}`);
-    }
-  }
-  #removeMaxwidth() {
-    if (!this.#getInputElement()) return;
-    const maxwidthClass = [...this.#getInputElement().classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
-    this.#getInputElement().classList.remove(maxwidthClass);
-  }
-
-  /* Character limitation */
-
-  #callUpdateVisibleMessage() {
-    this.#getCharacterLimit()?.setCharactersUsed(this.#getInputElement().value.length);
-    this.#getCharacterLimit()?.updateVisibleMessage();
-  }
-  #setCharacterLimitListeners() {
-    this.#getInputElement().addEventListener('keyup', this.#handleKeyUp);
-    this.#getInputElement().addEventListener('focus', this.#handleFocus);
-    this.#getInputElement().addEventListener('blur', this.#handleBlur);
-
-    /* If the browser supports the pageshow event, use it to update the character limit
-    message and sr-message once a page has loaded. Second best, use the DOMContentLoaded event. 
-    This ensures that if the user navigates to another page in the browser and goes back, the 
-    message and sr-message will show/tell the correct amount of characters left. */
-    if ('onpageshow' in window) {
-      window.addEventListener('pageshow', this.#handlePageshow);
-    } else {
-      document.addEventListener('DOMContentLoaded', this.#handlePageshow);
-    }
-  }
-  #intervalSetup() {
-    if (this.#intervalID !== null) {
-      window.clearInterval(this.#intervalID);
-      this.#intervalID = null;
-    }
-    this.#getCharacterLimit().silenceVisibleMessage();
-    this.#intervalID = window.setInterval(() => {
-      /* Don't update the Screen Reader message unless it's been awhile
-      since the last key up event. Otherwise, the user will be spammed
-      with audio notifications while typing. */
-      if (this.#getCharacterLimit()) {
-        if (!this.#lastKeyUpTimestamp || Date.now() - 500 >= this.#lastKeyUpTimestamp) {
-          if (this.#oldValue !== this.#getInputElement().value || !this.#getCharacterLimit().hasMatchingMessages()) {
-            this.#oldValue = this.#getInputElement().value;
-            this.#getCharacterLimit().updateMessages();
-          }
-        }
-      }
-    }, 1000);
-  }
-  #processVisibilityChange(event) {
-    const {
-      detail
-    } = event;
-
-    // Extract ID and hidden status - works for both error and help-text events
-    const elementId = detail.errorId || detail.helptextId || detail.characterLimitId;
-    const isHidden = detail.isHidden;
-    const element = this.querySelector(`#${elementId}`);
-    if (element) {
-      element.hiddenStatus = isHidden;
-    }
-    this.updateIdReferences();
-  }
-  #isElementHidden = element => {
-    return element.hiddenStatus !== undefined ? element.hiddenStatus : element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'false';
-  };
-
-  /* Attributes which can invoke attributeChangedCallback() */
-
-  static observedAttributes = ['input-indicator', 'input-readonly', 'input-disabled', 'input-prefix', 'input-suffix', 'input-maxwidth'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
-
-  constructor() {
-    super();
-    this.#lastKeyUpTimestamp = null;
-    this.#oldValue = null;
-    this.#intervalID = null;
-    this.#handleKeyUp = () => {
-      this.#callUpdateVisibleMessage();
-      this.#lastKeyUpTimestamp = Date.now();
-    };
-    this.#handleFocus = () => {
-      this.#intervalSetup();
-    };
-    this.#handleBlur = () => {
-      window.clearInterval(this.#intervalID);
-      this.#intervalID = null;
-      if (this.#oldValue !== this.#getInputElement().value) {
-        this.#oldValue = this.#getInputElement().value;
-        this.#getCharacterLimit().updateVisibleMessage();
-      }
-      this.#getCharacterLimit().silenceSrMessage();
-    };
-    this.#handlePageshow = () => {
-      this.#callUpdateVisibleMessage();
-    };
-    this.#handleHelpTextCallback = () => {
-      this.updateIdReferences();
-    };
-    this.#handleErrorMessageCallback = () => {
-      this.updateIdReferences();
-    };
-    this.#handleCharacterLimitCallback = () => {
-      this.updateIdReferences();
-    };
-    this.#handleCharacterLimitConnection = () => {
-      this.#setCharacterLimitListeners();
-    };
-    this.#handleVisibilityChange = event => {
-      this.#processVisibilityChange(event);
-    };
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
-
-  updateIdReferences() {
-    if (!this.#getInputElement()) return;
-
-    // Set/remove 'for' on label
-    if (this.#getLabelElement()) {
-      if (!this.#getInputElement().id) {
-        this.#getInputElement().id = generateAndVerifyUniqueId('inp');
-      }
-      this.#getLabelElement().htmlFor = this.#getInputElement().id;
-    }
-
-    // IDs to be used in aria-describedby
-    const idsForAriaDescribedby = [];
-
-    // Help text ID
-    this.querySelectorAll('fds-help-text').forEach(helptext => {
-      if (helptext.hasAttribute('id')) {
-        const isHidden = this.#isElementHidden(helptext);
-        if (!isHidden) {
-          idsForAriaDescribedby.push(helptext.id);
-        }
-      }
-    });
-
-    // Error message IDs
-    let hasError = false;
-    let hasVisibleError = false;
-    this.querySelectorAll('fds-error-message').forEach(errorText => {
-      if (errorText?.id) {
-        hasError = true;
-        const isHidden = this.#isElementHidden(errorText);
-        if (!isHidden) {
-          idsForAriaDescribedby.push(errorText.id);
-          hasVisibleError = true;
-        }
-      }
-    });
-
-    // Character limit ID
-    const characterLimit = this.#getCharacterLimit();
-    if (characterLimit) {
-      const spanId = characterLimit.querySelector(':scope > span');
-      if (spanId?.hasAttribute('id')) {
-        const isHidden = this.#isElementHidden(characterLimit);
-        if (!isHidden) {
-          idsForAriaDescribedby.push(spanId.id);
-        }
-      }
-    }
-
-    // Set/remove aria-describedby on input
-    if (idsForAriaDescribedby.length > 0) {
-      this.#getInputElement().setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
-    } else {
-      this.#getInputElement().removeAttribute('aria-describedby');
-    }
-
-    // Set aria-invalid if wrapper has error messages
-    if (hasError && hasVisibleError) {
-      this.#getInputElement().setAttribute('aria-invalid', 'true');
-    } else {
-      this.#getInputElement().removeAttribute('aria-invalid');
-    }
-  }
-  setClasses() {
-    if (!this.#getLabelElement() || !this.#getInputElement()) return;
-    this.#getLabelElement().classList.add('form-label');
-    this.#getInputElement().classList.add('form-input');
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
-
-  connectedCallback() {
-    this.setClasses();
-    if (this.#shouldHaveIndicator(this.getAttribute('input-indicator'))) this.#setIndicator(this.getAttribute('input-indicator'));
-    if (this.#shouldHaveReadonly(this.getAttribute('input-readonly'))) this.#setReadonly();
-    if (this.#shouldHaveDisabled(this.getAttribute('input-disabled'))) this.#setDisabled();
-    if (this.#shouldHavePrefix(this.getAttribute('input-prefix'))) this.#setPrefix(this.getAttribute('input-prefix'));
-    if (this.#shouldHaveSuffix(this.getAttribute('input-suffix'))) this.#setSuffix(this.getAttribute('input-suffix'));
-    if (this.#shouldHaveMaxwidth(this.getAttribute('input-maxwidth'))) this.#setMaxwidth(this.getAttribute('input-maxwidth'));
-    this.updateIdReferences();
-    this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
-    this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
-    this.addEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
-    this.addEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
-    this.addEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
-    this.addEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
-    this.addEventListener('character-limit-visibility-changed', this.#handleVisibilityChange);
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
-
-  disconnectedCallback() {
-    this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
-    this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
-    this.removeEventListener('character-limit-callback', this.#handleCharacterLimitCallback);
-    this.removeEventListener('character-limit-connection', this.#handleCharacterLimitConnection);
-    this.#getInputElement().removeEventListener('keyup', this.#handleKeyUp);
-    this.#getInputElement().removeEventListener('focus', this.#handleFocus);
-    this.#getInputElement().removeEventListener('blur', this.#handleBlur);
-    window.removeEventListener('pageshow', this.#handlePageshow);
-    document.removeEventListener('DOMContentLoaded', this.#handlePageshow);
-    this.removeEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
-    this.removeEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
-    this.removeEventListener('character-limit-visibility-changed', this.#handleVisibilityChange);
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
-
-  attributeChangedCallback(attribute, oldValue, newValue) {
-    if (!this.isConnected) return;
-    if (attribute === 'input-indicator') {
-      this.#shouldHaveIndicator(newValue) ? this.#setIndicator(newValue) : this.#removeIndicator();
-    }
-    if (attribute === 'input-readonly' && oldValue !== newValue) {
-      this.#shouldHaveReadonly(newValue) ? this.#setReadonly() : this.#removeReadonly();
-    }
-    if (attribute === 'input-disabled' && oldValue !== newValue) {
-      this.#shouldHaveDisabled(newValue) ? this.#setDisabled() : this.#removeDisabled();
-    }
-    if (attribute === 'input-prefix' && oldValue !== newValue) {
-      this.#shouldHavePrefix(newValue) ? this.#setPrefix(newValue) : this.#removePrefix();
-    }
-    if (attribute === 'input-suffix' && oldValue !== newValue) {
-      this.#shouldHaveSuffix(newValue) ? this.#setSuffix(newValue) : this.#removeSuffix();
-    }
-    if (attribute === 'input-maxwidth' && oldValue !== newValue) {
-      this.#shouldHaveMaxwidth(newValue) ? this.#setMaxwidth(newValue) : this.#removeMaxwidth();
-    }
-  }
-}
-function registerInputWrapper() {
-  if (customElements.get('fds-input-wrapper') === undefined) {
-    window.customElements.define('fds-input-wrapper', FDSInputWrapper);
-  }
-}
-/* harmony default export */ const fds_input_wrapper = (registerInputWrapper);
-;// ./src/js/custom-elements/help-text/fds-help-text.js
-
-
-
-class FDSHelpText extends HTMLElement {
-  /* Private instance fields */
-
-  #rendered;
-  #parentWrapper;
-
-  /* Private methods */
-
-  #render() {
-    if (this.#rendered) return;
-    this.classList.add('help-text');
-    this.#rendered = true;
-  }
-  #shouldBeHidden(hiddenValue) {
-    return hiddenValue === 'true' || hiddenValue === '';
-  }
-  #setAriaHidden() {
-    this.setAttribute('aria-hidden', 'true');
-  }
-  #removeAriaHidden() {
-    this.removeAttribute('aria-hidden');
-  }
-  #notifyParent() {
-    this.#parentWrapper?.dispatchEvent(new CustomEvent('help-text-visibility-changed', {
-      bubbles: true,
-      detail: {
-        helptextId: this.id,
-        isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
-      }
-    }));
-  }
-
-  /* Attributes which can invoke attributeChangedCallback() */
-
-  static observedAttributes = ['id', 'hidden'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
-
-  constructor() {
-    super();
-    this.#rendered = false;
-    this.#parentWrapper = null;
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
-
-  connectedCallback() {
-    if (this.#rendered) return;
-    this.#render();
-    if (!this.id) {
-      this.id = generateAndVerifyUniqueId('help');
-    }
-
-    // Handle initial hidden state
-    if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
-      this.#setAriaHidden();
-    }
-
-    // During disconnect, the custom element may lose connection to the wrapper.
-    // Save the wrapper and use it to dispatch events - otherwise, the events may be lost.
-    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button, fds-radio-button-group, fds-date-input, fds-upload-file');
-    this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
-
-  disconnectedCallback() {
-    this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
-    this.#parentWrapper = null;
-    this.#rendered = false;
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
-
-  attributeChangedCallback(name, oldValue, newValue) {
-    if (!this.#rendered) return;
-    if (name === 'hidden' && oldValue !== newValue) {
-      if (this.#shouldBeHidden(newValue)) {
-        this.#setAriaHidden();
-      } else {
-        this.#removeAriaHidden();
-      }
-      this.#notifyParent();
-    }
-    this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
-  }
-}
-function registerHelpText() {
-  if (customElements.get('fds-help-text') === undefined) {
-    window.customElements.define('fds-help-text', FDSHelpText);
-  }
-}
-/* harmony default export */ const fds_help_text = (registerHelpText);
-;// ./src/js/custom-elements/character-limit/validateCharacterLimitHTML.js
-function validateCharacterLimitHTML(children) {
-  if (children.length !== 3) return false;
-  const [spanSrMaxLimit, spanSrUpdate, spanVisualUpdate] = children;
-  if (!spanSrMaxLimit.classList.contains('sr-only') || !spanSrMaxLimit.hasAttribute('id')) return false;
-  if (!spanSrUpdate.classList.contains('sr-only') || !spanSrUpdate.hasAttribute('aria-live')) return false;
-  if (!spanVisualUpdate.classList.contains('visual-message')) return false;
-  return true;
-}
-;// ./src/js/custom-elements/character-limit/fds-character-limit.js
-
-
-
-
-class FDSCharacterLimit extends HTMLElement {
-  /* Private instance fields */
-
-  #rendered;
-  #limit;
-  #charactersUsed;
-  #messages;
-  #spanSrMaxLimit;
-  #spanSrUpdate;
-  #spanVisualUpdate;
-  #parentWrapper;
-
-  /* Private methods */
-
-  #render() {
-    if (this.#rendered) return;
-    this.#updateLimit(this.getAttribute('limit'));
-    const characterLimitRendered = validateCharacterLimitHTML(this.children);
-    if (!characterLimitRendered) {
-      this.innerHTML = '';
-      this.#spanSrMaxLimit = document.createElement('span');
-      this.#spanSrMaxLimit.classList.add('sr-only');
-      this.#updateId(this.getAttribute('limit-id'));
-      this.#spanSrMaxLimit.textContent = this.#messages.max_limit.replace(/{value}/, this.#limit);
-      this.#spanSrUpdate = document.createElement('span');
-      this.#spanSrUpdate.classList.add('sr-only');
-      this.#spanSrUpdate.setAttribute('aria-live', 'polite');
-      this.#spanVisualUpdate = document.createElement('span');
-      this.#spanVisualUpdate.classList.add('visual-message');
-      this.#spanVisualUpdate.textContent = this.#getMessage(this.charactersLeft());
-      this.appendChild(this.#spanSrMaxLimit);
-      this.appendChild(this.#spanSrUpdate);
-      this.appendChild(this.#spanVisualUpdate);
-    } else {
-      this.#spanSrMaxLimit = this.children[0];
-      this.#spanSrUpdate = this.children[1];
-      this.#spanVisualUpdate = this.children[2];
-    }
-    this.#rendered = true;
-  }
-  #getMessage(charactersLeft) {
-    let msg = '';
-    if (charactersLeft === -1) {
-      const exceeded = Math.abs(charactersLeft);
-      msg = this.#messages.one_character_too_many.replace(/{value}/, exceeded);
-    } else if (charactersLeft === 1) {
-      msg = this.#messages.one_character_remaining.replace(/{value}/, charactersLeft);
-    } else if (charactersLeft >= 0) {
-      msg = this.#messages.several_characters_remaining.replace(/{value}/, charactersLeft);
-    } else {
-      const exceeded = Math.abs(charactersLeft);
-      msg = this.#messages.several_characters_too_many.replace(/{value}/, exceeded);
-    }
-    return msg;
-  }
-  #updateLimit(value) {
-    const parsed = parseInt(value, 10);
-    if (!Number.isNaN(parsed)) {
-      this.#limit = parsed;
-      if (this.#spanSrMaxLimit) {
-        this.#spanSrMaxLimit.textContent = this.#messages.max_limit.replace(/{value}/, this.#limit);
-      }
-      this.updateVisibleMessage();
-    }
-  }
-  #shouldBeHidden(hiddenValue) {
-    return hiddenValue === 'true' || hiddenValue === '';
-  }
-  #setAriaHidden() {
-    this.setAttribute('aria-hidden', 'true');
-  }
-  #removeAriaHidden() {
-    this.removeAttribute('aria-hidden');
-  }
-  #notifyParent() {
-    this.#parentWrapper?.dispatchEvent(new CustomEvent('character-limit-visibility-changed', {
-      bubbles: true,
-      detail: {
-        characterLimitId: this.id,
-        isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
-      }
-    }));
-  }
-  #updateId(value) {
-    if (value) {
-      this.#spanSrMaxLimit.id = value;
-    } else {
-      this.#spanSrMaxLimit.id = generateAndVerifyUniqueId('lim');
-    }
-  }
-
-  /* Attributes which can invoke attributeChangedCallback() */
-
-  static observedAttributes = ['limit', 'one-character-remaining-text', 'several-characters-remaining-text', 'one-character-too-many-text', 'several-characters-too-many-text', 'max-limit-text', 'hidden', 'limit-id'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
-
-  constructor() {
-    super();
-    this.#rendered = false;
-    this.#limit = 0;
-    this.#charactersUsed = 0;
-    this.#messages = {
-      'one_character_remaining': "Du har {value} tegn tilbage",
-      'several_characters_remaining': "Du har {value} tegn tilbage",
-      'one_character_too_many': "Du har {value} tegn for meget",
-      'several_characters_too_many': "Du har {value} tegn for meget",
-      'max_limit': "Du kan indtaste op til {value} tegn"
-    };
-    this.#spanSrMaxLimit = null;
-    this.#spanSrUpdate = null;
-    this.#spanVisualUpdate = null;
-    this.#parentWrapper = null;
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
-
-  charactersLeft() {
-    return this.#limit - this.#charactersUsed;
-  }
-  setCharactersUsed(value) {
-    const parsed = parseInt(value, 10);
-    if (!Number.isNaN(parsed)) {
-      this.#charactersUsed = parsed;
-    }
-  }
-  hasMatchingMessages() {
-    return this.#spanSrUpdate.textContent === this.#spanVisualUpdate.textContent;
-  }
-  updateVisibleMessage() {
-    if (!this.#spanVisualUpdate) return;
-    const charsLeft = this.charactersLeft();
-    this.#spanVisualUpdate.textContent = this.#getMessage(charsLeft);
-    if (charsLeft < 0) {
-      this.#spanVisualUpdate.classList.add('limit-exceeded');
-    } else {
-      this.#spanVisualUpdate.classList.remove('limit-exceeded');
-    }
-  }
-  updateScreenReaderMessage() {
-    if (!this.#spanSrUpdate) return;
-    this.#spanSrUpdate.textContent = this.#getMessage(this.charactersLeft());
-  }
-  updateMessages() {
-    this.updateVisibleMessage();
-    this.updateScreenReaderMessage();
-  }
-  silenceSrMessage() {
-    this.#spanSrUpdate.textContent = '';
-    this.#spanVisualUpdate.removeAttribute('aria-hidden');
-  }
-  silenceVisibleMessage() {
-    this.#spanVisualUpdate.setAttribute('aria-hidden', 'true');
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
-
-  connectedCallback() {
-    if (this.#rendered) return;
-    this.#render();
-    if (this.hasAttribute('one-character-remaining-text')) {
-      this.#messages.one_character_remaining = this.getAttribute('one-character-remaining-text');
-    }
-    if (this.hasAttribute('several-characters-remaining-text')) {
-      this.#messages.several_characters_remaining = this.getAttribute('several-characters-remaining-text');
-    }
-    if (this.hasAttribute('one-character-too-many-text')) {
-      this.#messages.one_character_too_many = this.getAttribute('one-character-too-many-text');
-    }
-    if (this.hasAttribute('several-characters-too-many-text')) {
-      this.#messages.several_characters_too_many = this.getAttribute('several-characters-too-many-text');
-    }
-    if (this.hasAttribute('max-limit-text')) {
-      this.#messages.max_limit = this.getAttribute('max-limit-text');
-    }
-    this.updateVisibleMessage();
-
-    // Handle initial hidden state
-    if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
-      this.#setAriaHidden();
-    }
-
-    // During disconnect, the custom element may lose connection to the input-wrapper.
-    // Save the input-wrapper and use it to dispatch events - otherwise, the events may be lost.
-    this.#parentWrapper = this.closest('fds-input-wrapper');
-    this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
-    this.#parentWrapper?.dispatchEvent(new Event('character-limit-connection'));
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
-
-  disconnectedCallback() {
-    this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
-    this.#parentWrapper = null;
-    this.#rendered = false;
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
-
-  attributeChangedCallback(name, oldValue, newValue) {
-    if (!this.#rendered) return;
-    if (name === 'limit') {
-      this.#updateLimit(newValue);
-    }
-    if (name === 'one-character-remaining-text') {
-      console.log('one-character-remaining-text', newValue);
-      this.#messages.one_character_remaining = newValue;
-      this.updateMessages();
-    }
-    if (name === 'several-characters-remaining-text') {
-      this.#messages.several_characters_remaining = newValue;
-      this.updateMessages();
-    }
-    if (name === 'one-character-too-many-text') {
-      this.#messages.one_character_too_many = newValue;
-      this.updateMessages();
-    }
-    if (name === 'several-characters-too-many-text') {
-      this.#messages.several_characters_too_many = newValue;
-      this.updateMessages();
-    }
-    if (name === 'max-limit-text') {
-      this.#messages.max_limit = newValue;
-      this.updateMessages();
-    }
-    if (name === 'hidden' && oldValue !== newValue) {
-      if (this.#shouldBeHidden(newValue)) {
-        this.#setAriaHidden();
-      } else {
-        this.#removeAriaHidden();
-      }
-      this.#notifyParent();
-    }
-    if (name === 'limit-id') {
-      this.#updateId(newValue);
-    }
-    this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
-  }
-}
-function registerCharacterLimit() {
-  if (customElements.get('fds-character-limit') === undefined) {
-    window.customElements.define('fds-character-limit', FDSCharacterLimit);
-  }
-}
-/* harmony default export */ const fds_character_limit = (registerCharacterLimit);
-;// ./src/js/custom-elements/error-message/fds-error-message.js
-
-
-
-class FDSErrorMessage extends HTMLElement {
-  /* Private instance fields */
-
-  #rendered;
-  #iconText;
-  #parentWrapper;
-  #render() {
-    if (this.#rendered) return;
-    const hasElements = this.children.length > 0;
-    if (!hasElements) {
-      const iconText = this.getAttribute('icon-text');
-      if (iconText !== null && iconText !== '') {
-        this.#iconText = iconText;
-      }
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.classList.add('icon-svg', 'alert-icon');
-      svg.setAttribute('aria-label', this.#iconText);
-      svg.setAttribute('focusable', 'false');
-      const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-      use.setAttribute('href', '#error');
-      svg.appendChild(use);
-      const visibleMessage = document.createElement('span');
-      visibleMessage.classList.add('visible-message');
-      visibleMessage.textContent = this.getAttribute('message') || this.textContent;
-      this.textContent = '';
-      this.appendChild(svg);
-      this.appendChild(visibleMessage);
-    }
-    this.#rendered = true;
-  }
-  #shouldBeHidden(hiddenValue) {
-    return hiddenValue === 'true' || hiddenValue === '';
-  }
-  #notifyParent() {
-    this.#parentWrapper?.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
-      bubbles: true,
-      detail: {
-        errorId: this.id,
-        targets: this.getTargets(),
-        isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
-      }
-    }));
-  }
-  #dispatchErrorMessageCallback() {
-    if (!this.#parentWrapper) return;
-    this.#parentWrapper.dispatchEvent(new CustomEvent('error-message-callback', {
-      bubbles: true,
-      detail: {
-        errorId: this.id,
-        isHidden: this.#shouldBeHidden(this.getAttribute('hidden')),
-        targets: this.getTargets()
-      }
-    }));
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
-
-  getTargets() {
-    const targets = this.getAttribute('targets');
-    if (!targets) return [];
-    return targets.split(',').map(target => target.trim()).filter(target => target);
-  }
-
-  /* Attributes which can invoke attributeChangedCallback() */
-
-  static observedAttributes = ['id', 'icon-text', 'hidden', 'targets', 'message'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
-
-  constructor() {
-    super();
-    this.#rendered = false;
-    this.#iconText = 'Fejl';
-    this.#parentWrapper = null;
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
-
-  connectedCallback() {
-    if (this.#rendered) return;
-    this.#render();
-    if (!this.id) {
-      this.id = generateAndVerifyUniqueId('error');
-    }
-
-    // Save reference to parent wrapper
-    this.#parentWrapper = this.closest('fds-input-wrapper, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input, fds-textarea, fds-select, fds-upload-file, fds-date-picker');
-    this.#dispatchErrorMessageCallback();
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
-
-  disconnectedCallback() {
-    this.#parentWrapper?.dispatchEvent(new CustomEvent('error-message-callback', {
-      bubbles: true,
-      detail: {
-        errorId: this.id,
-        targets: this.getTargets()
-      }
-    }));
-    this.#parentWrapper = null;
-    this.#rendered = false;
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
-
-  attributeChangedCallback(name, oldValue, newValue) {
-    if (!this.#rendered) return;
-    if (name === 'icon-text' && oldValue !== newValue) {
-      this.#iconText = newValue;
-      this.querySelector(':scope > .alert-icon').setAttribute('aria-label', this.#iconText);
-    }
-    if (name === 'hidden' && oldValue !== newValue) {
-      this.#notifyParent();
-    }
-    if (name === 'message' && oldValue !== newValue) {
-      this.querySelector(':scope > .visible-message').textContent = newValue;
-    }
-    this.#dispatchErrorMessageCallback();
-  }
-}
-function registerErrorMessage() {
-  if (customElements.get('fds-error-message') === undefined) {
-    window.customElements.define('fds-error-message', FDSErrorMessage);
-  }
-}
-/* harmony default export */ const fds_error_message = (registerErrorMessage);
 ;// ./src/js/custom-elements/custom-element-utils.js
 
 
@@ -7319,10 +6361,7 @@ function notifySummaryOnVisibilityChange(element) {
  * @returns {boolean} True if the element is visible to screen readers, false otherwise.
  */
 function isVisibleToScreenReader(element) {
-  const notDNone = !element.classList.contains('d-none');
-  const notHidden = !element.hasAttribute('hidden') || element.getAttribute('hidden') === 'false';
-  const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
-  return notDNone && notHidden && notAriaHidden;
+  return !element.closest('.d-none, [hidden]:not([hidden="false"]), [aria-hidden="true"]');
 }
 
 /**
@@ -7338,15 +6377,17 @@ function setDisabledClass(label, element) {
 
 /**
  * Sets the `aria-describedby` attribute on a form element based on
- * the IDs of visible error messages and help texts.
+ * the IDs of visible error messages, help texts, and an optional character limit element.
  *
  * @param {HTMLElement} element - The form element to update.
  * @param {NodeList} errorMessages - Error message elements to consider.
  * @param {NodeList} helpTexts - Help text elements to consider.
+ * @param {HTMLElement|null} [characterLimit=null] - Optional character limit element to consider.
  */
 function setAriaDescribedBy(element, errorMessages, helpTexts) {
+  let characterLimit = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
   if (!element) return;
-  const ids = [...errorMessages, ...helpTexts].filter(el => el.id && isVisibleToScreenReader(el)).map(el => el.id);
+  const ids = [...errorMessages, ...helpTexts, characterLimit].filter(el => el && el.id && isVisibleToScreenReader(el)).map(el => el.id);
   ids.length > 0 ? element.setAttribute('aria-describedby', ids.join(' ')) : element.removeAttribute('aria-describedby');
 }
 
@@ -7362,6 +6403,664 @@ function setInvalid(element, errorMessages) {
   const invalid = Array.from(errorMessages).some(el => isVisibleToScreenReader(el));
   invalid ? element.setAttribute('aria-invalid', 'true') : element.removeAttribute('aria-invalid');
 }
+;// ./src/js/custom-elements/input/fds-input.js
+
+
+class FDSInput extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+  #inputObserver = null;
+
+  /* Private methods */
+
+  #setupObserver() {
+    if (this.#inputObserver) return;
+    this.#inputObserver = new MutationObserver(this.#handleMutations);
+    this.#inputObserver.observe(this, mutationObserverConfig);
+  }
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      // A relevant child element was added or removed.
+      const relevantTagNames = ['LABEL', 'INPUT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT', 'FDS-CHARACTER-LIMIT'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        const label = this.querySelector('label');
+        const input = this.querySelector('input');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+        associateLabelWithElement(label, input, 'inp');
+        setAriaDescribedBy(input, errorMessages, helpTexts, characterLimit);
+        setInvalid(input, errorMessages);
+        if (this.hasAttribute('show-required-status')) {
+          showRequiredStatus(label, input, this.getAttribute('show-required-status'));
+        }
+        break;
+      }
+
+      // The input's required attribute changed
+      if (attributeName === 'required' && target?.tagName === 'INPUT') {
+        if (this.hasAttribute('show-required-status')) {
+          const label = this.querySelector('label');
+          showRequiredStatus(label, target, this.getAttribute('show-required-status'));
+        }
+      }
+      // Attributes which might affect aria-describedby
+      else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class') {
+        const input = this.querySelector('input');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+        setAriaDescribedBy(input, errorMessages, helpTexts, characterLimit);
+        setInvalid(input, errorMessages);
+        if (attributeName === 'hidden' && target === this) {
+          notifySummaryOnVisibilityChange(this);
+        }
+      }
+    }
+  };
+  #init() {
+    this.#setupObserver();
+    const label = this.querySelector('label');
+    const input = this.querySelector('input');
+    const errorMessages = this.querySelectorAll('fds-error-message');
+    const helpTexts = this.querySelectorAll('fds-help-text');
+    const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+    associateLabelWithElement(label, input, 'inp');
+    setAriaDescribedBy(input, errorMessages, helpTexts, characterLimit);
+    setInvalid(input, errorMessages);
+    if (this.hasAttribute('show-required-status')) {
+      showRequiredStatus(label, input, this.getAttribute('show-required-status'));
+    }
+    this.#initialized = true;
+  }
+
+  /* Maxwidth */
+
+  #shouldHaveMaxwidth(value) {
+    return value !== null && value !== '';
+  }
+  #setMaxwidth(value) {
+    const input = this.querySelector('input');
+    if (!input) return;
+    const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
+    input.classList.remove(maxwidthClass);
+    if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
+      input.classList.add(`input-width-${value}`);
+    } else if (/^\d+$/.test(value)) {
+      input.classList.add(`input-char-${value}`);
+    }
+  }
+  #removeMaxwidth() {
+    const input = this.querySelector('input');
+    if (!input) return;
+    const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
+    input.classList.remove(maxwidthClass);
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['show-required-status', 'input-maxwidth'];
+
+  /* --------------------------------------------------
+  GETTERS AND SETTERS
+  -------------------------------------------------- */
+
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (!this.#initialized) {
+      this.#init();
+    }
+    if (this.#shouldHaveMaxwidth(this.getAttribute('input-maxwidth'))) this.#setMaxwidth(this.getAttribute('input-maxwidth'));
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    notifySummaryOnDisconnect(this);
+    this.#initialized = false;
+    if (this.#inputObserver) {
+      this.#inputObserver.disconnect();
+      this.#inputObserver = null;
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (attribute === 'show-required-status' && oldValue !== newValue) {
+      const label = this.querySelector('label');
+      const input = this.querySelector('input');
+      showRequiredStatus(label, input, newValue);
+    }
+    if (attribute === 'input-maxwidth' && oldValue !== newValue) {
+      this.#shouldHaveMaxwidth(newValue) ? this.#setMaxwidth(newValue) : this.#removeMaxwidth();
+    }
+  }
+}
+function registerInput() {
+  if (customElements.get('fds-input') === undefined) {
+    window.customElements.define('fds-input', FDSInput);
+  }
+}
+/* harmony default export */ const fds_input = (registerInput);
+;// ./src/js/custom-elements/help-text/fds-help-text.js
+
+
+
+class FDSHelpText extends HTMLElement {
+  /* Private instance fields */
+
+  #rendered;
+  #parentWrapper;
+
+  /* Private methods */
+
+  #render() {
+    if (this.#rendered) return;
+    this.classList.add('help-text');
+    this.#rendered = true;
+  }
+  #shouldBeHidden(hiddenValue) {
+    return hiddenValue === 'true' || hiddenValue === '';
+  }
+  #setAriaHidden() {
+    this.setAttribute('aria-hidden', 'true');
+  }
+  #removeAriaHidden() {
+    this.removeAttribute('aria-hidden');
+  }
+  #notifyParent() {
+    this.#parentWrapper?.dispatchEvent(new CustomEvent('help-text-visibility-changed', {
+      bubbles: true,
+      detail: {
+        helptextId: this.id,
+        isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
+      }
+    }));
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['id', 'hidden'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+    this.#rendered = false;
+    this.#parentWrapper = null;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.#rendered) return;
+    this.#render();
+    if (!this.id) {
+      this.id = generateAndVerifyUniqueId('help');
+    }
+
+    // Handle initial hidden state
+    if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
+      this.#setAriaHidden();
+    }
+
+    // During disconnect, the custom element may lose connection to the wrapper.
+    // Save the wrapper and use it to dispatch events - otherwise, the events may be lost.
+    this.#parentWrapper = this.closest('fds-input, fds-checkbox, fds-checkbox-group, fds-radio-button, fds-radio-button-group, fds-date-input, fds-upload-file');
+    this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
+    this.#parentWrapper = null;
+    this.#rendered = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (!this.#rendered) return;
+    if (name === 'hidden' && oldValue !== newValue) {
+      if (this.#shouldBeHidden(newValue)) {
+        this.#setAriaHidden();
+      } else {
+        this.#removeAriaHidden();
+      }
+      this.#notifyParent();
+    }
+    this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
+  }
+}
+function registerHelpText() {
+  if (customElements.get('fds-help-text') === undefined) {
+    window.customElements.define('fds-help-text', FDSHelpText);
+  }
+}
+/* harmony default export */ const fds_help_text = (registerHelpText);
+;// ./src/js/custom-elements/character-limit/fds-character-limit.js
+
+
+
+class FDSCharacterLimit extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+  #messages = {
+    'one_character_remaining': "Du har {value} tegn tilbage",
+    'several_characters_remaining': "Du har {value} tegn tilbage",
+    'one_character_too_many': "Du har {value} tegn for meget",
+    'several_characters_too_many': "Du har {value} tegn for meget",
+    'max_limit': "Du kan indtaste op til {value} tegn"
+  };
+  #spanSrMaxLimit = (() => document.createElement('span'))();
+  #spanSrUpdate = (() => document.createElement('span'))();
+  #spanVisualUpdate = (() => document.createElement('span'))();
+  #parentWrapper = null;
+  #field = null;
+  #intervalID = null;
+  #lastKeyUpTimestamp = null;
+  #oldValue = null;
+  #forceSRUpdate = false;
+  #handleKeyUp = event => {
+    // Update the visible message immediately
+    this.#updateVisibleMessage(this.#charactersLeft());
+
+    // Safe the timestamp so the SR message won't update until the user has stopped typing
+    this.#lastKeyUpTimestamp = Date.now();
+
+    // The user typed something so the SR message must be updated
+    this.#forceSRUpdate = true;
+  };
+  #handleFocus = event => {
+    // Clear any previous timers
+    if (this.#intervalID !== null) {
+      window.clearInterval(this.#intervalID);
+      this.#intervalID = null;
+    }
+    if (!this.#field) return;
+    this.#spanVisualUpdate.setAttribute('aria-hidden', 'true');
+    this.#spanSrUpdate.setAttribute('aria-hidden', 'false');
+
+    // Set a timer to prevent SR users from being spammed with audio notifications while typing
+    this.#intervalID = window.setInterval(() => {
+      if (!this.#lastKeyUpTimestamp || Date.now() - 500 >= this.#lastKeyUpTimestamp) {
+        const inputValueChanged = this.#oldValue !== this.#field.value;
+        const messageInconsistency = this.#spanSrUpdate.textContent !== this.#spanVisualUpdate.textContent;
+        if (inputValueChanged || messageInconsistency || this.#forceSRUpdate) {
+          this.#forceSRUpdate = false;
+          this.#oldValue = this.#field.value;
+          this.#updateMessages(this.#charactersLeft());
+        }
+      }
+    }, 1000);
+  };
+  #handleBlur = event => {
+    // Stop the input timer
+    if (this.#intervalID !== null) {
+      window.clearInterval(this.#intervalID);
+      this.#intervalID = null;
+    }
+    if (!this.#field) return;
+    this.#updateVisibleMessage(this.#charactersLeft());
+    this.#spanSrUpdate.textContent = '';
+    this.#spanSrUpdate.setAttribute('aria-hidden', 'true');
+    this.#spanVisualUpdate.setAttribute('aria-hidden', 'false');
+  };
+  #handlePageshow = event => {
+    this.#updateVisibleMessage(this.#charactersLeft());
+  };
+
+  /* Private methods */
+
+  #charactersLeft() {
+    if (!this.#field) return;
+    const parsedLimit = parseInt(this.getAttribute('limit'), 10);
+    if (!Number.isNaN(parsedLimit)) {
+      return parsedLimit - this.#field.value.length;
+    } else {
+      return null;
+    }
+  }
+  #getMessage(charactersLeft) {
+    let msg = '';
+    if (charactersLeft === -1) {
+      const exceeded = Math.abs(charactersLeft);
+      msg = this.#messages.one_character_too_many.replace(/{value}/, exceeded);
+    } else if (charactersLeft === 1) {
+      msg = this.#messages.one_character_remaining.replace(/{value}/, charactersLeft);
+    } else if (charactersLeft >= 0) {
+      msg = this.#messages.several_characters_remaining.replace(/{value}/, charactersLeft);
+    } else {
+      const exceeded = Math.abs(charactersLeft);
+      msg = this.#messages.several_characters_too_many.replace(/{value}/, exceeded);
+    }
+    return msg;
+  }
+  #updateVisibleMessage(charactersLeft) {
+    this.#spanVisualUpdate.textContent = this.#getMessage(charactersLeft);
+    if (charactersLeft < 0) {
+      this.#spanVisualUpdate.classList.add('limit-exceeded');
+    } else {
+      this.#spanVisualUpdate.classList.remove('limit-exceeded');
+    }
+  }
+  #updateSRMessage(charactersLeft) {
+    this.#spanSrUpdate.textContent = this.#getMessage(charactersLeft);
+  }
+  #updateMessages(charactersLeft) {
+    this.#updateVisibleMessage(charactersLeft);
+    this.#updateSRMessage(charactersLeft);
+  }
+  #updateId(value) {
+    if (value) {
+      this.#spanSrMaxLimit.id = value;
+    } else {
+      this.#spanSrMaxLimit.id = generateAndVerifyUniqueId('lim');
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['limit', 'one-character-remaining-text', 'several-characters-remaining-text', 'one-character-too-many-text', 'several-characters-too-many-text', 'max-limit-text', 'limit-id'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (!this.hasAttribute('limit')) return;
+    if (this.children.length === 3) {
+      const [spanSrMaxLimit, spanSrUpdate, spanVisualUpdate] = this.children;
+      this.#spanSrMaxLimit = spanSrMaxLimit;
+      this.#spanSrUpdate = spanSrUpdate;
+      this.#spanVisualUpdate = spanVisualUpdate;
+    } else {
+      this.appendChild(this.#spanSrMaxLimit);
+      this.appendChild(this.#spanSrUpdate);
+      this.appendChild(this.#spanVisualUpdate);
+    }
+    this.#parentWrapper = this.closest('fds-input, fds-textarea');
+    this.#field = this.#parentWrapper?.querySelector('input, textarea');
+    if (!this.#field) return;
+    const charactersLeft = this.#charactersLeft();
+
+    // Update the default text used in the component
+    if (this.hasAttribute('one-character-remaining-text')) {
+      this.#messages.one_character_remaining = this.getAttribute('one-character-remaining-text');
+    }
+    if (this.hasAttribute('several-characters-remaining-text')) {
+      this.#messages.several_characters_remaining = this.getAttribute('several-characters-remaining-text');
+    }
+    if (this.hasAttribute('one-character-too-many-text')) {
+      this.#messages.one_character_too_many = this.getAttribute('one-character-too-many-text');
+    }
+    if (this.hasAttribute('several-characters-too-many-text')) {
+      this.#messages.several_characters_too_many = this.getAttribute('several-characters-too-many-text');
+    }
+    if (this.hasAttribute('max-limit-text')) {
+      this.#messages.max_limit = this.getAttribute('max-limit-text');
+    }
+
+    // <span> announcing the max limit to SR users
+    this.#spanSrMaxLimit.classList.add('sr-only');
+    this.#spanSrMaxLimit.textContent = this.#messages.max_limit.replace(/{value}/, this.getAttribute('limit'));
+    if (!this.hasAttribute('limit-id') && this.getAttribute('limit-id') !== '') {
+      this.#spanSrMaxLimit.id = generateAndVerifyUniqueId('lim');
+    } else {
+      this.#spanSrMaxLimit.id = this.getAttribute('limit-id');
+    }
+
+    // <span> visually showing the characters left
+    this.#spanVisualUpdate.classList.add('visual-message');
+    this.#spanVisualUpdate.setAttribute('aria-hidden', 'false');
+    this.#spanVisualUpdate.textContent = this.#getMessage(charactersLeft);
+
+    // <span> announcing characters left to SR users (updates are slightly delayed compared to the visual message)
+    this.#spanSrUpdate.classList.add('sr-only');
+    this.#spanSrUpdate.textContent = '';
+    this.#spanSrUpdate.setAttribute('aria-hidden', true);
+    this.#spanSrUpdate.setAttribute('aria-live', 'polite');
+
+    // Add event listeners
+    this.#field.addEventListener('keyup', this.#handleKeyUp);
+    this.#field.addEventListener('focus', this.#handleFocus);
+    this.#field.addEventListener('blur', this.#handleBlur);
+    if ('onpageshow' in window) {
+      window.addEventListener('pageshow', this.#handlePageshow);
+    } else {
+      document.addEventListener('DOMContentLoaded', this.#handlePageshow);
+    }
+    this.#initialized = true;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#field?.removeEventListener('keyup', this.#handleKeyUp);
+    this.#field?.removeEventListener('focus', this.#handleFocus);
+    this.#field?.removeEventListener('blur', this.#handleBlur);
+    window.removeEventListener('pageshow', this.#handlePageshow);
+    document.removeEventListener('DOMContentLoaded', this.#handlePageshow);
+    this.#initialized = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (attribute === 'limit') {
+      this.#updateMessages(this.#charactersLeft());
+    }
+    if (attribute === 'one-character-remaining-text') {
+      this.#messages.one_character_remaining = newValue;
+      this.#updateMessages(this.#charactersLeft());
+    }
+    if (attribute === 'several-characters-remaining-text') {
+      this.#messages.several_characters_remaining = newValue;
+      this.#updateMessages(this.#charactersLeft());
+    }
+    if (attribute === 'one-character-too-many-text') {
+      this.#messages.one_character_too_many = newValue;
+      this.#updateMessages(this.#charactersLeft());
+    }
+    if (attribute === 'several-characters-too-many-text') {
+      this.#messages.several_characters_too_many = newValue;
+      this.#updateMessages(this.#charactersLeft());
+    }
+    if (attribute === 'max-limit-text') {
+      this.#messages.max_limit = newValue;
+      this.#updateMessages(this.#charactersLeft());
+    }
+    if (attribute === 'limit-id') {
+      this.#updateId(newValue);
+    }
+    this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
+  }
+}
+function registerCharacterLimit() {
+  if (customElements.get('fds-character-limit') === undefined) {
+    window.customElements.define('fds-character-limit', FDSCharacterLimit);
+  }
+}
+/* harmony default export */ const fds_character_limit = (registerCharacterLimit);
+;// ./src/js/custom-elements/error-message/fds-error-message.js
+
+
+
+class FDSErrorMessage extends HTMLElement {
+  /* Private instance fields */
+
+  #rendered;
+  #iconText;
+  #parentWrapper;
+  #render() {
+    if (this.#rendered) return;
+    const hasElements = this.children.length > 0;
+    if (!hasElements) {
+      const iconText = this.getAttribute('icon-text');
+      if (iconText !== null && iconText !== '') {
+        this.#iconText = iconText;
+      }
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.classList.add('icon-svg', 'alert-icon');
+      svg.setAttribute('aria-label', this.#iconText);
+      svg.setAttribute('focusable', 'false');
+      const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+      use.setAttribute('href', '#error');
+      svg.appendChild(use);
+      const visibleMessage = document.createElement('span');
+      visibleMessage.classList.add('visible-message');
+      visibleMessage.textContent = this.getAttribute('message') || this.textContent;
+      this.textContent = '';
+      this.appendChild(svg);
+      this.appendChild(visibleMessage);
+    }
+    this.#rendered = true;
+  }
+  #shouldBeHidden(hiddenValue) {
+    return hiddenValue === 'true' || hiddenValue === '';
+  }
+  #notifyParent() {
+    this.#parentWrapper?.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+      bubbles: true,
+      detail: {
+        errorId: this.id,
+        targets: this.getTargets(),
+        isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
+      }
+    }));
+  }
+  #dispatchErrorMessageCallback() {
+    if (!this.#parentWrapper) return;
+    this.#parentWrapper.dispatchEvent(new CustomEvent('error-message-callback', {
+      bubbles: true,
+      detail: {
+        errorId: this.id,
+        isHidden: this.#shouldBeHidden(this.getAttribute('hidden')),
+        targets: this.getTargets()
+      }
+    }));
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  getTargets() {
+    const targets = this.getAttribute('targets');
+    if (!targets) return [];
+    return targets.split(',').map(target => target.trim()).filter(target => target);
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['id', 'icon-text', 'hidden', 'targets', 'message'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+    this.#rendered = false;
+    this.#iconText = 'Fejl';
+    this.#parentWrapper = null;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.#rendered) return;
+    this.#render();
+    if (!this.id) {
+      this.id = generateAndVerifyUniqueId('error');
+    }
+
+    // Save reference to parent wrapper
+    this.#parentWrapper = this.closest('fds-input, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input, fds-textarea, fds-select, fds-upload-file, fds-date-picker');
+    this.#dispatchErrorMessageCallback();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#parentWrapper?.dispatchEvent(new CustomEvent('error-message-callback', {
+      bubbles: true,
+      detail: {
+        errorId: this.id,
+        targets: this.getTargets()
+      }
+    }));
+    this.#parentWrapper = null;
+    this.#rendered = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (!this.#rendered) return;
+    if (name === 'icon-text' && oldValue !== newValue) {
+      this.#iconText = newValue;
+      this.querySelector(':scope > .alert-icon').setAttribute('aria-label', this.#iconText);
+    }
+    if (name === 'hidden' && oldValue !== newValue) {
+      this.#notifyParent();
+    }
+    if (name === 'message' && oldValue !== newValue) {
+      this.querySelector(':scope > .visible-message').textContent = newValue;
+    }
+    this.#dispatchErrorMessageCallback();
+  }
+}
+function registerErrorMessage() {
+  if (customElements.get('fds-error-message') === undefined) {
+    window.customElements.define('fds-error-message', FDSErrorMessage);
+  }
+}
+/* harmony default export */ const fds_error_message = (registerErrorMessage);
 ;// ./src/js/custom-elements/checkbox/fds-checkbox.js
 
 
@@ -8383,7 +8082,6 @@ class FDSSelect extends HTMLElement {
         const errorMessages = this.querySelectorAll('fds-error-message');
         const helpTexts = this.querySelectorAll('fds-help-text');
         associateLabelWithElement(label, select, 'sel');
-        setDisabledClass(label, select);
         setAriaDescribedBy(select, errorMessages, helpTexts);
         setInvalid(select, errorMessages);
         if (this.hasAttribute('show-required-status')) {
@@ -8392,22 +8090,15 @@ class FDSSelect extends HTMLElement {
         break;
       }
 
-      // The select's disabled attribute changed
-      if (attributeName === 'disabled' && target?.tagName === 'SELECT') {
-        const label = this.querySelector('label');
-        setDisabledClass(label, target);
-      }
-
       // The select's required attribute changed
-      else if (attributeName === 'required' && target?.tagName === 'SELECT') {
+      if (attributeName === 'required' && target?.tagName === 'SELECT') {
         if (this.hasAttribute('show-required-status')) {
           const label = this.querySelector('label');
           showRequiredStatus(label, target, this.getAttribute('show-required-status'));
         }
       }
-
-      // Class changes on the label are excluded to prevent an infinite loop, as setDisabledClass adds/removes the 'disabled' class on the label.
-      else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class' && target?.tagName !== 'LABEL') {
+      // Attributes which might affect aria-describedby
+      else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class') {
         const select = this.querySelector('select');
         const errorMessages = this.querySelectorAll('fds-error-message');
         const helpTexts = this.querySelectorAll('fds-help-text');
@@ -8419,6 +8110,20 @@ class FDSSelect extends HTMLElement {
       }
     }
   };
+  #init() {
+    this.#setupObserver();
+    const label = this.querySelector('label');
+    const select = this.querySelector('select');
+    const errorMessages = this.querySelectorAll('fds-error-message');
+    const helpTexts = this.querySelectorAll('fds-help-text');
+    associateLabelWithElement(label, select, 'sel');
+    setAriaDescribedBy(select, errorMessages, helpTexts);
+    setInvalid(select, errorMessages);
+    if (this.hasAttribute('show-required-status')) {
+      showRequiredStatus(label, select, this.getAttribute('show-required-status'));
+    }
+    this.#initialized = true;
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
@@ -8436,32 +8141,12 @@ class FDSSelect extends HTMLElement {
   }
 
   /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
-
-  init() {
-    this.#setupObserver();
-    const label = this.querySelector('label');
-    const select = this.querySelector('select');
-    const errorMessages = this.querySelectorAll('fds-error-message');
-    const helpTexts = this.querySelectorAll('fds-help-text');
-    associateLabelWithElement(label, select, 'sel');
-    setDisabledClass(label, select);
-    setAriaDescribedBy(select, errorMessages, helpTexts);
-    setInvalid(select, errorMessages);
-    if (this.hasAttribute('show-required-status')) {
-      showRequiredStatus(label, select, this.getAttribute('show-required-status'));
-    }
-    this.#initialized = true;
-  }
-
-  /* --------------------------------------------------
   CUSTOM ELEMENT ADDED TO DOCUMENT
   -------------------------------------------------- */
 
   connectedCallback() {
     if (!this.#initialized) {
-      this.init();
+      this.#init();
     }
   }
 
@@ -8519,12 +8204,6 @@ class FDSUploadFile extends HTMLElement {
 
   /* Private methods */
 
-  #getLabel() {
-    return this.getAttribute('upload-label') ?? 'Vedhæft filer';
-  }
-  #getUploadId() {
-    return this.getAttribute('upload-id') ?? null;
-  }
   #getDropzonePrefix() {
     return this.getAttribute('dropzone-prefix') ?? 'Træk dine filer herhen eller';
   }
@@ -8547,26 +8226,30 @@ class FDSUploadFile extends HTMLElement {
     }
     return headingLevel;
   }
-  #setUploadLabel() {
-    let label = this.querySelector('.fds-upload-label');
-    if (!label) {
-      label = document.createElement('label');
-      label.className = 'fds-upload-label';
-      this.prepend(label);
+  #setupInput(input) {
+    const label = this.querySelector('label');
+    if (!label || !input) return;
+    label.classList.add('fds-upload-label');
+    input.classList.add('fds-upload-input');
+    if (!input.id) {
+      input.id = generateAndVerifyUniqueId('file-input');
     }
-    label.textContent = this.#getLabel();
-    return label;
-  }
-  #setFileListHeader() {
-    const title = this.querySelector('.fds-upload-title');
-    if (title) {
-      title.textContent = this.#getFileListHeader();
+    label.setAttribute('for', input.id);
+    input.removeEventListener('change', this.#onInputChange);
+    input.addEventListener('change', this.#onInputChange);
+    this.#inputEl = input;
+    setDisabledClass(label, input);
+    if (this.hasAttribute('show-required-status')) {
+      this.#updateRequiredStatus();
     }
   }
-  #setFileListMore() {
-    const moreText = this.querySelector('.fds-upload-add-more');
-    if (moreText) {
-      moreText.textContent = this.#getFileListMore();
+  #hydrateExistingDropzone() {
+    this.#setupInput(this.querySelector('.fds-upload-dropzone input[type="file"]'));
+  }
+  #setText(selector, value) {
+    const element = this.querySelector(selector);
+    if (element) {
+      element.textContent = value;
     }
   }
   #setFileItemsRemoveText() {
@@ -8574,6 +8257,79 @@ class FDSUploadFile extends HTMLElement {
     const removeText = this.getAttribute('remove-text') || 'Fjern';
     fileItems.forEach(item => {
       item.setAttribute('remove-text', removeText);
+    });
+  }
+  #setDropzoneText(container) {
+    container.replaceChildren();
+    const prefix = this.#getDropzonePrefix();
+    if (prefix) {
+      container.append(prefix + ' ');
+    }
+    const linkText = document.createElement('span');
+    linkText.className = 'fds-upload-choose';
+    linkText.textContent = this.#getDropzoneLink();
+    container.appendChild(linkText);
+    const suffix = this.#getDropzoneSuffix();
+    if (suffix) {
+      container.append(' ' + suffix);
+    }
+  }
+  #syncAddMoreVisibility() {
+    const addMore = this.#fileListEl?.querySelector('.fds-upload-add-more');
+    if (addMore) {
+      addMore.hidden = !this.#inputEl?.multiple;
+    }
+  }
+  #showDropzone() {
+    if (!this.#dropzoneEl) {
+      const input = this.#inputEl || this.querySelector('input[type="file"]');
+      if (!input) return;
+      const originalParent = input.parentNode;
+      const originalNextSibling = input.nextSibling;
+      this.#dropzoneEl = this.#renderDropzone();
+      if (!this.#dropzoneEl) return;
+      if (originalParent === this) {
+        this.insertBefore(this.#dropzoneEl, originalNextSibling);
+      }
+    }
+    this.#fileListEl?.remove();
+    this.#fileListEl = null;
+    if (!this.contains(this.#dropzoneEl)) {
+      const errorMessage = this.querySelector('fds-error-message');
+      if (errorMessage) {
+        this.insertBefore(this.#dropzoneEl, errorMessage);
+      } else {
+        this.appendChild(this.#dropzoneEl);
+      }
+    }
+  }
+  #showFileList() {
+    const dropzoneNextSibling = this.#dropzoneEl?.nextSibling ?? null;
+    if (!this.#fileListEl) {
+      this.#fileListEl = this.#renderFileList();
+    } else {
+      this.#updateFileList();
+    }
+    this.#syncAddMoreVisibility();
+    this.#dropzoneEl?.remove();
+    this.#dropzoneEl = null;
+    if (!this.contains(this.#fileListEl)) {
+      const errorMessage = this.querySelector('fds-error-message');
+      if (dropzoneNextSibling && this.contains(dropzoneNextSibling)) {
+        this.insertBefore(this.#fileListEl, dropzoneNextSibling);
+      } else if (errorMessage) {
+        this.insertBefore(this.#fileListEl, errorMessage);
+      } else {
+        this.appendChild(this.#fileListEl);
+      }
+    }
+  }
+  #updateFileList() {
+    const filesContainer = this.#fileListEl.querySelector('.fds-upload-files');
+    if (!filesContainer) return;
+    filesContainer.replaceChildren();
+    this.#files.forEach(fileObj => {
+      filesContainer.appendChild(this.#renderFileItem(fileObj));
     });
   }
   #updateFileListHeadingLevel() {
@@ -8588,93 +8344,57 @@ class FDSUploadFile extends HTMLElement {
     newTitle.textContent = currentTitle.textContent;
     currentTitle.replaceWith(newTitle);
   }
-  #showDropzone() {
-    if (!this.#dropzoneEl) {
-      this.#dropzoneEl = this.#renderDropzone();
-    }
-    this.#fileListEl?.remove();
-    this.#fileListEl = null;
-    if (!this.contains(this.#dropzoneEl)) {
-      this.appendChild(this.#dropzoneEl);
-    }
-  }
-  #showFileList() {
-    if (!this.#fileListEl) {
-      this.#fileListEl = this.#renderFileList();
-    } else {
-      this.#updateFileList();
-    }
-    this.#dropzoneEl?.remove();
-    this.#dropzoneEl = null;
-    if (!this.contains(this.#fileListEl)) {
-      this.appendChild(this.#fileListEl);
-    }
-  }
-  #updateUploadId(newValue) {
-    if (this.#inputEl) {
-      this.#inputEl.id = newValue || generateAndVerifyUniqueId('file-input');
-      const mainLabel = this.querySelector('.fds-upload-label');
-      if (mainLabel) {
-        mainLabel.setAttribute('for', this.#inputEl.id);
-      }
-    }
-  }
-  #updateFileList() {
-    const filesContainer = this.#fileListEl.querySelector('.fds-upload-files');
-    if (!filesContainer) return;
-    filesContainer.replaceChildren();
-    this.#files.forEach(fileObj => {
-      filesContainer.appendChild(this.#renderFileItem(fileObj));
-    });
-  }
   #updateDropzoneContent() {
-    if (!this.#dropzoneEl) return;
-    const content = this.#dropzoneEl.querySelector('.fds-upload-dropzone-content p');
+    const content = this.#dropzoneEl?.querySelector('.fds-upload-dropzone-content p');
     if (!content) return;
-    const linkSpan = content.querySelector('.fds-upload-choose');
-    if (!linkSpan) return;
-    linkSpan.textContent = this.#getDropzoneLink();
-    content.innerHTML = '';
-    const prefix = this.#getDropzonePrefix();
-    if (prefix) content.append(prefix + ' ');
-    content.appendChild(linkSpan);
-    const suffix = this.#getDropzoneSuffix();
-    if (suffix) content.append(' ' + suffix);
+    this.#setDropzoneText(content);
   }
 
   /* Mutation observer */
 
   #setupObserver() {
+    if (this.#uploadObserver) return;
     this.#uploadObserver = new MutationObserver(this.#handleMutations);
-    const config = {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      attributeFilter: ['hidden', 'aria-hidden', 'id'],
-      attributeOldValue: false,
-      characterData: false,
-      characterDataOldValue: false
-    };
-    this.#uploadObserver.observe(this, config);
+    this.#uploadObserver.observe(this, mutationObserverConfig);
   }
-  #handleMutations = (records, observer) => {
-    const wrapperHiddenChanged = records.some(record => record.attributeName === 'hidden' && record.target === this);
-    if (wrapperHiddenChanged) {
-      notifySummaryOnVisibilityChange(this);
+  #handleMutations = records => {
+    let shouldUpdateAccessibility = false;
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      if (attributeName === 'hidden' && target === this) {
+        notifySummaryOnVisibilityChange(this);
+      }
+
+      // The input's disabled attribute changed
+      if (attributeName === 'disabled' && target?.tagName === 'INPUT') {
+        const label = this.querySelector('label');
+        setDisabledClass(label, target);
+      }
+
+      // The input's required attribute changed
+      else if (attributeName === 'required' && target?.tagName === 'INPUT') {
+        if (this.hasAttribute('show-required-status')) {
+          this.#updateRequiredStatus();
+        }
+      }
+      if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
+        shouldUpdateAccessibility = true;
+        continue;
+      }
+      const relevantTagNames = ['FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        shouldUpdateAccessibility = true;
+      }
     }
-    const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
-    if (shouldUpdate) {
+    if (shouldUpdateAccessibility) {
       this.#setupAccessibility();
     }
   };
-  #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
-    if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
-      return true;
-    }
-    const relevantTagNames = ['FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
-    const allNodes = [...addedNodes, ...removedNodes];
-    return allNodes.some(node => relevantTagNames.includes(node?.tagName));
-  }
   #setupAccessibility() {
     const input = this.#inputEl;
     if (!input) return;
@@ -8712,72 +8432,32 @@ class FDSUploadFile extends HTMLElement {
     }
   }
 
-  /* Disabled */
-
-  #shouldHaveDisabled(value) {
-    return value !== null && value !== 'false' && value !== false;
-  }
-  #setDisabled() {
-    this.classList.add('fds-upload-file-disabled');
-    const input = this.#inputEl;
-    if (input) {
-      input.disabled = true;
-    }
-  }
-  #removeDisabled() {
-    this.classList.remove('fds-upload-file-disabled');
-    const input = this.#inputEl;
-    if (input) {
-      input.disabled = false;
-    }
-  }
-  #moveErrorsToBottom() {
-    const errors = this.querySelectorAll('fds-error-message:not([targets])');
-    if (errors.length === 0) return;
-    this.append(...errors);
-  }
-
   /* -----------------------------
      Rendering
   ----------------------------- */
 
   #render() {
-    this.#setUploadLabel();
     if (this.#files.length === 0) {
       this.#showDropzone();
     } else {
       this.#showFileList();
     }
     this.#setupAccessibility();
-    this.#moveErrorsToBottom();
   }
   #renderDropzone() {
     const dropzone = document.createElement('div');
     dropzone.className = 'fds-upload-dropzone';
 
     // Input
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.multiple = true;
-    input.id = this.#getUploadId() || generateAndVerifyUniqueId('file-input');
-    input.className = 'fds-upload-input';
-    input.addEventListener('change', this.#onInputChange);
-    this.#inputEl = input;
-    const isDisabled = this.#shouldHaveDisabled(this.getAttribute('upload-disabled'));
-    if (isDisabled) {
-      input.disabled = true;
-    }
-    const mainLabel = this.querySelector('.fds-upload-label');
-    if (mainLabel) {
-      mainLabel.setAttribute('for', input.id);
-    }
+    const input = this.#inputEl || this.querySelector('input[type="file"]');
+    if (!input) return null;
+    this.#setupInput(input);
 
     // Dropzone content
     const content = document.createElement('div');
     content.className = 'fds-upload-dropzone-content';
     content.id = `dropzone-${input.id}`;
     ;
-    input.setAttribute('aria-describedby', content.id);
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.classList.add('icon-svg');
     svg.setAttribute('aria-hidden', 'true');
@@ -8787,18 +8467,7 @@ class FDSUploadFile extends HTMLElement {
     const p = document.createElement('p');
 
     // Text content: prefix + link + suffix
-    const prefix = this.#getDropzonePrefix();
-    if (prefix) {
-      p.append(prefix + ' ');
-    }
-    const linkText = document.createElement('span');
-    linkText.className = 'fds-upload-choose';
-    linkText.textContent = this.#getDropzoneLink();
-    p.appendChild(linkText);
-    const suffix = this.#getDropzoneSuffix();
-    if (suffix) {
-      p.append(' ' + suffix);
-    }
+    this.#setDropzoneText(p);
     content.append(svg, p);
     dropzone.append(input, content);
     return dropzone;
@@ -8816,6 +8485,7 @@ class FDSUploadFile extends HTMLElement {
     addMore.type = 'button';
     addMore.className = 'fds-upload-add-more';
     addMore.textContent = this.#getFileListMore();
+    addMore.hidden = !this.#inputEl?.multiple;
     header.append(title, addMore);
     const filesContainer = document.createElement('div');
     filesContainer.setAttribute('role', 'list');
@@ -8844,7 +8514,10 @@ class FDSUploadFile extends HTMLElement {
 
   #addFiles(fileList) {
     const isFirstFile = this.#files.length === 0;
-    const newFiles = Array.from(fileList).map(file => ({
+    const incomingFiles = Array.from(fileList);
+    const allowedFiles = this.#inputEl?.multiple ? incomingFiles : incomingFiles.slice(0, Math.max(0, 1 - this.#files.length));
+    if (allowedFiles.length === 0) return;
+    const newFiles = allowedFiles.map(file => ({
       id: generateAndVerifyUniqueId('file'),
       file
     }));
@@ -8892,16 +8565,10 @@ class FDSUploadFile extends HTMLElement {
       this.#render();
     }
   }
-  #hydrateExistingDropzone() {
-    const input = this.querySelector('.fds-upload-input');
-    if (!input) return;
-    this.#inputEl = input;
-    input.removeEventListener('change', this.#onInputChange);
-    input.addEventListener('change', this.#onInputChange);
-    const mainLabel = this.querySelector('.fds-upload-label');
-    if (mainLabel && input.id) {
-      mainLabel.setAttribute('for', input.id);
-    }
+  #updateRequiredStatus() {
+    const label = this.querySelector('label');
+    const input = this.#inputEl || this.querySelector('input[type="file"]');
+    showRequiredStatus(label, input, this.getAttribute('show-required-status'));
   }
 
   /* --------------------------------------------------
@@ -8934,7 +8601,18 @@ class FDSUploadFile extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['upload-label', 'upload-id', 'dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'upload-disabled', 'file-list-header', 'file-list-more', 'remove-text', 'heading-level'];
+  static observedAttributes = ['dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'file-list-header', 'file-list-more', 'remove-text', 'heading-level', 'show-required-status'];
+
+  /* --------------------------------------------------
+  GETTERS AND SETTERS
+  -------------------------------------------------- */
+
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
+  }
 
   /* --------------------------------------------------
   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
@@ -8944,7 +8622,7 @@ class FDSUploadFile extends HTMLElement {
     super();
     this.#onInputChange = e => this.#addFiles(e.target.files);
     this.#onClick = e => {
-      if (this.#shouldHaveDisabled(this.getAttribute('upload-disabled'))) return;
+      if (this.#inputEl?.disabled) return;
       const removeBtn = e.target.closest('.fds-upload-remove');
       if (removeBtn) {
         const fileKey = removeBtn.dataset.fileKey;
@@ -8955,13 +8633,25 @@ class FDSUploadFile extends HTMLElement {
       }
       const addMore = e.target.closest('.fds-upload-add-more');
       if (addMore) {
+        if (!this.#inputEl?.multiple) return;
         const input = document.createElement('input');
         input.type = 'file';
         input.multiple = true;
         input.style.display = 'none';
-        input.addEventListener('change', e => {
-          this.#addFiles(e.target.files);
+        const cleanup = () => {
           input.remove();
+          window.removeEventListener('focus', cleanup);
+        };
+        input.addEventListener('change', e => {
+          if (e.target.files?.length) {
+            this.#addFiles(e.target.files);
+          }
+          cleanup();
+        }, {
+          once: true
+        });
+        window.addEventListener('focus', cleanup, {
+          once: true
         });
         document.body.appendChild(input);
         input.click();
@@ -8979,21 +8669,17 @@ class FDSUploadFile extends HTMLElement {
     this.#setupObserver();
     const existingDropzone = this.querySelector('.fds-upload-dropzone');
     const existingFileList = this.querySelector('.fds-upload-file-list');
-
-    // Caching existing elements so show/hide logic works
-    if (existingDropzone || existingFileList) {
-      this.#dropzoneEl = existingDropzone;
-      this.#fileListEl = existingFileList;
-      if (existingDropzone) {
-        this.#hydrateExistingDropzone();
-      }
+    this.#dropzoneEl = existingDropzone;
+    this.#fileListEl = existingFileList;
+    if (existingDropzone) {
+      this.#hydrateExistingDropzone();
     } else {
+      this.#setupInput(this.querySelector('input[type="file"]'));
+    }
+    if (!existingDropzone && !existingFileList) {
       this.#render();
     }
     this.#setupAccessibility();
-    if (this.#shouldHaveDisabled(this.getAttribute('upload-disabled'))) {
-      this.#setDisabled();
-    }
     this.#initialized = true;
   }
 
@@ -9018,14 +8704,8 @@ class FDSUploadFile extends HTMLElement {
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (!this.#initialized) return;
-    if (name === 'upload-label' && oldValue !== newValue) {
-      this.#setUploadLabel();
-    }
-    if (name === 'upload-id' && oldValue !== newValue) {
-      this.#updateUploadId(newValue);
-    }
-    if (name === 'upload-disabled' && oldValue !== newValue) {
-      this.#shouldHaveDisabled(newValue) ? this.#setDisabled() : this.#removeDisabled();
+    if (name === 'show-required-status' && oldValue !== newValue) {
+      this.#updateRequiredStatus();
     }
     if (['dropzone-prefix', 'dropzone-link', 'dropzone-suffix'].includes(name) && oldValue !== newValue) {
       if (this.#files.length === 0) {
@@ -9033,10 +8713,10 @@ class FDSUploadFile extends HTMLElement {
       }
     }
     if (name === 'file-list-header' && oldValue !== newValue) {
-      this.#setFileListHeader();
+      this.#setText('.fds-upload-title', this.#getFileListHeader());
     }
     if (name === 'file-list-more' && oldValue !== newValue) {
-      this.#setFileListMore();
+      this.#setText('.fds-upload-add-more', this.#getFileListMore());
     }
     if (name === 'remove-text' && oldValue !== newValue) {
       this.#setFileItemsRemoveText();
@@ -9511,8 +9191,8 @@ function datesAreEqual(date1, date2) {
 class FDSDatePicker extends HTMLElement {
   /* Private instance fields */
 
-  #initialized;
-  #datePickerObserver;
+  #initialized = false;
+  #datePickerObserver = null;
   #handleDatePickerButtonClick;
   #handleFocusOut;
   #handleDateSelection;
@@ -9521,10 +9201,10 @@ class FDSDatePicker extends HTMLElement {
   #handleInput;
   #handlePageShow;
   #handleKeydown;
-  #MONTHS;
-  #FORMATS;
-  #textOpen;
-  #textSelectedDate;
+  #MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
+  #FORMATS = ['DD/MM/YYYY', 'DD-MM-YYYY', 'DD.MM.YYYY', 'DD MM YYYY', 'DD/MM-YYYY'];
+  #textOpen = 'Åbn datovælger';
+  #textSelectedDate = 'valgt dato er DAY. MONTH YEAR';
 
   /* Private methods */
 
@@ -9631,27 +9311,6 @@ class FDSDatePicker extends HTMLElement {
     datePicker.appendChild(closeButtonContainer);
     this.#initialized = true;
   }
-  #showRequiredStatus(value) {
-    const label = this.querySelector('label');
-    const input = this.querySelector('input');
-    if (!label || !input) return;
-    let statusIndicator = label.querySelector(':scope > span.weight-normal');
-    if (value === null && statusIndicator) {
-      statusIndicator.remove();
-      return;
-    }
-    if (!statusIndicator) {
-      const span = document.createElement('span');
-      span.className = 'weight-normal';
-      label.appendChild(span);
-      statusIndicator = span;
-    }
-    const isRequired = input.hasAttribute('required') || input.hasAttribute('aria-required') && input.getAttribute('aria-required') !== 'false';
-    let text = value;
-    if (value === '' && isRequired) text = 'skal udfyldes';
-    if (value === '' && !isRequired) text = 'frivilligt';
-    statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
-  }
   #setupObserver() {
     if (this.#datePickerObserver) return;
     this.#datePickerObserver = new MutationObserver(this.#handleMutations);
@@ -9666,7 +9325,11 @@ class FDSDatePicker extends HTMLElement {
     if (shouldUpdate) {
       this.#setupInput();
       this.#setupLabel();
-      if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+      if (this.hasAttribute('show-required-status')) {
+        const label = this.querySelector('label');
+        const input = this.querySelector('input');
+        showRequiredStatus(label, input, this.getAttribute('show-required-status'));
+      }
       if (this.querySelector('.date-button')) {
         this.querySelector('input')?.hasAttribute('disabled') ? this.querySelector('.date-button').setAttribute('disabled', '') : this.querySelector('.date-button').removeAttribute('disabled');
       }
@@ -9811,8 +9474,6 @@ class FDSDatePicker extends HTMLElement {
 
   constructor() {
     super();
-    this.#initialized = false;
-    this.#datePickerObserver = null;
 
     /* Set up instance fields for event handling */
 
@@ -9840,10 +9501,6 @@ class FDSDatePicker extends HTMLElement {
     this.#handleKeydown = event => {
       this.#keyboardNavigation(event);
     };
-    this.#MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
-    this.#FORMATS = ['DD/MM/YYYY', 'DD-MM-YYYY', 'DD.MM.YYYY', 'DD MM YYYY', 'DD/MM-YYYY'];
-    this.#textOpen = 'Åbn datovælger';
-    this.#textSelectedDate = 'valgt dato er DAY. MONTH YEAR';
   }
 
   /* --------------------------------------------------
@@ -9872,7 +9529,11 @@ class FDSDatePicker extends HTMLElement {
   connectedCallback() {
     if (this.#initialized) return;
     this.#init();
-    if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+    const label = this.querySelector('label');
+    const input = this.querySelector('input');
+    if (this.hasAttribute('show-required-status')) {
+      showRequiredStatus(label, input, this.getAttribute('show-required-status'));
+    }
 
     // Add event listeners
     this.querySelector('.date-button')?.addEventListener('click', this.#handleDatePickerButtonClick, false);
@@ -9915,7 +9576,9 @@ class FDSDatePicker extends HTMLElement {
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
     if (attribute === 'show-required-status' && oldValue !== newValue) {
-      this.#showRequiredStatus(newValue);
+      const label = this.querySelector('label');
+      const input = this.querySelector('input');
+      showRequiredStatus(label, input, newValue);
     }
     if (attribute === 'format' && oldValue !== newValue) {
       if (document.activeElement !== this.querySelector('input')) {
@@ -11045,132 +10708,76 @@ function registerDatePickerGrid() {
 class FDSTextarea extends HTMLElement {
   /* Private instance fields */
 
-  #initialized;
+  #initialized = false;
   #textareaObserver = null;
 
   /* Private methods */
 
-  #setupLabel() {
-    const label = this.querySelector('label');
-    if (!label) return;
-    if (!label.classList.contains('form-label')) {
-      label.classList.add('form-label');
-    }
-    const textarea = this.querySelector('textarea');
-    if (textarea) {
-      label.htmlFor = textarea.id;
-      label.classList.toggle('disabled', textarea.hasAttribute('disabled'));
-    } else {
-      label.removeAttribute('for');
-    }
+  #setupObserver() {
+    if (this.#textareaObserver) return;
+    this.#textareaObserver = new MutationObserver(this.#handleMutations);
+    this.#textareaObserver.observe(this, mutationObserverConfig);
   }
-  #setupTextarea() {
-    const textarea = this.querySelector('textarea');
-    if (!textarea) return;
-    if (!textarea.classList.contains('form-input')) {
-      textarea.classList.add('form-input');
-    }
-    if (!textarea.id) {
-      textarea.id = generateAndVerifyUniqueId('txt');
-    }
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      // A relevant child element was added or removed.
+      const relevantTagNames = ['LABEL', 'TEXTAREA', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT', 'FDS-CHARACTER-LIMIT'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        const label = this.querySelector('label');
+        const textarea = this.querySelector('textarea');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+        associateLabelWithElement(label, textarea, 'tex');
+        setAriaDescribedBy(textarea, errorMessages, helpTexts, characterLimit);
+        setInvalid(textarea, errorMessages);
+        if (this.hasAttribute('show-required-status')) {
+          showRequiredStatus(label, textarea, this.getAttribute('show-required-status'));
+        }
+        break;
+      }
 
-    // /* Add or remove aria-describedby */
-
-    textarea.removeAttribute('aria-describedby');
-    const idsForAriaDescribedby = [];
-    let isInvalid = false;
-    const errorMessages = this.querySelectorAll('fds-error-message');
-    const helpTexts = this.querySelectorAll('fds-help-text');
-    const ariaDescribedbyElements = [...errorMessages, ...helpTexts];
-    for (const element of ariaDescribedbyElements) {
-      const notDisplayNone = window.getComputedStyle(element).display !== 'none';
-      const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
-      const visibleToScreenReaders = notDisplayNone && notAriaHidden;
-      if (element.id && visibleToScreenReaders) {
-        idsForAriaDescribedby.push(element.id);
-        if (element.tagName === 'FDS-ERROR-MESSAGE') {
-          isInvalid = true;
+      // The textarea's required attribute changed
+      if (attributeName === 'required' && target?.tagName === 'TEXTAREA') {
+        if (this.hasAttribute('show-required-status')) {
+          const label = this.querySelector('label');
+          showRequiredStatus(label, target, this.getAttribute('show-required-status'));
+        }
+      }
+      // Attributes which might affect aria-describedby
+      else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class') {
+        const textarea = this.querySelector('textarea');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+        setAriaDescribedBy(textarea, errorMessages, helpTexts, characterLimit);
+        setInvalid(textarea, errorMessages);
+        if (attributeName === 'hidden' && target === this) {
+          notifySummaryOnVisibilityChange(this);
         }
       }
     }
-    idsForAriaDescribedby.length > 0 ? textarea.setAttribute('aria-describedby', idsForAriaDescribedby.join(' ')) : textarea.removeAttribute('aria-describedby');
-    isInvalid ? textarea.setAttribute('aria-invalid', 'true') : textarea.removeAttribute('aria-invalid');
-  }
-  #setupCharacterLimitListener() {
-    const textarea = this.querySelector('textarea');
-    if (!textarea) return;
-    textarea.addEventListener('input', () => {
-      const characterLimit = this.querySelector('fds-character-limit');
-      if (characterLimit) {
-        characterLimit.setCharactersUsed(textarea.value.length);
-        characterLimit.updateMessages();
-      }
-    });
-  }
+  };
   #init() {
-    if (this.#initialized) return;
     this.#setupObserver();
-    this.#setupTextarea();
-    this.#setupLabel();
-    this.#setupCharacterLimitListener();
-    this.#initialized = true;
-  }
-  #showRequiredStatus(value) {
     const label = this.querySelector('label');
     const textarea = this.querySelector('textarea');
-    if (!label || !textarea) return;
-    let statusIndicator = label.querySelector(':scope > span.weight-normal');
-    if (value === null && statusIndicator) {
-      statusIndicator.remove();
-      return;
+    const errorMessages = this.querySelectorAll('fds-error-message');
+    const helpTexts = this.querySelectorAll('fds-help-text');
+    const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+    associateLabelWithElement(label, textarea, 'tex');
+    setAriaDescribedBy(textarea, errorMessages, helpTexts, characterLimit);
+    setInvalid(textarea, errorMessages);
+    if (this.hasAttribute('show-required-status')) {
+      showRequiredStatus(label, textarea, this.getAttribute('show-required-status'));
     }
-    if (!statusIndicator) {
-      const span = document.createElement('span');
-      span.className = 'weight-normal';
-      label.appendChild(span);
-      statusIndicator = span;
-    }
-    const isRequired = textarea.hasAttribute('required') || textarea.hasAttribute('aria-required') && textarea.getAttribute('aria-required') !== 'false';
-    let text = value;
-    if (value === '' && isRequired) text = 'skal udfyldes';
-    if (value === '' && !isRequired) text = 'frivilligt';
-    statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
-  }
-  #setupObserver() {
-    this.#textareaObserver = new MutationObserver(this.#handleMutations);
-    const config = {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required'],
-      attributeOldValue: false,
-      characterData: false,
-      characterDataOldValue: false
-    };
-    this.#textareaObserver.observe(this, config);
-  }
-  #handleMutations = (records, observer) => {
-    const wrapperHiddenChanged = records.some(record => record.attributeName === 'hidden' && record.target === this);
-    if (wrapperHiddenChanged) {
-      notifySummaryOnVisibilityChange(this);
-    }
-    const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
-    if (shouldUpdate) {
-      this.#setupTextarea();
-      this.#setupLabel();
-      if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
-    }
-  };
-  #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
-    if (attributeName === 'disabled' && target?.tagName === 'TEXTAREA' || attributeName === 'required' && target?.tagName === 'TEXTAREA' || attributeName === 'class' && target?.tagName !== 'LABEL' || attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
-      return true;
-    }
-    if (target?.tagName === 'FDS-CHARACTER-LIMIT') {
-      return true;
-    }
-    const relevantTagNames = ['LABEL', 'TEXTAREA', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
-    const allNodes = [...addedNodes, ...removedNodes];
-    return allNodes.some(node => relevantTagNames.includes(node?.tagName));
+    this.#initialized = true;
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
@@ -11178,12 +10785,14 @@ class FDSTextarea extends HTMLElement {
   static observedAttributes = ['show-required-status'];
 
   /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  GETTERS AND SETTERS
   -------------------------------------------------- */
 
-  constructor() {
-    super();
-    this.#initialized = false;
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
   }
 
   /* --------------------------------------------------
@@ -11191,9 +10800,9 @@ class FDSTextarea extends HTMLElement {
   -------------------------------------------------- */
 
   connectedCallback() {
-    if (this.#initialized) return;
-    this.#init();
-    if (this.hasAttribute('show-required-status')) this.#showRequiredStatus(this.getAttribute('show-required-status'));
+    if (!this.#initialized) {
+      this.#init();
+    }
   }
 
   /* --------------------------------------------------
@@ -11216,7 +10825,9 @@ class FDSTextarea extends HTMLElement {
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
     if (attribute === 'show-required-status' && oldValue !== newValue) {
-      this.#showRequiredStatus(newValue);
+      const label = this.querySelector('label');
+      const textarea = this.querySelector('textarea');
+      showRequiredStatus(label, textarea, newValue);
     }
   }
 }
@@ -11230,7 +10841,7 @@ function registerTextarea() {
 
 
 
-const ERROR_WRAPPER_SELECTORS = ['fds-input-wrapper', 'fds-checkbox', 'fds-checkbox-group', 'fds-radio-button-group', 'fds-date-input', 'fds-textarea', 'fds-select', 'fds-upload-file', 'fds-date-picker'];
+const ERROR_WRAPPER_SELECTORS = ['fds-input', 'fds-checkbox', 'fds-checkbox-group', 'fds-radio-button-group', 'fds-date-input', 'fds-textarea', 'fds-select', 'fds-upload-file', 'fds-date-picker'];
 const ERROR_WRAPPER_SELECTOR = ERROR_WRAPPER_SELECTORS.join(', ');
 const ERROR_MESSAGE_SELECTOR = ERROR_WRAPPER_SELECTORS.map(selector => `${selector} fds-error-message`).join(', ');
 class FDSErrorSummary extends HTMLElement {
@@ -11557,6 +11168,95 @@ function registerErrorSummary() {
   }
 }
 /* harmony default export */ const fds_error_summary = (registerErrorSummary);
+;// ./src/js/custom-elements/input-affix/input-affix.js
+
+
+
+class FDSInputAffix extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+
+  /* Private methods */
+
+  #init() {
+    const input = this.querySelector('input');
+    if (!input) return;
+    if (this.hasAttribute('input-prefix')) {
+      this.#setAffix(this.getAttribute('input-prefix'), 'prefix');
+    }
+    if (this.hasAttribute('input-suffix')) {
+      this.#setAffix(this.getAttribute('input-suffix'), 'suffix');
+    }
+    this.#initialized = true;
+  }
+  #setAffix(value, affix) {
+    let element = null;
+    if (affix === 'prefix') {
+      element = this.querySelector('.form-input-prefix');
+    } else if (affix === 'suffix') {
+      element = this.querySelector('.form-input-suffix');
+    }
+    if (value !== null && value !== '') {
+      if (!element) {
+        element = document.createElement('div');
+        if (affix === 'prefix') {
+          element.className = 'form-input-prefix';
+          this.prepend(element);
+        } else if (affix === 'suffix') {
+          element.className = 'form-input-suffix';
+          this.appendChild(element);
+        }
+      }
+      element.setAttribute('aria-hidden', 'true');
+      element.textContent = value;
+    } else {
+      element?.remove();
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['input-prefix', 'input-suffix'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (!this.#initialized) {
+      this.#init();
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#initialized = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (attribute === 'input-prefix' && oldValue !== newValue) {
+      this.#setAffix(newValue, 'prefix');
+    }
+    if (attribute === 'input-suffix' && oldValue !== newValue) {
+      this.#setAffix(newValue, 'suffix');
+    }
+  }
+}
+function registerInputAffix() {
+  if (customElements.get('fds-input-affix') === undefined) {
+    window.customElements.define('fds-input-affix', FDSInputAffix);
+  }
+}
+/* harmony default export */ const input_affix = (registerInputAffix);
 ;// ./src/js/dkfds.js
 
 
@@ -11580,6 +11280,7 @@ function registerErrorSummary() {
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 // Custom elements
+
 
 
 
@@ -11788,7 +11489,7 @@ var init = function (options) {
 const registerCustomElements = () => {
   fds_accordion();
   fds_accordion_group();
-  fds_input_wrapper();
+  fds_input();
   fds_help_text();
   fds_character_limit();
   fds_error_message();
@@ -11804,6 +11505,7 @@ const registerCustomElements = () => {
   fds_upload_file();
   fds_file_item();
   fds_error_summary();
+  input_affix();
 };
 registerCustomElements();
 

@@ -3,7 +3,7 @@
 import { generateAndVerifyUniqueId } from "../../utils/generate-unique-id";
 
 const ERROR_WRAPPER_SELECTORS = [
-    'fds-input-wrapper',
+    'fds-input',
     'fds-checkbox',
     'fds-checkbox-group',
     'fds-radio-button-group',

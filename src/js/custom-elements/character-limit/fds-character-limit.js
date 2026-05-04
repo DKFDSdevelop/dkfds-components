@@ -1,59 +1,102 @@
 'use strict';
 
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
-import { validateCharacterLimitHTML } from './validateCharacterLimitHTML.js'
 
 class FDSCharacterLimit extends HTMLElement {
 
     /* Private instance fields */
 
-    #rendered;
-    #limit;
-    #charactersUsed;
-    #messages;
+    #initialized = false;
 
-    #spanSrMaxLimit;
-    #spanSrUpdate;
-    #spanVisualUpdate;
+    #messages = {
+        'one_character_remaining': "Du har {value} tegn tilbage",
+        'several_characters_remaining': "Du har {value} tegn tilbage",
+        'one_character_too_many': "Du har {value} tegn for meget",
+        'several_characters_too_many': "Du har {value} tegn for meget",
+        'max_limit': "Du kan indtaste op til {value} tegn"
+    };
 
-    #parentWrapper;
+    #spanSrMaxLimit = document.createElement('span');
+    #spanSrUpdate = document.createElement('span');
+    #spanVisualUpdate = document.createElement('span');
+
+    #parentWrapper = null;
+    #field = null;
+
+    #intervalID = null;
+    #lastKeyUpTimestamp = null;
+    #oldValue = null;
+    #forceSRUpdate = false;
+
+    #handleKeyUp = (event) => {
+        // Update the visible message immediately
+        this.#updateVisibleMessage(this.#charactersLeft());
+
+        // Safe the timestamp so the SR message won't update until the user has stopped typing
+        this.#lastKeyUpTimestamp = Date.now();
+
+        // The user typed something so the SR message must be updated
+        this.#forceSRUpdate = true;
+    }
+
+    #handleFocus = (event) => {
+        // Clear any previous timers
+        if (this.#intervalID !== null) {
+            window.clearInterval(this.#intervalID);
+            this.#intervalID = null;
+        }
+
+        if (!this.#field) return;
+
+        this.#spanVisualUpdate.setAttribute('aria-hidden', 'true');
+        this.#spanSrUpdate.setAttribute('aria-hidden', 'false');
+
+        // Set a timer to prevent SR users from being spammed with audio notifications while typing
+        this.#intervalID = window.setInterval(() => {
+            if (!this.#lastKeyUpTimestamp || (Date.now() - 500) >= this.#lastKeyUpTimestamp) {
+                const inputValueChanged = this.#oldValue !== this.#field.value;
+                const messageInconsistency = this.#spanSrUpdate.textContent !== this.#spanVisualUpdate.textContent;
+
+                if (inputValueChanged || messageInconsistency || this.#forceSRUpdate) {
+                    this.#forceSRUpdate = false;
+                    this.#oldValue = this.#field.value;
+                    this.#updateMessages(this.#charactersLeft());
+                }
+            }
+        }, 1000);
+    }
+
+    #handleBlur = (event) => {
+        // Stop the input timer
+        if (this.#intervalID !== null) {
+            window.clearInterval(this.#intervalID);
+            this.#intervalID = null;
+        }
+
+        if (!this.#field) return;
+
+        this.#updateVisibleMessage(this.#charactersLeft());
+        this.#spanSrUpdate.textContent = '';
+        this.#spanSrUpdate.setAttribute('aria-hidden', 'true');
+        this.#spanVisualUpdate.setAttribute('aria-hidden', 'false');
+    }
+
+    #handlePageshow = (event) => {
+        this.#updateVisibleMessage(this.#charactersLeft());
+    }
 
     /* Private methods */
 
-    #render() {
-        if (this.#rendered) return;
+    #charactersLeft() {
+        if (!this.#field) return;
 
-        this.#updateLimit(this.getAttribute('limit'));
-
-        const characterLimitRendered = validateCharacterLimitHTML(this.children);
-
-        if (!characterLimitRendered) {
-            this.innerHTML = '';
-
-            this.#spanSrMaxLimit = document.createElement('span');
-            this.#spanSrMaxLimit.classList.add('sr-only');
-            this.#updateId(this.getAttribute('limit-id'));
-            this.#spanSrMaxLimit.textContent = this.#messages.max_limit.replace(/{value}/, this.#limit);
-
-            this.#spanSrUpdate = document.createElement('span');
-            this.#spanSrUpdate.classList.add('sr-only');
-            this.#spanSrUpdate.setAttribute('aria-live', 'polite');
-
-            this.#spanVisualUpdate = document.createElement('span');
-            this.#spanVisualUpdate.classList.add('visual-message');
-            this.#spanVisualUpdate.textContent = this.#getMessage(this.charactersLeft());
-
-            this.appendChild(this.#spanSrMaxLimit);
-            this.appendChild(this.#spanSrUpdate);
-            this.appendChild(this.#spanVisualUpdate);
+        const parsedLimit = parseInt(this.getAttribute('limit'), 10);
+        if (!Number.isNaN(parsedLimit)) {
+            return parsedLimit - this.#field.value.length;
         }
         else {
-            this.#spanSrMaxLimit = this.children[0];
-            this.#spanSrUpdate = this.children[1];
-            this.#spanVisualUpdate = this.children[2];
+            return null;
         }
-
-        this.#rendered = true;
     }
 
     #getMessage(charactersLeft) {
@@ -77,37 +120,24 @@ class FDSCharacterLimit extends HTMLElement {
         return msg;
     }
 
-    #updateLimit(value) {
-        const parsed = parseInt(value, 10);
-        if (!Number.isNaN(parsed)) {
-            this.#limit = parsed;
-            if (this.#spanSrMaxLimit) {
-                this.#spanSrMaxLimit.textContent = this.#messages.max_limit.replace(/{value}/, this.#limit);
-            }
-            this.updateVisibleMessage();
+    #updateVisibleMessage(charactersLeft) {
+        this.#spanVisualUpdate.textContent = this.#getMessage(charactersLeft);
+
+        if (charactersLeft < 0) {
+            this.#spanVisualUpdate.classList.add('limit-exceeded');
+        }
+        else {
+            this.#spanVisualUpdate.classList.remove('limit-exceeded');
         }
     }
 
-    #shouldBeHidden(hiddenValue) {
-        return hiddenValue === 'true' || hiddenValue === '';
+    #updateSRMessage(charactersLeft) {
+        this.#spanSrUpdate.textContent = this.#getMessage(charactersLeft);
     }
 
-    #setAriaHidden() {
-        this.setAttribute('aria-hidden', 'true');
-    }
-
-    #removeAriaHidden() {
-        this.removeAttribute('aria-hidden');
-    }
-
-    #notifyParent() {
-        this.#parentWrapper?.dispatchEvent(new CustomEvent('character-limit-visibility-changed', {
-            bubbles: true,
-            detail: {
-                characterLimitId: this.id,
-                isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
-            }
-        }));
+    #updateMessages(charactersLeft) {
+        this.#updateVisibleMessage(charactersLeft);
+        this.#updateSRMessage(charactersLeft);
     }
 
     #updateId(value) {
@@ -122,134 +152,79 @@ class FDSCharacterLimit extends HTMLElement {
     /* Attributes which can invoke attributeChangedCallback() */
 
     static observedAttributes = [
-        'limit', 
-        'one-character-remaining-text', 
-        'several-characters-remaining-text', 
-        'one-character-too-many-text', 
-        'several-characters-too-many-text', 
+        'limit',
+        'one-character-remaining-text',
+        'several-characters-remaining-text',
+        'one-character-too-many-text',
+        'several-characters-too-many-text',
         'max-limit-text',
-        'hidden',
         'limit-id'
     ];
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-    -------------------------------------------------- */
-
-    constructor() {
-        super();
-
-        this.#rendered = false;
-        this.#limit = 0;
-        this.#charactersUsed = 0;
-        this.#messages = {
-            'one_character_remaining': "Du har {value} tegn tilbage",
-            'several_characters_remaining': "Du har {value} tegn tilbage",
-            'one_character_too_many': "Du har {value} tegn for meget",
-            'several_characters_too_many': "Du har {value} tegn for meget",
-            'max_limit': "Du kan indtaste op til {value} tegn"
-        };
-
-        this.#spanSrMaxLimit = null;
-        this.#spanSrUpdate = null;
-        this.#spanVisualUpdate = null;
-        this.#parentWrapper = null;
-    }
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT METHODS
-    -------------------------------------------------- */
-
-    charactersLeft() {
-        return this.#limit - this.#charactersUsed;
-    }
-
-    setCharactersUsed(value) {
-        const parsed = parseInt(value, 10);
-        if (!Number.isNaN(parsed)) {
-            this.#charactersUsed = parsed;
-        }
-    }
-
-    hasMatchingMessages() {
-        return this.#spanSrUpdate.textContent === this.#spanVisualUpdate.textContent;
-    }
-
-    updateVisibleMessage() {
-        if (!this.#spanVisualUpdate) return;
-
-        const charsLeft = this.charactersLeft();
-        this.#spanVisualUpdate.textContent = this.#getMessage(charsLeft);
-
-        if (charsLeft < 0) {
-            this.#spanVisualUpdate.classList.add('limit-exceeded');
-        }
-        else {
-            this.#spanVisualUpdate.classList.remove('limit-exceeded');
-        }
-    }
-
-    updateScreenReaderMessage() {
-        if (!this.#spanSrUpdate) return;
-
-        this.#spanSrUpdate.textContent = this.#getMessage(this.charactersLeft());
-    }
-
-    updateMessages() {
-        this.updateVisibleMessage();
-        this.updateScreenReaderMessage();
-    }
-
-    silenceSrMessage() {
-        this.#spanSrUpdate.textContent = '';
-        this.#spanVisualUpdate.removeAttribute('aria-hidden');
-    }
-
-    silenceVisibleMessage() {
-        this.#spanVisualUpdate.setAttribute('aria-hidden', 'true');
-    }
 
     /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
     -------------------------------------------------- */
 
     connectedCallback() {
-        if (this.#rendered) return;
+        if (!this.hasAttribute('limit')) return;
 
-        this.#render();
+        if (this.children.length === 3) {
+            const [spanSrMaxLimit, spanSrUpdate, spanVisualUpdate] = this.children;
 
-        if (this.hasAttribute('one-character-remaining-text')) {
-            this.#messages.one_character_remaining = this.getAttribute('one-character-remaining-text');
+            this.#spanSrMaxLimit = spanSrMaxLimit;
+            this.#spanSrUpdate = spanSrUpdate;
+            this.#spanVisualUpdate = spanVisualUpdate;
+        }
+        else {
+            this.appendChild(this.#spanSrMaxLimit);
+            this.appendChild(this.#spanSrUpdate);
+            this.appendChild(this.#spanVisualUpdate);
         }
 
-        if (this.hasAttribute('several-characters-remaining-text')) {
-            this.#messages.several_characters_remaining = this.getAttribute('several-characters-remaining-text');
+        this.#parentWrapper = this.closest('fds-input, fds-textarea');
+        this.#field = this.#parentWrapper?.querySelector('input, textarea');
+
+
+        if (!this.#field) return;
+
+        const charactersLeft = this.#charactersLeft();
+
+        // Update the default text used in the component
+        if (this.hasAttribute('one-character-remaining-text')) { this.#messages.one_character_remaining = this.getAttribute('one-character-remaining-text'); }
+        if (this.hasAttribute('several-characters-remaining-text')) { this.#messages.several_characters_remaining = this.getAttribute('several-characters-remaining-text'); }
+        if (this.hasAttribute('one-character-too-many-text')) { this.#messages.one_character_too_many = this.getAttribute('one-character-too-many-text'); }
+        if (this.hasAttribute('several-characters-too-many-text')) { this.#messages.several_characters_too_many = this.getAttribute('several-characters-too-many-text'); }
+        if (this.hasAttribute('max-limit-text')) { this.#messages.max_limit = this.getAttribute('max-limit-text'); }
+
+        // <span> announcing the max limit to SR users
+        this.#spanSrMaxLimit.classList.add('sr-only');
+        this.#spanSrMaxLimit.textContent = this.#messages.max_limit.replace(/{value}/, this.getAttribute('limit'));
+        if (!this.hasAttribute('limit-id') && this.getAttribute('limit-id') !== '') { this.#spanSrMaxLimit.id = generateAndVerifyUniqueId('lim'); }
+        else { this.#spanSrMaxLimit.id = this.getAttribute('limit-id'); }
+
+        // <span> visually showing the characters left
+        this.#spanVisualUpdate.classList.add('visual-message');
+        this.#spanVisualUpdate.setAttribute('aria-hidden', 'false');
+        this.#spanVisualUpdate.textContent = this.#getMessage(charactersLeft);
+
+        // <span> announcing characters left to SR users (updates are slightly delayed compared to the visual message)
+        this.#spanSrUpdate.classList.add('sr-only');
+        this.#spanSrUpdate.textContent = '';
+        this.#spanSrUpdate.setAttribute('aria-hidden', true);
+        this.#spanSrUpdate.setAttribute('aria-live', 'polite');
+
+        // Add event listeners
+        this.#field.addEventListener('keyup', this.#handleKeyUp);
+        this.#field.addEventListener('focus', this.#handleFocus);
+        this.#field.addEventListener('blur', this.#handleBlur);
+        if ('onpageshow' in window) {
+            window.addEventListener('pageshow', this.#handlePageshow);
+        }
+        else {
+            document.addEventListener('DOMContentLoaded', this.#handlePageshow);
         }
 
-        if (this.hasAttribute('one-character-too-many-text')) {
-            this.#messages.one_character_too_many = this.getAttribute('one-character-too-many-text');
-        }
-
-        if (this.hasAttribute('several-characters-too-many-text')) {
-            this.#messages.several_characters_too_many = this.getAttribute('several-characters-too-many-text');
-        }
-
-        if (this.hasAttribute('max-limit-text')) {
-            this.#messages.max_limit = this.getAttribute('max-limit-text');
-        }
-
-        this.updateVisibleMessage();
-
-        // Handle initial hidden state
-        if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
-            this.#setAriaHidden();
-        }
-
-        // During disconnect, the custom element may lose connection to the input-wrapper.
-        // Save the input-wrapper and use it to dispatch events - otherwise, the events may be lost.
-        this.#parentWrapper = this.closest('fds-input-wrapper');
-        this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
-        this.#parentWrapper?.dispatchEvent(new Event('character-limit-connection'));
+        this.#initialized = true;
     }
 
     /* --------------------------------------------------
@@ -257,59 +232,52 @@ class FDSCharacterLimit extends HTMLElement {
     -------------------------------------------------- */
 
     disconnectedCallback() {
-        this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
+        this.#field?.removeEventListener('keyup', this.#handleKeyUp);
+        this.#field?.removeEventListener('focus', this.#handleFocus);
+        this.#field?.removeEventListener('blur', this.#handleBlur);
+        window.removeEventListener('pageshow', this.#handlePageshow);
+        document.removeEventListener('DOMContentLoaded', this.#handlePageshow);
 
-        this.#parentWrapper = null;
-        this.#rendered = false;
+        this.#initialized = false;
     }
 
     /* --------------------------------------------------
     CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
     -------------------------------------------------- */
 
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (!this.#rendered) return;
+    attributeChangedCallback(attribute, oldValue, newValue) {
+        if (!this.#initialized) return;
 
-        if (name === 'limit') {
-            this.#updateLimit(newValue);
+        if (attribute === 'limit') {
+            this.#updateMessages(this.#charactersLeft());
         }
 
-        if (name === 'one-character-remaining-text') {
-            console.log('one-character-remaining-text', newValue);
+        if (attribute === 'one-character-remaining-text') {
             this.#messages.one_character_remaining = newValue;
-            this.updateMessages();
+            this.#updateMessages(this.#charactersLeft());
         }
 
-        if (name === 'several-characters-remaining-text') {
+        if (attribute === 'several-characters-remaining-text') {
             this.#messages.several_characters_remaining = newValue;
-            this.updateMessages();
+            this.#updateMessages(this.#charactersLeft());
         }
 
-        if (name === 'one-character-too-many-text') {
+        if (attribute === 'one-character-too-many-text') {
             this.#messages.one_character_too_many = newValue;
-            this.updateMessages();
+            this.#updateMessages(this.#charactersLeft());
         }
 
-        if (name === 'several-characters-too-many-text') {
+        if (attribute === 'several-characters-too-many-text') {
             this.#messages.several_characters_too_many = newValue;
-            this.updateMessages();
+            this.#updateMessages(this.#charactersLeft());
         }
 
-        if (name === 'max-limit-text') {
+        if (attribute === 'max-limit-text') {
             this.#messages.max_limit = newValue;
-            this.updateMessages();
+            this.#updateMessages(this.#charactersLeft());
         }
 
-        if (name === 'hidden' && oldValue !== newValue) {
-            if (this.#shouldBeHidden(newValue)) {
-                this.#setAriaHidden();
-            } else {
-                this.#removeAriaHidden();
-            }
-            this.#notifyParent();
-        }
-
-        if (name === 'limit-id') {
+        if (attribute === 'limit-id') {
             this.#updateId(newValue);
         }
 
