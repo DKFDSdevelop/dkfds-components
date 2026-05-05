@@ -12834,18 +12834,18 @@ fds-checkbox,
   margin-top:8px;
   position:relative;
 }
-fds-checkbox:has(> fds-error-message:not([hidden]), > fds-error-message[hidden=false], > .form-group-checkbox ~ fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message[hidden=false]) .form-checkbox + label::before, fds-checkbox:has(> .fds-error-message:not([hidden]), > .fds-error-message[hidden=false], > .form-group-checkbox ~ .fds-error-message:not([hidden]), > .form-group-checkbox ~ .fds-error-message[hidden=false]) .form-checkbox + label::before,
-.fds-checkbox:has(> fds-error-message:not([hidden]), > fds-error-message[hidden=false], > .form-group-checkbox ~ fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message[hidden=false]) .form-checkbox + label::before,
-.fds-checkbox:has(> .fds-error-message:not([hidden]), > .fds-error-message[hidden=false], > .form-group-checkbox ~ .fds-error-message:not([hidden]), > .form-group-checkbox ~ .fds-error-message[hidden=false]) .form-checkbox + label::before{
+fds-checkbox:has(> fds-error-message:not([hidden]), > fds-error-message[hidden=false]) > input[type=checkbox] + label::before, fds-checkbox:has(> .fds-error-message:not([hidden]), > .fds-error-message[hidden=false]) > input[type=checkbox] + label::before,
+.fds-checkbox:has(> fds-error-message:not([hidden]), > fds-error-message[hidden=false]) > input[type=checkbox] + label::before,
+.fds-checkbox:has(> .fds-error-message:not([hidden]), > .fds-error-message[hidden=false]) > input[type=checkbox] + label::before{
   border:2px solid #CC0000;
 }
-fds-checkbox fds-help-text,
-.fds-checkbox fds-help-text{
+fds-checkbox > fds-help-text,
+.fds-checkbox > fds-help-text{
   padding-left:32px;
   margin-top:-4px;
 }
-fds-checkbox .form-checkbox + label,
-.fds-checkbox .form-checkbox + label{
+fds-checkbox > input[type=checkbox] + label,
+.fds-checkbox > input[type=checkbox] + label{
   cursor:pointer;
   font-weight:400;
   line-height:2.4rem;
@@ -12856,14 +12856,14 @@ fds-checkbox .form-checkbox + label,
   padding-top:4px;
   padding-bottom:4px;
 }
-fds-checkbox .form-checkbox + label + .tooltip-wrapper,
-.fds-checkbox .form-checkbox + label + .tooltip-wrapper{
+fds-checkbox > input[type=checkbox] + label + .tooltip-wrapper,
+.fds-checkbox > input[type=checkbox] + label + .tooltip-wrapper{
   margin-top:4px;
   margin-bottom:4px;
   margin-left:2px;
 }
-fds-checkbox .form-checkbox + label::before,
-.fds-checkbox .form-checkbox + label::before{
+fds-checkbox > input[type=checkbox] + label::before,
+.fds-checkbox > input[type=checkbox] + label::before{
   content:"";
   position:absolute;
   left:0;
@@ -12878,32 +12878,32 @@ fds-checkbox .form-checkbox + label::before,
   margin-top:calc(1.2rem - 12px + 4px);
   border-radius:4px;
 }
-fds-checkbox .form-checkbox:checked + label::before,
-fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
-fds-checkbox .form-checkbox.mixed + label::before,
-.fds-checkbox .form-checkbox:checked + label::before,
-.fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
-.fds-checkbox .form-checkbox.mixed + label::before{
+fds-checkbox > input[type=checkbox]:checked + label::before,
+fds-checkbox > input[type=checkbox][aria-checked=mixed] + label::before,
+fds-checkbox > input[type=checkbox].mixed + label::before,
+.fds-checkbox > input[type=checkbox]:checked + label::before,
+.fds-checkbox > input[type=checkbox][aria-checked=mixed] + label::before,
+.fds-checkbox > input[type=checkbox].mixed + label::before{
   background-color:#1a1a1a;
   border:2px solid #1a1a1a;
   background-size:24px;
   background-repeat:no-repeat;
   background-position:center;
 }
-fds-checkbox .form-checkbox:checked + label::before,
-.fds-checkbox .form-checkbox:checked + label::before{
+fds-checkbox > input[type=checkbox]:checked + label::before,
+.fds-checkbox > input[type=checkbox]:checked + label::before{
   background-image:url("../img/svg-icons/check-white.svg");
 }
-fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
-fds-checkbox .form-checkbox.mixed + label::before,
-.fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
-.fds-checkbox .form-checkbox.mixed + label::before{
+fds-checkbox > input[type=checkbox][aria-checked=mixed] + label::before,
+fds-checkbox > input[type=checkbox].mixed + label::before,
+.fds-checkbox > input[type=checkbox][aria-checked=mixed] + label::before,
+.fds-checkbox > input[type=checkbox].mixed + label::before{
   background-image:url("../img/svg-icons/minus-white.svg");
 }
-fds-checkbox .form-checkbox:focus + label::before,
-fds-checkbox .form-checkbox.focus + label::before,
-.fds-checkbox .form-checkbox:focus + label::before,
-.fds-checkbox .form-checkbox.focus + label::before{
+fds-checkbox > input[type=checkbox]:focus + label::before,
+fds-checkbox > input[type=checkbox].focus + label::before,
+.fds-checkbox > input[type=checkbox]:focus + label::before,
+.fds-checkbox > input[type=checkbox].focus + label::before{
   outline:3px solid #454545;
   outline-offset:1px;
 }
@@ -12920,25 +12920,27 @@ fds-checkbox .checkbox-content[aria-hidden=true],
 .fds-checkbox .checkbox-content[aria-hidden=true]{
   display:none;
 }
-fds-checkbox:has(.checkbox-content),
-.fds-checkbox:has(.checkbox-content){
+fds-checkbox:has(> .checkbox-content),
+.fds-checkbox:has(> .checkbox-content){
   margin-top:8px;
   position:relative;
 }
-fds-checkbox:has(.checkbox-content):has(.checkbox-content[aria-hidden=false])::before,
-.fds-checkbox:has(.checkbox-content):has(.checkbox-content[aria-hidden=false])::before{
+fds-checkbox:has(> .checkbox-content):has(> .checkbox-content[aria-hidden=false])::before,
+.fds-checkbox:has(> .checkbox-content):has(> .checkbox-content[aria-hidden=false])::before{
   content:"";
   position:absolute;
   display:block;
   border-left:4px solid #BFBFBF;
-  height:calc(100% - (1.2rem - 12px + 4px + 24px + 4px + 4px));
   left:10px;
   top:calc(1.2rem - 12px + 4px + 24px + 4px + 4px);
+  bottom:0;
 }
-fds-checkbox:has(.checkbox-content):has(> fds-error-message:not([hidden]), > fds-error-message[hidden=false], > .form-group-checkbox ~ fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message[hidden=false])::before, fds-checkbox:has(.checkbox-content):has(> .fds-error-message:not([hidden]), > .fds-error-message[hidden=false], > .form-group-checkbox ~ .fds-error-message:not([hidden]), > .form-group-checkbox ~ .fds-error-message[hidden=false])::before,
-.fds-checkbox:has(.checkbox-content):has(> fds-error-message:not([hidden]), > fds-error-message[hidden=false], > .form-group-checkbox ~ fds-error-message:not([hidden]), > .form-group-checkbox ~ fds-error-message[hidden=false])::before,
-.fds-checkbox:has(.checkbox-content):has(> .fds-error-message:not([hidden]), > .fds-error-message[hidden=false], > .form-group-checkbox ~ .fds-error-message:not([hidden]), > .form-group-checkbox ~ .fds-error-message[hidden=false])::before{
-  height:calc(100% - (1.2rem - 12px + 4px + 24px + 4px + 4px) - 28px);
+fds-checkbox:has(> .checkbox-content):has(> .checkbox-content[aria-hidden=false]):has(> fds-error-message:not([hidden]))::before, fds-checkbox:has(> .checkbox-content):has(> .checkbox-content[aria-hidden=false]):has(> fds-error-message[hidden=false])::before, fds-checkbox:has(> .checkbox-content):has(> .checkbox-content[aria-hidden=false]):has(> .fds-error-message:not([hidden]))::before, fds-checkbox:has(> .checkbox-content):has(> .checkbox-content[aria-hidden=false]):has(> .fds-error-message[hidden=false])::before,
+.fds-checkbox:has(> .checkbox-content):has(> .checkbox-content[aria-hidden=false]):has(> fds-error-message:not([hidden]))::before,
+.fds-checkbox:has(> .checkbox-content):has(> .checkbox-content[aria-hidden=false]):has(> fds-error-message[hidden=false])::before,
+.fds-checkbox:has(> .checkbox-content):has(> .checkbox-content[aria-hidden=false]):has(> .fds-error-message:not([hidden]))::before,
+.fds-checkbox:has(> .checkbox-content):has(> .checkbox-content[aria-hidden=false]):has(> .fds-error-message[hidden=false])::before{
+  bottom:28px;
 }
 fds-checkbox .table--selectable th:first-child fds-checkbox,
 fds-checkbox .table--selectable td:first-child fds-checkbox,
@@ -12948,29 +12950,29 @@ fds-checkbox .table--selectable td:first-child fds-checkbox,
   width:24px;
   height:24px;
 }
-fds-checkbox .table--selectable th:first-child fds-checkbox .form-checkbox,
-fds-checkbox .table--selectable td:first-child fds-checkbox .form-checkbox,
-.fds-checkbox .table--selectable th:first-child fds-checkbox .form-checkbox,
-.fds-checkbox .table--selectable td:first-child fds-checkbox .form-checkbox{
+fds-checkbox .table--selectable th:first-child fds-checkbox > input[type=checkbox],
+fds-checkbox .table--selectable td:first-child fds-checkbox > input[type=checkbox],
+.fds-checkbox .table--selectable th:first-child fds-checkbox > input[type=checkbox],
+.fds-checkbox .table--selectable td:first-child fds-checkbox > input[type=checkbox]{
   margin-top:0;
 }
-fds-checkbox .table--selectable th:first-child fds-checkbox .form-checkbox + label,
-fds-checkbox .table--selectable td:first-child fds-checkbox .form-checkbox + label,
-.fds-checkbox .table--selectable th:first-child fds-checkbox .form-checkbox + label,
-.fds-checkbox .table--selectable td:first-child fds-checkbox .form-checkbox + label{
+fds-checkbox .table--selectable th:first-child fds-checkbox > input[type=checkbox] + label,
+fds-checkbox .table--selectable td:first-child fds-checkbox > input[type=checkbox] + label,
+.fds-checkbox .table--selectable th:first-child fds-checkbox > input[type=checkbox] + label,
+.fds-checkbox .table--selectable td:first-child fds-checkbox > input[type=checkbox] + label{
   padding-left:0;
 }
-fds-checkbox .table--selectable th:first-child fds-checkbox .form-checkbox + label::before,
-fds-checkbox .table--selectable td:first-child fds-checkbox .form-checkbox + label::before,
-.fds-checkbox .table--selectable th:first-child fds-checkbox .form-checkbox + label::before,
-.fds-checkbox .table--selectable td:first-child fds-checkbox .form-checkbox + label::before{
+fds-checkbox .table--selectable th:first-child fds-checkbox > input[type=checkbox] + label::before,
+fds-checkbox .table--selectable td:first-child fds-checkbox > input[type=checkbox] + label::before,
+.fds-checkbox .table--selectable th:first-child fds-checkbox > input[type=checkbox] + label::before,
+.fds-checkbox .table--selectable td:first-child fds-checkbox > input[type=checkbox] + label::before{
   margin-right:0;
   margin-top:calc(1.2rem - 12px);
 }
-fds-checkbox .table--selectable th:first-child fds-checkbox .form-checkbox + label::after,
-fds-checkbox .table--selectable td:first-child fds-checkbox .form-checkbox + label::after,
-.fds-checkbox .table--selectable th:first-child fds-checkbox .form-checkbox + label::after,
-.fds-checkbox .table--selectable td:first-child fds-checkbox .form-checkbox + label::after{
+fds-checkbox .table--selectable th:first-child fds-checkbox > input[type=checkbox] + label::after,
+fds-checkbox .table--selectable td:first-child fds-checkbox > input[type=checkbox] + label::after,
+.fds-checkbox .table--selectable th:first-child fds-checkbox > input[type=checkbox] + label::after,
+.fds-checkbox .table--selectable td:first-child fds-checkbox > input[type=checkbox] + label::after{
   margin-top:calc(1.2rem - 12px);
 }
 
@@ -13041,8 +13043,8 @@ fds-radio-button .form-radio + label,
 .fds-radio-button .form-radio + label{
   max-width:66ch;
 }
-fds-radio-button .form-radio + label,
-.fds-radio-button .form-radio + label{
+fds-radio-button input[type=radio] + label,
+.fds-radio-button input[type=radio] + label{
   cursor:pointer;
   font-weight:400;
   line-height:2.4rem;
@@ -13053,8 +13055,8 @@ fds-radio-button .form-radio + label,
   padding-top:4px;
   padding-bottom:4px;
 }
-fds-radio-button .form-radio + label::before,
-.fds-radio-button .form-radio + label::before{
+fds-radio-button input[type=radio] + label::before,
+.fds-radio-button input[type=radio] + label::before{
   content:"";
   position:absolute;
   left:0;
@@ -13068,17 +13070,17 @@ fds-radio-button .form-radio + label::before,
   width:24px;
   margin-top:calc(1.2rem - 12px + 4px);
 }
-fds-radio-button .form-radio + label::before,
-.fds-radio-button .form-radio + label::before{
+fds-radio-button input[type=radio] + label::before,
+.fds-radio-button input[type=radio] + label::before{
   border-radius:100%;
 }
-fds-radio-button .form-radio:checked + label::before,
-.fds-radio-button .form-radio:checked + label::before{
+fds-radio-button input[type=radio]:checked + label::before,
+.fds-radio-button input[type=radio]:checked + label::before{
   background-color:white;
   border:2px solid #1a1a1a;
 }
-fds-radio-button .form-radio:checked + label::after,
-.fds-radio-button .form-radio:checked + label::after{
+fds-radio-button input[type=radio]:checked + label::after,
+.fds-radio-button input[type=radio]:checked + label::after{
   content:"";
   position:absolute;
   display:inherit;
@@ -13090,24 +13092,24 @@ fds-radio-button .form-radio:checked + label::after,
   border-radius:100%;
   margin-top:calc(1.2rem - 12px + 4px);
 }
-fds-radio-button .form-radio:focus + label::before,
-fds-radio-button .form-radio.focus + label::before,
-.fds-radio-button .form-radio:focus + label::before,
-.fds-radio-button .form-radio.focus + label::before{
+fds-radio-button input[type=radio]:focus + label::before,
+fds-radio-button input[type=radio].focus + label::before,
+.fds-radio-button input[type=radio]:focus + label::before,
+.fds-radio-button input[type=radio].focus + label::before{
   outline:3px solid #454545;
   outline-offset:1px;
 }
-fds-radio-button .form-radio:disabled,
-.fds-radio-button .form-radio:disabled{
+fds-radio-button input[type=radio]:disabled,
+.fds-radio-button input[type=radio]:disabled{
   cursor:not-allowed;
 }
-fds-radio-button .form-radio:disabled + label,
-.fds-radio-button .form-radio:disabled + label{
+fds-radio-button input[type=radio]:disabled + label,
+.fds-radio-button input[type=radio]:disabled + label{
   cursor:not-allowed;
   color:#707070;
 }
-fds-radio-button .form-radio:disabled + label::before,
-.fds-radio-button .form-radio:disabled + label::before{
+fds-radio-button input[type=radio]:disabled + label::before,
+.fds-radio-button input[type=radio]:disabled + label::before{
   background-color:#F5F5F5;
   border:2px solid #BFBFBF;
 }

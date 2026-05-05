@@ -10,7 +10,7 @@ export const mutationObserverConfig = {
     subtree: true,
     childList: true,
     attributes: true,
-    attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required'],
+    attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required', 'aria-required'],
     attributeOldValue: false,
     characterData: false,
     characterDataOldValue: false
