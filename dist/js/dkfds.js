@@ -6296,7 +6296,7 @@ function createSvgIcon(pathD) {
  * text is used based on whether the element is required or not.
  *
  * @param {HTMLLabelElement} label - The label element to update.
- * @param {HTMLElement} element - The form element to check for required status.
+ * @param {HTMLElement|HTMLFieldSetElement} element - The form element or fieldset to check for required status.
  * @param {string|null} value - The value to display in the status indicator.
  */
 function showRequiredStatus(label, element, value) {
@@ -6312,11 +6312,26 @@ function showRequiredStatus(label, element, value) {
     label.appendChild(span);
     statusIndicator = span;
   }
-  const isRequired = element.hasAttribute('required') || element.hasAttribute('aria-required') && element.getAttribute('aria-required') !== 'false';
+  const isRequired = isElementRequired(element);
   let text = value;
   if (value === '' && isRequired) text = 'skal udfyldes';
   if (value === '' && !isRequired) text = 'frivilligt';
   statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
+}
+
+/**
+ * Determines whether a form element or fieldset is considered required.
+ * For fieldsets, returns true if any child form element is required.
+ *
+ * @param {HTMLElement|HTMLFieldSetElement} element - The element to check.
+ * @returns {boolean} Whether the element (or any child within a fieldset) is required.
+ */
+function isElementRequired(element) {
+  if (element instanceof HTMLFieldSetElement) {
+    const fields = element.querySelectorAll('input, select, textarea');
+    return Array.from(fields).some(field => field.hasAttribute('required') || field.hasAttribute('aria-required') && field.getAttribute('aria-required') !== 'false');
+  }
+  return element.hasAttribute('required') || element.hasAttribute('aria-required') && element.getAttribute('aria-required') !== 'false';
 }
 
 /**
@@ -6376,10 +6391,10 @@ function setDisabledClass(label, element) {
 }
 
 /**
- * Sets the `aria-describedby` attribute on a form element based on
+ * Sets the `aria-describedby` attribute on a form element or fieldset based on
  * the IDs of visible error messages, help texts, and an optional character limit element.
  *
- * @param {HTMLElement} element - The form element to update.
+ * @param {HTMLElement|HTMLFieldSetElement} element - The form element or fieldset to update.
  * @param {NodeList} errorMessages - Error message elements to consider.
  * @param {NodeList} helpTexts - Help text elements to consider.
  * @param {HTMLElement|null} [characterLimit=null] - Optional character limit element to consider.
@@ -7685,327 +7700,156 @@ function registerRadioButtonGroup() {
 }
 /* harmony default export */ const fds_radio_button_group = (registerRadioButtonGroup);
 ;// ./src/js/custom-elements/date-input/fds-date-input.js
-
-
+//import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 class FDSDateInput extends HTMLElement {
   /* Private instance fields */
 
-  #fieldset;
-  #legend;
-  #handleHelpTextCallback;
-  #handleVisibilityChange;
-  #handleErrorMessageCallback;
+  #initialized = false;
+  #dateInputObserver = null;
 
   /* Private methods */
 
-  #getFieldsetElement() {
-    if (this.#fieldset) return this.#fieldset;
-    this.#fieldset = this.querySelector('fieldset');
-    return this.#fieldset;
+  #setupObserver() {
+    if (this.#dateInputObserver) return;
+    this.#dateInputObserver = new MutationObserver(this.#handleMutations);
+    this.#dateInputObserver.observe(this, mutationObserverConfig);
   }
-  #getHelpTextElements() {
-    return this.querySelectorAll('fds-help-text');
-  }
-  #getErrorMessages() {
-    const directErrors = Array.from(this.querySelectorAll(':scope > fds-error-message'));
-    const orphanedErrors = Array.from(this.querySelectorAll(':scope > fieldset > fds-error-message'));
-    return [...directErrors, ...orphanedErrors];
-  }
-  #handleLegend() {
-    let legend = this.#fieldset.querySelector('legend') || this.querySelector(':scope > legend');
-    if (legend && legend.parentNode !== this.#fieldset) {
-      legend.remove();
-      this.#fieldset.prepend(legend);
-    } else if (!legend) {
-      legend = document.createElement('legend');
-      this.#fieldset.prepend(legend);
-    }
-    legend.classList.add('form-label');
-
-    // Move tooltip into the legend
-    const tooltip = this.querySelector(':scope > .tooltip-wrapper');
-    if (tooltip) legend.appendChild(tooltip);
-    return legend;
-  }
-  #setStructure() {
-    this.#fieldset = this.querySelector('fieldset') || (() => {
-      const fieldset = document.createElement('fieldset');
-      this.prepend(fieldset);
-      return fieldset;
-    })();
-    this.#legend = this.#handleLegend();
-    const toMove = Array.from(this.children).filter(el => el !== this.#fieldset && !el.classList.contains('tooltip-wrapper'));
-    toMove.forEach(el => this.#fieldset.appendChild(el));
-    this.#createDateGroup();
-  }
-  #createDateGroup() {
-    const formGroups = this.#fieldset.querySelectorAll('.form-group');
-    if (formGroups.length > 0) {
-      const dateGroup = document.createElement('div');
-      dateGroup.classList.add('date-group', 'mt-3');
-      this.#fieldset.insertBefore(dateGroup, formGroups[0]);
-      formGroups.forEach(formGroup => {
-        dateGroup.appendChild(formGroup);
-      });
-    }
-  }
-  #setLabel() {
-    if (!this.#legend) return;
-    const label = this.getAttribute('label');
-    if (label == null) return;
-    let textNode = Array.from(this.#legend.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
-    if (!textNode) {
-      textNode = document.createTextNode('');
-      this.#legend.prepend(textNode);
-    }
-    textNode.nodeValue = label;
-  }
-  #connectErrorsToInputs() {
-    const inputs = this.#fieldset.querySelectorAll('input');
-
-    // Remove error-related state, presetve the rest
-    const errorIds = this.#getErrorMessages().map(e => e.id).filter(Boolean);
-    inputs.forEach(input => {
-      const describedBy = input.getAttribute('aria-describedby');
-      if (!describedBy) {
-        input.removeAttribute('aria-invalid');
-        return;
-      }
-      const remaining = describedBy.split(' ').filter(id => !errorIds.includes(id));
-      if (remaining.length > 0) {
-        input.setAttribute('aria-describedby', remaining.join(' '));
-      } else {
-        input.removeAttribute('aria-describedby');
-      }
-      input.removeAttribute('aria-invalid');
-    });
-
-    // Apply targeted errors
-    this.#getErrorMessages().forEach(errorMessage => {
-      if (this.#isElementHidden(errorMessage)) return;
-      const targets = errorMessage.getAttribute('targets');
-      if (!targets || !errorMessage.id) return;
-      targets.split(',').forEach(target => {
-        const targetGroup = this.#fieldset.querySelector(`[data-attribute="${target.trim()}"]`);
-        const input = targetGroup?.querySelector('input');
-        if (!input) return;
-        const current = input.getAttribute('aria-describedby');
-        const ids = current ? current.split(' ') : [];
-        if (!ids.includes(errorMessage.id)) {
-          ids.push(errorMessage.id);
-          input.setAttribute('aria-describedby', ids.join(' '));
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      // A relevant child element was added or removed.
+      const relevantTagNames = ['LABEL', 'INPUT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        const legend = this.querySelector('legend');
+        const fieldset = this.querySelector('fieldset');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        const label_day = this.querySelector('[data-attribute="day"] label');
+        const label_month = this.querySelector('[data-attribute="month"] label');
+        const label_year = this.querySelector('[data-attribute="year"] label');
+        const input_day = this.querySelector('[data-attribute="day"] input');
+        const input_month = this.querySelector('[data-attribute="month"] input');
+        const input_year = this.querySelector('[data-attribute="year"] input');
+        associateLabelWithElement(label_day, input_day, 'day');
+        associateLabelWithElement(label_month, input_month, 'month');
+        associateLabelWithElement(label_year, input_year, 'year');
+        setAriaDescribedBy(fieldset, errorMessages, helpTexts);
+        this.#setInvalidForInput('day', input_day, errorMessages);
+        this.#setInvalidForInput('month', input_month, errorMessages);
+        this.#setInvalidForInput('year', input_year, errorMessages);
+        if (this.hasAttribute('show-required-status')) {
+          showRequiredStatus(legend, fieldset, this.getAttribute('show-required-status'));
         }
-        input.setAttribute('aria-invalid', 'true');
-      });
-    });
-  }
-  #cleanupRemovedError(_ref) {
-    let {
-      errorId,
-      targets
-    } = _ref;
-    if (!errorId) return;
-    if (Array.isArray(targets) && targets.length > 0) {
-      targets.forEach(target => {
-        const group = this.#fieldset.querySelector(`[data-attribute="${target}"]`);
-        const input = group?.querySelector('input');
-        if (!input) return;
-        const describedBy = input.getAttribute('aria-describedby');
-        if (!describedBy) return;
-        const remaining = describedBy.split(' ').filter(id => id !== errorId);
-        if (remaining.length) {
-          input.setAttribute('aria-describedby', remaining.join(' '));
-        } else {
-          input.removeAttribute('aria-describedby');
-          input.removeAttribute('aria-invalid');
+        break;
+      }
+
+      // The input's required attribute changed
+      if (attributeName === 'required' && target?.tagName === 'INPUT') {
+        if (this.hasAttribute('show-required-status')) {
+          const legend = this.querySelector('legend');
+          const fieldset = this.querySelector('fieldset');
+          showRequiredStatus(legend, fieldset, this.getAttribute('show-required-status'));
         }
-      });
-      return;
+      }
+      // Attributes which might affect aria-describedby
+      else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class', attributeName === 'targets') {
+        const legend = this.querySelector('legend');
+        const fieldset = this.querySelector('fieldset');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        const label_day = this.querySelector('[data-attribute="day"] label');
+        const label_month = this.querySelector('[data-attribute="month"] label');
+        const label_year = this.querySelector('[data-attribute="year"] label');
+        const input_day = this.querySelector('[data-attribute="day"] input');
+        const input_month = this.querySelector('[data-attribute="month"] input');
+        const input_year = this.querySelector('[data-attribute="year"] input');
+        associateLabelWithElement(label_day, input_day, 'day');
+        associateLabelWithElement(label_month, input_month, 'month');
+        associateLabelWithElement(label_year, input_year, 'year');
+        setAriaDescribedBy(fieldset, errorMessages, helpTexts);
+        this.#setInvalidForInput('day', input_day, errorMessages);
+        this.#setInvalidForInput('month', input_month, errorMessages);
+        this.#setInvalidForInput('year', input_year, errorMessages);
+        if (attributeName === 'hidden' && target === this) {
+          notifySummaryOnVisibilityChange(this);
+        }
+      }
     }
-    this.handleIdReferences();
-  }
-
-  /* Mandatory/optional */
-
-  #setInputRequired() {
-    if (!this.hasAttribute('input-required')) return;
-    if (!this.#fieldset) return;
-    const inputs = this.#fieldset.querySelectorAll('input');
-    inputs.forEach(input => {
-      input.setAttribute('required', '');
-    });
-  }
-  #removeInputRequired() {
-    if (!this.#fieldset) return;
-    const inputs = this.#fieldset.querySelectorAll('input');
-    inputs.forEach(input => {
-      input.removeAttribute('required');
-    });
-  }
-
-  /* Indicator */
-
-  #setIndicator() {
-    let value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-    if (!this.#legend) return;
-    if (!this.#legend.querySelector(':scope > span.weight-normal')) {
-      const span = document.createElement('span');
-      span.className = 'weight-normal';
-      this.#legend.appendChild(span);
-    }
-    const isRequired = this.hasAttribute('required') || this.hasAttribute('input-required') || this.hasAttribute('aria-required') && this.getAttribute('aria-required') !== 'false';
-    let text = value;
-    if (value === '' && isRequired) text = 'skal udfyldes';
-    if (value === '' && !isRequired) text = 'frivilligt';
-    const indicatorSpan = this.#legend.querySelector(':scope > span.weight-normal');
-    if (isRequired) {
-      indicatorSpan.textContent = ` (*${text})`;
-    } else {
-      indicatorSpan.textContent = ` (${text})`;
-    }
-  }
-  #removeIndicator() {
-    this.#legend?.querySelector(':scope > span.weight-normal')?.remove();
-  }
-
-  /* Disabled */
-
-  #shouldHaveDisabled(value) {
-    return value !== null && value !== 'false' && value !== false;
-  }
-  #setDisabled() {
-    this.#getFieldsetElement()?.setAttribute('disabled', '');
-    this.#getFieldsetElement()?.querySelector('legend').classList.add('disabled');
-    const labels = this.#getFieldsetElement()?.querySelectorAll('label');
-    if (labels?.length === 3) {
-      labels[0]?.classList.add('disabled');
-      labels[1]?.classList.add('disabled');
-      labels[2]?.classList.add('disabled');
-    }
-  }
-  #removeDisabled() {
-    this.#getFieldsetElement()?.removeAttribute('disabled');
-    this.#getFieldsetElement()?.querySelector('legend').classList.remove('disabled');
-    const labels = this.#getFieldsetElement()?.querySelectorAll('label');
-    if (labels?.length === 3) {
-      labels[0]?.classList.remove('disabled');
-      labels[1]?.classList.remove('disabled');
-      labels[2]?.classList.remove('disabled');
-    }
-  }
-  #processVisibilityChange(event) {
-    const {
-      detail
-    } = event;
-    const elementId = detail.errorId || detail.helptextId;
-    const isHidden = detail.isHidden;
-    const element = this.querySelector(`#${elementId}`);
-    if (element) {
-      element.hiddenStatus = isHidden;
-    }
-    this.handleIdReferences();
-  }
-  #isElementHidden = element => {
-    return element.hiddenStatus !== undefined ? element.hiddenStatus : element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'false';
   };
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
-
-  handleIdReferences() {
-    const formGroups = this.#fieldset.querySelectorAll('.form-group');
-    formGroups.forEach(formGroup => {
-      const input = formGroup.querySelector('input');
-      const label = formGroup.querySelector('label');
-      if (!input || !label) return;
-      if (!input.id) {
-        const attribute = formGroup.getAttribute('data-attribute') || 'date';
-        input.id = generateAndVerifyUniqueId(`dat-${attribute}-`);
-      }
-      label.htmlFor = input.id;
+  #setInvalidForInput(target, inputElement, errorMessages) {
+    const relevantErrors = Array.from(errorMessages).filter(errorMsg => {
+      const targets = errorMsg.getAttribute('targets');
+      return targets && targets.includes(target);
     });
-    const idsForAriaDescribedby = [];
-
-    // Add help text IDs
-    const helpTexts = this.#getHelpTextElements();
-    helpTexts.forEach(helptext => {
-      if (helptext.hasAttribute('id')) {
-        const isHidden = this.#isElementHidden(helptext);
-        if (!isHidden) {
-          idsForAriaDescribedby.push(helptext.id);
-        }
-      }
-    });
-
-    // Add error message IDs (fieldset level only)
-    const errorMessages = this.#getErrorMessages();
-    errorMessages.forEach(errorText => {
-      if (!errorText?.id || this.#isElementHidden(errorText) || errorText.hasAttribute('targets')) {
-        return;
-      }
-      idsForAriaDescribedby.push(errorText.id);
-    });
-    this.#connectErrorsToInputs();
-    if (idsForAriaDescribedby.length > 0) {
-      this.#fieldset.setAttribute('aria-describedby', idsForAriaDescribedby.join(' '));
-    } else {
-      this.#fieldset.removeAttribute('aria-describedby');
+    if (relevantErrors.length > 0) {
+      setInvalid(inputElement, relevantErrors);
     }
   }
-  setClasses() {
-    const labels = this.#fieldset.querySelectorAll('label');
-    const inputs = this.#fieldset.querySelectorAll('input');
-    labels.forEach(label => {
-      label.classList.add('form-label');
-    });
+  #init() {
+    this.#setupObserver();
+    const legend = this.querySelector('legend');
+    const fieldset = this.querySelector('fieldset');
+    const errorMessages = this.querySelectorAll('fds-error-message');
+    const helpTexts = this.querySelectorAll('fds-help-text');
+    const label_day = this.querySelector('[data-attribute="day"] label');
+    const label_month = this.querySelector('[data-attribute="month"] label');
+    const label_year = this.querySelector('[data-attribute="year"] label');
+    const input_day = this.querySelector('[data-attribute="day"] input');
+    const input_month = this.querySelector('[data-attribute="month"] input');
+    const input_year = this.querySelector('[data-attribute="year"] input');
+    associateLabelWithElement(label_day, input_day, 'day');
+    associateLabelWithElement(label_month, input_month, 'month');
+    associateLabelWithElement(label_year, input_year, 'year');
+    setAriaDescribedBy(fieldset, errorMessages, helpTexts);
+    this.#setInvalidForInput('day', input_day, errorMessages);
+    this.#setInvalidForInput('month', input_month, errorMessages);
+    this.#setInvalidForInput('year', input_year, errorMessages);
+    if (this.hasAttribute('show-required-status')) {
+      showRequiredStatus(legend, fieldset, this.getAttribute('show-required-status'));
+    }
+    this.#initialized = true;
+  }
+  #setReadonly() {
+    const inputs = this.querySelectorAll('input');
     inputs.forEach(input => {
-      input.classList.add('form-input');
+      if (this.hasAttribute('input-readonly')) {
+        input.setAttribute('readonly', '');
+      } else {
+        input.removeAttribute('readonly');
+      }
+    });
+  }
+  #setRequired() {
+    const inputs = this.querySelectorAll('input');
+    inputs.forEach(input => {
+      if (this.hasAttribute('input-required')) {
+        input.setAttribute('required', '');
+      } else {
+        input.removeAttribute('required');
+      }
     });
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['label', 'input-disabled', 'input-indicator', 'input-required'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
-
-  constructor() {
-    super();
-    this.#handleHelpTextCallback = () => {
-      this.handleIdReferences();
-    };
-    this.#handleVisibilityChange = event => {
-      this.#processVisibilityChange(event);
-    };
-    this.#handleErrorMessageCallback = event => {
-      if (event.detail?.errorId) {
-        this.#cleanupRemovedError(event.detail);
-      } else {
-        this.handleIdReferences();
-      }
-    };
-  }
+  static observedAttributes = ['show-required-status', 'input-readonly', 'input-required'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT ADDED TO DOCUMENT
   -------------------------------------------------- */
 
   connectedCallback() {
-    this.#setStructure();
-    this.#setLabel();
-    this.setClasses();
-    this.handleIdReferences();
-    if (this.hasAttribute('input-indicator')) this.#setIndicator(this.getAttribute('input-indicator'));
-    if (this.hasAttribute('input-required')) this.#setInputRequired();
-    if (this.#shouldHaveDisabled(this.getAttribute('input-disabled'))) this.#setDisabled();
-    this.addEventListener('help-text-callback', this.#handleHelpTextCallback);
-    this.addEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
-    this.addEventListener('error-message-callback', this.#handleErrorMessageCallback);
-    this.addEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
+    if (!this.#initialized) {
+      this.#init();
+    }
+    this.#setReadonly();
+    this.#setRequired();
   }
 
   /* --------------------------------------------------
@@ -8013,35 +7857,30 @@ class FDSDateInput extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
-    this.removeEventListener('help-text-callback', this.#handleHelpTextCallback);
-    this.removeEventListener('help-text-visibility-changed', this.#handleVisibilityChange);
-    this.removeEventListener('error-message-callback', this.#handleErrorMessageCallback);
-    this.removeEventListener('error-message-visibility-changed', this.#handleVisibilityChange);
+    notifySummaryOnDisconnect(this);
+    this.#initialized = false;
+    if (this.#dateInputObserver) {
+      this.#dateInputObserver.disconnect();
+      this.#dateInputObserver = null;
+    }
   }
 
   /* --------------------------------------------------
   CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
   -------------------------------------------------- */
 
-  attributeChangedCallback(name, oldValue, newValue) {
-    if (!this.isConnected) return;
-    if (name === 'label') {
-      this.#setLabel();
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (attribute === 'show-required-status' && oldValue !== newValue) {
+      const legend = this.querySelector('legend');
+      const fieldset = this.querySelector('fieldset');
+      showRequiredStatus(legend, fieldset, newValue);
     }
-    if (name === 'input-disabled' && oldValue !== newValue) {
-      this.#shouldHaveDisabled(newValue) ? this.#setDisabled() : this.#removeDisabled();
+    if (attribute === 'input-readonly' && oldValue !== newValue) {
+      this.#setReadonly();
     }
-    if (name === 'input-indicator') {
-      newValue !== null ? this.#setIndicator(newValue) : this.#removeIndicator();
-    }
-    if (name === 'input-required' && oldValue !== newValue) {
-      if (newValue !== null) {
-        this.#setInputRequired();
-        this.#setIndicator(this.getAttribute('input-indicator') || '');
-      } else {
-        this.#removeInputRequired();
-        this.#setIndicator(this.getAttribute('input-indicator') || '');
-      }
+    if (attribute === 'input-required' && oldValue !== newValue) {
+      this.#setRequired();
     }
   }
 }
