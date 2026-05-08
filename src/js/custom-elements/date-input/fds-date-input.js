@@ -66,7 +66,7 @@ class FDSDateInput extends HTMLElement {
                 attributeName === 'id' ||
                 attributeName === 'hidden' ||
                 attributeName === 'aria-hidden' ||
-                attributeName === 'class',
+                attributeName === 'class' ||
                 attributeName === 'targets') {
 
                 const legend = this.querySelector('legend');
@@ -267,9 +267,20 @@ class FDSDateInput extends HTMLElement {
         });
     }
 
+    #setInputId() {
+        const inputWrappers = this.querySelectorAll('div[data-attribute]');
+        inputWrappers.forEach(inputWrapper => {
+            const label = inputWrapper.querySelector('label');
+            const input = inputWrapper.querySelector('input');
+            if (this.getAttribute('input-id') !== null && this.getAttribute('input-id') !== '') {
+                input.id = `${inputWrapper.getAttribute('data-attribute')}-${this.getAttribute('input-id')}`;
+            }
+        });
+    }
+
     /* Attributes which can invoke attributeChangedCallback() */
 
-    static observedAttributes = ['show-required-status', 'input-readonly', 'input-required', 'legend'];
+    static observedAttributes = ['show-required-status', 'input-readonly', 'input-required', 'legend', 'input-id'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT
@@ -281,6 +292,7 @@ class FDSDateInput extends HTMLElement {
         if (this.hasAttribute('input-readonly')) { this.#setReadonly(); }
         if (this.hasAttribute('input-required')) { this.#setRequired(); }
         if (this.hasAttribute('legend')) { this.querySelector('legend').textContent = this.getAttribute('legend'); }
+        if (this.hasAttribute('input-id')) { this.#setInputId(); }
     }
 
     /* --------------------------------------------------
@@ -321,6 +333,10 @@ class FDSDateInput extends HTMLElement {
 
         if (attribute === 'legend' && oldValue !== newValue && newValue !== null) {
             this.querySelector('legend').textContent = newValue;
+        }
+
+        if (attribute === 'input-id' && oldValue !== newValue) {
+            this.#setInputId();
         }
     }
 }

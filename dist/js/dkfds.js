@@ -6468,10 +6468,12 @@ class FDSInput extends HTMLElement {
       }
       // Attributes which might affect aria-describedby
       else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class') {
+        const label = this.querySelector('label');
         const input = this.querySelector('input');
         const errorMessages = this.querySelectorAll('fds-error-message');
         const helpTexts = this.querySelectorAll('fds-help-text');
         const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+        associateLabelWithElement(label, input, 'inp');
         setAriaDescribedBy(input, errorMessages, helpTexts, characterLimit);
         setInvalid(input, errorMessages);
         if (attributeName === 'hidden' && target === this) {
@@ -7763,7 +7765,7 @@ class FDSDateInput extends HTMLElement {
         }
       }
       // Attributes which might affect aria-describedby
-      else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class', attributeName === 'targets') {
+      else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class' || attributeName === 'targets') {
         const legend = this.querySelector('legend');
         const fieldset = this.querySelector('fieldset');
         const errorMessages = this.querySelectorAll('fds-error-message');
@@ -7959,10 +7961,20 @@ class FDSDateInput extends HTMLElement {
       }
     });
   }
+  #setInputId() {
+    const inputWrappers = this.querySelectorAll('div[data-attribute]');
+    inputWrappers.forEach(inputWrapper => {
+      const label = inputWrapper.querySelector('label');
+      const input = inputWrapper.querySelector('input');
+      if (this.getAttribute('input-id') !== null && this.getAttribute('input-id') !== '') {
+        input.id = `${inputWrapper.getAttribute('data-attribute')}-${this.getAttribute('input-id')}`;
+      }
+    });
+  }
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['show-required-status', 'input-readonly', 'input-required', 'legend'];
+  static observedAttributes = ['show-required-status', 'input-readonly', 'input-required', 'legend', 'input-id'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT ADDED TO DOCUMENT
@@ -7980,6 +7992,9 @@ class FDSDateInput extends HTMLElement {
     }
     if (this.hasAttribute('legend')) {
       this.querySelector('legend').textContent = this.getAttribute('legend');
+    }
+    if (this.hasAttribute('input-id')) {
+      this.#setInputId();
     }
   }
 
@@ -8015,6 +8030,9 @@ class FDSDateInput extends HTMLElement {
     }
     if (attribute === 'legend' && oldValue !== newValue && newValue !== null) {
       this.querySelector('legend').textContent = newValue;
+    }
+    if (attribute === 'input-id' && oldValue !== newValue) {
+      this.#setInputId();
     }
   }
 }
@@ -8072,9 +8090,11 @@ class FDSSelect extends HTMLElement {
       }
       // Attributes which might affect aria-describedby
       else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class') {
+        const label = this.querySelector('label');
         const select = this.querySelector('select');
         const errorMessages = this.querySelectorAll('fds-error-message');
         const helpTexts = this.querySelectorAll('fds-help-text');
+        associateLabelWithElement(label, select, 'sel');
         setAriaDescribedBy(select, errorMessages, helpTexts);
         setInvalid(select, errorMessages);
         if (attributeName === 'hidden' && target === this) {
@@ -10725,10 +10745,12 @@ class FDSTextarea extends HTMLElement {
       }
       // Attributes which might affect aria-describedby
       else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class') {
+        const label = this.querySelector('label');
         const textarea = this.querySelector('textarea');
         const errorMessages = this.querySelectorAll('fds-error-message');
         const helpTexts = this.querySelectorAll('fds-help-text');
         const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+        associateLabelWithElement(label, textarea, 'tex');
         setAriaDescribedBy(textarea, errorMessages, helpTexts, characterLimit);
         setInvalid(textarea, errorMessages);
         if (attributeName === 'hidden' && target === this) {

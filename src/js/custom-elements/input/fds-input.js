@@ -54,11 +54,13 @@ class FDSInput extends HTMLElement {
                 attributeName === 'hidden' ||
                 attributeName === 'aria-hidden' ||
                 attributeName === 'class') {
+                const label = this.querySelector('label');
                 const input = this.querySelector('input');
                 const errorMessages = this.querySelectorAll('fds-error-message');
                 const helpTexts = this.querySelectorAll('fds-help-text');
                 const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
 
+                CE.associateLabelWithElement(label, input, 'inp');
                 CE.setAriaDescribedBy(input, errorMessages, helpTexts, characterLimit);
                 CE.setInvalid(input, errorMessages);
 
