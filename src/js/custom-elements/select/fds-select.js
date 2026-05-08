@@ -53,10 +53,12 @@ class FDSSelect extends HTMLElement {
                 attributeName === 'aria-hidden' ||
                 attributeName === 'class')
             {
+                const label = this.querySelector('label');
                 const select = this.querySelector('select');
                 const errorMessages = this.querySelectorAll('fds-error-message');
                 const helpTexts = this.querySelectorAll('fds-help-text');
 
+                CE.associateLabelWithElement(label, select, 'sel');
                 CE.setAriaDescribedBy(select, errorMessages, helpTexts);
                 CE.setInvalid(select, errorMessages);
 

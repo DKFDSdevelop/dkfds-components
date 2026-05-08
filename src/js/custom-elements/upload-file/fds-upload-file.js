@@ -623,32 +623,32 @@ class FDSUploadFile extends HTMLElement {
     CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
     -------------------------------------------------- */
 
-    attributeChangedCallback(name, oldValue, newValue) {
+    attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#initialized) return;
 
-        if (name === 'show-required-status' && oldValue !== newValue) {
+        if (attribute === 'show-required-status' && oldValue !== newValue) {
             this.#updateRequiredStatus();
         }
 
-        if (['dropzone-prefix', 'dropzone-link', 'dropzone-suffix'].includes(name) && oldValue !== newValue) {
+        if (['dropzone-prefix', 'dropzone-link', 'dropzone-suffix'].includes(attribute) && oldValue !== newValue) {
             if (this.#files.length === 0) {
                 this.#updateDropzoneContent();
             }
         }
 
-        if (name === 'file-list-header' && oldValue !== newValue) {
+        if (attribute === 'file-list-header' && oldValue !== newValue) {
             this.#setText('.fds-upload-title', this.#getFileListHeader());
         }
 
-        if (name === 'file-list-more' && oldValue !== newValue) {
+        if (attribute === 'file-list-more' && oldValue !== newValue) {
             this.#setText('.fds-upload-add-more', this.#getFileListMore());
         }
 
-        if (name === 'remove-text' && oldValue !== newValue) {
+        if (attribute === 'remove-text' && oldValue !== newValue) {
             this.#setFileItemsRemoveText();
         }
 
-        if (name === 'heading-level' && oldValue !== newValue) {
+        if (attribute === 'heading-level' && oldValue !== newValue) {
             this.#updateFileListHeadingLevel();
         }
     }

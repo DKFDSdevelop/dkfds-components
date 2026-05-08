@@ -54,11 +54,13 @@ class FDSInput extends HTMLElement {
                 attributeName === 'hidden' ||
                 attributeName === 'aria-hidden' ||
                 attributeName === 'class') {
+                const label = this.querySelector('label');
                 const input = this.querySelector('input');
                 const errorMessages = this.querySelectorAll('fds-error-message');
                 const helpTexts = this.querySelectorAll('fds-help-text');
                 const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
 
+                CE.associateLabelWithElement(label, input, 'inp');
                 CE.setAriaDescribedBy(input, errorMessages, helpTexts, characterLimit);
                 CE.setInvalid(input, errorMessages);
 
@@ -91,32 +93,22 @@ class FDSInput extends HTMLElement {
 
     /* Maxwidth */
 
-    #shouldHaveMaxwidth(value) {
-        return value !== null && value !== '';
-    }
-
     #setMaxwidth(value) {
         const input = this.querySelector('input');
 
         if (!input) return;
 
-        const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
-        input.classList.remove(maxwidthClass);
+        if (value !== '') {
+            const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
+            input.classList.remove(maxwidthClass);
 
-        if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
-            input.classList.add(`input-width-${value}`);
-        } else if (/^\d+$/.test(value)) {
-            input.classList.add(`input-char-${value}`);
+            if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
+                input.classList.add(`input-width-${value}`);
+            }
+            else if (/^\d+$/.test(value)) {
+                input.classList.add(`input-char-${value}`);
+            }
         }
-    }
-
-    #removeMaxwidth() {
-        const input = this.querySelector('input');
-
-        if (!input) return;
-
-        const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
-        input.classList.remove(maxwidthClass);
     }
 
     /* Attributes which can invoke attributeChangedCallback() */
@@ -137,7 +129,7 @@ class FDSInput extends HTMLElement {
     connectedCallback() {
         if (!this.#initialized) { this.#init(); }
 
-        if (this.#shouldHaveMaxwidth(this.getAttribute('input-maxwidth'))) this.#setMaxwidth(this.getAttribute('input-maxwidth'));
+        if (this.hasAttribute('input-maxwidth')) { this.#setMaxwidth(this.getAttribute('input-maxwidth')); }
     }
 
     /* --------------------------------------------------
@@ -169,7 +161,17 @@ class FDSInput extends HTMLElement {
         }
 
         if (attribute === 'input-maxwidth' && (oldValue !== newValue)) {
-            this.#shouldHaveMaxwidth(newValue) ? this.#setMaxwidth(newValue) : this.#removeMaxwidth();
+            if (this.hasAttribute('input-maxwidth')) {
+                this.#setMaxwidth(newValue);
+            }
+            // The attribute has previously been used but has now been removed from the element.
+            // Remove all classes set by the attribute from when it was used.
+            else {
+                const input = this.querySelector('input');
+                if (!input) return;
+                const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
+                input.classList.remove(maxwidthClass);
+            }
         }
     }
 }

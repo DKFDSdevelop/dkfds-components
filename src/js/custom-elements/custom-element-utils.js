@@ -67,33 +67,53 @@ export function createSvgIcon(pathD) {
  * text is used based on whether the element is required or not.
  *
  * @param {HTMLLabelElement} label - The label element to update.
- * @param {HTMLElement} element - The form element to check for required status.
+ * @param {HTMLElement|HTMLFieldSetElement} element - The form element or fieldset to check for required status.
  * @param {string|null} value - The value to display in the status indicator.
  */
 export function showRequiredStatus(label, element, value) {
     if (!label || !element) return;
-
+  
     let statusIndicator = label.querySelector(':scope > span.weight-normal');
-
+  
     if (value === null && statusIndicator) {
         statusIndicator.remove();
         return;
     }
-
+  
     if (!statusIndicator) {
         const span = document.createElement('span');
         span.className = 'weight-normal';
         label.appendChild(span);
         statusIndicator = span;
     }
-
-    const isRequired = element.hasAttribute('required') || (element.hasAttribute('aria-required') && element.getAttribute('aria-required') !== 'false');
-
+  
+    const isRequired = isElementRequired(element);
+  
     let text = value;
     if (value === '' && isRequired) text = 'skal udfyldes';
     if (value === '' && !isRequired) text = 'frivilligt';
-
+  
     statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
+}
+
+/**
+ * Determines whether a form element or fieldset is considered required.
+ * For fieldsets, returns true if any child form element is required.
+ *
+ * @param {HTMLElement|HTMLFieldSetElement} element - The element to check.
+ * @returns {boolean} Whether the element (or any child within a fieldset) is required.
+ */
+function isElementRequired(element) {
+    if (element instanceof HTMLFieldSetElement) {
+        const fields = element.querySelectorAll('input, select, textarea');
+        return Array.from(fields).some(field =>
+            field.hasAttribute('required') ||
+            (field.hasAttribute('aria-required') && field.getAttribute('aria-required') !== 'false')
+        );
+    }
+
+    return element.hasAttribute('required') ||
+        (element.hasAttribute('aria-required') && element.getAttribute('aria-required') !== 'false');
 }
 
 /**
@@ -156,10 +176,10 @@ export function setDisabledClass(label, element) {
 }
 
 /**
- * Sets the `aria-describedby` attribute on a form element based on
+ * Sets the `aria-describedby` attribute on a form element or fieldset based on
  * the IDs of visible error messages, help texts, and an optional character limit element.
  *
- * @param {HTMLElement} element - The form element to update.
+ * @param {HTMLElement|HTMLFieldSetElement} element - The form element or fieldset to update.
  * @param {NodeList} errorMessages - Error message elements to consider.
  * @param {NodeList} helpTexts - Help text elements to consider.
  * @param {HTMLElement|null} [characterLimit=null] - Optional character limit element to consider.

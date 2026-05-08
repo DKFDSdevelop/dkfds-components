@@ -54,11 +54,13 @@ class FDSTextarea extends HTMLElement {
                 attributeName === 'hidden' ||
                 attributeName === 'aria-hidden' ||
                 attributeName === 'class') {
+                const label = this.querySelector('label');
                 const textarea = this.querySelector('textarea');
                 const errorMessages = this.querySelectorAll('fds-error-message');
                 const helpTexts = this.querySelectorAll('fds-help-text');
                 const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
 
+                CE.associateLabelWithElement(label, textarea, 'tex');
                 CE.setAriaDescribedBy(textarea, errorMessages, helpTexts, characterLimit);
                 CE.setInvalid(textarea, errorMessages);
 

@@ -94,10 +94,10 @@ class FDSHelpText extends HTMLElement {
     CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
     -------------------------------------------------- */
 
-    attributeChangedCallback(name, oldValue, newValue) {
+    attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#rendered) return;
 
-        if (name === 'hidden' && oldValue !== newValue) {
+        if (attribute === 'hidden' && oldValue !== newValue) {
             if (this.#shouldBeHidden(newValue)) {
                 this.#setAriaHidden();
             } else {

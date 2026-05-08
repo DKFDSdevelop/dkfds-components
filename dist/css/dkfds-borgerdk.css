@@ -6624,7 +6624,8 @@ figure{
 fds-textarea textarea,
 .fds-textarea textarea, fds-date-picker input,
 .fds-date-picker input, fds-select select,
-.fds-select select, fds-input input,
+.fds-select select, fds-date-input input,
+.fds-date-input input, fds-input input,
 .fds-input input, .form-select, .form-input{
   appearance:none;
   display:block;
@@ -6637,11 +6638,13 @@ fds-textarea textarea,
 fds-textarea textarea:focus,
 .fds-textarea textarea:focus, fds-date-picker input:focus,
 .fds-date-picker input:focus, fds-select select:focus,
-.fds-select select:focus, fds-input input:focus,
+.fds-select select:focus, fds-date-input input:focus,
+.fds-date-input input:focus, fds-input input:focus,
 .fds-input input:focus, .form-select:focus, .form-input:focus, fds-textarea textarea.focus,
 .fds-textarea textarea.focus, fds-date-picker input.focus,
 .fds-date-picker input.focus, fds-select select.focus,
-.fds-select select.focus, fds-input input.focus,
+.fds-select select.focus, fds-date-input input.focus,
+.fds-date-input input.focus, fds-input input.focus,
 .fds-input input.focus, .focus.form-select, .focus.form-input{
   outline:3px solid #454545;
   outline-offset:1px;
@@ -13206,18 +13209,70 @@ fds-radio-button-group .tooltip-wrapper,
 
 fds-date-input,
 .fds-date-input{
-  display:flex;
-  align-items:flex-end;
+  display:block;
   margin-top:24px;
 }
 fds-date-input:first-child,
 .fds-date-input:first-child{
   margin-top:0;
 }
+fds-date-input legend,
+.fds-date-input legend{
+  font-size:1.6rem;
+  line-height:2.4rem;
+  font-weight:600;
+  color:#1a1a1a;
+  text-transform:none;
+}
+fds-date-input fieldset > div,
+.fds-date-input fieldset > div{
+  display:flex;
+  align-items:flex-end;
+  margin-top:8px;
+}
+fds-date-input fieldset:disabled label,
+.fds-date-input fieldset:disabled label{
+  color:#707070;
+}
+fds-date-input fieldset:disabled input,
+.fds-date-input fieldset:disabled input{
+  background-color:transparent;
+  border-color:#DCDCDC;
+  color:#707070;
+  cursor:not-allowed;
+}
 fds-date-input label,
 .fds-date-input label{
+  display:inline-block;
+  font-size:1.6rem;
+  line-height:2.4rem;
+  font-weight:600;
+  color:#1a1a1a;
+  text-transform:none;
   margin-top:0;
   font-weight:400;
+}
+fds-date-input input,
+.fds-date-input input{
+  border:1px solid #8E8E8E;
+  color:#1a1a1a;
+  font-size:1.6rem;
+  line-height:2.4rem;
+  padding:calc(8px - 1px) calc(16px - 1px);
+}
+fds-date-input input::placeholder,
+.fds-date-input input::placeholder{
+  color:#707070;
+  font-style:italic;
+  opacity:1;
+  font-weight:400;
+}
+fds-date-input input[readonly],
+.fds-date-input input[readonly]{
+  background-color:#F5F5F5;
+  color:#1a1a1a;
+  border:1px solid #DCDCDC;
+  cursor:default;
 }
 fds-date-input input[type=number]::-webkit-inner-spin-button,
 fds-date-input input[type=number]::-webkit-outer-spin-button,
@@ -13226,39 +13281,34 @@ fds-date-input input[type=number]::-webkit-outer-spin-button,
   appearance:none;
   margin:0;
 }
-fds-date-input .form-group-day,
-fds-date-input .form-group-month,
-fds-date-input .form-group-year,
-.fds-date-input .form-group-day,
-.fds-date-input .form-group-month,
-.fds-date-input .form-group-year{
+fds-date-input [data-attribute=day],
+fds-date-input [data-attribute=month],
+fds-date-input [data-attribute=year],
+.fds-date-input [data-attribute=day],
+.fds-date-input [data-attribute=month],
+.fds-date-input [data-attribute=year]{
   margin-right:16px;
   margin-top:0;
 }
-fds-date-input .form-group-day,
-fds-date-input .form-group-month,
-.fds-date-input .form-group-day,
-.fds-date-input .form-group-month{
+fds-date-input [data-attribute=day],
+fds-date-input [data-attribute=month],
+.fds-date-input [data-attribute=day],
+.fds-date-input [data-attribute=month]{
   width:calc(2px + 16px + 16px + 2ch);
 }
-fds-date-input .form-group-year,
-.fds-date-input .form-group-year{
+fds-date-input [data-attribute=year],
+.fds-date-input [data-attribute=year]{
   width:calc(2px + 16px + 16px + 4ch);
-}
-fds-date-input .button-open-calendar,
-.fds-date-input .button-open-calendar{
-  margin-bottom:8px;
-  display:inline-flex;
 }
 fds-date-input:has(fds-error-message:not([targets]):not([hidden]), fds-error-message:not([targets])[hidden=false]) input,
 .fds-date-input:has(fds-error-message:not([targets]):not([hidden]), fds-error-message:not([targets])[hidden=false]) input{
   border:2px solid #CC0000;
   padding:calc(8px - 2px) calc(16px - 2px);
 }
-fds-date-input:has(fds-error-message[targets*=year]:not([hidden]), fds-error-message[targets*=year][hidden=false]) .form-group[data-attribute=year] input, fds-date-input:has(fds-error-message[targets*=month]:not([hidden]), fds-error-message[targets*=month][hidden=false]) .form-group[data-attribute=month] input, fds-date-input:has(fds-error-message[targets*=day]:not([hidden]), fds-error-message[targets*=day][hidden=false]) .form-group[data-attribute=day] input,
-.fds-date-input:has(fds-error-message[targets*=year]:not([hidden]), fds-error-message[targets*=year][hidden=false]) .form-group[data-attribute=year] input,
-.fds-date-input:has(fds-error-message[targets*=month]:not([hidden]), fds-error-message[targets*=month][hidden=false]) .form-group[data-attribute=month] input,
-.fds-date-input:has(fds-error-message[targets*=day]:not([hidden]), fds-error-message[targets*=day][hidden=false]) .form-group[data-attribute=day] input{
+fds-date-input:has(fds-error-message[targets*=year]:not([hidden]), fds-error-message[targets*=year][hidden=false]) [data-attribute=year] input, fds-date-input:has(fds-error-message[targets*=month]:not([hidden]), fds-error-message[targets*=month][hidden=false]) [data-attribute=month] input, fds-date-input:has(fds-error-message[targets*=day]:not([hidden]), fds-error-message[targets*=day][hidden=false]) [data-attribute=day] input,
+.fds-date-input:has(fds-error-message[targets*=year]:not([hidden]), fds-error-message[targets*=year][hidden=false]) [data-attribute=year] input,
+.fds-date-input:has(fds-error-message[targets*=month]:not([hidden]), fds-error-message[targets*=month][hidden=false]) [data-attribute=month] input,
+.fds-date-input:has(fds-error-message[targets*=day]:not([hidden]), fds-error-message[targets*=day][hidden=false]) [data-attribute=day] input{
   border:2px solid #CC0000;
   padding:calc(8px - 2px) calc(16px - 2px);
 }
