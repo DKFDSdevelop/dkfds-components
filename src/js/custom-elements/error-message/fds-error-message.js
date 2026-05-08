@@ -137,19 +137,19 @@ class FDSErrorMessage extends HTMLElement {
     CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
     -------------------------------------------------- */
 
-    attributeChangedCallback(name, oldValue, newValue) {
+    attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#rendered) return;
 
-        if (name === 'icon-text' && oldValue !== newValue) {
+        if (attribute === 'icon-text' && oldValue !== newValue) {
             this.#iconText = newValue;
             this.querySelector(':scope > .alert-icon').setAttribute('aria-label', this.#iconText);
         }
 
-        if (name === 'hidden' && oldValue !== newValue) {
+        if (attribute === 'hidden' && oldValue !== newValue) {
             this.#notifyParent();
         }
 
-        if (name === 'message' && oldValue !== newValue) {
+        if (attribute === 'message' && oldValue !== newValue) {
             this.querySelector(':scope > .visible-message').textContent = newValue;
         }
 

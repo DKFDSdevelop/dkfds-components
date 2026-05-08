@@ -213,10 +213,10 @@ class FDSFileItem extends HTMLElement {
     CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
     -------------------------------------------------- */
 
-    attributeChangedCallback(name, oldValue, newValue) {
+    attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#initialized) return;
 
-        if (name === 'remove-text' && oldValue !== newValue) {
+        if (attribute === 'remove-text' && oldValue !== newValue) {
             if (this.#file && this.#fileId) {
                 this.#updateRemoveButtonText();
             }
