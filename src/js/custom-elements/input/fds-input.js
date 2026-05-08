@@ -91,32 +91,28 @@ class FDSInput extends HTMLElement {
 
     /* Maxwidth */
 
-    #shouldHaveMaxwidth(value) {
-        return value !== null && value !== '';
-    }
-
     #setMaxwidth(value) {
         const input = this.querySelector('input');
 
         if (!input) return;
 
-        const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
-        input.classList.remove(maxwidthClass);
+        if (this.hasAttribute('input-maxwidth')) {
+            if (value !== '') {
+                const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
+                input.classList.remove(maxwidthClass);
 
-        if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
-            input.classList.add(`input-width-${value}`);
-        } else if (/^\d+$/.test(value)) {
-            input.classList.add(`input-char-${value}`);
+                if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
+                    input.classList.add(`input-width-${value}`);
+                } 
+                else if (/^\d+$/.test(value)) {
+                    input.classList.add(`input-char-${value}`);
+                }
+            }
         }
-    }
-
-    #removeMaxwidth() {
-        const input = this.querySelector('input');
-
-        if (!input) return;
-
-        const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
-        input.classList.remove(maxwidthClass);
+        else {
+            const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
+            input.classList.remove(maxwidthClass);
+        }
     }
 
     /* Attributes which can invoke attributeChangedCallback() */
@@ -137,7 +133,7 @@ class FDSInput extends HTMLElement {
     connectedCallback() {
         if (!this.#initialized) { this.#init(); }
 
-        if (this.#shouldHaveMaxwidth(this.getAttribute('input-maxwidth'))) this.#setMaxwidth(this.getAttribute('input-maxwidth'));
+        this.#setMaxwidth(this.getAttribute('input-maxwidth'));
     }
 
     /* --------------------------------------------------
@@ -169,7 +165,7 @@ class FDSInput extends HTMLElement {
         }
 
         if (attribute === 'input-maxwidth' && (oldValue !== newValue)) {
-            this.#shouldHaveMaxwidth(newValue) ? this.#setMaxwidth(newValue) : this.#removeMaxwidth();
+            this.#setMaxwidth(newValue);
         }
     }
 }

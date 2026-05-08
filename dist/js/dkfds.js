@@ -6498,25 +6498,23 @@ class FDSInput extends HTMLElement {
 
   /* Maxwidth */
 
-  #shouldHaveMaxwidth(value) {
-    return value !== null && value !== '';
-  }
   #setMaxwidth(value) {
     const input = this.querySelector('input');
     if (!input) return;
-    const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
-    input.classList.remove(maxwidthClass);
-    if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
-      input.classList.add(`input-width-${value}`);
-    } else if (/^\d+$/.test(value)) {
-      input.classList.add(`input-char-${value}`);
+    if (this.hasAttribute('input-maxwidth')) {
+      if (value !== '') {
+        const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
+        input.classList.remove(maxwidthClass);
+        if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
+          input.classList.add(`input-width-${value}`);
+        } else if (/^\d+$/.test(value)) {
+          input.classList.add(`input-char-${value}`);
+        }
+      }
+    } else {
+      const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
+      input.classList.remove(maxwidthClass);
     }
-  }
-  #removeMaxwidth() {
-    const input = this.querySelector('input');
-    if (!input) return;
-    const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
-    input.classList.remove(maxwidthClass);
   }
 
   /* Attributes which can invoke attributeChangedCallback() */
@@ -6542,7 +6540,7 @@ class FDSInput extends HTMLElement {
     if (!this.#initialized) {
       this.#init();
     }
-    if (this.#shouldHaveMaxwidth(this.getAttribute('input-maxwidth'))) this.#setMaxwidth(this.getAttribute('input-maxwidth'));
+    this.#setMaxwidth(this.getAttribute('input-maxwidth'));
   }
 
   /* --------------------------------------------------
@@ -6570,7 +6568,7 @@ class FDSInput extends HTMLElement {
       showRequiredStatus(label, input, newValue);
     }
     if (attribute === 'input-maxwidth' && oldValue !== newValue) {
-      this.#shouldHaveMaxwidth(newValue) ? this.#setMaxwidth(newValue) : this.#removeMaxwidth();
+      this.#setMaxwidth(newValue);
     }
   }
 }
@@ -7819,9 +7817,11 @@ class FDSDateInput extends HTMLElement {
     const inputs = this.querySelectorAll('input');
     inputs.forEach(input => {
       if (this.hasAttribute('input-readonly')) {
-        input.setAttribute('readonly', '');
-      } else {
-        input.removeAttribute('readonly');
+        if (this.getAttribute('input-readonly') !== 'false') {
+          input.setAttribute('readonly', '');
+        } else {
+          input.removeAttribute('readonly');
+        }
       }
     });
   }
@@ -7829,9 +7829,11 @@ class FDSDateInput extends HTMLElement {
     const inputs = this.querySelectorAll('input');
     inputs.forEach(input => {
       if (this.hasAttribute('input-required')) {
-        input.setAttribute('required', '');
-      } else {
-        input.removeAttribute('required');
+        if (this.getAttribute('input-required') !== 'false') {
+          input.setAttribute('required', '');
+        } else {
+          input.removeAttribute('required');
+        }
       }
     });
   }
