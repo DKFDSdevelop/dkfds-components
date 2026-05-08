@@ -7787,6 +7787,124 @@ class FDSDateInput extends HTMLElement {
       }
     }
   };
+  #setupHTML() {
+    // Fieldset
+    let fieldset = this.querySelector('fieldset');
+    if (fieldset === null) {
+      fieldset = document.createElement('fieldset');
+      this.appendChild(fieldset);
+    }
+
+    // Legend
+    let legend = fieldset.querySelector('legend');
+    if (legend === null) {
+      legend = document.createElement('legend');
+      fieldset.appendChild(legend);
+    }
+    if (legend.textContent === '') {
+      legend.textContent = 'Indtast dato';
+    }
+
+    // Div wrapper
+    let divWrapper = fieldset.querySelector(':scope > div');
+    if (divWrapper === null) {
+      divWrapper = document.createElement('div');
+      fieldset.appendChild(divWrapper);
+    }
+
+    // Div for day input
+    let divDay = divWrapper.querySelector('[data-attribute="day"]');
+    if (divDay === null) {
+      divDay = document.createElement('div');
+      divDay.setAttribute('data-attribute', 'day');
+      divWrapper.appendChild(divDay);
+    }
+
+    // Div for month input
+    let divMonth = divWrapper.querySelector('[data-attribute="month"]');
+    if (divMonth === null) {
+      divMonth = document.createElement('div');
+      divMonth.setAttribute('data-attribute', 'month');
+      divWrapper.appendChild(divMonth);
+    }
+
+    // Div for year input
+    let divYear = divWrapper.querySelector('[data-attribute="year"]');
+    if (divYear === null) {
+      divYear = document.createElement('div');
+      divYear.setAttribute('data-attribute', 'year');
+      divWrapper.appendChild(divYear);
+    }
+
+    // Day label
+    let labelDay = divDay.querySelector('label');
+    if (labelDay === null) {
+      labelDay = document.createElement('label');
+      divDay.appendChild(labelDay);
+    }
+    if (labelDay.textContent === '') {
+      labelDay.textContent = 'Dag';
+    }
+
+    // Day input
+    let inputDay = divDay.querySelector('input');
+    if (inputDay === null) {
+      inputDay = document.createElement('input');
+      divDay.appendChild(inputDay);
+    }
+    if (!inputDay.hasAttribute('name')) {
+      inputDay.setAttribute('name', 'day');
+    }
+    if (!inputDay.hasAttribute('type')) {
+      inputDay.setAttribute('type', 'number');
+    }
+
+    // Month label
+    let labelMonth = divMonth.querySelector('label');
+    if (labelMonth === null) {
+      labelMonth = document.createElement('label');
+      divMonth.appendChild(labelMonth);
+    }
+    if (labelMonth.textContent === '') {
+      labelMonth.textContent = 'Måned';
+    }
+
+    // Month input
+    let inputMonth = divMonth.querySelector('input');
+    if (inputMonth === null) {
+      inputMonth = document.createElement('input');
+      divMonth.appendChild(inputMonth);
+    }
+    if (!inputMonth.hasAttribute('name')) {
+      inputMonth.setAttribute('name', 'month');
+    }
+    if (!inputMonth.hasAttribute('type')) {
+      inputMonth.setAttribute('type', 'number');
+    }
+
+    // Year label
+    let labelYear = divYear.querySelector('label');
+    if (labelYear === null) {
+      labelYear = document.createElement('label');
+      divYear.appendChild(labelYear);
+    }
+    if (labelYear.textContent === '') {
+      labelYear.textContent = 'År';
+    }
+
+    // Year input
+    let inputYear = divYear.querySelector('input');
+    if (inputYear === null) {
+      inputYear = document.createElement('input');
+      divYear.appendChild(inputYear);
+    }
+    if (!inputYear.hasAttribute('name')) {
+      inputYear.setAttribute('name', 'year');
+    }
+    if (!inputYear.hasAttribute('type')) {
+      inputYear.setAttribute('type', 'number');
+    }
+  }
   #setInvalidForInput(target, inputElement, errorMessages) {
     const relevantErrors = Array.from(errorMessages).filter(errorMsg => {
       const targets = errorMsg.getAttribute('targets');
@@ -7797,6 +7915,7 @@ class FDSDateInput extends HTMLElement {
     }
   }
   #init() {
+    this.#setupHTML();
     this.#setupObserver();
     const legend = this.querySelector('legend');
     const fieldset = this.querySelector('fieldset');
@@ -7843,7 +7962,7 @@ class FDSDateInput extends HTMLElement {
 
   /* Attributes which can invoke attributeChangedCallback() */
 
-  static observedAttributes = ['show-required-status', 'input-readonly', 'input-required'];
+  static observedAttributes = ['show-required-status', 'input-readonly', 'input-required', 'legend'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT ADDED TO DOCUMENT
@@ -7858,6 +7977,9 @@ class FDSDateInput extends HTMLElement {
     }
     if (this.hasAttribute('input-required')) {
       this.#setRequired();
+    }
+    if (this.hasAttribute('legend')) {
+      this.querySelector('legend').textContent = this.getAttribute('legend');
     }
   }
 
@@ -7890,6 +8012,9 @@ class FDSDateInput extends HTMLElement {
     }
     if (attribute === 'input-required' && oldValue !== newValue) {
       this.#setRequired();
+    }
+    if (attribute === 'legend' && oldValue !== newValue && newValue !== null) {
+      this.querySelector('legend').textContent = newValue;
     }
   }
 }
