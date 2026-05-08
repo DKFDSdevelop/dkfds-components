@@ -145,13 +145,11 @@ class FDSDateInput extends HTMLElement {
     #setReadonly() {
         const inputs = this.querySelectorAll('input');
         inputs.forEach(input => {
-            if (this.hasAttribute('input-readonly')) {
-                if (this.getAttribute('input-readonly') !== 'false') {
-                    input.setAttribute('readonly', '');
-                }
-                else {
-                    input.removeAttribute('readonly');
-                }
+            if (this.getAttribute('input-readonly') !== null && this.getAttribute('input-readonly') !== 'false') {
+                input.setAttribute('readonly', '');
+            }
+            else {
+                input.removeAttribute('readonly');
             }
         });
     }
@@ -159,13 +157,11 @@ class FDSDateInput extends HTMLElement {
     #setRequired() {
         const inputs = this.querySelectorAll('input');
         inputs.forEach(input => {
-            if (this.hasAttribute('input-required')) {
-                if (this.getAttribute('input-required') !== 'false') {
-                    input.setAttribute('required', '');
-                }
-                else {
-                    input.removeAttribute('required');
-                }
+            if (this.getAttribute('input-required') !== null && this.getAttribute('input-required') !== 'false') {
+                input.setAttribute('required', '');
+            }
+            else {
+                input.removeAttribute('required');
             }
         });
     }
@@ -181,8 +177,8 @@ class FDSDateInput extends HTMLElement {
     connectedCallback() {
         if (!this.#initialized) { this.#init(); }
 
-        this.#setReadonly();
-        this.#setRequired();
+        if (this.hasAttribute('input-readonly')) { this.#setReadonly(); }
+        if (this.hasAttribute('input-required')) { this.#setRequired(); }
     }
 
     /* --------------------------------------------------
