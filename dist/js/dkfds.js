@@ -3220,6 +3220,8 @@ __webpack_require__.d(__webpack_exports__, {
   registerHelpText: () => (/* reexport */ fds_help_text),
   registerInput: () => (/* reexport */ fds_input),
   registerInputAffix: () => (/* reexport */ input_affix),
+  registerMenuDrawer: () => (/* reexport */ fds_menu_drawer),
+  registerMenuDrawerButton: () => (/* reexport */ fds_menu_drawer_button),
   registerRadioButton: () => (/* reexport */ fds_radio_button),
   registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
   registerSelect: () => (/* reexport */ fds_select),
@@ -11257,6 +11259,444 @@ function registerInputAffix() {
   }
 }
 /* harmony default export */ const input_affix = (registerInputAffix);
+;// ./src/js/custom-elements/header/fds-menu-drawer.js
+
+
+
+class FDSMenuDrawer extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized;
+  #handleCloseClick;
+  #handleKeydown;
+
+  /* Private methods */
+
+  #getCloseButtonElement() {
+    return this.querySelector(':scope > .menu-top .button-menu-close, :scope > .menu-top button');
+  }
+  #getMenuTopElement() {
+    return this.querySelector(':scope > .menu-top');
+  }
+  #getHeadingElement() {
+    return this.querySelector(':scope > .menu-top h1, :scope > .menu-top h2, :scope > .menu-top h3, :scope > .menu-top h4, :scope > .menu-top h5, :scope > .menu-top h6');
+  }
+  #getValidMenuTopElement() {
+    const firstElementChild = this.firstElementChild;
+    if (!firstElementChild) return null;
+    const headingElement = firstElementChild.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
+    const closeButton = firstElementChild.querySelector(':scope > button');
+    if (!headingElement || !closeButton) return null;
+    return firstElementChild;
+  }
+  #createMenuTopElement() {
+    const menuTopElement = document.createElement('div');
+    menuTopElement.classList.add('menu-top');
+    const headingElement = document.createElement('h2');
+    headingElement.classList.add('menu-heading');
+    headingElement.textContent = this.getAttribute('heading') || '';
+    const closeButtonText = this.getAttribute('close-button-text') || 'Luk';
+    const closeButtonElement = document.createElement('button');
+    closeButtonElement.classList.add('button-menu-close', 'function-link');
+    closeButtonElement.setAttribute('type', 'button');
+    closeButtonElement.setAttribute('aria-label', `${closeButtonText} menu`);
+    const iconElement = this.#createCloseIconElement();
+    const closeButtonTextElement = document.createElement('span');
+    closeButtonTextElement.textContent = closeButtonText;
+    closeButtonElement.appendChild(iconElement);
+    closeButtonElement.appendChild(closeButtonTextElement);
+    menuTopElement.appendChild(headingElement);
+    menuTopElement.appendChild(closeButtonElement);
+    return menuTopElement;
+  }
+  #createCloseIconElement() {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.classList.add('icon-svg');
+    svg.setAttribute('focusable', 'false');
+    svg.setAttribute('aria-hidden', 'true');
+    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttributeNS(null, 'href', '#close');
+    svg.appendChild(use);
+    return svg;
+  }
+  #ensureDOM() {
+    this.classList.add('mobile-drawer');
+    const hasAttributeMode = this.hasAttribute('heading') && this.hasAttribute('close-button-text');
+    let menuTopElement = this.#getMenuTopElement();
+
+    // Attribute mode:
+    // Only activated when both heading and close-button-text are present.
+    if (hasAttributeMode) {
+      if (!menuTopElement) {
+        menuTopElement = this.#createMenuTopElement();
+        this.prepend(menuTopElement);
+      }
+    }
+
+    // Enhance mode:
+    // Only used when attribute mode is not active. The component must already contain valid HTML.
+    if (!hasAttributeMode) {
+      menuTopElement = this.#getValidMenuTopElement();
+      if (!menuTopElement) {
+        return false;
+      }
+      menuTopElement.classList.add('menu-top');
+    }
+    const headingElement = this.#getHeadingElement();
+    if (!headingElement) {
+      return false;
+    }
+    headingElement.classList.add('menu-heading');
+    const closeButton = this.#getCloseButtonElement();
+    if (!closeButton) {
+      return false;
+    }
+    closeButton.setAttribute('type', closeButton.getAttribute('type') || 'button');
+    closeButton.classList.add('button-menu-close', 'function-link');
+    if (!this.hasAttribute('role')) {
+      this.setAttribute('role', 'dialog');
+    }
+    if (!this.hasAttribute('aria-modal')) {
+      this.setAttribute('aria-modal', 'true');
+    }
+    if (!this.hasAttribute('tabindex')) {
+      this.setAttribute('tabindex', '-1');
+    }
+    this.#ensureHeadingId();
+    return true;
+  }
+  #ensureHeadingId() {
+    const headingElement = this.#getHeadingElement();
+    if (!headingElement) return;
+    if (!headingElement.id) {
+      headingElement.id = generateAndVerifyUniqueId('menu-drawer-heading');
+    }
+    if (!this.hasAttribute('aria-labelledby')) {
+      this.setAttribute('aria-labelledby', headingElement.id);
+    }
+  }
+  #updateHeading(heading) {
+    const headingElement = this.#getHeadingElement();
+    if (headingElement) {
+      headingElement.textContent = heading || '';
+    }
+  }
+  #updateCloseButtonText(closeButtonText) {
+    const closeButton = this.#getCloseButtonElement();
+    const closeButtonTextElement = closeButton?.querySelector(':scope > span');
+    if (closeButtonTextElement) {
+      closeButtonTextElement.textContent = closeButtonText || '';
+    }
+    if (closeButton) {
+      closeButton.setAttribute('aria-label', closeButtonText ? `${closeButtonText} menu` : '');
+    }
+  }
+  #syncAll() {
+    this.#updateOpen(this.getAttribute('open'));
+  }
+  #updateOpen(open) {
+    const isOpen = open !== null && open !== 'false';
+    this.#setOpenState(isOpen);
+  }
+  #setOpenState(isOpen) {
+    this.classList.toggle('is-visible', isOpen);
+    this.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+    if (isOpen) {
+      this.focus();
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['open', 'ready', 'heading', 'close-button-text'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+    this.#initialized = false;
+    this.#handleCloseClick = () => {
+      this.closeDrawer();
+    };
+    this.#handleKeydown = event => {
+      if (event.key === 'Escape' && this.isOpen()) {
+        this.closeDrawer();
+      }
+    };
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  init() {
+    if (this.#initialized) return;
+    const isValid = this.#ensureDOM();
+    if (!isValid) return;
+    this.#syncAll();
+    this.#getCloseButtonElement()?.addEventListener('click', this.#handleCloseClick, false);
+    document.addEventListener('keydown', this.#handleKeydown, false);
+    this.#initialized = true;
+  }
+  openDrawer() {
+    if (this.isOpen()) return;
+    this.setAttribute('open', 'true');
+    this.dispatchEvent(new CustomEvent('fds-menu-drawer-opened', {
+      bubbles: true
+    }));
+  }
+  closeDrawer() {
+    if (!this.isOpen()) return;
+    this.setAttribute('open', 'false');
+    this.dispatchEvent(new CustomEvent('fds-menu-drawer-closed', {
+      bubbles: true
+    }));
+  }
+  toggleDrawer() {
+    this.isOpen() ? this.closeDrawer() : this.openDrawer();
+  }
+  isOpen() {
+    return this.hasAttribute('open') && this.getAttribute('open') !== 'false';
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#getCloseButtonElement()?.removeEventListener('click', this.#handleCloseClick, false);
+    document.removeEventListener('keydown', this.#handleKeydown, false);
+    this.#initialized = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+    if (!this.#initialized) return;
+    if (attribute === 'open' && oldValue !== newValue) {
+      this.#updateOpen(newValue);
+    }
+    if (attribute === 'heading' && oldValue !== newValue) {
+      this.#updateHeading(newValue);
+    }
+    if (attribute === 'close-button-text' && oldValue !== newValue) {
+      this.#updateCloseButtonText(newValue);
+    }
+  }
+}
+function registerMenuDrawer() {
+  if (customElements.get('fds-menu-drawer') === undefined) {
+    window.customElements.define('fds-menu-drawer', FDSMenuDrawer);
+  }
+}
+/* harmony default export */ const fds_menu_drawer = (registerMenuDrawer);
+;// ./src/js/custom-elements/header/fds-menu-drawer-button.js
+
+
+class FDSMenuDrawerButton extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized;
+  #button;
+  #drawer;
+  #handleButtonClick;
+  #handleDrawerOpened;
+  #handleDrawerClosed;
+
+  /* Private methods */
+
+  #getButtonElement() {
+    return this.querySelector(':scope > button');
+  }
+  #getDrawerElement() {
+    return document.getElementById(this.getAttribute('drawer'));
+  }
+  #createButtonElement() {
+    const buttonElement = document.createElement('button');
+    buttonElement.classList.add('function-link');
+    buttonElement.setAttribute('type', 'button');
+    const iconElement = this.#createIconElement();
+    const textElement = document.createElement('span');
+    textElement.textContent = this.getAttribute('button-text') || '';
+    buttonElement.appendChild(iconElement);
+    buttonElement.appendChild(textElement);
+    return buttonElement;
+  }
+  #createIconElement() {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.classList.add('icon-svg');
+    svg.setAttribute('focusable', 'false');
+    svg.setAttribute('aria-hidden', 'true');
+    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttributeNS(null, 'href', '#menu');
+    svg.appendChild(use);
+    return svg;
+  }
+  #ensureDOM() {
+    let buttonElement = this.#getButtonElement();
+
+    // Attribute mode:
+    // No button markup provided - create canonical structure only when both drawer and button-text are present.
+    if (!buttonElement) {
+      if (!this.hasAttribute('drawer') || !this.hasAttribute('button-text')) {
+        console.warn('<fds-menu-drawer-button> Missing child button. To generate one, provide both drawer and button-text attributes.');
+        return false;
+      }
+      buttonElement = this.#createButtonElement();
+      this.appendChild(buttonElement);
+    }
+
+    // Enhance mode:
+    // Button exists - enhance the provided/generated structure.
+    buttonElement.classList.add('function-link');
+    buttonElement.setAttribute('type', buttonElement.getAttribute('type') || 'button');
+    buttonElement.setAttribute('aria-haspopup', 'dialog');
+    this.#button = buttonElement;
+    this.#drawer = this.#getDrawerElement();
+    return true;
+  }
+  #updateDrawerReference() {
+    this.#removeEventListeners();
+    this.#drawer = this.#getDrawerElement();
+    this.#syncControls();
+    this.#syncExpanded();
+    this.#addEventListeners();
+  }
+  #updateButtonText(buttonText) {
+    const textElement = this.#button?.querySelector(':scope > span');
+    if (textElement) {
+      textElement.textContent = buttonText || '';
+    }
+  }
+  #syncControls() {
+    if (!this.#button) return;
+    const drawerId = this.getAttribute('drawer');
+    if (drawerId) {
+      this.#button.setAttribute('aria-controls', drawerId);
+    } else {
+      this.#button.removeAttribute('aria-controls');
+    }
+  }
+  #syncExpanded() {
+    if (!this.#button) return;
+    this.#button.setAttribute('aria-expanded', this.#drawer?.isOpen?.() ? 'true' : 'false');
+  }
+  #syncAll() {
+    this.#syncControls();
+    this.#syncExpanded();
+  }
+  #addEventListeners() {
+    if (!this.#button) return;
+    this.#button.addEventListener('click', this.#handleButtonClick, false);
+    if (this.#drawer) {
+      this.#drawer.addEventListener('fds-menu-drawer-opened', this.#handleDrawerOpened, false);
+      this.#drawer.addEventListener('fds-menu-drawer-closed', this.#handleDrawerClosed, false);
+    }
+  }
+  #removeEventListeners() {
+    this.#button?.removeEventListener('click', this.#handleButtonClick, false);
+    if (this.#drawer) {
+      this.#drawer.removeEventListener('fds-menu-drawer-opened', this.#handleDrawerOpened, false);
+      this.#drawer.removeEventListener('fds-menu-drawer-closed', this.#handleDrawerClosed, false);
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['drawer', 'button-text'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+    this.#initialized = false;
+    this.#button = null;
+    this.#drawer = null;
+    this.#handleButtonClick = () => {
+      this.#drawer?.toggleDrawer?.();
+    };
+    this.#handleDrawerOpened = () => {
+      this.#syncExpanded();
+    };
+    this.#handleDrawerClosed = () => {
+      this.#syncExpanded();
+      this.#button?.focus();
+    };
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  init() {
+    if (this.#initialized) return;
+    const isValid = this.#ensureDOM();
+    if (!isValid) return;
+    this.#syncAll();
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    this.init();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+    this.#button = null;
+    this.#drawer = null;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (attribute === 'drawer') {
+      this.#updateDrawerReference();
+    }
+    if (attribute === 'button-text') {
+      this.#updateButtonText(newValue);
+    }
+  }
+}
+function registerMenuDrawerButton() {
+  if (customElements.get('fds-menu-drawer-button') === undefined) {
+    window.customElements.define('fds-menu-drawer-button', FDSMenuDrawerButton);
+  }
+}
+/* harmony default export */ const fds_menu_drawer_button = (registerMenuDrawerButton);
 ;// ./src/js/dkfds.js
 
 
@@ -11280,6 +11720,8 @@ function registerInputAffix() {
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 // Custom elements
+
+
 
 
 
@@ -11506,6 +11948,8 @@ const registerCustomElements = () => {
   fds_file_item();
   fds_error_summary();
   input_affix();
+  fds_menu_drawer();
+  fds_menu_drawer_button();
 };
 registerCustomElements();
 
