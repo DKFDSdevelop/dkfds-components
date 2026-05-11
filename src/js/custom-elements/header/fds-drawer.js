@@ -2,7 +2,7 @@
 
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
-class FDSMenuDrawer extends HTMLElement {
+class FDSDrawer extends HTMLElement {
 
     /* Private instance fields */
 
@@ -154,7 +154,7 @@ class FDSMenuDrawer extends HTMLElement {
         if (!headingElement) return;
 
         if (!headingElement.id) {
-            headingElement.id = generateAndVerifyUniqueId('menu-drawer-heading');
+            headingElement.id = generateAndVerifyUniqueId('drawer-heading');
         }
 
         if (!this.hasAttribute('aria-labelledby')) {
@@ -245,14 +245,14 @@ class FDSMenuDrawer extends HTMLElement {
         if (this.isOpen()) return;
 
         this.setAttribute('open', 'true');
-        this.dispatchEvent(new CustomEvent('fds-menu-drawer-opened', { bubbles: true }));
+        this.dispatchEvent(new CustomEvent('fds-drawer-opened', { bubbles: true }));
     }
 
     closeDrawer() {
         if (!this.isOpen()) return;
 
         this.setAttribute('open', 'false');
-        this.dispatchEvent(new CustomEvent('fds-menu-drawer-closed', { bubbles: true }));
+        this.dispatchEvent(new CustomEvent('fds-drawer-closed', { bubbles: true }));
     }
 
     toggleDrawer() {
@@ -313,10 +313,10 @@ class FDSMenuDrawer extends HTMLElement {
     }
 }
 
-function registerMenuDrawer() {
-    if (customElements.get('fds-menu-drawer') === undefined) {
-        window.customElements.define('fds-menu-drawer', FDSMenuDrawer);
+function registerDrawer() {
+    if (customElements.get('fds-drawer') === undefined) {
+        window.customElements.define('fds-drawer', FDSDrawer);
     }
 }
 
-export default registerMenuDrawer;
+export default registerDrawer;

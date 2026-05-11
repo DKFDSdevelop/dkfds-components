@@ -2,7 +2,7 @@
 @use "../functions" as func;
 @use "../mixins" as mixins;
 
-fds-menu-drawer {
+fds-drawer {
     $sliding-panel-width: 85%;
 
     display: none;
@@ -20,7 +20,7 @@ fds-menu-drawer {
     &[open]:not([open="false"]),
     &.is-visible {
         display: block;
-        animation: fds-menu-drawer-slidein-left 0.3s ease-in-out;
+        animation: fds-drawer-slidein-left 0.3s ease-in-out;
     }
 
     @include mixins.media-breakpoint-up(vars.$nav-responsive-breakpoint) {
@@ -64,7 +64,7 @@ fds-menu-drawer {
     }
 }
 
-@keyframes fds-menu-drawer-slidein-left {
+@keyframes fds-drawer-slidein-left {
     from {
         transform: translateX(85%);
     }

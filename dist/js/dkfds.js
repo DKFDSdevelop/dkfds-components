@@ -3214,14 +3214,14 @@ __webpack_require__.d(__webpack_exports__, {
   registerDateInput: () => (/* reexport */ fds_date_input),
   registerDatePicker: () => (/* reexport */ fds_date_picker),
   registerDatePickerGrid: () => (/* reexport */ fds_date_picker_grid),
+  registerDrawer: () => (/* reexport */ fds_drawer),
+  registerDrawerButton: () => (/* reexport */ fds_drawer_button),
   registerErrorMessage: () => (/* reexport */ fds_error_message),
   registerErrorSummary: () => (/* reexport */ fds_error_summary),
   registerFileItem: () => (/* reexport */ fds_file_item),
   registerHelpText: () => (/* reexport */ fds_help_text),
   registerInput: () => (/* reexport */ fds_input),
   registerInputAffix: () => (/* reexport */ input_affix),
-  registerMenuDrawer: () => (/* reexport */ fds_menu_drawer),
-  registerMenuDrawerButton: () => (/* reexport */ fds_menu_drawer_button),
   registerRadioButton: () => (/* reexport */ fds_radio_button),
   registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
   registerSelect: () => (/* reexport */ fds_select),
@@ -11254,11 +11254,11 @@ function registerInputAffix() {
   }
 }
 /* harmony default export */ const input_affix = (registerInputAffix);
-;// ./src/js/custom-elements/header/fds-menu-drawer.js
+;// ./src/js/custom-elements/header/fds-drawer.js
 
 
 
-class FDSMenuDrawer extends HTMLElement {
+class FDSDrawer extends HTMLElement {
   /* Private instance fields */
 
   #initialized;
@@ -11364,7 +11364,7 @@ class FDSMenuDrawer extends HTMLElement {
     const headingElement = this.#getHeadingElement();
     if (!headingElement) return;
     if (!headingElement.id) {
-      headingElement.id = generateAndVerifyUniqueId('menu-drawer-heading');
+      headingElement.id = generateAndVerifyUniqueId('drawer-heading');
     }
     if (!this.hasAttribute('aria-labelledby')) {
       this.setAttribute('aria-labelledby', headingElement.id);
@@ -11438,14 +11438,14 @@ class FDSMenuDrawer extends HTMLElement {
   openDrawer() {
     if (this.isOpen()) return;
     this.setAttribute('open', 'true');
-    this.dispatchEvent(new CustomEvent('fds-menu-drawer-opened', {
+    this.dispatchEvent(new CustomEvent('fds-drawer-opened', {
       bubbles: true
     }));
   }
   closeDrawer() {
     if (!this.isOpen()) return;
     this.setAttribute('open', 'false');
-    this.dispatchEvent(new CustomEvent('fds-menu-drawer-closed', {
+    this.dispatchEvent(new CustomEvent('fds-drawer-closed', {
       bubbles: true
     }));
   }
@@ -11498,16 +11498,16 @@ class FDSMenuDrawer extends HTMLElement {
     }
   }
 }
-function registerMenuDrawer() {
-  if (customElements.get('fds-menu-drawer') === undefined) {
-    window.customElements.define('fds-menu-drawer', FDSMenuDrawer);
+function registerDrawer() {
+  if (customElements.get('fds-drawer') === undefined) {
+    window.customElements.define('fds-drawer', FDSDrawer);
   }
 }
-/* harmony default export */ const fds_menu_drawer = (registerMenuDrawer);
-;// ./src/js/custom-elements/header/fds-menu-drawer-button.js
+/* harmony default export */ const fds_drawer = (registerDrawer);
+;// ./src/js/custom-elements/header/fds-drawer-button.js
 
 
-class FDSMenuDrawerButton extends HTMLElement {
+class FDSDrawerButton extends HTMLElement {
   /* Private instance fields */
 
   #initialized;
@@ -11553,7 +11553,7 @@ class FDSMenuDrawerButton extends HTMLElement {
     // No button markup provided - create canonical structure only when both drawer and button-text are present.
     if (!buttonElement) {
       if (!this.hasAttribute('drawer') || !this.hasAttribute('button-text')) {
-        console.warn('<fds-menu-drawer-button> Missing child button. To generate one, provide both drawer and button-text attributes.');
+        console.warn('<fds-drawer-button> Missing child button. To generate one, provide both drawer and button-text attributes.');
         return false;
       }
       buttonElement = this.#createButtonElement();
@@ -11603,15 +11603,15 @@ class FDSMenuDrawerButton extends HTMLElement {
     if (!this.#button) return;
     this.#button.addEventListener('click', this.#handleButtonClick, false);
     if (this.#drawer) {
-      this.#drawer.addEventListener('fds-menu-drawer-opened', this.#handleDrawerOpened, false);
-      this.#drawer.addEventListener('fds-menu-drawer-closed', this.#handleDrawerClosed, false);
+      this.#drawer.addEventListener('fds-drawer-opened', this.#handleDrawerOpened, false);
+      this.#drawer.addEventListener('fds-drawer-closed', this.#handleDrawerClosed, false);
     }
   }
   #removeEventListeners() {
     this.#button?.removeEventListener('click', this.#handleButtonClick, false);
     if (this.#drawer) {
-      this.#drawer.removeEventListener('fds-menu-drawer-opened', this.#handleDrawerOpened, false);
-      this.#drawer.removeEventListener('fds-menu-drawer-closed', this.#handleDrawerClosed, false);
+      this.#drawer.removeEventListener('fds-drawer-opened', this.#handleDrawerOpened, false);
+      this.#drawer.removeEventListener('fds-drawer-closed', this.#handleDrawerClosed, false);
     }
   }
 
@@ -11686,12 +11686,12 @@ class FDSMenuDrawerButton extends HTMLElement {
     }
   }
 }
-function registerMenuDrawerButton() {
-  if (customElements.get('fds-menu-drawer-button') === undefined) {
-    window.customElements.define('fds-menu-drawer-button', FDSMenuDrawerButton);
+function registerDrawerButton() {
+  if (customElements.get('fds-drawer-button') === undefined) {
+    window.customElements.define('fds-drawer-button', FDSDrawerButton);
   }
 }
-/* harmony default export */ const fds_menu_drawer_button = (registerMenuDrawerButton);
+/* harmony default export */ const fds_drawer_button = (registerDrawerButton);
 ;// ./src/js/dkfds.js
 
 
@@ -11943,8 +11943,8 @@ const registerCustomElements = () => {
   fds_file_item();
   fds_error_summary();
   input_affix();
-  fds_menu_drawer();
-  fds_menu_drawer_button();
+  fds_drawer();
+  fds_drawer_button();
 };
 registerCustomElements();
 

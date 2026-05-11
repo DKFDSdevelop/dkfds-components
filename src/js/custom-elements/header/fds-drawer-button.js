@@ -1,6 +1,6 @@
 'use strict';
 
-class FDSMenuDrawerButton extends HTMLElement {
+class FDSDrawerButton extends HTMLElement {
 
     /* Private instance fields */
 
@@ -58,7 +58,7 @@ class FDSMenuDrawerButton extends HTMLElement {
         // No button markup provided - create canonical structure only when both drawer and button-text are present.
         if (!buttonElement) {
             if (!this.hasAttribute('drawer') || !this.hasAttribute('button-text')) {
-                console.warn('<fds-menu-drawer-button> Missing child button. To generate one, provide both drawer and button-text attributes.');
+                console.warn('<fds-drawer-button> Missing child button. To generate one, provide both drawer and button-text attributes.');
                 return false;
             }
 
@@ -129,13 +129,13 @@ class FDSMenuDrawerButton extends HTMLElement {
 
         if (this.#drawer) {
             this.#drawer.addEventListener(
-                'fds-menu-drawer-opened',
+                'fds-drawer-opened',
                 this.#handleDrawerOpened,
                 false
             );
 
             this.#drawer.addEventListener(
-                'fds-menu-drawer-closed',
+                'fds-drawer-closed',
                 this.#handleDrawerClosed,
                 false
             );
@@ -147,13 +147,13 @@ class FDSMenuDrawerButton extends HTMLElement {
 
         if (this.#drawer) {
             this.#drawer.removeEventListener(
-                'fds-menu-drawer-opened',
+                'fds-drawer-opened',
                 this.#handleDrawerOpened,
                 false
             );
 
             this.#drawer.removeEventListener(
-                'fds-menu-drawer-closed',
+                'fds-drawer-closed',
                 this.#handleDrawerClosed,
                 false
             );
@@ -232,10 +232,10 @@ class FDSMenuDrawerButton extends HTMLElement {
     }
 }
 
-function registerMenuDrawerButton() {
-    if (customElements.get('fds-menu-drawer-button') === undefined) {
-        window.customElements.define('fds-menu-drawer-button', FDSMenuDrawerButton);
+function registerDrawerButton() {
+    if (customElements.get('fds-drawer-button') === undefined) {
+        window.customElements.define('fds-drawer-button', FDSDrawerButton);
     }
 }
 
-export default registerMenuDrawerButton;
+export default registerDrawerButton;
