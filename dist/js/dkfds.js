@@ -11506,7 +11506,6 @@ function registerDrawer() {
 /* harmony default export */ const fds_drawer = (registerDrawer);
 ;// ./src/js/custom-elements/header/fds-drawer-button.js
 
-
 class FDSDrawerButton extends HTMLElement {
   /* Private instance fields */
 
@@ -11519,54 +11518,26 @@ class FDSDrawerButton extends HTMLElement {
 
   /* Private methods */
 
-  #getButtonElement() {
-    return this.querySelector(':scope > button');
-  }
   #getDrawerElement() {
     return document.getElementById(this.getAttribute('drawer'));
   }
-  #createButtonElement() {
-    const buttonElement = document.createElement('button');
-    buttonElement.classList.add('function-link');
-    buttonElement.setAttribute('type', 'button');
-    const iconElement = this.#createIconElement();
-    const textElement = document.createElement('span');
-    textElement.textContent = this.getAttribute('button-text') || '';
-    buttonElement.appendChild(iconElement);
-    buttonElement.appendChild(textElement);
-    return buttonElement;
+  #createButton() {
+    const button = document.createElement('button');
+    const svg = createSvgIcon("M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z");
+    const text = document.createElement('span');
+    text.textContent = this.getAttribute('button-text') || 'Menu';
+    button.appendChild(svg);
+    button.appendChild(text);
+    return button;
   }
-  #createIconElement() {
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.classList.add('icon-svg');
-    svg.setAttribute('focusable', 'false');
-    svg.setAttribute('aria-hidden', 'true');
-    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-    use.setAttributeNS(null, 'href', '#menu');
-    svg.appendChild(use);
-    return svg;
-  }
-  #ensureDOM() {
-    let buttonElement = this.#getButtonElement();
-
-    // Attribute mode:
-    // No button markup provided - create canonical structure only when both drawer and button-text are present.
-    if (!buttonElement) {
-      if (!this.hasAttribute('drawer') || !this.hasAttribute('button-text')) {
-        console.warn('<fds-drawer-button> Missing child button. To generate one, provide both drawer and button-text attributes.');
-        return false;
-      }
-      buttonElement = this.#createButtonElement();
-      this.appendChild(buttonElement);
+  #setupHTML() {
+    let button = this.querySelector('button');
+    if (!button) {
+      button = this.#createButton();
+      this.appendChild(button);
     }
-
-    // Enhance mode:
-    // Button exists - enhance the provided/generated structure.
-    buttonElement.classList.add('function-link');
-    buttonElement.setAttribute('type', buttonElement.getAttribute('type') || 'button');
-    buttonElement.setAttribute('aria-haspopup', 'dialog');
-    this.#button = buttonElement;
-    this.#drawer = this.#getDrawerElement();
+    button.setAttribute('type', 'button');
+    button.setAttribute('aria-haspopup', 'dialog');
     return true;
   }
   #updateDrawerReference() {
@@ -11646,8 +11617,15 @@ class FDSDrawerButton extends HTMLElement {
 
   init() {
     if (this.#initialized) return;
-    const isValid = this.#ensureDOM();
-    if (!isValid) return;
+    this.#setupHTML();
+
+    /* if (!this.hasAttribute('drawer')) {
+        console.warn('drawer attribute missing in <fds-drawer-button>');
+        return false;
+    } */
+
+    this.#button = this.querySelector('button');
+    this.#drawer = this.#getDrawerElement();
     this.#syncAll();
     this.#addEventListeners();
     this.#initialized = true;

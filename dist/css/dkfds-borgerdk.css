@@ -14133,3 +14133,40 @@ fds-drawer .menu-content{
     transform:translateX(0);
   }
 }
+fds-drawer-button,
+.fds-drawer-button{
+  display:inline-block;
+}
+fds-drawer-button button,
+.fds-drawer-button button{
+  width:auto;
+  white-space:nowrap;
+  background:none;
+  padding:0;
+  text-decoration:underline;
+  text-align:left;
+  border:none;
+  font-size:1.6rem;
+  line-height:2.4rem;
+  font-weight:400;
+  color:#1a1a1a;
+  text-transform:none;
+  letter-spacing:normal;
+  cursor:pointer;
+  display:inline-block;
+  overflow-wrap:break-word;
+  max-width:100%;
+}
+fds-drawer-button button:hover, fds-drawer-button button:visited, fds-drawer-button button:focus,
+.fds-drawer-button button:hover,
+.fds-drawer-button button:visited,
+.fds-drawer-button button:focus{
+  color:#1a1a1a;
+}
+fds-drawer-button button .icon-svg,
+.fds-drawer-button button .icon-svg{
+  margin-right:4px;
+  fill:currentColor;
+  vertical-align:top;
+  margin-top:0.1rem;
+}
