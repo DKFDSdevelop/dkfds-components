@@ -4320,7 +4320,9 @@ Modal.prototype.show = function () {
       new Modal(activeModals[i]).hide();
     }
     modalElement.setAttribute('aria-hidden', 'false');
-    let eventOpen = new Event('fds.modal.shown');
+    let eventOpen = new Event('fds.modal.shown', {
+      bubbles: true
+    });
     modalElement.dispatchEvent(eventOpen);
     if (document.getElementById('modal-backdrop')) {
       document.getElementById('modal-backdrop').remove();
@@ -11353,12 +11355,14 @@ class FDSDrawer extends HTMLElement {
     if (!this.#initialized) return;
     if (!this.hasAttribute('open') || this.getAttribute('open') === 'false') {
       this.setAttribute('open', '');
+      document.addEventListener('fds.modal.shown', this.#handleCloseButtonClick, false);
     }
   }
   close() {
     if (!this.#initialized) return;
     if (this.hasAttribute('open')) {
       this.removeAttribute('open');
+      document.removeEventListener('fds.modal.shown', this.#handleCloseButtonClick, false);
     }
   }
 

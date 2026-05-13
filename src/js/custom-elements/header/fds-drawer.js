@@ -108,6 +108,8 @@ class FDSDrawer extends HTMLElement {
 
         if (!this.hasAttribute('open') || this.getAttribute('open') === 'false') {
             this.setAttribute('open', '');
+
+            document.addEventListener('fds.modal.shown', this.#handleCloseButtonClick, false);
         }
     }
 
@@ -116,6 +118,8 @@ class FDSDrawer extends HTMLElement {
 
         if (this.hasAttribute('open')) {
             this.removeAttribute('open');
+
+            document.removeEventListener('fds.modal.shown', this.#handleCloseButtonClick, false);
         }
     }
 
