@@ -14,16 +14,20 @@ class FDSDrawer extends HTMLElement {
     /* Private methods */
 
     #setupHTML() {
-        // Dark overlay when drawer is open
         let overlay = this.querySelector('.overlay');
+        let drawer = this.querySelector('.mobile-drawer');
+        let menuTop = this.querySelector('.menu-top');
+        let heading = this.querySelector('.menu-heading');
+        let closeButton = this.querySelector('.button-menu-close');
+
+        // Dark overlay when drawer is open
         if (!overlay) {
             overlay = document.createElement('div');
             overlay.classList.add('overlay');
-            this.appendChild(overlay);
+            drawer ? this.insertBefore(overlay, drawer) : this.appendChild(overlay);
         }
 
         // Drawer
-        let drawer = this.querySelector('.mobile-drawer');
         if (!drawer) {
             drawer = document.createElement('div');
             drawer.classList.add('mobile-drawer');
@@ -33,15 +37,13 @@ class FDSDrawer extends HTMLElement {
         drawer.setAttribute('aria-modal', 'true');
 
         // The top container element inside the drawer
-        let menuTop = this.querySelector('.menu-top');
         if (!menuTop) {
             menuTop = document.createElement('div');
             menuTop.classList.add('menu-top');
-            drawer.appendChild(menuTop);
+            drawer.prepend(menuTop);
         }
 
         // Heading inside the drawer
-        let heading = this.querySelector('.menu-heading');
         if (!heading) {
             heading = document.createElement('h2');
             heading.classList.add('menu-heading');
@@ -56,7 +58,6 @@ class FDSDrawer extends HTMLElement {
         drawer.setAttribute('aria-labelledby', headingId);
 
         // Close button inside the drawer
-        let closeButton = this.querySelector('.button-menu-close');
         if (!closeButton) {
             closeButton = document.createElement('button');
             closeButton.classList.add('function-link', 'button-menu-close');
@@ -86,6 +87,11 @@ class FDSDrawer extends HTMLElement {
         this.#setupHTML();
 
         this.querySelector('.button-menu-close').addEventListener('click', this.#handleCloseButtonClick, false);
+
+        const links = this.querySelectorAll('.mobile-drawer a');
+        links.forEach(link => {
+            link.addEventListener('click', this.#handleCloseButtonClick, false);
+        });
 
         this.#initialized = true;
     }
@@ -131,6 +137,11 @@ class FDSDrawer extends HTMLElement {
         this.#initialized = false;
 
         this.querySelector('.button-menu-close')?.removeEventListener('click', this.#handleCloseButtonClick, false);
+
+        const links = this.querySelectorAll('.mobile-drawer a');
+        links.forEach(link => {
+            link.removeEventListener('click', this.#handleCloseButtonClick, false);
+        });
     }
 
     /* --------------------------------------------------
