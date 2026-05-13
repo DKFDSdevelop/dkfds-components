@@ -6018,7 +6018,7 @@ class FDSAccordion extends HTMLElement {
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (attribute === 'ready') {
-      if (!this.#initialized && this.isConnected && newValue === 'true') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
         this.init();
       }
       return;
@@ -11257,203 +11257,104 @@ function registerInputAffix() {
 ;// ./src/js/custom-elements/header/fds-drawer.js
 
 
-
 class FDSDrawer extends HTMLElement {
   /* Private instance fields */
 
-  #initialized;
-  #handleCloseClick;
-  #handleKeydown;
+  #initialized = false;
+  #handleCloseButtonClick = () => {
+    this.close();
+  };
 
   /* Private methods */
 
-  #getCloseButtonElement() {
-    return this.querySelector(':scope > .menu-top .button-menu-close, :scope > .menu-top button');
-  }
-  #getMenuTopElement() {
-    return this.querySelector(':scope > .menu-top');
-  }
-  #getHeadingElement() {
-    return this.querySelector(':scope > .menu-top h1, :scope > .menu-top h2, :scope > .menu-top h3, :scope > .menu-top h4, :scope > .menu-top h5, :scope > .menu-top h6');
-  }
-  #getValidMenuTopElement() {
-    const firstElementChild = this.firstElementChild;
-    if (!firstElementChild) return null;
-    const headingElement = firstElementChild.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
-    const closeButton = firstElementChild.querySelector(':scope > button');
-    if (!headingElement || !closeButton) return null;
-    return firstElementChild;
-  }
-  #createMenuTopElement() {
-    const menuTopElement = document.createElement('div');
-    menuTopElement.classList.add('menu-top');
-    const headingElement = document.createElement('h2');
-    headingElement.classList.add('menu-heading');
-    headingElement.textContent = this.getAttribute('heading') || '';
-    const closeButtonText = this.getAttribute('close-button-text') || 'Luk';
-    const closeButtonElement = document.createElement('button');
-    closeButtonElement.classList.add('button-menu-close', 'function-link');
-    closeButtonElement.setAttribute('type', 'button');
-    closeButtonElement.setAttribute('aria-label', `${closeButtonText} menu`);
-    const iconElement = this.#createCloseIconElement();
-    const closeButtonTextElement = document.createElement('span');
-    closeButtonTextElement.textContent = closeButtonText;
-    closeButtonElement.appendChild(iconElement);
-    closeButtonElement.appendChild(closeButtonTextElement);
-    menuTopElement.appendChild(headingElement);
-    menuTopElement.appendChild(closeButtonElement);
-    return menuTopElement;
-  }
-  #createCloseIconElement() {
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.classList.add('icon-svg');
-    svg.setAttribute('focusable', 'false');
-    svg.setAttribute('aria-hidden', 'true');
-    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-    use.setAttributeNS(null, 'href', '#close');
-    svg.appendChild(use);
-    return svg;
-  }
-  #ensureDOM() {
-    this.classList.add('mobile-drawer');
-    const hasAttributeMode = this.hasAttribute('heading') && this.hasAttribute('close-button-text');
-    let menuTopElement = this.#getMenuTopElement();
-
-    // Attribute mode:
-    // Only activated when both heading and close-button-text are present.
-    if (hasAttributeMode) {
-      if (!menuTopElement) {
-        menuTopElement = this.#createMenuTopElement();
-        this.prepend(menuTopElement);
-      }
+  #setupHTML() {
+    // Dark overlay when drawer is open
+    let overlay = this.querySelector('.overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.classList.add('overlay');
+      this.appendChild(overlay);
     }
 
-    // Enhance mode:
-    // Only used when attribute mode is not active. The component must already contain valid HTML.
-    if (!hasAttributeMode) {
-      menuTopElement = this.#getValidMenuTopElement();
-      if (!menuTopElement) {
-        return false;
-      }
-      menuTopElement.classList.add('menu-top');
+    // Drawer
+    let drawer = this.querySelector('.mobile-drawer');
+    if (!drawer) {
+      drawer = document.createElement('div');
+      drawer.classList.add('mobile-drawer');
+      this.appendChild(drawer);
     }
-    const headingElement = this.#getHeadingElement();
-    if (!headingElement) {
-      return false;
+    drawer.setAttribute('role', 'dialog');
+    drawer.setAttribute('aria-modal', 'true');
+
+    // The top container element inside the drawer
+    let menuTop = this.querySelector('.menu-top');
+    if (!menuTop) {
+      menuTop = document.createElement('div');
+      menuTop.classList.add('menu-top');
+      drawer.appendChild(menuTop);
     }
-    headingElement.classList.add('menu-heading');
-    const closeButton = this.#getCloseButtonElement();
+
+    // Heading inside the drawer
+    let heading = this.querySelector('.menu-heading');
+    if (!heading) {
+      heading = document.createElement('h2');
+      heading.classList.add('menu-heading');
+      menuTop.appendChild(heading);
+    }
+    let headingId = heading.id;
+    if (!headingId) {
+      headingId = generateAndVerifyUniqueId('hea');
+      heading.id = headingId;
+    }
+    heading.textContent = this.getAttribute('heading') || 'Menu';
+    drawer.setAttribute('aria-labelledby', headingId);
+
+    // Close button inside the drawer
+    let closeButton = this.querySelector('.button-menu-close');
     if (!closeButton) {
-      return false;
+      closeButton = document.createElement('button');
+      closeButton.classList.add('function-link', 'button-menu-close');
+      menuTop.appendChild(closeButton);
+      const closeButtonIcon = createSvgIcon('m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z');
+      closeButton.appendChild(closeButtonIcon);
+      const closeButtonText = document.createElement('span');
+      closeButtonText.textContent = this.getAttribute('close-button-text') || 'Luk';
+      closeButton.appendChild(closeButtonText);
     }
-    closeButton.setAttribute('type', closeButton.getAttribute('type') || 'button');
-    closeButton.classList.add('button-menu-close', 'function-link');
-    if (!this.hasAttribute('role')) {
-      this.setAttribute('role', 'dialog');
-    }
-    if (!this.hasAttribute('aria-modal')) {
-      this.setAttribute('aria-modal', 'true');
-    }
-    if (!this.hasAttribute('tabindex')) {
-      this.setAttribute('tabindex', '-1');
-    }
-    this.#ensureHeadingId();
-    return true;
+    closeButton.setAttribute('aria-label', 'Luk menu');
   }
-  #ensureHeadingId() {
-    const headingElement = this.#getHeadingElement();
-    if (!headingElement) return;
-    if (!headingElement.id) {
-      headingElement.id = generateAndVerifyUniqueId('drawer-heading');
-    }
-    if (!this.hasAttribute('aria-labelledby')) {
-      this.setAttribute('aria-labelledby', headingElement.id);
-    }
-  }
-  #updateHeading(heading) {
-    const headingElement = this.#getHeadingElement();
-    if (headingElement) {
-      headingElement.textContent = heading || '';
-    }
-  }
-  #updateCloseButtonText(closeButtonText) {
-    const closeButton = this.#getCloseButtonElement();
-    const closeButtonTextElement = closeButton?.querySelector(':scope > span');
-    if (closeButtonTextElement) {
-      closeButtonTextElement.textContent = closeButtonText || '';
-    }
-    if (closeButton) {
-      closeButton.setAttribute('aria-label', closeButtonText ? `${closeButtonText} menu` : '');
-    }
-  }
-  #syncAll() {
-    this.#updateOpen(this.getAttribute('open'));
-  }
-  #updateOpen(open) {
-    const isOpen = open !== null && open !== 'false';
-    this.#setOpenState(isOpen);
-  }
-  #setOpenState(isOpen) {
-    this.classList.toggle('is-visible', isOpen);
-    this.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-    if (isOpen) {
-      this.focus();
-    }
-  }
-
-  /* Attributes which can invoke attributeChangedCallback() */
-
-  static observedAttributes = ['open', 'ready', 'heading', 'close-button-text'];
 
   /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  CUSTOM ELEMENT ATTRIBUTES (can invoke attributeChangedCallback())
   -------------------------------------------------- */
 
-  constructor() {
-    super();
-    this.#initialized = false;
-    this.#handleCloseClick = () => {
-      this.closeDrawer();
-    };
-    this.#handleKeydown = event => {
-      if (event.key === 'Escape' && this.isOpen()) {
-        this.closeDrawer();
-      }
-    };
-  }
+  static observedAttributes = ['open', 'ready', 'heading', 'close-button-text'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT METHODS
   -------------------------------------------------- */
 
   init() {
-    if (this.#initialized) return;
-    const isValid = this.#ensureDOM();
-    if (!isValid) return;
-    this.#syncAll();
-    this.#getCloseButtonElement()?.addEventListener('click', this.#handleCloseClick, false);
-    document.addEventListener('keydown', this.#handleKeydown, false);
+    this.#setupHTML();
+    this.querySelector('.button-menu-close').addEventListener('click', this.#handleCloseButtonClick, false);
     this.#initialized = true;
   }
-  openDrawer() {
-    if (this.isOpen()) return;
-    this.setAttribute('open', 'true');
-    this.dispatchEvent(new CustomEvent('fds-drawer-opened', {
-      bubbles: true
-    }));
+  toggle() {
+    if (!this.#initialized) return;
+    const drawerIsVisible = this.hasAttribute('open') && this.getAttribute('open') !== 'false';
+    drawerIsVisible ? this.close() : this.open();
   }
-  closeDrawer() {
-    if (!this.isOpen()) return;
-    this.setAttribute('open', 'false');
-    this.dispatchEvent(new CustomEvent('fds-drawer-closed', {
-      bubbles: true
-    }));
+  open() {
+    if (!this.#initialized) return;
+    if (!this.hasAttribute('open') || this.getAttribute('open') === 'false') {
+      this.setAttribute('open', '');
+    }
   }
-  toggleDrawer() {
-    this.isOpen() ? this.closeDrawer() : this.openDrawer();
-  }
-  isOpen() {
-    return this.hasAttribute('open') && this.getAttribute('open') !== 'false';
+  close() {
+    if (!this.#initialized) return;
+    if (this.hasAttribute('open')) {
+      this.removeAttribute('open');
+    }
   }
 
   /* --------------------------------------------------
@@ -11470,9 +11371,8 @@ class FDSDrawer extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
-    this.#getCloseButtonElement()?.removeEventListener('click', this.#handleCloseClick, false);
-    document.removeEventListener('keydown', this.#handleKeydown, false);
     this.#initialized = false;
+    this.querySelector('.button-menu-close')?.removeEventListener('click', this.#handleCloseButtonClick, false);
   }
 
   /* --------------------------------------------------
@@ -11487,14 +11387,33 @@ class FDSDrawer extends HTMLElement {
       return;
     }
     if (!this.#initialized) return;
-    if (attribute === 'open' && oldValue !== newValue) {
-      this.#updateOpen(newValue);
-    }
-    if (attribute === 'heading' && oldValue !== newValue) {
-      this.#updateHeading(newValue);
-    }
-    if (attribute === 'close-button-text' && oldValue !== newValue) {
-      this.#updateCloseButtonText(newValue);
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'open':
+        const closeDrawer = newValue === null || newValue === false;
+        if (closeDrawer) {
+          this.querySelector('.overlay')?.classList.remove('is-visible');
+          this.querySelector('.mobile-drawer')?.classList.remove('is-visible');
+          document.body.classList.remove('mobile-nav-active');
+        } else {
+          this.querySelector('.overlay')?.classList.add('is-visible');
+          this.querySelector('.mobile-drawer')?.classList.add('is-visible');
+          document.body.classList.add('mobile-nav-active');
+        }
+        break;
+      case 'heading':
+        const heading = this.querySelector('.menu-heading');
+        if (heading) {
+          heading.textContent = newValue;
+        }
+        break;
+      case 'close-button-text':
+        if (newValue === null) return;
+        const closeButtonText = this.querySelector('.button-menu-close span');
+        if (closeButtonText) {
+          closeButtonText.textContent = newValue;
+        }
+        break;
     }
   }
 }
@@ -11509,134 +11428,46 @@ function registerDrawer() {
 class FDSDrawerButton extends HTMLElement {
   /* Private instance fields */
 
-  #initialized;
-  #button;
-  #drawer;
-  #handleButtonClick;
-  #handleDrawerOpened;
-  #handleDrawerClosed;
+  #initialized = false;
+  #handleClick = () => {
+    document.getElementById(this.getAttribute('drawer'))?.open();
+  };
 
   /* Private methods */
 
-  #getDrawerElement() {
-    return document.getElementById(this.getAttribute('drawer'));
-  }
-  #createButton() {
-    const button = document.createElement('button');
-    const svg = createSvgIcon("M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z");
-    const text = document.createElement('span');
-    text.textContent = this.getAttribute('button-text') || 'Menu';
-    button.appendChild(svg);
-    button.appendChild(text);
-    return button;
-  }
   #setupHTML() {
     let button = this.querySelector('button');
     if (!button) {
-      button = this.#createButton();
+      button = document.createElement('button');
       this.appendChild(button);
+      const svg = createSvgIcon("M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z");
+      button.appendChild(svg);
+      const text = document.createElement('span');
+      text.textContent = this.getAttribute('button-text') || 'Menu';
+      button.appendChild(text);
     }
     button.setAttribute('type', 'button');
     button.setAttribute('aria-haspopup', 'dialog');
-    return true;
   }
-  #updateDrawerReference() {
-    this.#removeEventListeners();
-    this.#drawer = this.#getDrawerElement();
-    this.#syncControls();
-    this.#syncExpanded();
-    this.#addEventListeners();
-  }
-  #updateButtonText(buttonText) {
-    const textElement = this.#button?.querySelector(':scope > span');
-    if (textElement) {
-      textElement.textContent = buttonText || '';
-    }
-  }
-  #syncControls() {
-    if (!this.#button) return;
-    const drawerId = this.getAttribute('drawer');
-    if (drawerId) {
-      this.#button.setAttribute('aria-controls', drawerId);
-    } else {
-      this.#button.removeAttribute('aria-controls');
-    }
-  }
-  #syncExpanded() {
-    if (!this.#button) return;
-    this.#button.setAttribute('aria-expanded', this.#drawer?.isOpen?.() ? 'true' : 'false');
-  }
-  #syncAll() {
-    this.#syncControls();
-    this.#syncExpanded();
-  }
-  #addEventListeners() {
-    if (!this.#button) return;
-    this.#button.addEventListener('click', this.#handleButtonClick, false);
-    if (this.#drawer) {
-      this.#drawer.addEventListener('fds-drawer-opened', this.#handleDrawerOpened, false);
-      this.#drawer.addEventListener('fds-drawer-closed', this.#handleDrawerClosed, false);
-    }
-  }
-  #removeEventListeners() {
-    this.#button?.removeEventListener('click', this.#handleButtonClick, false);
-    if (this.#drawer) {
-      this.#drawer.removeEventListener('fds-drawer-opened', this.#handleDrawerOpened, false);
-      this.#drawer.removeEventListener('fds-drawer-closed', this.#handleDrawerClosed, false);
-    }
-  }
-
-  /* Attributes which can invoke attributeChangedCallback() */
-
-  static observedAttributes = ['drawer', 'button-text'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
-
-  constructor() {
-    super();
-    this.#initialized = false;
-    this.#button = null;
-    this.#drawer = null;
-    this.#handleButtonClick = () => {
-      this.#drawer?.toggleDrawer?.();
-    };
-    this.#handleDrawerOpened = () => {
-      this.#syncExpanded();
-    };
-    this.#handleDrawerClosed = () => {
-      this.#syncExpanded();
-      this.#button?.focus();
-    };
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
-
-  init() {
+  #init() {
     if (this.#initialized) return;
     this.#setupHTML();
-
-    /* if (!this.hasAttribute('drawer')) {
-        console.warn('drawer attribute missing in <fds-drawer-button>');
-        return false;
-    } */
-
-    this.#button = this.querySelector('button');
-    this.#drawer = this.#getDrawerElement();
-    this.#syncAll();
-    this.#addEventListeners();
+    this.querySelector('button').addEventListener('click', this.#handleClick, false);
     this.#initialized = true;
   }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ATTRIBUTES (can invoke attributeChangedCallback())
+  -------------------------------------------------- */
+
+  static observedAttributes = ['drawer', 'button-text'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT ADDED TO DOCUMENT
   -------------------------------------------------- */
 
   connectedCallback() {
-    this.init();
+    this.#init();
   }
 
   /* --------------------------------------------------
@@ -11644,10 +11475,8 @@ class FDSDrawerButton extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
-    this.#removeEventListeners();
     this.#initialized = false;
-    this.#button = null;
-    this.#drawer = null;
+    this.querySelector('button')?.removeEventListener('click', this.#handleClick, false);
   }
 
   /* --------------------------------------------------
@@ -11656,11 +11485,12 @@ class FDSDrawerButton extends HTMLElement {
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
-    if (attribute === 'drawer') {
-      this.#updateDrawerReference();
-    }
+    if (oldValue === newValue) return;
     if (attribute === 'button-text') {
-      this.#updateButtonText(newValue);
+      const text = this.querySelector('button > span');
+      if (text) {
+        text.textContent = newValue || '';
+      }
     }
   }
 }

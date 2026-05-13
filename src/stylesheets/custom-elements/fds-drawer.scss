@@ -3,73 +3,54 @@
 @use "../mixins" as mixins;
 
 fds-drawer {
-    $sliding-panel-width: 85%;
+    display: block;
 
-    display: none;
-    position: fixed;
-    inset: 0 0 0 auto;
-    background-color: func.color(vars.$header-portal-background-color);
-    flex-direction: column;
-    overflow-y: auto;
-    padding: 0;
-    width: $sliding-panel-width;
-    max-width: 40rem;
-    z-index: vars.$zindex-nav;
-    box-shadow: func.shadow('heavy');
-
-    &[open]:not([open="false"]),
-    &.is-visible {
-        display: block;
-        animation: fds-drawer-slidein-left 0.3s ease-in-out;
-    }
-
-    @include mixins.media-breakpoint-up(vars.$nav-responsive-breakpoint) {
+    .mobile-drawer {
         display: none;
-    }
+        $sliding-panel-width: 85%;
+        position: fixed;
+        inset: 0 0 0 auto;
+        background-color: func.color(vars.$header-portal-background-color);
+        flex-direction: column;
+        overflow-y: auto;
+        padding: 0;
+        width: $sliding-panel-width;
+        max-width: 40rem;
+        z-index: vars.$zindex-nav;
+        box-shadow: func.shadow('heavy');
 
-    h1, h2, h3, h4, h5, h6,p {
-        margin-top: 0;
-        margin-bottom: 0;
-    }
+        @keyframes slidein-left {
+            from {
+                transform: translateX($sliding-panel-width);
+            }
 
-    .menu-top {
-        background-color: func.color(vars.$header-navigation-top-mobile-background-color);
-        padding: func.units(3) func.units(5);
-        display: flex;
-        align-items: center;
-        min-height: func.units(8);
-
-        @include mixins.media-breakpoint-up(vars.$nav-responsive-breakpoint) {
-            display: none;
-        }
-
-        .menu-heading {
-            font-size: func.font-size('lg');
-        }
-
-        .button-menu-close {
-            width: unset;
-            margin-left: auto;
-            color: func.color(vars.$header-solution-info-mobile-text-color);
-
-            &:hover,
-            &:focus {
-                color: func.color(vars.$header-solution-info-mobile-text-color);
+            to {
+                transform: translateX(0);
             }
         }
-    }
 
-    .menu-content {
-        border-top: func.border(vars.$header-border);
-    }
-}
+        &.is-visible {
+            display: block;
+            animation: slidein-left 0.3s ease-in-out;
+        }
 
-@keyframes fds-drawer-slidein-left {
-    from {
-        transform: translateX(85%);
-    }
+        .menu-top {
+            background-color: func.color(vars.$header-navigation-top-mobile-background-color);
+            padding: func.units(3) func.units(5);
+            display: flex;
+            align-items: center;
+            min-height: func.units(8);
 
-    to {
-        transform: translateX(0);
+            .menu-heading {
+                font-size: func.font-size('lg');
+                margin-top: 0;
+                margin-bottom: 0;
+            }
+
+            .button-menu-close {
+                width: unset;
+                margin-left: auto;
+            }
+        }
     }
 }
