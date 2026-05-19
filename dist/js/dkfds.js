@@ -11263,8 +11263,18 @@ class FDSDrawer extends HTMLElement {
   /* Private instance fields */
 
   #initialized = false;
+  #resizeObserver = null;
   #handleCloseButtonClick = () => {
     this.close();
+  };
+  #handleResize = entries => {
+    entries.forEach(entry => {
+      const style = window.getComputedStyle(entry.target);
+      const isVisible = style.display !== 'none';
+      if (!isVisible && this.hasAttribute('open')) {
+        this.close();
+      }
+    });
   };
 
   /* Private methods */
@@ -11326,6 +11336,11 @@ class FDSDrawer extends HTMLElement {
     }
     closeButton.setAttribute('aria-label', 'Luk menu');
   }
+  #setupObserver() {
+    if (this.#resizeObserver) return;
+    this.#resizeObserver = new ResizeObserver(this.#handleResize);
+    this.#resizeObserver.observe(this);
+  }
 
   /* --------------------------------------------------
   CUSTOM ELEMENT ATTRIBUTES (can invoke attributeChangedCallback())
@@ -11344,6 +11359,7 @@ class FDSDrawer extends HTMLElement {
     links.forEach(link => {
       link.addEventListener('click', this.#handleCloseButtonClick, false);
     });
+    this.#setupObserver();
     this.#initialized = true;
   }
   toggle() {
@@ -11386,6 +11402,10 @@ class FDSDrawer extends HTMLElement {
     links.forEach(link => {
       link.removeEventListener('click', this.#handleCloseButtonClick, false);
     });
+    if (this.#resizeObserver) {
+      this.#resizeObserver.disconnect();
+      this.#resizeObserver = null;
+    }
   }
 
   /* --------------------------------------------------

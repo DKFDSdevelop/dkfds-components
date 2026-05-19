@@ -13230,6 +13230,11 @@ fds-date-input fieldset > div,
   align-items:flex-end;
   margin-top:8px;
 }
+fds-date-input fieldset:disabled legend,
+.fds-date-input fieldset:disabled legend{
+  color:#707070;
+  font-weight:500;
+}
 fds-date-input fieldset:disabled label,
 .fds-date-input fieldset:disabled label{
   color:#707070;
