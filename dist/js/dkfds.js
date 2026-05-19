@@ -11264,7 +11264,7 @@ class FDSDrawer extends HTMLElement {
 
   #initialized = false;
   #resizeObserver = null;
-  #handleCloseButtonClick = () => {
+  #handleCloseClick = () => {
     this.close();
   };
   #handleResize = entries => {
@@ -11354,10 +11354,11 @@ class FDSDrawer extends HTMLElement {
 
   init() {
     this.#setupHTML();
-    this.querySelector('.button-menu-close').addEventListener('click', this.#handleCloseButtonClick, false);
+    this.querySelector('.button-menu-close').addEventListener('click', this.#handleCloseClick, false);
+    this.querySelector('.overlay').addEventListener('click', this.#handleCloseClick, false);
     const links = this.querySelectorAll('.mobile-drawer a');
     links.forEach(link => {
-      link.addEventListener('click', this.#handleCloseButtonClick, false);
+      link.addEventListener('click', this.#handleCloseClick, false);
     });
     this.#setupObserver();
     this.#initialized = true;
@@ -11371,14 +11372,14 @@ class FDSDrawer extends HTMLElement {
     if (!this.#initialized) return;
     if (!this.hasAttribute('open') || this.getAttribute('open') === 'false') {
       this.setAttribute('open', '');
-      document.addEventListener('fds.modal.shown', this.#handleCloseButtonClick, false);
+      document.addEventListener('fds.modal.shown', this.#handleCloseClick, false);
     }
   }
   close() {
     if (!this.#initialized) return;
     if (this.hasAttribute('open')) {
       this.removeAttribute('open');
-      document.removeEventListener('fds.modal.shown', this.#handleCloseButtonClick, false);
+      document.removeEventListener('fds.modal.shown', this.#handleCloseClick, false);
     }
   }
 
@@ -11397,10 +11398,11 @@ class FDSDrawer extends HTMLElement {
 
   disconnectedCallback() {
     this.#initialized = false;
-    this.querySelector('.button-menu-close')?.removeEventListener('click', this.#handleCloseButtonClick, false);
+    this.querySelector('.button-menu-close')?.removeEventListener('click', this.#handleCloseClick, false);
+    this.querySelector('.overlay')?.removeEventListener('click', this.#handleCloseClick, false);
     const links = this.querySelectorAll('.mobile-drawer a');
     links.forEach(link => {
-      link.removeEventListener('click', this.#handleCloseButtonClick, false);
+      link.removeEventListener('click', this.#handleCloseClick, false);
     });
     if (this.#resizeObserver) {
       this.#resizeObserver.disconnect();
