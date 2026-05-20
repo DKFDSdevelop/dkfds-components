@@ -129,8 +129,8 @@ class FDSDrawer extends HTMLElement {
 
         if (!this.hasAttribute('open') || this.getAttribute('open') === 'false') {
             this.setAttribute('open', '');
-
             document.addEventListener('fds.modal.shown', this.#handleCloseClick, false);
+            this.querySelector('.button-menu-close')?.focus();
         }
     }
 
@@ -139,8 +139,12 @@ class FDSDrawer extends HTMLElement {
 
         if (this.hasAttribute('open')) {
             this.removeAttribute('open');
-
             document.removeEventListener('fds.modal.shown', this.#handleCloseClick, false);
+            const drawerButton = document.querySelector(`fds-drawer-button[drawer=${this.id}] button`);
+            const visibleDrawerButton = CE.isVisibleAndFocusable(drawerButton);
+            if (visibleDrawerButton) {
+                drawerButton.focus();
+            }
         }
     }
 

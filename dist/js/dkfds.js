@@ -6422,6 +6422,16 @@ function setInvalid(element, errorMessages) {
   const invalid = Array.from(errorMessages).some(el => isVisibleToScreenReader(el));
   invalid ? element.setAttribute('aria-invalid', 'true') : element.removeAttribute('aria-invalid');
 }
+
+/**
+ * Determines if an element is visible and focusable.
+ *
+ * @param {HTMLElement} element - The element to check.
+ * @returns {boolean} True if the element is visible and focusable, false otherwise.
+ */
+function isVisibleAndFocusable(element) {
+  return element.offsetParent !== null && !element.disabled && element.tabIndex >= 0;
+}
 ;// ./src/js/custom-elements/input/fds-input.js
 
 
@@ -11373,6 +11383,7 @@ class FDSDrawer extends HTMLElement {
     if (!this.hasAttribute('open') || this.getAttribute('open') === 'false') {
       this.setAttribute('open', '');
       document.addEventListener('fds.modal.shown', this.#handleCloseClick, false);
+      this.querySelector('.button-menu-close')?.focus();
     }
   }
   close() {
@@ -11380,6 +11391,11 @@ class FDSDrawer extends HTMLElement {
     if (this.hasAttribute('open')) {
       this.removeAttribute('open');
       document.removeEventListener('fds.modal.shown', this.#handleCloseClick, false);
+      const drawerButton = document.querySelector(`fds-drawer-button[drawer=${this.id}] button`);
+      const visibleDrawerButton = isVisibleAndFocusable(drawerButton);
+      if (visibleDrawerButton) {
+        drawerButton.focus();
+      }
     }
   }
 

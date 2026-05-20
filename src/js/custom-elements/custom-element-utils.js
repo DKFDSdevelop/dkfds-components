@@ -72,27 +72,27 @@ export function createSvgIcon(pathD) {
  */
 export function showRequiredStatus(label, element, value) {
     if (!label || !element) return;
-  
+
     let statusIndicator = label.querySelector(':scope > span.weight-normal');
-  
+
     if (value === null && statusIndicator) {
         statusIndicator.remove();
         return;
     }
-  
+
     if (!statusIndicator) {
         const span = document.createElement('span');
         span.className = 'weight-normal';
         label.appendChild(span);
         statusIndicator = span;
     }
-  
+
     const isRequired = isElementRequired(element);
-  
+
     let text = value;
     if (value === '' && isRequired) text = 'skal udfyldes';
     if (value === '' && !isRequired) text = 'frivilligt';
-  
+
     statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
 }
 
@@ -207,4 +207,18 @@ export function setInvalid(element, errorMessages) {
     const invalid = Array.from(errorMessages).some(el => isVisibleToScreenReader(el));
 
     invalid ? element.setAttribute('aria-invalid', 'true') : element.removeAttribute('aria-invalid');
+}
+
+/**
+ * Determines if an element is visible and focusable.
+ *
+ * @param {HTMLElement} element - The element to check.
+ * @returns {boolean} True if the element is visible and focusable, false otherwise.
+ */
+export function isVisibleAndFocusable(element) {
+    return (
+        element.offsetParent !== null &&
+        !element.disabled &&
+        element.tabIndex >= 0
+    );
 }
