@@ -3,13 +3,21 @@ import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 class FDSDrawer extends HTMLElement {
 
-    /* Private instance fields */
+    /* --------------------------------------------------
+    Private instance fields
+    -------------------------------------------------- */
 
     #initialized = false;
     #resizeObserver = null;
 
     #handleCloseClick = () => {
         this.close();
+    }
+
+    #handleDrawerLinkClick = (event) => {
+        if (event.target.closest('a')) {
+            this.close();
+        }
     }
 
     #handleResize = (entries) => {
@@ -22,7 +30,40 @@ class FDSDrawer extends HTMLElement {
         });
     }
 
-    /* Private methods */
+    #handleKeydown = (event) => {
+        switch (event.key) {
+            case 'Tab': {
+                const focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]';
+                const drawer = this.querySelector('.mobile-drawer');
+                const focusableElements = [...drawer.querySelectorAll(focusableElementsString)]
+                    .filter(el => el.offsetWidth > 0 && el.offsetHeight > 0); // Exclude hidden elements from the focus trap
+
+                const firstTabStop = focusableElements[0];
+                const lastTabStop = focusableElements[focusableElements.length - 1];
+
+                if (event.shiftKey) {
+                    if (document.activeElement === firstTabStop) {
+                        event.preventDefault();
+                        lastTabStop.focus();
+                    }
+                }
+                else {
+                    if (document.activeElement === lastTabStop) {
+                        event.preventDefault();
+                        firstTabStop.focus();
+                    }
+                }
+                break;
+            }
+            case 'Escape':
+                this.close();
+                break;
+        }
+    }
+
+    /* --------------------------------------------------
+    Private methods
+    -------------------------------------------------- */
 
     #setupHTML() {
         let overlay = this.querySelector('.overlay');
@@ -106,11 +147,7 @@ class FDSDrawer extends HTMLElement {
 
         this.querySelector('.button-menu-close').addEventListener('click', this.#handleCloseClick, false);
         this.querySelector('.overlay').addEventListener('click', this.#handleCloseClick, false);
-
-        const links = this.querySelectorAll('.mobile-drawer a');
-        links.forEach(link => {
-            link.addEventListener('click', this.#handleCloseClick, false);
-        });
+        this.querySelector('.mobile-drawer').addEventListener('click', this.#handleDrawerLinkClick, false);
 
         this.#setupObserver();
 
@@ -130,6 +167,8 @@ class FDSDrawer extends HTMLElement {
         if (!this.hasAttribute('open') || this.getAttribute('open') === 'false') {
             this.setAttribute('open', '');
             document.addEventListener('fds.modal.shown', this.#handleCloseClick, false);
+            document.addEventListener('keydown', this.#handleKeydown, false);
+
             this.querySelector('.button-menu-close')?.focus();
         }
     }
@@ -140,6 +179,8 @@ class FDSDrawer extends HTMLElement {
         if (this.hasAttribute('open')) {
             this.removeAttribute('open');
             document.removeEventListener('fds.modal.shown', this.#handleCloseClick, false);
+            document.removeEventListener('keydown', this.#handleKeydown, false);
+
             const drawerButton = document.querySelector(`fds-drawer-button[drawer=${this.id}] button`);
             const visibleDrawerButton = CE.isVisibleAndFocusable(drawerButton);
             if (visibleDrawerButton) {
@@ -167,11 +208,9 @@ class FDSDrawer extends HTMLElement {
 
         this.querySelector('.button-menu-close')?.removeEventListener('click', this.#handleCloseClick, false);
         this.querySelector('.overlay')?.removeEventListener('click', this.#handleCloseClick, false);
-
-        const links = this.querySelectorAll('.mobile-drawer a');
-        links.forEach(link => {
-            link.removeEventListener('click', this.#handleCloseClick, false);
-        });
+        this.querySelector('.mobile-drawer').removeEventListener('click', this.#handleDrawerLinkClick, false);
+        document.removeEventListener('fds.modal.shown', this.#handleCloseClick, false);
+        document.removeEventListener('keydown', this.#handleKeydown, false);
 
         if (this.#resizeObserver) {
             this.#resizeObserver.disconnect();

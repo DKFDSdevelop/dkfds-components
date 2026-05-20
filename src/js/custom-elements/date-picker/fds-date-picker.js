@@ -327,6 +327,7 @@ class FDSDatePicker extends HTMLElement {
                 break;
             case 'Escape':
                 this.#closeAndFocusButton();
+                break;
         }
     }
 
