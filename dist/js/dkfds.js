@@ -11592,14 +11592,90 @@ function registerDrawerButton() {
   }
 }
 /* harmony default export */ const fds_drawer_button = (registerDrawerButton);
-;// ./src/js/custom-elements/header/fds-portal-info.js
-const fds_portal_info_styles = `
+;// ./src/js/custom-elements/header/fds-portal-info-styling.js
+const fds_portal_info_styling_styles = `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        border: 0;
+        user-select: none;
+        white-space: nowrap;
+    }
+
+    button {
+        text-transform: none;
+        appearance: none;
+        font-family: inherit;
+        font-size: 100%;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    button:focus {
+        outline: 3px solid #454545;
+        outline-offset: 1px;
+    }
+
     :host {
         display: block;
+        background-color: #f1f1f1;
+        width: 100%;
+    }
+
+    .portal-info-inner {
+        width: 100%;
+        max-width: 1200px;
+        min-height: 48px;
+        padding-top: 4px;
+        padding-bottom: 4px;
+        padding-right: 16px;
+        padding-left: 16px;
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        margin-right: auto;
+        margin-left: auto;
+    }
+
+    .logo {
+        background-image: url(/assets/img/logo-borgerdk.svg);
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center left;
+        display: inline-block;
+        height: 24px;
+        width: 100%;
+        max-width: 30%;
+    }
+
+    .portal-user {
+        margin-left: auto;
+        display: none;
+        align-items: center;
+        justify-content: flex-end;
+        max-width: 70%;
+
+        @media (min-width: 992px) {
+            display: flex;
+        }
     }
 `;
+;// ./src/js/custom-elements/header/fds-portal-info.js
+
+
 const fds_portal_info_sheet = new CSSStyleSheet();
-fds_portal_info_sheet.replaceSync(fds_portal_info_styles);
+fds_portal_info_sheet.replaceSync(fds_portal_info_styling_styles);
 class FDSPortalInfo extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -11615,8 +11691,15 @@ class FDSPortalInfo extends HTMLElement {
 
   // #region - Private event handlers ---------------------------------------------------------------------
 
-  #handleClick = event => {
-    console.log('Click event:', event);
+  #handleSlotDrawerButtonChange = event => {
+    event.target.assignedElements().forEach(element => {
+      element.classList.add('d-lg-none', 'd-block', 'ml-auto');
+    });
+  };
+  #handleSlotUserChange = event => {
+    event.target.assignedElements().forEach(element => {
+      element.classList.add('user');
+    });
   };
 
   // #endregion
@@ -11624,22 +11707,65 @@ class FDSPortalInfo extends HTMLElement {
   // #region - Private methods ----------------------------------------------------------------------------
 
   #setupHTML() {
-    if (!this.shadowRoot.querySelector('slot[name="element-slot"]')) {
-      const slot = document.createElement('slot');
-      slot.name = 'element-slot';
-      this.shadowRoot.appendChild(slot);
+    // --- Inner wrapper ---
+    let divWrapper = this.shadowRoot.querySelector('.portal-info-inner');
+    if (!divWrapper) {
+      divWrapper = document.createElement('div');
+      divWrapper.classList.add('portal-info-inner');
+      this.shadowRoot.appendChild(divWrapper);
     }
-    if (!this.shadowRoot.querySelector('button')) {
-      const button = document.createElement('button');
-      button.textContent = 'Click me';
-      this.shadowRoot.appendChild(button);
+
+    // --- Logo ---
+    let portalLogo = divWrapper.querySelector('.logo');
+    if (!portalLogo) {
+      portalLogo = document.createElement('a');
+      portalLogo.classList.add('logo');
+      divWrapper.appendChild(portalLogo);
+    }
+    portalLogo.setAttribute('href', '#');
+    portalLogo.setAttribute('title', 'Gå til Portalnavns forside');
+    portalLogo.setAttribute('aria-label', 'Portalnavn');
+    portalLogo.innerHTML = `<span>Portalnavn</span>`;
+
+    // --- Drawer button ---
+    let drawerButtonSlot = divWrapper.querySelector('slot[name="drawer-button"]');
+    if (!drawerButtonSlot) {
+      drawerButtonSlot = document.createElement('slot');
+      drawerButtonSlot.name = 'drawer-button';
+      divWrapper.appendChild(drawerButtonSlot);
+    }
+
+    // --- User wrapper ---
+    let userWrapper = divWrapper.querySelector('.portal-user');
+    if (!userWrapper) {
+      userWrapper = document.createElement('div');
+      userWrapper.classList.add('portal-user');
+      divWrapper.appendChild(userWrapper);
+    }
+
+    // --- User ---
+    let userSlot = userWrapper.querySelector('slot[name="user"]');
+    if (!userSlot) {
+      userSlot = document.createElement('slot');
+      userSlot.name = 'user';
+      userWrapper.appendChild(userSlot);
+    }
+
+    // --- Log off button ---
+    let logOffButtonSlot = userWrapper.querySelector('slot[name="log-off-button"]');
+    if (!logOffButtonSlot) {
+      logOffButtonSlot = document.createElement('slot');
+      logOffButtonSlot.name = 'log-off-button';
+      userWrapper.appendChild(logOffButtonSlot);
     }
   }
   #addEventListeners() {
-    this.addEventListener('click', this.#handleClick);
+    this.shadowRoot.querySelector('slot[name="drawer-button"]').addEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+    this.shadowRoot.querySelector('slot[name="user"]').addEventListener('slotchange', this.#handleSlotUserChange);
   }
   #removeEventListeners() {
-    this.removeEventListener('click', this.#handleClick);
+    this.shadowRoot.querySelector('slot[name="drawer-button"]').removeEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+    this.shadowRoot.querySelector('slot[name="user"]').removeEventListener('slotchange', this.#handleSlotUserChange);
   }
 
   // #endregion
@@ -11669,8 +11795,6 @@ class FDSPortalInfo extends HTMLElement {
   // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
-    // The 'ready' attribute can be used to defer initialization.
-    // Omit the attribute or set it to anything other than 'false' to initialize immediately.
     if (this.getAttribute('ready') === 'false') return;
     this.init();
   }

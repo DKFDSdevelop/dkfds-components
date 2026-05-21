@@ -1,0 +1,17 @@
+@use "../variables" as vars;
+@use "../functions" as func;
+@use "../mixins" as mixins;
+
+header fds-portal-info,
+header .fds-portal-info {
+    p {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    .user {
+        text-align: right;
+        margin-right: 24px;
+        overflow-wrap: break-word;
+    }
+}

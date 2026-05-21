@@ -14159,3 +14159,15 @@ fds-drawer-button button .icon-svg,
   vertical-align:top;
   margin-top:0.1rem;
 }
+
+header fds-portal-info p,
+header .fds-portal-info p{
+  margin-top:0;
+  margin-bottom:0;
+}
+header fds-portal-info .user,
+header .fds-portal-info .user{
+  text-align:right;
+  margin-right:24px;
+  overflow-wrap:break-word;
+}
