@@ -11662,12 +11662,17 @@ class FDSPortalInfo extends HTMLElement {
 
   #handleSlotDrawerButtonChange = event => {
     event.target.assignedElements().forEach(element => {
-      element.classList.add('d-lg-none', 'd-block', 'ml-auto');
+      element.classList.add('ml-auto');
     });
   };
   #handleSlotUserChange = event => {
     event.target.assignedElements().forEach(element => {
       element.classList.add('user');
+    });
+  };
+  #handleSlotLogOffButtonChange = event => {
+    event.target.assignedElements().forEach(element => {
+      element.classList.add('function-link', 'd-print-none', 'log-off');
     });
   };
 
@@ -11753,10 +11758,12 @@ class FDSPortalInfo extends HTMLElement {
   #addEventListeners() {
     this.shadowRoot.querySelector('slot[name="drawer-button"]')?.addEventListener('slotchange', this.#handleSlotDrawerButtonChange);
     this.shadowRoot.querySelector('slot[name="user"]')?.addEventListener('slotchange', this.#handleSlotUserChange);
+    this.shadowRoot.querySelector('slot[name="log-off-button"]')?.addEventListener('slotchange', this.#handleSlotLogOffButtonChange);
   }
   #removeEventListeners() {
     this.shadowRoot.querySelector('slot[name="drawer-button"]')?.removeEventListener('slotchange', this.#handleSlotDrawerButtonChange);
     this.shadowRoot.querySelector('slot[name="user"]')?.removeEventListener('slotchange', this.#handleSlotUserChange);
+    this.shadowRoot.querySelector('slot[name="log-off-button"]')?.removeEventListener('slotchange', this.#handleSlotLogOffButtonChange);
   }
 
   // #endregion
