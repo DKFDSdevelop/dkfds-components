@@ -4,6 +4,24 @@
 
 header fds-portal-info,
 header .fds-portal-info {
+    .logo {
+        background-image: url("#{vars.$image-path}#{vars.$header-portal-logo}");
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center left;
+        display: inline-block;
+        height: vars.$header-portal-logo-height;
+        width: vars.$header-portal-logo-width;
+
+        @include mixins.media-breakpoint-up(vars.$nav-responsive-breakpoint) {
+            max-width: 30%;
+        }
+
+        span {
+            display: none;
+        }
+    }
+
     p {
         margin-top: 0;
         margin-bottom: 0;

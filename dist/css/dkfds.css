@@ -1,4 +1,8 @@
 @charset "UTF-8";
+:root{
+  --header-portal-background-color:white;
+}
+
 @font-face{
   font-family:"IBM Plex Sans";
   font-style:normal;
@@ -14160,6 +14164,26 @@ fds-drawer-button button .icon-svg,
   margin-top:0.1rem;
 }
 
+header fds-portal-info .logo,
+header .fds-portal-info .logo{
+  background-image:url("../img/logo-header-placeholder.png");
+  background-size:contain;
+  background-repeat:no-repeat;
+  background-position:center left;
+  display:inline-block;
+  height:24px;
+  width:100%;
+}
+@media (min-width: 992px){
+  header fds-portal-info .logo,
+  header .fds-portal-info .logo{
+    max-width:30%;
+  }
+}
+header fds-portal-info .logo span,
+header .fds-portal-info .logo span{
+  display:none;
+}
 header fds-portal-info p,
 header .fds-portal-info p{
   margin-top:0;
