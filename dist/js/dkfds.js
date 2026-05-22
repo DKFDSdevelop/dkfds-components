@@ -3230,6 +3230,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerRadioButton: () => (/* reexport */ fds_radio_button),
   registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
   registerSelect: () => (/* reexport */ fds_select),
+  registerSolutionInfo: () => (/* reexport */ fds_solution_info),
   registerTextarea: () => (/* reexport */ fds_textarea),
   registerUploadFile: () => (/* reexport */ fds_upload_file)
 });
@@ -11863,6 +11864,132 @@ function registerPortalInfo() {
   }
 }
 /* harmony default export */ const fds_portal_info = (registerPortalInfo);
+;// ./src/js/custom-elements/header/fds-solution-info-styling.js
+const fds_solution_info_styling_styles = `
+    :host {
+        display: block;
+    }
+`;
+;// ./src/js/custom-elements/header/fds-solution-info.js
+
+const fds_solution_info_sheet = new CSSStyleSheet();
+fds_solution_info_sheet.replaceSync(fds_solution_info_styling_styles);
+class FDSSolutionInfo extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['attr', 'ready'];
+
+  // #endregion
+
+  // #region - Private instance fields --------------------------------------------------------------------
+
+  #initialized = false;
+
+  // #endregion
+
+  // #region - Private event handlers ---------------------------------------------------------------------
+
+  #handleClick = event => {
+    console.log('Click event:', event);
+  };
+
+  // #endregion
+
+  // #region - Private methods ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    // --- Slot ---
+    if (!this.shadowRoot.querySelector('slot[name="element-slot"]')) {
+      const slot = document.createElement('slot');
+      slot.name = 'element-slot';
+      this.shadowRoot.appendChild(slot);
+    }
+
+    // --- Button ---
+    let button = this.shadowRoot.querySelector('button');
+    if (!button) {
+      button = document.createElement('button');
+      this.shadowRoot.appendChild(button);
+    }
+    button.textContent = 'Click me';
+  }
+  #addEventListeners() {
+    this.addEventListener('click', this.#handleClick);
+  }
+  #removeEventListeners() {
+    this.removeEventListener('click', this.#handleClick);
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [fds_solution_info_sheet];
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  init() {
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    // The 'ready' attribute can be used to defer initialization.
+    // Omit the attribute or set it to anything other than 'false' to initialize immediately.
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'attr':
+        console.log('attr changed to', newValue);
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerSolutionInfo() {
+  if (!customElements.get('fds-solution-info')) {
+    customElements.define('fds-solution-info', FDSSolutionInfo);
+  }
+}
+/* harmony default export */ const fds_solution_info = (registerSolutionInfo);
 ;// ./src/js/dkfds.js
 
 
@@ -11886,6 +12013,7 @@ function registerPortalInfo() {
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 // Custom elements
+
 
 
 
@@ -12118,6 +12246,7 @@ const registerCustomElements = () => {
   fds_drawer();
   fds_drawer_button();
   fds_portal_info();
+  fds_solution_info();
 };
 registerCustomElements();
 

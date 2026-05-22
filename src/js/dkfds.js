@@ -41,6 +41,7 @@ import registerInputAffix from './custom-elements/input-affix/input-affix';
 import registerDrawer from './custom-elements/header/fds-drawer';
 import registerDrawerButton from './custom-elements/header/fds-drawer-button';
 import registerPortalInfo from './custom-elements/header/fds-portal-info';
+import registerSolutionInfo from './custom-elements/header/fds-solution-info';
 
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
@@ -254,8 +255,9 @@ const registerCustomElements = () => {
   registerDrawer();
   registerDrawerButton();
   registerPortalInfo();
+  registerSolutionInfo();
 };
 
 registerCustomElements();
 
-export { init, registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerDrawer, registerDrawerButton, registerPortalInfo, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
+export { init, registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerDrawer, registerDrawerButton, registerPortalInfo, registerSolutionInfo, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
