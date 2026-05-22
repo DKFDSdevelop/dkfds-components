@@ -91,6 +91,7 @@ const sequence = function () {
   on: sequence("init", "add"),
   off: sequence("teardown", "remove")
 }, props)));
+(Object.getOwnPropertyDescriptor(behavior, "name") || {}).writable || Object.defineProperty(behavior, "name", { value: "default", configurable: true });
 // EXTERNAL MODULE: ./src/js/utils/select.js
 var utils_select = __webpack_require__(464);
 ;// ./src/js/utils/active-element.js
@@ -98,6 +99,7 @@ var utils_select = __webpack_require__(464);
   let htmlDocument = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : document;
   return htmlDocument.activeElement;
 });
+(Object.getOwnPropertyDescriptor(active_element, "name") || {}).writable || Object.defineProperty(active_element, "name", { value: "default", configurable: true });
 ;// ./src/js/utils/is-ios-device.js
 // iOS detection from: http://stackoverflow.com/a/9039885/177710
 function isIosDevice() {
@@ -2325,6 +2327,7 @@ const isElement = value => value && typeof value === "object" && value.nodeType 
   const selection = context.querySelectorAll(selector);
   return Array.prototype.slice.call(selection);
 });
+(Object.getOwnPropertyDescriptor(__WEBPACK_DEFAULT_EXPORT__, "name") || {}).writable || Object.defineProperty(__WEBPACK_DEFAULT_EXPORT__, "name", { value: "default", configurable: true });
 
 /***/ },
 
@@ -2353,6 +2356,7 @@ const HIDDEN = 'aria-hidden';
   controls.setAttribute(HIDDEN, !expanded);
   return expanded;
 });
+(Object.getOwnPropertyDescriptor(__WEBPACK_DEFAULT_EXPORT__, "name") || {}).writable || Object.defineProperty(__WEBPACK_DEFAULT_EXPORT__, "name", { value: "default", configurable: true });
 
 /***/ },
 
@@ -3214,14 +3218,15 @@ __webpack_require__.d(__webpack_exports__, {
   registerDateInput: () => (/* reexport */ fds_date_input),
   registerDatePicker: () => (/* reexport */ fds_date_picker),
   registerDatePickerGrid: () => (/* reexport */ fds_date_picker_grid),
+  registerDrawer: () => (/* reexport */ fds_drawer),
+  registerDrawerButton: () => (/* reexport */ fds_drawer_button),
   registerErrorMessage: () => (/* reexport */ fds_error_message),
   registerErrorSummary: () => (/* reexport */ fds_error_summary),
   registerFileItem: () => (/* reexport */ fds_file_item),
   registerHelpText: () => (/* reexport */ fds_help_text),
   registerInput: () => (/* reexport */ fds_input),
   registerInputAffix: () => (/* reexport */ input_affix),
-  registerMenuDrawer: () => (/* reexport */ fds_menu_drawer),
-  registerMenuDrawerButton: () => (/* reexport */ fds_menu_drawer_button),
+  registerPortalInfo: () => (/* reexport */ fds_portal_info),
   registerRadioButton: () => (/* reexport */ fds_radio_button),
   registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
   registerSelect: () => (/* reexport */ fds_select),
@@ -4320,7 +4325,9 @@ Modal.prototype.show = function () {
       new Modal(activeModals[i]).hide();
     }
     modalElement.setAttribute('aria-hidden', 'false');
-    let eventOpen = new Event('fds.modal.shown');
+    let eventOpen = new Event('fds.modal.shown', {
+      bubbles: true
+    });
     modalElement.dispatchEvent(eventOpen);
     if (document.getElementById('modal-backdrop')) {
       document.getElementById('modal-backdrop').remove();
@@ -6018,7 +6025,7 @@ class FDSAccordion extends HTMLElement {
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (attribute === 'ready') {
-      if (!this.#initialized && this.isConnected && newValue === 'true') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
         this.init();
       }
       return;
@@ -6419,6 +6426,16 @@ function setInvalid(element, errorMessages) {
   if (!element) return;
   const invalid = Array.from(errorMessages).some(el => isVisibleToScreenReader(el));
   invalid ? element.setAttribute('aria-invalid', 'true') : element.removeAttribute('aria-invalid');
+}
+
+/**
+ * Determines if an element is visible and focusable.
+ *
+ * @param {HTMLElement} element - The element to check.
+ * @returns {boolean} True if the element is visible and focusable, false otherwise.
+ */
+function isVisibleAndFocusable(element) {
+  return element.offsetParent !== null && !element.disabled && element.tabIndex >= 0;
 }
 ;// ./src/js/custom-elements/input/fds-input.js
 
@@ -9449,6 +9466,7 @@ class FDSDatePicker extends HTMLElement {
         break;
       case 'Escape':
         this.#closeAndFocusButton();
+        break;
     }
   }
   #updateTextMonths(str) {
@@ -11254,206 +11272,173 @@ function registerInputAffix() {
   }
 }
 /* harmony default export */ const input_affix = (registerInputAffix);
-;// ./src/js/custom-elements/header/fds-menu-drawer.js
+;// ./src/js/custom-elements/header/fds-drawer.js
 
 
-
-class FDSMenuDrawer extends HTMLElement {
-  /* Private instance fields */
-
-  #initialized;
-  #handleCloseClick;
-  #handleKeydown;
-
-  /* Private methods */
-
-  #getCloseButtonElement() {
-    return this.querySelector(':scope > .menu-top .button-menu-close, :scope > .menu-top button');
-  }
-  #getMenuTopElement() {
-    return this.querySelector(':scope > .menu-top');
-  }
-  #getHeadingElement() {
-    return this.querySelector(':scope > .menu-top h1, :scope > .menu-top h2, :scope > .menu-top h3, :scope > .menu-top h4, :scope > .menu-top h5, :scope > .menu-top h6');
-  }
-  #getValidMenuTopElement() {
-    const firstElementChild = this.firstElementChild;
-    if (!firstElementChild) return null;
-    const headingElement = firstElementChild.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
-    const closeButton = firstElementChild.querySelector(':scope > button');
-    if (!headingElement || !closeButton) return null;
-    return firstElementChild;
-  }
-  #createMenuTopElement() {
-    const menuTopElement = document.createElement('div');
-    menuTopElement.classList.add('menu-top');
-    const headingElement = document.createElement('h2');
-    headingElement.classList.add('menu-heading');
-    headingElement.textContent = this.getAttribute('heading') || '';
-    const closeButtonText = this.getAttribute('close-button-text') || 'Luk';
-    const closeButtonElement = document.createElement('button');
-    closeButtonElement.classList.add('button-menu-close', 'function-link');
-    closeButtonElement.setAttribute('type', 'button');
-    closeButtonElement.setAttribute('aria-label', `${closeButtonText} menu`);
-    const iconElement = this.#createCloseIconElement();
-    const closeButtonTextElement = document.createElement('span');
-    closeButtonTextElement.textContent = closeButtonText;
-    closeButtonElement.appendChild(iconElement);
-    closeButtonElement.appendChild(closeButtonTextElement);
-    menuTopElement.appendChild(headingElement);
-    menuTopElement.appendChild(closeButtonElement);
-    return menuTopElement;
-  }
-  #createCloseIconElement() {
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.classList.add('icon-svg');
-    svg.setAttribute('focusable', 'false');
-    svg.setAttribute('aria-hidden', 'true');
-    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-    use.setAttributeNS(null, 'href', '#close');
-    svg.appendChild(use);
-    return svg;
-  }
-  #ensureDOM() {
-    this.classList.add('mobile-drawer');
-    const hasAttributeMode = this.hasAttribute('heading') && this.hasAttribute('close-button-text');
-    let menuTopElement = this.#getMenuTopElement();
-
-    // Attribute mode:
-    // Only activated when both heading and close-button-text are present.
-    if (hasAttributeMode) {
-      if (!menuTopElement) {
-        menuTopElement = this.#createMenuTopElement();
-        this.prepend(menuTopElement);
-      }
-    }
-
-    // Enhance mode:
-    // Only used when attribute mode is not active. The component must already contain valid HTML.
-    if (!hasAttributeMode) {
-      menuTopElement = this.#getValidMenuTopElement();
-      if (!menuTopElement) {
-        return false;
-      }
-      menuTopElement.classList.add('menu-top');
-    }
-    const headingElement = this.#getHeadingElement();
-    if (!headingElement) {
-      return false;
-    }
-    headingElement.classList.add('menu-heading');
-    const closeButton = this.#getCloseButtonElement();
-    if (!closeButton) {
-      return false;
-    }
-    closeButton.setAttribute('type', closeButton.getAttribute('type') || 'button');
-    closeButton.classList.add('button-menu-close', 'function-link');
-    if (!this.hasAttribute('role')) {
-      this.setAttribute('role', 'dialog');
-    }
-    if (!this.hasAttribute('aria-modal')) {
-      this.setAttribute('aria-modal', 'true');
-    }
-    if (!this.hasAttribute('tabindex')) {
-      this.setAttribute('tabindex', '-1');
-    }
-    this.#ensureHeadingId();
-    return true;
-  }
-  #ensureHeadingId() {
-    const headingElement = this.#getHeadingElement();
-    if (!headingElement) return;
-    if (!headingElement.id) {
-      headingElement.id = generateAndVerifyUniqueId('menu-drawer-heading');
-    }
-    if (!this.hasAttribute('aria-labelledby')) {
-      this.setAttribute('aria-labelledby', headingElement.id);
-    }
-  }
-  #updateHeading(heading) {
-    const headingElement = this.#getHeadingElement();
-    if (headingElement) {
-      headingElement.textContent = heading || '';
-    }
-  }
-  #updateCloseButtonText(closeButtonText) {
-    const closeButton = this.#getCloseButtonElement();
-    const closeButtonTextElement = closeButton?.querySelector(':scope > span');
-    if (closeButtonTextElement) {
-      closeButtonTextElement.textContent = closeButtonText || '';
-    }
-    if (closeButton) {
-      closeButton.setAttribute('aria-label', closeButtonText ? `${closeButtonText} menu` : '');
-    }
-  }
-  #syncAll() {
-    this.#updateOpen(this.getAttribute('open'));
-  }
-  #updateOpen(open) {
-    const isOpen = open !== null && open !== 'false';
-    this.#setOpenState(isOpen);
-  }
-  #setOpenState(isOpen) {
-    this.classList.toggle('is-visible', isOpen);
-    this.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-    if (isOpen) {
-      this.focus();
-    }
-  }
-
-  /* Attributes which can invoke attributeChangedCallback() */
-
-  static observedAttributes = ['open', 'ready', 'heading', 'close-button-text'];
-
+class FDSDrawer extends HTMLElement {
   /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  Private instance fields
   -------------------------------------------------- */
 
-  constructor() {
-    super();
-    this.#initialized = false;
-    this.#handleCloseClick = () => {
-      this.closeDrawer();
-    };
-    this.#handleKeydown = event => {
-      if (event.key === 'Escape' && this.isOpen()) {
-        this.closeDrawer();
+  #initialized = false;
+  #resizeObserver = null;
+  #handleCloseClick = () => {
+    this.close();
+  };
+  #handleDrawerLinkClick = event => {
+    if (event.target.closest('a')) {
+      this.close();
+    }
+  };
+  #handleResize = entries => {
+    entries.forEach(entry => {
+      const style = window.getComputedStyle(entry.target);
+      const isVisible = style.display !== 'none';
+      if (!isVisible && this.hasAttribute('open')) {
+        this.close();
       }
-    };
+    });
+  };
+  #handleKeydown = event => {
+    switch (event.key) {
+      case 'Tab':
+        {
+          const focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]';
+          const drawer = this.querySelector('.mobile-drawer');
+          const focusableElements = [...drawer.querySelectorAll(focusableElementsString)].filter(el => el.offsetWidth > 0 && el.offsetHeight > 0); // Exclude hidden elements from the focus trap
+
+          const firstTabStop = focusableElements[0];
+          const lastTabStop = focusableElements[focusableElements.length - 1];
+          if (event.shiftKey) {
+            if (document.activeElement === firstTabStop) {
+              event.preventDefault();
+              lastTabStop.focus();
+            }
+          } else {
+            if (document.activeElement === lastTabStop) {
+              event.preventDefault();
+              firstTabStop.focus();
+            }
+          }
+          break;
+        }
+      case 'Escape':
+        this.close();
+        break;
+    }
+  };
+
+  /* --------------------------------------------------
+  Private methods
+  -------------------------------------------------- */
+
+  #setupHTML() {
+    let overlay = this.querySelector('.overlay');
+    let drawer = this.querySelector('.mobile-drawer');
+    let menuTop = this.querySelector('.menu-top');
+    let heading = this.querySelector('.menu-heading');
+    let closeButton = this.querySelector('.button-menu-close');
+
+    // Dark overlay when drawer is open
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.classList.add('overlay');
+      drawer ? this.insertBefore(overlay, drawer) : this.appendChild(overlay);
+    }
+
+    // Drawer
+    if (!drawer) {
+      drawer = document.createElement('div');
+      drawer.classList.add('mobile-drawer');
+      this.appendChild(drawer);
+    }
+    drawer.setAttribute('role', 'dialog');
+    drawer.setAttribute('aria-modal', 'true');
+
+    // The top container element inside the drawer
+    if (!menuTop) {
+      menuTop = document.createElement('div');
+      menuTop.classList.add('menu-top');
+      drawer.prepend(menuTop);
+    }
+
+    // Heading inside the drawer
+    if (!heading) {
+      heading = document.createElement('h2');
+      heading.classList.add('menu-heading');
+      menuTop.appendChild(heading);
+    }
+    let headingId = heading.id;
+    if (!headingId) {
+      headingId = generateAndVerifyUniqueId('hea');
+      heading.id = headingId;
+    }
+    heading.textContent = this.getAttribute('heading') || 'Menu';
+    drawer.setAttribute('aria-labelledby', headingId);
+
+    // Close button inside the drawer
+    if (!closeButton) {
+      closeButton = document.createElement('button');
+      closeButton.classList.add('function-link', 'button-menu-close');
+      menuTop.appendChild(closeButton);
+      const closeButtonIcon = createSvgIcon('m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z');
+      closeButton.appendChild(closeButtonIcon);
+      const closeButtonText = document.createElement('span');
+      closeButtonText.textContent = this.getAttribute('close-button-text') || 'Luk';
+      closeButton.appendChild(closeButtonText);
+    }
+    closeButton.setAttribute('aria-label', 'Luk menu');
   }
+  #setupObserver() {
+    if (this.#resizeObserver) return;
+    this.#resizeObserver = new ResizeObserver(this.#handleResize);
+    this.#resizeObserver.observe(this);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ATTRIBUTES (can invoke attributeChangedCallback())
+  -------------------------------------------------- */
+
+  static observedAttributes = ['open', 'ready', 'heading', 'close-button-text'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT METHODS
   -------------------------------------------------- */
 
   init() {
-    if (this.#initialized) return;
-    const isValid = this.#ensureDOM();
-    if (!isValid) return;
-    this.#syncAll();
-    this.#getCloseButtonElement()?.addEventListener('click', this.#handleCloseClick, false);
-    document.addEventListener('keydown', this.#handleKeydown, false);
+    this.#setupHTML();
+    this.querySelector('.button-menu-close').addEventListener('click', this.#handleCloseClick, false);
+    this.querySelector('.overlay').addEventListener('click', this.#handleCloseClick, false);
+    this.querySelector('.mobile-drawer').addEventListener('click', this.#handleDrawerLinkClick, false);
+    this.#setupObserver();
     this.#initialized = true;
   }
-  openDrawer() {
-    if (this.isOpen()) return;
-    this.setAttribute('open', 'true');
-    this.dispatchEvent(new CustomEvent('fds-menu-drawer-opened', {
-      bubbles: true
-    }));
+  toggle() {
+    if (!this.#initialized) return;
+    const drawerIsVisible = this.hasAttribute('open') && this.getAttribute('open') !== 'false';
+    drawerIsVisible ? this.close() : this.open();
   }
-  closeDrawer() {
-    if (!this.isOpen()) return;
-    this.setAttribute('open', 'false');
-    this.dispatchEvent(new CustomEvent('fds-menu-drawer-closed', {
-      bubbles: true
-    }));
+  open() {
+    if (!this.#initialized) return;
+    if (!this.hasAttribute('open') || this.getAttribute('open') === 'false') {
+      this.setAttribute('open', '');
+      document.addEventListener('fds.modal.shown', this.#handleCloseClick, false);
+      document.addEventListener('keydown', this.#handleKeydown, false);
+      this.querySelector('.button-menu-close')?.focus();
+    }
   }
-  toggleDrawer() {
-    this.isOpen() ? this.closeDrawer() : this.openDrawer();
-  }
-  isOpen() {
-    return this.hasAttribute('open') && this.getAttribute('open') !== 'false';
+  close() {
+    if (!this.#initialized) return;
+    if (this.hasAttribute('open')) {
+      this.removeAttribute('open');
+      document.removeEventListener('fds.modal.shown', this.#handleCloseClick, false);
+      document.removeEventListener('keydown', this.#handleKeydown, false);
+      const drawerButton = document.querySelector(`fds-drawer-button[drawer=${this.id}] button`);
+      const visibleDrawerButton = isVisibleAndFocusable(drawerButton);
+      if (visibleDrawerButton) {
+        drawerButton.focus();
+      }
+    }
   }
 
   /* --------------------------------------------------
@@ -11470,9 +11455,16 @@ class FDSMenuDrawer extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
-    this.#getCloseButtonElement()?.removeEventListener('click', this.#handleCloseClick, false);
-    document.removeEventListener('keydown', this.#handleKeydown, false);
     this.#initialized = false;
+    this.querySelector('.button-menu-close')?.removeEventListener('click', this.#handleCloseClick, false);
+    this.querySelector('.overlay')?.removeEventListener('click', this.#handleCloseClick, false);
+    this.querySelector('.mobile-drawer').removeEventListener('click', this.#handleDrawerLinkClick, false);
+    document.removeEventListener('fds.modal.shown', this.#handleCloseClick, false);
+    document.removeEventListener('keydown', this.#handleKeydown, false);
+    if (this.#resizeObserver) {
+      this.#resizeObserver.disconnect();
+      this.#resizeObserver = null;
+    }
   }
 
   /* --------------------------------------------------
@@ -11487,178 +11479,87 @@ class FDSMenuDrawer extends HTMLElement {
       return;
     }
     if (!this.#initialized) return;
-    if (attribute === 'open' && oldValue !== newValue) {
-      this.#updateOpen(newValue);
-    }
-    if (attribute === 'heading' && oldValue !== newValue) {
-      this.#updateHeading(newValue);
-    }
-    if (attribute === 'close-button-text' && oldValue !== newValue) {
-      this.#updateCloseButtonText(newValue);
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'open':
+        const closeDrawer = newValue === null || newValue === false;
+        if (closeDrawer) {
+          this.querySelector('.overlay')?.classList.remove('is-visible');
+          this.querySelector('.mobile-drawer')?.classList.remove('is-visible');
+          document.body.classList.remove('mobile-nav-active');
+        } else {
+          this.querySelector('.overlay')?.classList.add('is-visible');
+          this.querySelector('.mobile-drawer')?.classList.add('is-visible');
+          document.body.classList.add('mobile-nav-active');
+        }
+        break;
+      case 'heading':
+        const heading = this.querySelector('.menu-heading');
+        if (heading) {
+          heading.textContent = newValue;
+        }
+        break;
+      case 'close-button-text':
+        if (newValue === null) return;
+        const closeButtonText = this.querySelector('.button-menu-close span');
+        if (closeButtonText) {
+          closeButtonText.textContent = newValue;
+        }
+        break;
     }
   }
 }
-function registerMenuDrawer() {
-  if (customElements.get('fds-menu-drawer') === undefined) {
-    window.customElements.define('fds-menu-drawer', FDSMenuDrawer);
+function registerDrawer() {
+  if (customElements.get('fds-drawer') === undefined) {
+    window.customElements.define('fds-drawer', FDSDrawer);
   }
 }
-/* harmony default export */ const fds_menu_drawer = (registerMenuDrawer);
-;// ./src/js/custom-elements/header/fds-menu-drawer-button.js
+/* harmony default export */ const fds_drawer = (registerDrawer);
+;// ./src/js/custom-elements/header/fds-drawer-button.js
 
-
-class FDSMenuDrawerButton extends HTMLElement {
+class FDSDrawerButton extends HTMLElement {
   /* Private instance fields */
 
-  #initialized;
-  #button;
-  #drawer;
-  #handleButtonClick;
-  #handleDrawerOpened;
-  #handleDrawerClosed;
+  #initialized = false;
+  #handleClick = () => {
+    document.getElementById(this.getAttribute('drawer'))?.open();
+  };
 
   /* Private methods */
 
-  #getButtonElement() {
-    return this.querySelector(':scope > button');
-  }
-  #getDrawerElement() {
-    return document.getElementById(this.getAttribute('drawer'));
-  }
-  #createButtonElement() {
-    const buttonElement = document.createElement('button');
-    buttonElement.classList.add('function-link');
-    buttonElement.setAttribute('type', 'button');
-    const iconElement = this.#createIconElement();
-    const textElement = document.createElement('span');
-    textElement.textContent = this.getAttribute('button-text') || '';
-    buttonElement.appendChild(iconElement);
-    buttonElement.appendChild(textElement);
-    return buttonElement;
-  }
-  #createIconElement() {
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.classList.add('icon-svg');
-    svg.setAttribute('focusable', 'false');
-    svg.setAttribute('aria-hidden', 'true');
-    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-    use.setAttributeNS(null, 'href', '#menu');
-    svg.appendChild(use);
-    return svg;
-  }
-  #ensureDOM() {
-    let buttonElement = this.#getButtonElement();
-
-    // Attribute mode:
-    // No button markup provided - create canonical structure only when both drawer and button-text are present.
-    if (!buttonElement) {
-      if (!this.hasAttribute('drawer') || !this.hasAttribute('button-text')) {
-        console.warn('<fds-menu-drawer-button> Missing child button. To generate one, provide both drawer and button-text attributes.');
-        return false;
-      }
-      buttonElement = this.#createButtonElement();
-      this.appendChild(buttonElement);
+  #setupHTML() {
+    let button = this.querySelector('button');
+    if (!button) {
+      button = document.createElement('button');
+      this.appendChild(button);
+      const svg = createSvgIcon("M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z");
+      button.appendChild(svg);
+      const text = document.createElement('span');
+      text.textContent = this.getAttribute('button-text') || 'Menu';
+      button.appendChild(text);
     }
-
-    // Enhance mode:
-    // Button exists - enhance the provided/generated structure.
-    buttonElement.classList.add('function-link');
-    buttonElement.setAttribute('type', buttonElement.getAttribute('type') || 'button');
-    buttonElement.setAttribute('aria-haspopup', 'dialog');
-    this.#button = buttonElement;
-    this.#drawer = this.#getDrawerElement();
-    return true;
+    button.setAttribute('type', 'button');
+    button.setAttribute('aria-haspopup', 'dialog');
   }
-  #updateDrawerReference() {
-    this.#removeEventListeners();
-    this.#drawer = this.#getDrawerElement();
-    this.#syncControls();
-    this.#syncExpanded();
-    this.#addEventListeners();
-  }
-  #updateButtonText(buttonText) {
-    const textElement = this.#button?.querySelector(':scope > span');
-    if (textElement) {
-      textElement.textContent = buttonText || '';
-    }
-  }
-  #syncControls() {
-    if (!this.#button) return;
-    const drawerId = this.getAttribute('drawer');
-    if (drawerId) {
-      this.#button.setAttribute('aria-controls', drawerId);
-    } else {
-      this.#button.removeAttribute('aria-controls');
-    }
-  }
-  #syncExpanded() {
-    if (!this.#button) return;
-    this.#button.setAttribute('aria-expanded', this.#drawer?.isOpen?.() ? 'true' : 'false');
-  }
-  #syncAll() {
-    this.#syncControls();
-    this.#syncExpanded();
-  }
-  #addEventListeners() {
-    if (!this.#button) return;
-    this.#button.addEventListener('click', this.#handleButtonClick, false);
-    if (this.#drawer) {
-      this.#drawer.addEventListener('fds-menu-drawer-opened', this.#handleDrawerOpened, false);
-      this.#drawer.addEventListener('fds-menu-drawer-closed', this.#handleDrawerClosed, false);
-    }
-  }
-  #removeEventListeners() {
-    this.#button?.removeEventListener('click', this.#handleButtonClick, false);
-    if (this.#drawer) {
-      this.#drawer.removeEventListener('fds-menu-drawer-opened', this.#handleDrawerOpened, false);
-      this.#drawer.removeEventListener('fds-menu-drawer-closed', this.#handleDrawerClosed, false);
-    }
-  }
-
-  /* Attributes which can invoke attributeChangedCallback() */
-
-  static observedAttributes = ['drawer', 'button-text'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
-
-  constructor() {
-    super();
-    this.#initialized = false;
-    this.#button = null;
-    this.#drawer = null;
-    this.#handleButtonClick = () => {
-      this.#drawer?.toggleDrawer?.();
-    };
-    this.#handleDrawerOpened = () => {
-      this.#syncExpanded();
-    };
-    this.#handleDrawerClosed = () => {
-      this.#syncExpanded();
-      this.#button?.focus();
-    };
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
-
-  init() {
+  #init() {
     if (this.#initialized) return;
-    const isValid = this.#ensureDOM();
-    if (!isValid) return;
-    this.#syncAll();
-    this.#addEventListeners();
+    this.#setupHTML();
+    this.querySelector('button').addEventListener('click', this.#handleClick, false);
     this.#initialized = true;
   }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ATTRIBUTES (can invoke attributeChangedCallback())
+  -------------------------------------------------- */
+
+  static observedAttributes = ['drawer', 'button-text'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT ADDED TO DOCUMENT
   -------------------------------------------------- */
 
   connectedCallback() {
-    this.init();
+    this.#init();
   }
 
   /* --------------------------------------------------
@@ -11666,10 +11567,8 @@ class FDSMenuDrawerButton extends HTMLElement {
   -------------------------------------------------- */
 
   disconnectedCallback() {
-    this.#removeEventListeners();
     this.#initialized = false;
-    this.#button = null;
-    this.#drawer = null;
+    this.querySelector('button')?.removeEventListener('click', this.#handleClick, false);
   }
 
   /* --------------------------------------------------
@@ -11678,20 +11577,292 @@ class FDSMenuDrawerButton extends HTMLElement {
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
-    if (attribute === 'drawer') {
-      this.#updateDrawerReference();
-    }
+    if (oldValue === newValue) return;
     if (attribute === 'button-text') {
-      this.#updateButtonText(newValue);
+      const text = this.querySelector('button > span');
+      if (text) {
+        text.textContent = newValue || '';
+      }
     }
   }
 }
-function registerMenuDrawerButton() {
-  if (customElements.get('fds-menu-drawer-button') === undefined) {
-    window.customElements.define('fds-menu-drawer-button', FDSMenuDrawerButton);
+function registerDrawerButton() {
+  if (customElements.get('fds-drawer-button') === undefined) {
+    window.customElements.define('fds-drawer-button', FDSDrawerButton);
   }
 }
-/* harmony default export */ const fds_menu_drawer_button = (registerMenuDrawerButton);
+/* harmony default export */ const fds_drawer_button = (registerDrawerButton);
+;// ./src/js/custom-elements/header/fds-portal-info-styling.js
+/**
+ * Breakpoint is passed as a parameter rather than read from a CSS custom property
+ * due to unreliable timing in execution order.
+ *
+ * @param {string} breakpoint - The min-width breakpoint value, e.g. '992px'.
+ * @returns {string} The CSS string for the Shadow DOM stylesheet.
+ */
+const fds_portal_info_styling_styles = breakpoint => `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    :host {
+        display: block;
+        background-color: var(--header-portal-background-color, #FFFFFF);
+        width: 100%;
+    }
+
+    .portal-info-inner {
+        width: 100%;
+        max-width: 1200px;
+        min-height: 48px;
+        padding-top: 4px;
+        padding-bottom: 4px;
+        padding-right: 16px;
+        padding-left: 16px;
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        margin-right: auto;
+        margin-left: auto;
+    }
+
+    .logo {
+        display: inline-block;
+        width: 100%;
+        height: 24px;
+
+        @media (min-width: ${breakpoint}) {
+            max-width: 30%;
+        }
+    }
+
+    .portal-user {
+        margin-left: auto;
+        display: none;
+        align-items: center;
+        justify-content: flex-end;
+        max-width: 70%;
+
+        @media (min-width: ${breakpoint}) {
+            display: flex;
+        }
+    }
+
+    .portal-info-mobile {
+        border-top: 1px solid #8e8e8e;
+        padding: 24px;
+        text-align: left;
+        background-color: var(--header-portal-background-color, #FFFFFF);
+    }
+`;
+;// ./src/js/custom-elements/header/fds-portal-info.js
+
+
+class FDSPortalInfo extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['breakpoint', 'ready'];
+
+  // #endregion
+
+  // #region - Private instance fields --------------------------------------------------------------------
+
+  #initialized = false;
+  #sheet = (() => new CSSStyleSheet())();
+
+  // #endregion
+
+  // #region - Private event handlers ---------------------------------------------------------------------
+
+  #handleSlotDrawerButtonChange = event => {
+    event.target.assignedElements().forEach(element => {
+      element.classList.add('ml-auto');
+    });
+  };
+  #handleSlotUserChange = event => {
+    event.target.assignedElements().forEach(element => {
+      element.classList.add('user');
+    });
+  };
+  #handleSlotLogOffButtonChange = event => {
+    event.target.assignedElements().forEach(element => {
+      element.classList.add('function-link', 'd-print-none', 'log-off');
+    });
+  };
+
+  // #endregion
+
+  // #region - Private methods ----------------------------------------------------------------------------
+
+  #updateStyles() {
+    const breakpoint = this.getAttribute('breakpoint') || '992px';
+    this.#sheet.replaceSync(fds_portal_info_styling_styles(breakpoint));
+  }
+  #setupHTML() {
+    if (this.closest('fds-drawer')) {
+      // --- Section ---
+      let section = this.shadowRoot.querySelector('.portal-info-mobile');
+      if (!section) {
+        section = document.createElement('section');
+        section.classList.add('portal-info-mobile');
+        this.shadowRoot.appendChild(section);
+      }
+
+      // --- User ---
+      let userSlot = section.querySelector('slot[name="user"]');
+      if (!userSlot) {
+        userSlot = document.createElement('slot');
+        userSlot.name = 'user';
+        section.appendChild(userSlot);
+      }
+
+      // --- Log off button ---
+      let logOffButtonSlot = section.querySelector('slot[name="log-off-button"]');
+      if (!logOffButtonSlot) {
+        logOffButtonSlot = document.createElement('slot');
+        logOffButtonSlot.name = 'log-off-button';
+        section.appendChild(logOffButtonSlot);
+      }
+    } else {
+      // --- Inner wrapper ---
+      let divWrapper = this.shadowRoot.querySelector('.portal-info-inner');
+      if (!divWrapper) {
+        divWrapper = document.createElement('div');
+        divWrapper.classList.add('portal-info-inner');
+        this.shadowRoot.appendChild(divWrapper);
+      }
+
+      // --- Logo wrapper ---
+      let logoWrapper = divWrapper.querySelector('.logo');
+      if (!logoWrapper) {
+        logoWrapper = document.createElement('div');
+        logoWrapper.classList.add('logo');
+        divWrapper.appendChild(logoWrapper);
+      }
+
+      // --- Logo ---
+      let portalLogo = logoWrapper.querySelector('slot[name="logo"]');
+      if (!portalLogo) {
+        portalLogo = document.createElement('slot');
+        portalLogo.name = 'logo';
+        logoWrapper.appendChild(portalLogo);
+      }
+
+      // --- Drawer button ---
+      let drawerButtonSlot = divWrapper.querySelector('slot[name="drawer-button"]');
+      if (!drawerButtonSlot) {
+        drawerButtonSlot = document.createElement('slot');
+        drawerButtonSlot.name = 'drawer-button';
+        divWrapper.appendChild(drawerButtonSlot);
+      }
+
+      // --- User wrapper ---
+      let userWrapper = divWrapper.querySelector('.portal-user');
+      if (!userWrapper) {
+        userWrapper = document.createElement('div');
+        userWrapper.classList.add('portal-user');
+        divWrapper.appendChild(userWrapper);
+      }
+
+      // --- User ---
+      let userSlot = userWrapper.querySelector('slot[name="user"]');
+      if (!userSlot) {
+        userSlot = document.createElement('slot');
+        userSlot.name = 'user';
+        userWrapper.appendChild(userSlot);
+      }
+
+      // --- Log off button ---
+      let logOffButtonSlot = userWrapper.querySelector('slot[name="log-off-button"]');
+      if (!logOffButtonSlot) {
+        logOffButtonSlot = document.createElement('slot');
+        logOffButtonSlot.name = 'log-off-button';
+        userWrapper.appendChild(logOffButtonSlot);
+      }
+    }
+  }
+  #addEventListeners() {
+    this.shadowRoot.querySelector('slot[name="drawer-button"]')?.addEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+    this.shadowRoot.querySelector('slot[name="user"]')?.addEventListener('slotchange', this.#handleSlotUserChange);
+    this.shadowRoot.querySelector('slot[name="log-off-button"]')?.addEventListener('slotchange', this.#handleSlotLogOffButtonChange);
+  }
+  #removeEventListeners() {
+    this.shadowRoot.querySelector('slot[name="drawer-button"]')?.removeEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+    this.shadowRoot.querySelector('slot[name="user"]')?.removeEventListener('slotchange', this.#handleSlotUserChange);
+    this.shadowRoot.querySelector('slot[name="log-off-button"]')?.removeEventListener('slotchange', this.#handleSlotLogOffButtonChange);
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [this.#sheet];
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  init() {
+    this.#updateStyles();
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'breakpoint':
+        this.#updateStyles();
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerPortalInfo() {
+  if (!customElements.get('fds-portal-info')) {
+    customElements.define('fds-portal-info', FDSPortalInfo);
+  }
+}
+/* harmony default export */ const fds_portal_info = (registerPortalInfo);
 ;// ./src/js/dkfds.js
 
 
@@ -11715,6 +11886,7 @@ function registerMenuDrawerButton() {
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
 
 // Custom elements
+
 
 
 
@@ -11943,8 +12115,9 @@ const registerCustomElements = () => {
   fds_file_item();
   fds_error_summary();
   input_affix();
-  fds_menu_drawer();
-  fds_menu_drawer_button();
+  fds_drawer();
+  fds_drawer_button();
+  fds_portal_info();
 };
 registerCustomElements();
 

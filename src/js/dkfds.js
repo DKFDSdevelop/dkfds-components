@@ -38,8 +38,9 @@ import registerDatePickerGrid from './custom-elements/date-picker/fds-date-picke
 import registerTextarea from './custom-elements/textarea/fds-textarea';
 import registerErrorSummary from './custom-elements/error-summary/fds-error-summary';
 import registerInputAffix from './custom-elements/input-affix/input-affix';
-import registerMenuDrawer from './custom-elements/header/fds-menu-drawer';
-import registerMenuDrawerButton from './custom-elements/header/fds-menu-drawer-button';
+import registerDrawer from './custom-elements/header/fds-drawer';
+import registerDrawerButton from './custom-elements/header/fds-drawer-button';
+import registerPortalInfo from './custom-elements/header/fds-portal-info';
 
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
@@ -250,10 +251,11 @@ const registerCustomElements = () => {
   registerFileItem();
   registerErrorSummary();
   registerInputAffix();
-  registerMenuDrawer();
-  registerMenuDrawerButton();
+  registerDrawer();
+  registerDrawerButton();
+  registerPortalInfo();
 };
 
 registerCustomElements();
 
-export { init, registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerMenuDrawer, registerMenuDrawerButton, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
+export { init, registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerDrawer, registerDrawerButton, registerPortalInfo, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };

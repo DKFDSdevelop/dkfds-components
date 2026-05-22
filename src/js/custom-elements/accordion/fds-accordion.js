@@ -329,7 +329,7 @@ class FDSAccordion extends HTMLElement {
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (attribute === 'ready') {
-            if (!this.#initialized && this.isConnected && newValue === 'true') {
+            if (!this.#initialized && this.isConnected && newValue !== 'false') {
                 this.init();
             }
             return;

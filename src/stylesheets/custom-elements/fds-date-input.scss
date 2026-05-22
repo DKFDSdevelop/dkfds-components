@@ -20,13 +20,18 @@ fds-date-input,
     }
 
     fieldset {
-        & > div {
+        &>div {
             display: flex;
             align-items: flex-end;
             margin-top: func.units(3);
         }
 
         &:disabled {
+            legend {
+                color: func.color(vars.$input-disabled-text-color);
+                font-weight: func.font-weight('medium');
+            }
+
             label {
                 color: func.color(vars.$input-disabled-text-color);
             }

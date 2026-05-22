@@ -1,0 +1,43 @@
+:not(fds-drawer) fds-portal-info,
+:not(.fds-drawer) .fds-portal-info {
+    [slot="logo"] {
+        display: inline-block;
+        
+        img {
+            height: 24px;
+        }
+    }
+
+    p {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    .user {
+        text-align: right;
+        margin-right: 24px;
+        overflow-wrap: break-word;
+    }
+}
+
+fds-drawer .mobile-drawer fds-portal-info,
+.fds-drawer .mobile-drawer .fds-portal-info {
+    p {
+        margin-bottom: 8px;
+    }
+
+    .user {
+        text-align: left;
+
+        span {
+            display: block;
+            overflow-wrap: break-word;
+            line-height: 1.5;
+        }
+    }
+
+    .log-on,
+    .log-off {
+        margin-top: 4px;
+    }
+}

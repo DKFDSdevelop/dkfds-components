@@ -1,4 +1,5 @@
 // Core -------------- //
+@use 'core/custom-properties';
 @use 'core/fonts';
 @use 'core/base';
 @use 'core/focus';
@@ -85,4 +86,6 @@
 @use 'custom-elements/fds-textarea.scss';
 @use 'custom-elements/fds-error-summary';
 @use 'custom-elements/fds-input-affix';
-@use 'custom-elements/fds-menu-drawer';
+@use 'custom-elements/fds-drawer';
+@use 'custom-elements/fds-drawer-button';
+@use 'custom-elements/fds-portal-info';

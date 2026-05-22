@@ -109,7 +109,7 @@ Modal.prototype.show = function (e = null) {
 
         modalElement.setAttribute('aria-hidden', 'false');
 
-        let eventOpen = new Event('fds.modal.shown');
+        let eventOpen = new Event('fds.modal.shown', { bubbles: true });
         modalElement.dispatchEvent(eventOpen);
 
         if (document.getElementById('modal-backdrop')) {

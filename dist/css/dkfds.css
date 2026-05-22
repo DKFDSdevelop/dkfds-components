@@ -1,4 +1,8 @@
 @charset "UTF-8";
+:root{
+  --header-portal-background-color:white;
+}
+
 @font-face{
   font-family:"IBM Plex Sans";
   font-style:normal;
@@ -13230,6 +13234,11 @@ fds-date-input fieldset > div,
   align-items:flex-end;
   margin-top:8px;
 }
+fds-date-input fieldset:disabled legend,
+.fds-date-input fieldset:disabled legend{
+  color:#707070;
+  font-weight:500;
+}
 fds-date-input fieldset:disabled label,
 .fds-date-input fieldset:disabled label{
   color:#707070;
@@ -14072,7 +14081,10 @@ fds-input-affix .form-input-prefix,
   border-bottom-left-radius:8px;
 }
 
-fds-menu-drawer{
+fds-drawer{
+  display:block;
+}
+fds-drawer .mobile-drawer{
   display:none;
   position:fixed;
   inset:0 0 0 auto;
@@ -14085,51 +14097,110 @@ fds-menu-drawer{
   z-index:9000;
   box-shadow:0 8px 24px 0 rgba(0, 0, 0, 0.2);
 }
-fds-menu-drawer[open]:not([open=false]), fds-menu-drawer.is-visible{
-  display:block;
-  animation:fds-menu-drawer-slidein-left 0.3s ease-in-out;
-}
-@media (min-width: 992px){
-  fds-menu-drawer{
-    display:none;
-  }
-}
-fds-menu-drawer h1, fds-menu-drawer h2, fds-menu-drawer h3, fds-menu-drawer h4, fds-menu-drawer h5, fds-menu-drawer h6, fds-menu-drawer p{
-  margin-top:0;
-  margin-bottom:0;
-}
-fds-menu-drawer .menu-top{
-  background-color:white;
-  padding:8px 24px;
-  display:flex;
-  align-items:center;
-  min-height:48px;
-}
-@media (min-width: 992px){
-  fds-menu-drawer .menu-top{
-    display:none;
-  }
-}
-fds-menu-drawer .menu-top .menu-heading{
-  font-size:2rem;
-}
-fds-menu-drawer .menu-top .button-menu-close{
-  width:unset;
-  margin-left:auto;
-  color:#1a1a1a;
-}
-fds-menu-drawer .menu-top .button-menu-close:hover, fds-menu-drawer .menu-top .button-menu-close:focus{
-  color:#1a1a1a;
-}
-fds-menu-drawer .menu-content{
-  border-top:1px solid #BFBFBF;
-}
-
-@keyframes fds-menu-drawer-slidein-left{
+@keyframes slidein-left{
   from{
     transform:translateX(85%);
   }
   to{
     transform:translateX(0);
   }
+}
+fds-drawer .mobile-drawer.is-visible{
+  display:block;
+  animation:slidein-left 0.3s ease-in-out;
+}
+fds-drawer .mobile-drawer .menu-top{
+  background-color:white;
+  padding:8px 24px;
+  display:flex;
+  align-items:center;
+  min-height:48px;
+}
+fds-drawer .mobile-drawer .menu-top .menu-heading{
+  font-size:2rem;
+  margin-top:0;
+  margin-bottom:0;
+}
+fds-drawer .mobile-drawer .menu-top .button-menu-close{
+  width:unset;
+  margin-left:auto;
+}
+
+fds-drawer-button,
+.fds-drawer-button{
+  display:inline-block;
+}
+fds-drawer-button button,
+.fds-drawer-button button{
+  width:auto;
+  white-space:nowrap;
+  background:none;
+  padding:0;
+  text-decoration:underline;
+  text-align:left;
+  border:none;
+  font-size:1.6rem;
+  line-height:2.4rem;
+  font-weight:400;
+  color:#1a1a1a;
+  text-transform:none;
+  letter-spacing:normal;
+  cursor:pointer;
+  display:inline-block;
+  overflow-wrap:break-word;
+  max-width:100%;
+}
+fds-drawer-button button:hover, fds-drawer-button button:visited, fds-drawer-button button:focus,
+.fds-drawer-button button:hover,
+.fds-drawer-button button:visited,
+.fds-drawer-button button:focus{
+  color:#1a1a1a;
+}
+fds-drawer-button button .icon-svg,
+.fds-drawer-button button .icon-svg{
+  margin-right:4px;
+  fill:currentColor;
+  vertical-align:top;
+  margin-top:0.1rem;
+}
+
+:not(fds-drawer) fds-portal-info [slot=logo],
+:not(.fds-drawer) .fds-portal-info [slot=logo]{
+  display:inline-block;
+}
+:not(fds-drawer) fds-portal-info [slot=logo] img,
+:not(.fds-drawer) .fds-portal-info [slot=logo] img{
+  height:24px;
+}
+:not(fds-drawer) fds-portal-info p,
+:not(.fds-drawer) .fds-portal-info p{
+  margin-top:0;
+  margin-bottom:0;
+}
+:not(fds-drawer) fds-portal-info .user,
+:not(.fds-drawer) .fds-portal-info .user{
+  text-align:right;
+  margin-right:24px;
+  overflow-wrap:break-word;
+}
+
+fds-drawer .mobile-drawer fds-portal-info p,
+.fds-drawer .mobile-drawer .fds-portal-info p{
+  margin-bottom:8px;
+}
+fds-drawer .mobile-drawer fds-portal-info .user,
+.fds-drawer .mobile-drawer .fds-portal-info .user{
+  text-align:left;
+}
+fds-drawer .mobile-drawer fds-portal-info .user span,
+.fds-drawer .mobile-drawer .fds-portal-info .user span{
+  display:block;
+  overflow-wrap:break-word;
+  line-height:1.5;
+}
+fds-drawer .mobile-drawer fds-portal-info .log-on,
+fds-drawer .mobile-drawer fds-portal-info .log-off,
+.fds-drawer .mobile-drawer .fds-portal-info .log-on,
+.fds-drawer .mobile-drawer .fds-portal-info .log-off{
+  margin-top:4px;
 }
