@@ -1,4 +1,11 @@
-export const styles = `
+/**
+ * Breakpoint is passed as a parameter rather than read from a CSS custom property
+ * due to unreliable timing in execution order.
+ *
+ * @param {string} breakpoint - The min-width breakpoint value, e.g. '992px'.
+ * @returns {string} The CSS string for the Shadow DOM stylesheet.
+ */
+export const styles = (breakpoint) => `
     *,
     *::before,
     *::after {
@@ -31,7 +38,7 @@ export const styles = `
         width: 100%;
         height: 24px;
 
-        @media (min-width: 992px) {
+        @media (min-width: ${breakpoint}) {
             max-width: 30%;
         }
     }
@@ -43,7 +50,7 @@ export const styles = `
         justify-content: flex-end;
         max-width: 70%;
 
-        @media (min-width: 992px) {
+        @media (min-width: ${breakpoint}) {
             display: flex;
         }
     }

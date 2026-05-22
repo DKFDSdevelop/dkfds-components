@@ -1,20 +1,18 @@
 import * as CE from '../custom-element-utils';
 import { styles } from './fds-portal-info-styling';
 
-const sheet = new CSSStyleSheet();
-sheet.replaceSync(styles);
-
 class FDSPortalInfo extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-    static observedAttributes = ['attr', 'ready'];
+    static observedAttributes = ['breakpoint', 'ready'];
 
     // #endregion
 
     // #region - Private instance fields --------------------------------------------------------------------
 
     #initialized = false;
+    #sheet = new CSSStyleSheet();
 
     // #endregion
 
@@ -41,6 +39,11 @@ class FDSPortalInfo extends HTMLElement {
     // #endregion
 
     // #region - Private methods ----------------------------------------------------------------------------
+
+    #updateStyles() {
+        const breakpoint = this.getAttribute('breakpoint') || '992px';
+        this.#sheet.replaceSync(styles(breakpoint));
+    }
 
     #setupHTML() {
         if (this.closest('fds-drawer')) {
@@ -146,7 +149,7 @@ class FDSPortalInfo extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-        this.shadowRoot.adoptedStyleSheets = [sheet];
+        this.shadowRoot.adoptedStyleSheets = [this.#sheet];
     }
 
     // #endregion
@@ -154,6 +157,7 @@ class FDSPortalInfo extends HTMLElement {
     // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
     init() {
+        this.#updateStyles();
         this.#setupHTML();
         this.#addEventListeners();
         this.#initialized = true;
@@ -194,8 +198,8 @@ class FDSPortalInfo extends HTMLElement {
         if (oldValue === newValue) return;
 
         switch (attribute) {
-            case 'attr':
-                console.log('attr changed to', newValue);
+            case 'breakpoint':
+                this.#updateStyles();
                 break;
         }
     }

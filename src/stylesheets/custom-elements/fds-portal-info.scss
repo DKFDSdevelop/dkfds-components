@@ -1,7 +1,3 @@
-@use "../variables" as vars;
-@use "../functions" as func;
-@use "../mixins" as mixins;
-
 :not(fds-drawer) fds-portal-info,
 :not(.fds-drawer) .fds-portal-info {
     [slot="logo"] {

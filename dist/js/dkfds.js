@@ -11593,7 +11593,14 @@ function registerDrawerButton() {
 }
 /* harmony default export */ const fds_drawer_button = (registerDrawerButton);
 ;// ./src/js/custom-elements/header/fds-portal-info-styling.js
-const fds_portal_info_styling_styles = `
+/**
+ * Breakpoint is passed as a parameter rather than read from a CSS custom property
+ * due to unreliable timing in execution order.
+ *
+ * @param {string} breakpoint - The min-width breakpoint value, e.g. '992px'.
+ * @returns {string} The CSS string for the Shadow DOM stylesheet.
+ */
+const fds_portal_info_styling_styles = breakpoint => `
     *,
     *::before,
     *::after {
@@ -11626,7 +11633,7 @@ const fds_portal_info_styling_styles = `
         width: 100%;
         height: 24px;
 
-        @media (min-width: 992px) {
+        @media (min-width: ${breakpoint}) {
             max-width: 30%;
         }
     }
@@ -11638,7 +11645,7 @@ const fds_portal_info_styling_styles = `
         justify-content: flex-end;
         max-width: 70%;
 
-        @media (min-width: 992px) {
+        @media (min-width: ${breakpoint}) {
             display: flex;
         }
     }
@@ -11653,18 +11660,17 @@ const fds_portal_info_styling_styles = `
 ;// ./src/js/custom-elements/header/fds-portal-info.js
 
 
-const fds_portal_info_sheet = new CSSStyleSheet();
-fds_portal_info_sheet.replaceSync(fds_portal_info_styling_styles);
 class FDSPortalInfo extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['attr', 'ready'];
+  static observedAttributes = ['breakpoint', 'ready'];
 
   // #endregion
 
   // #region - Private instance fields --------------------------------------------------------------------
 
   #initialized = false;
+  #sheet = (() => new CSSStyleSheet())();
 
   // #endregion
 
@@ -11690,6 +11696,10 @@ class FDSPortalInfo extends HTMLElement {
 
   // #region - Private methods ----------------------------------------------------------------------------
 
+  #updateStyles() {
+    const breakpoint = this.getAttribute('breakpoint') || '992px';
+    this.#sheet.replaceSync(fds_portal_info_styling_styles(breakpoint));
+  }
   #setupHTML() {
     if (this.closest('fds-drawer')) {
       // --- Section ---
@@ -11793,7 +11803,7 @@ class FDSPortalInfo extends HTMLElement {
     this.attachShadow({
       mode: 'open'
     });
-    this.shadowRoot.adoptedStyleSheets = [fds_portal_info_sheet];
+    this.shadowRoot.adoptedStyleSheets = [this.#sheet];
   }
 
   // #endregion
@@ -11801,6 +11811,7 @@ class FDSPortalInfo extends HTMLElement {
   // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
   init() {
+    this.#updateStyles();
     this.#setupHTML();
     this.#addEventListeners();
     this.#initialized = true;
@@ -11838,8 +11849,8 @@ class FDSPortalInfo extends HTMLElement {
     if (!this.#initialized) return;
     if (oldValue === newValue) return;
     switch (attribute) {
-      case 'attr':
-        console.log('attr changed to', newValue);
+      case 'breakpoint':
+        this.#updateStyles();
         break;
     }
   }
