@@ -14164,25 +14164,13 @@ fds-drawer-button button .icon-svg,
   margin-top:0.1rem;
 }
 
-:not(fds-drawer) fds-portal-info .logo,
-:not(.fds-drawer) .fds-portal-info .logo{
-  background-image:url("../img/logo-header-placeholder.png");
-  background-size:contain;
-  background-repeat:no-repeat;
-  background-position:center left;
+:not(fds-drawer) fds-portal-info [slot=logo],
+:not(.fds-drawer) .fds-portal-info [slot=logo]{
   display:inline-block;
+}
+:not(fds-drawer) fds-portal-info [slot=logo] img,
+:not(.fds-drawer) .fds-portal-info [slot=logo] img{
   height:24px;
-  width:100%;
-}
-@media (min-width: 992px){
-  :not(fds-drawer) fds-portal-info .logo,
-  :not(.fds-drawer) .fds-portal-info .logo{
-    max-width:30%;
-  }
-}
-:not(fds-drawer) fds-portal-info .logo span,
-:not(.fds-drawer) .fds-portal-info .logo span{
-  display:none;
 }
 :not(fds-drawer) fds-portal-info p,
 :not(.fds-drawer) .fds-portal-info p{

@@ -4,21 +4,11 @@
 
 :not(fds-drawer) fds-portal-info,
 :not(.fds-drawer) .fds-portal-info {
-    .logo {
-        background-image: url("#{vars.$image-path}#{vars.$header-portal-logo}");
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center left;
+    [slot="logo"] {
         display: inline-block;
-        height: vars.$header-portal-logo-height;
-        width: vars.$header-portal-logo-width;
-
-        @include mixins.media-breakpoint-up(vars.$nav-responsive-breakpoint) {
-            max-width: 30%;
-        }
-
-        span {
-            display: none;
+        
+        img {
+            height: 24px;
         }
     }
 

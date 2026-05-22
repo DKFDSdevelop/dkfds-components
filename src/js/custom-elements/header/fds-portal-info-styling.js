@@ -26,6 +26,16 @@ export const styles = `
         margin-left: auto;
     }
 
+    .logo {
+        display: inline-block;
+        width: 100%;
+        height: 24px;
+
+        @media (min-width: 992px) {
+            max-width: 30%;
+        }
+    }
+
     .portal-user {
         margin-left: auto;
         display: none;

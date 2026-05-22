@@ -77,12 +77,20 @@ class FDSPortalInfo extends HTMLElement {
                 this.shadowRoot.appendChild(divWrapper);
             }
 
+            // --- Logo wrapper ---
+            let logoWrapper = divWrapper.querySelector('.logo');
+            if (!logoWrapper) {
+                logoWrapper = document.createElement('div');
+                logoWrapper.classList.add('logo');
+                divWrapper.appendChild(logoWrapper);
+            }
+
             // --- Logo ---
-            let portalLogo = divWrapper.querySelector('slot[name="logo"]');
+            let portalLogo = logoWrapper.querySelector('slot[name="logo"]');
             if (!portalLogo) {
                 portalLogo = document.createElement('slot');
                 portalLogo.name = 'logo';
-                divWrapper.appendChild(portalLogo);
+                logoWrapper.appendChild(portalLogo);
             }
 
             // --- Drawer button ---
