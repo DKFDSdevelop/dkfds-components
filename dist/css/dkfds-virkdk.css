@@ -14164,8 +14164,8 @@ fds-drawer-button button .icon-svg,
   margin-top:0.1rem;
 }
 
-header fds-portal-info .logo,
-header .fds-portal-info .logo{
+:not(fds-drawer) fds-portal-info .logo,
+:not(.fds-drawer) .fds-portal-info .logo{
   background-image:url("../img/logo_virk.svg");
   background-size:contain;
   background-repeat:no-repeat;
@@ -14175,23 +14175,44 @@ header .fds-portal-info .logo{
   width:100%;
 }
 @media (min-width: 992px){
-  header fds-portal-info .logo,
-  header .fds-portal-info .logo{
+  :not(fds-drawer) fds-portal-info .logo,
+  :not(.fds-drawer) .fds-portal-info .logo{
     max-width:30%;
   }
 }
-header fds-portal-info .logo span,
-header .fds-portal-info .logo span{
+:not(fds-drawer) fds-portal-info .logo span,
+:not(.fds-drawer) .fds-portal-info .logo span{
   display:none;
 }
-header fds-portal-info p,
-header .fds-portal-info p{
+:not(fds-drawer) fds-portal-info p,
+:not(.fds-drawer) .fds-portal-info p{
   margin-top:0;
   margin-bottom:0;
 }
-header fds-portal-info .user,
-header .fds-portal-info .user{
+:not(fds-drawer) fds-portal-info .user,
+:not(.fds-drawer) .fds-portal-info .user{
   text-align:right;
   margin-right:24px;
   overflow-wrap:break-word;
+}
+
+fds-drawer .mobile-drawer fds-portal-info p,
+.fds-drawer .mobile-drawer .fds-portal-info p{
+  margin-bottom:8px;
+}
+fds-drawer .mobile-drawer fds-portal-info .user,
+.fds-drawer .mobile-drawer .fds-portal-info .user{
+  text-align:left;
+}
+fds-drawer .mobile-drawer fds-portal-info .user span,
+.fds-drawer .mobile-drawer .fds-portal-info .user span{
+  display:block;
+  overflow-wrap:break-word;
+  line-height:1.5;
+}
+fds-drawer .mobile-drawer fds-portal-info .log-on,
+fds-drawer .mobile-drawer fds-portal-info .log-off,
+.fds-drawer .mobile-drawer .fds-portal-info .log-on,
+.fds-drawer .mobile-drawer .fds-portal-info .log-off{
+  margin-top:4px;
 }

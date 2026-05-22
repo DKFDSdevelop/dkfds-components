@@ -38,7 +38,29 @@ class FDSPortalInfo extends HTMLElement {
 
     #setupHTML() {
         if (this.closest('fds-drawer')) {
+            // --- Section ---
+            let section = this.shadowRoot.querySelector('.portal-info-mobile');
+            if (!section) {
+                section = document.createElement('section');
+                section.classList.add('portal-info-mobile');
+                this.shadowRoot.appendChild(section);
+            }
 
+            // --- User ---
+            let userSlot = section.querySelector('slot[name="user"]');
+            if (!userSlot) {
+                userSlot = document.createElement('slot');
+                userSlot.name = 'user';
+                section.appendChild(userSlot);
+            }
+
+            // --- Log off button ---
+            let logOffButtonSlot = section.querySelector('slot[name="log-off-button"]');
+            if (!logOffButtonSlot) {
+                logOffButtonSlot = document.createElement('slot');
+                logOffButtonSlot.name = 'log-off-button';
+                section.appendChild(logOffButtonSlot);
+            }
         }
         else {
             // --- Inner wrapper ---

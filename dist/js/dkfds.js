@@ -11632,6 +11632,13 @@ const fds_portal_info_styling_styles = `
             display: flex;
         }
     }
+
+    .portal-info-mobile {
+        border-top: 1px solid #8e8e8e;
+        padding: 24px;
+        text-align: left;
+        background-color: var(--header-portal-background-color, #FFFFFF);
+    }
 `;
 ;// ./src/js/custom-elements/header/fds-portal-info.js
 
@@ -11669,7 +11676,31 @@ class FDSPortalInfo extends HTMLElement {
   // #region - Private methods ----------------------------------------------------------------------------
 
   #setupHTML() {
-    if (this.closest('fds-drawer')) {} else {
+    if (this.closest('fds-drawer')) {
+      // --- Section ---
+      let section = this.shadowRoot.querySelector('.portal-info-mobile');
+      if (!section) {
+        section = document.createElement('section');
+        section.classList.add('portal-info-mobile');
+        this.shadowRoot.appendChild(section);
+      }
+
+      // --- User ---
+      let userSlot = section.querySelector('slot[name="user"]');
+      if (!userSlot) {
+        userSlot = document.createElement('slot');
+        userSlot.name = 'user';
+        section.appendChild(userSlot);
+      }
+
+      // --- Log off button ---
+      let logOffButtonSlot = section.querySelector('slot[name="log-off-button"]');
+      if (!logOffButtonSlot) {
+        logOffButtonSlot = document.createElement('slot');
+        logOffButtonSlot.name = 'log-off-button';
+        section.appendChild(logOffButtonSlot);
+      }
+    } else {
       // --- Inner wrapper ---
       let divWrapper = this.shadowRoot.querySelector('.portal-info-inner');
       if (!divWrapper) {

@@ -2,8 +2,8 @@
 @use "../functions" as func;
 @use "../mixins" as mixins;
 
-header fds-portal-info,
-header .fds-portal-info {
+:not(fds-drawer) fds-portal-info,
+:not(.fds-drawer) .fds-portal-info {
     .logo {
         background-image: url("#{vars.$image-path}#{vars.$header-portal-logo}");
         background-size: contain;
@@ -31,5 +31,27 @@ header .fds-portal-info {
         text-align: right;
         margin-right: 24px;
         overflow-wrap: break-word;
+    }
+}
+
+fds-drawer .mobile-drawer fds-portal-info,
+.fds-drawer .mobile-drawer .fds-portal-info {
+    p {
+        margin-bottom: 8px;
+    }
+
+    .user {
+        text-align: left;
+
+        span {
+            display: block;
+            overflow-wrap: break-word;
+            line-height: 1.5;
+        }
+    }
+
+    .log-on,
+    .log-off {
+        margin-top: 4px;
     }
 }

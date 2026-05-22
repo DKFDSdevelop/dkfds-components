@@ -37,4 +37,11 @@ export const styles = `
             display: flex;
         }
     }
+
+    .portal-info-mobile {
+        border-top: 1px solid #8e8e8e;
+        padding: 24px;
+        text-align: left;
+        background-color: var(--header-portal-background-color, #FFFFFF);
+    }
 `;
