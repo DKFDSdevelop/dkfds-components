@@ -14204,3 +14204,9 @@ fds-drawer .mobile-drawer fds-portal-info .log-off,
 .fds-drawer .mobile-drawer .fds-portal-info .log-off{
   margin-top:4px;
 }
+
+:not(fds-drawer) fds-solution-info a[slot=solution-heading],
+:not(.fds-drawer) .fds-solution-info a[slot=solution-heading]{
+  font-size:2.8rem;
+  line-height:3.2rem;
+}

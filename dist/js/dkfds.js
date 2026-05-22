@@ -11866,8 +11866,30 @@ function registerPortalInfo() {
 /* harmony default export */ const fds_portal_info = (registerPortalInfo);
 ;// ./src/js/custom-elements/header/fds-solution-info-styling.js
 const fds_solution_info_styling_styles = `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
     :host {
         display: block;
+        background-color: #FFFFFF;
+        width: 100%;
+    }
+
+    .solution-info-inner {
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+        padding-top: calc(16px - 1px);
+        padding-bottom: calc(16px - 1px);
+        padding-right: 16px;
+        padding-left: 16px;
+        max-width: 1200px;
+        margin-right: auto;
+        margin-left: auto;
     }
 `;
 ;// ./src/js/custom-elements/header/fds-solution-info.js
@@ -11889,35 +11911,42 @@ class FDSSolutionInfo extends HTMLElement {
 
   // #region - Private event handlers ---------------------------------------------------------------------
 
-  #handleClick = event => {
-    console.log('Click event:', event);
-  };
-
   // #endregion
 
   // #region - Private methods ----------------------------------------------------------------------------
 
   #setupHTML() {
-    // --- Slot ---
-    if (!this.shadowRoot.querySelector('slot[name="element-slot"]')) {
-      const slot = document.createElement('slot');
-      slot.name = 'element-slot';
-      this.shadowRoot.appendChild(slot);
-    }
+    if (this.closest('fds-drawer')) {} else {
+      // --- Inner wrapper ---
+      let divWrapper = this.shadowRoot.querySelector('.solution-info-inner');
+      if (!divWrapper) {
+        divWrapper = document.createElement('div');
+        divWrapper.classList.add('solution-info-inner');
+        this.shadowRoot.appendChild(divWrapper);
+      }
 
-    // --- Button ---
-    let button = this.shadowRoot.querySelector('button');
-    if (!button) {
-      button = document.createElement('button');
-      this.shadowRoot.appendChild(button);
+      // --- Solution heading ---
+      let solutionHeading = divWrapper.querySelector('slot[name="solution-heading"]');
+      if (!solutionHeading) {
+        solutionHeading = document.createElement('slot');
+        solutionHeading.name = 'solution-heading';
+        divWrapper.appendChild(solutionHeading);
+      }
+
+      // --- Solution heading ---
+      let additionalInfo = divWrapper.querySelector('slot[name="additional-info"]');
+      if (!additionalInfo) {
+        additionalInfo = document.createElement('slot');
+        additionalInfo.name = 'additional-info';
+        divWrapper.appendChild(additionalInfo);
+      }
     }
-    button.textContent = 'Click me';
   }
   #addEventListeners() {
-    this.addEventListener('click', this.#handleClick);
+    //this.addEventListener('click', this.#handleClick);
   }
   #removeEventListeners() {
-    this.removeEventListener('click', this.#handleClick);
+    //this.removeEventListener('click', this.#handleClick);
   }
 
   // #endregion
