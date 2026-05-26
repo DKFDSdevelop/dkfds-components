@@ -11911,12 +11911,34 @@ class FDSSolutionInfo extends HTMLElement {
 
   // #region - Private event handlers ---------------------------------------------------------------------
 
+  #handleSlotDrawerButtonChange = event => {
+    event.target.assignedElements().forEach(element => {
+      element.classList.add('ml-auto');
+    });
+  };
+
   // #endregion
 
   // #region - Private methods ----------------------------------------------------------------------------
 
   #setupHTML() {
-    if (this.closest('fds-drawer')) {} else {
+    if (this.closest('fds-drawer')) {
+      // --- Section ---
+      let section = this.shadowRoot.querySelector('.solution-info-mobile');
+      if (!section) {
+        section = document.createElement('section');
+        section.classList.add('solution-info-mobile');
+        this.shadowRoot.appendChild(section);
+      }
+
+      // --- Additional info ---
+      let additionalInfo = section.querySelector('slot[name="additional-info"]');
+      if (!additionalInfo) {
+        additionalInfo = document.createElement('slot');
+        additionalInfo.name = 'additional-info';
+        section.appendChild(additionalInfo);
+      }
+    } else {
       // --- Inner wrapper ---
       let divWrapper = this.shadowRoot.querySelector('.solution-info-inner');
       if (!divWrapper) {
@@ -11933,20 +11955,28 @@ class FDSSolutionInfo extends HTMLElement {
         divWrapper.appendChild(solutionHeading);
       }
 
-      // --- Solution heading ---
+      // --- Additional info ---
       let additionalInfo = divWrapper.querySelector('slot[name="additional-info"]');
       if (!additionalInfo) {
         additionalInfo = document.createElement('slot');
         additionalInfo.name = 'additional-info';
         divWrapper.appendChild(additionalInfo);
       }
+
+      // --- Drawer button ---
+      let drawerButtonSlot = divWrapper.querySelector('slot[name="drawer-button"]');
+      if (!drawerButtonSlot) {
+        drawerButtonSlot = document.createElement('slot');
+        drawerButtonSlot.name = 'drawer-button';
+        divWrapper.appendChild(drawerButtonSlot);
+      }
     }
   }
   #addEventListeners() {
-    //this.addEventListener('click', this.#handleClick);
+    this.shadowRoot.querySelector('slot[name="drawer-button"]')?.addEventListener('slotchange', this.#handleSlotDrawerButtonChange);
   }
   #removeEventListeners() {
-    //this.removeEventListener('click', this.#handleClick);
+    this.shadowRoot.querySelector('slot[name="drawer-button"]')?.removeEventListener('slotchange', this.#handleSlotDrawerButtonChange);
   }
 
   // #endregion
