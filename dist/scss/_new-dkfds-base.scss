@@ -1,11 +1,13 @@
 // Core -------------- //
+@use 'core/custom-properties';
+@use 'core/fonts';
 @use 'core/base';
 @use 'core/focus';
 @use 'core/grid';
 @use 'core/typography';
-@use 'core/fonts';
+@use 'core/elements';
 
-// Utilities------------//
+// Utilities --------- //
 @use 'core/utilities/background';
 @use 'core/utilities/width';
 @use 'core/utilities/textalign';
@@ -14,20 +16,10 @@
 @use 'core/utilities/position';
 @use 'core/utilities/display';
 
-// Elements -------------- //
-// Styles basic HTML elements
-@use 'elements/section';
-@use 'elements/embed';
-@use 'elements/figure';
-@use 'elements/icons';
-@use 'elements/inputs';
-@use 'elements/list';
-@use 'elements/page';
-@use 'elements/forms';
-@use 'elements/hr';
+// Print ------------- //
+@use 'core/print';
 
-// Components -------------- //
-@use 'components/accordions';
+// Old components ---- //
 @use 'components/alerts';
 @use 'components/anchorlinks';
 @use 'components/back-link';
@@ -37,12 +29,8 @@
 @use 'components/buttons';
 @use 'components/cookie-message';
 @use 'components/details';
-@use 'components/date-input';
-@use 'components/date-picker';
-@use 'components/dropdown';
 @use 'components/footer';
 @use 'components/function-link';
-@use 'components/header';
 @use 'components/modal';
 @use 'components/navigation-mobile';
 @use 'components/navigation';
@@ -57,11 +45,31 @@
 @use 'components/cards';
 @use 'components/overflow-menu';
 @use 'components/table';
-@use 'components/textarea';
 @use 'components/toggleswitch';
 @use 'components/tooltip';
 @use 'components/tabs';
 @use 'components/tags';
 
-// Print -------------- //
-@use 'core/print';
+// Custom elements --- //
+@use 'custom-elements/fds-accordion';
+@use 'custom-elements/fds-accordion-group';
+@use 'custom-elements/fds-input';
+@use 'custom-elements/fds-help-text';
+@use 'custom-elements/fds-error-message';
+@use 'custom-elements/fds-character-limit';
+@use 'custom-elements/fds-checkbox';
+@use 'custom-elements/fds-checkbox-group';
+@use 'custom-elements/fds-radio-button';
+@use 'custom-elements/fds-radio-button-group';
+@use 'custom-elements/fds-date-input';
+@use 'custom-elements/fds-select';
+@use 'custom-elements/fds-upload-file';
+@use 'custom-elements/fds-date-picker';
+@use 'custom-elements/fds-date-picker-grid';
+@use 'custom-elements/fds-textarea.scss';
+@use 'custom-elements/fds-error-summary';
+@use 'custom-elements/fds-input-affix';
+@use 'custom-elements/fds-drawer';
+@use 'custom-elements/fds-drawer-button';
+@use 'custom-elements/fds-portal-info';
+@use 'custom-elements/fds-solution-info';

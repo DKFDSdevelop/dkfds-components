@@ -2,7 +2,8 @@
 @use "../functions" as func;
 @use "../mixins" as mixins;
 
-fds-drawer {
+fds-drawer,
+.fds-drawer {
     display: block;
 
     .mobile-drawer {
@@ -52,5 +53,20 @@ fds-drawer {
                 margin-left: auto;
             }
         }
+    }
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: func.color('black');
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    visibility: hidden;
+    z-index: vars.$zindex-overlay;
+
+    &.is-visible {
+        opacity: 0.75;
+        visibility: visible;
     }
 }

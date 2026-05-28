@@ -18,30 +18,6 @@ import Toast from './components/toast';
 import Tooltip from './components/tooltip';
 const datePicker = require('./components/date-picker').default;
 
-// Custom elements
-import registerAccordion from './custom-elements/accordion/fds-accordion';
-import registerAccordionGroup from './custom-elements/accordion/fds-accordion-group';
-import registerInput from './custom-elements/input/fds-input';
-import registerHelpText from './custom-elements/help-text/fds-help-text';
-import registerCharacterLimit from './custom-elements/character-limit/fds-character-limit';
-import registerErrorMessage from './custom-elements/error-message/fds-error-message';
-import registerCheckbox from './custom-elements/checkbox/fds-checkbox';
-import registerCheckboxGroup from './custom-elements/checkbox/fds-checkbox-group';
-import registerRadioButton from './custom-elements/radio-button/fds-radio-button';
-import registerRadioButtonGroup from './custom-elements/radio-button/fds-radio-button-group';
-import registerDateInput from './custom-elements/date-input/fds-date-input';
-import registerSelect from './custom-elements/select/fds-select';
-import registerUploadFile from './custom-elements/upload-file/fds-upload-file';
-import registerFileItem from './custom-elements/upload-file/fds-file-item';
-import registerDatePicker from './custom-elements/date-picker/fds-date-picker';
-import registerDatePickerGrid from './custom-elements/date-picker/fds-date-picker-grid';
-import registerTextarea from './custom-elements/textarea/fds-textarea';
-import registerErrorSummary from './custom-elements/error-summary/fds-error-summary';
-import registerInputAffix from './custom-elements/input-affix/input-affix';
-import registerDrawer from './custom-elements/header/fds-drawer';
-import registerDrawerButton from './custom-elements/header/fds-drawer-button';
-import registerPortalInfo from './custom-elements/header/fds-portal-info';
-
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
  * older browsers, so must be loaded first.
@@ -231,31 +207,4 @@ var init = function (options) {
   }
 };
 
-const registerCustomElements = () => {
-  registerAccordion();
-  registerAccordionGroup();
-  registerInput();
-  registerHelpText();
-  registerCharacterLimit();
-  registerErrorMessage();
-  registerCheckbox();
-  registerCheckboxGroup();
-  registerRadioButton();
-  registerRadioButtonGroup();
-  registerDateInput();
-  registerSelect();
-  registerDatePicker();
-  registerDatePickerGrid();
-  registerTextarea();
-  registerUploadFile();
-  registerFileItem();
-  registerErrorSummary();
-  registerInputAffix();
-  registerDrawer();
-  registerDrawerButton();
-  registerPortalInfo();
-};
-
-registerCustomElements();
-
-export { init, registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerDrawer, registerDrawerButton, registerPortalInfo, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };
+export { init, Accordion, Alert, BackToTop, CharacterLimit, CheckboxToggleContent, Dropdown, DropdownSort, datePicker, ErrorSummary, Modal, Navigation, MenuDropdown, RadioToggleGroup, ResponsiveTable, TableSelectableRows, Tabs, Toast, Tooltip };

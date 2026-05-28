@@ -1,0 +1,6422 @@
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else if(typeof exports === 'object')
+		exports["DKFDS"] = factory();
+	else
+		root["DKFDS"] = factory();
+})(this, () => {
+return /******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	// The require scope
+/******/ 	var __webpack_require__ = {};
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// ESM COMPAT FLAG
+__webpack_require__.r(__webpack_exports__);
+
+// EXPORTS
+__webpack_require__.d(__webpack_exports__, {
+  registerAccordion: () => (/* reexport */ fds_accordion),
+  registerAccordionGroup: () => (/* reexport */ fds_accordion_group),
+  registerCharacterLimit: () => (/* reexport */ fds_character_limit),
+  registerCheckbox: () => (/* reexport */ fds_checkbox),
+  registerCheckboxGroup: () => (/* reexport */ fds_checkbox_group),
+  registerCustomElements: () => (/* binding */ registerCustomElements),
+  registerDateInput: () => (/* reexport */ fds_date_input),
+  registerDatePicker: () => (/* reexport */ fds_date_picker),
+  registerDatePickerGrid: () => (/* reexport */ fds_date_picker_grid),
+  registerDrawer: () => (/* reexport */ fds_drawer),
+  registerDrawerButton: () => (/* reexport */ fds_drawer_button),
+  registerErrorMessage: () => (/* reexport */ fds_error_message),
+  registerErrorSummary: () => (/* reexport */ fds_error_summary),
+  registerFileItem: () => (/* reexport */ fds_file_item),
+  registerHelpText: () => (/* reexport */ fds_help_text),
+  registerInput: () => (/* reexport */ fds_input),
+  registerInputAffix: () => (/* reexport */ input_affix),
+  registerPortalInfo: () => (/* reexport */ fds_portal_info),
+  registerRadioButton: () => (/* reexport */ fds_radio_button),
+  registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
+  registerSelect: () => (/* reexport */ fds_select),
+  registerSolutionInfo: () => (/* reexport */ fds_solution_info),
+  registerTextarea: () => (/* reexport */ fds_textarea),
+  registerUploadFile: () => (/* reexport */ fds_upload_file)
+});
+
+;// ./src/js/utils/generate-unique-id.js
+function generateUniqueId() {
+  return crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
+}
+function generateUniqueIdWithPrefix(str) {
+  return str + crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
+}
+function generateAndVerifyUniqueId(str) {
+  let uniqueId = generateUniqueIdWithPrefix(str);
+  let attempts = 10; // Precaution to prevent long loops - more than 10 failed attempts should be extremely rare
+
+  while (document.getElementById(uniqueId) && attempts > 0) {
+    uniqueId = generateUniqueIdWithPrefix(str);
+    attempts--;
+  }
+  return uniqueId;
+}
+;// ./src/js/custom-elements/accordion/fds-accordion.js
+
+
+
+class FDSAccordion extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized;
+  #handleAccordionClick;
+  #accordionObserver = null;
+
+  /* Private methods */
+
+  #getHeadingElement() {
+    return this.querySelector('h1, h2, h3, h4, h5, h6');
+  }
+  #getContentElement() {
+    return this.querySelector('.accordion-content');
+  }
+  #normalizeHeadingLevel(headingLevel) {
+    const normalizedHeadingLevel = (headingLevel || 'h3').toLowerCase();
+    return ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(normalizedHeadingLevel) ? normalizedHeadingLevel : 'h3';
+  }
+  #ensureDOM() {
+    const headingLevel = this.#normalizeHeadingLevel(this.getAttribute('heading-level'));
+    let headingElement = this.#getHeadingElement();
+    let contentElement = this.querySelector(':scope > div');
+
+    // Attribute mode:
+    // No heading markup provided, so create canonical structure from attributes
+    if (!headingElement) {
+      headingElement = document.createElement(headingLevel);
+      const buttonElement = document.createElement('button');
+      buttonElement.classList.add('accordion-button');
+      buttonElement.setAttribute('type', 'button');
+      const titleElement = document.createElement('span');
+      titleElement.classList.add('accordion-title');
+      titleElement.textContent = this.getAttribute('heading') || '';
+      buttonElement.appendChild(titleElement);
+      headingElement.appendChild(buttonElement);
+      if (!contentElement) {
+        contentElement = document.createElement('div');
+        this.appendChild(contentElement);
+      }
+      contentElement.classList.add('accordion-content');
+      this.prepend(headingElement);
+      return true;
+    }
+
+    // Enhance mode:
+    // Heading exists, so the supported prerendered structure must already be present
+    const buttonElement = headingElement.querySelector(':scope > button');
+    if (!buttonElement) {
+      console.warn('<fds-accordion> Missing direct child button inside heading.');
+      return false;
+    }
+    const titleElement = buttonElement.querySelector(':scope > span');
+    if (!titleElement) {
+      console.warn('<fds-accordion> Missing direct child span inside button.');
+      return false;
+    }
+    if (!contentElement) {
+      console.warn('<fds-accordion> Missing direct child div for accordion content.');
+      return false;
+    }
+    buttonElement.classList.add('accordion-button');
+    buttonElement.setAttribute('type', 'button');
+    titleElement.classList.add('accordion-title');
+    contentElement.classList.add('accordion-content');
+    return true;
+  }
+  #updateHeading(heading) {
+    this.querySelector('.accordion-title').textContent = heading;
+  }
+  #updateHeadingLevel(headingLevel) {
+    const normalizedHeadingLevel = this.#normalizeHeadingLevel(headingLevel);
+    let headingElement = this.#getHeadingElement();
+    if (!headingElement || headingElement.tagName.toLowerCase() === normalizedHeadingLevel) return;
+    const newHeadingLevel = document.createElement(normalizedHeadingLevel);
+    newHeadingLevel.append(...headingElement.childNodes);
+    headingElement.replaceWith(newHeadingLevel);
+  }
+  #setExpandedState(isExpanded) {
+    const button = this.#getHeadingElement()?.querySelector('button.accordion-button');
+    const content = this.#getContentElement();
+    if (!button || !content) return;
+    button.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+    content.setAttribute('aria-hidden', isExpanded ? 'false' : 'true');
+  }
+  #updateExpanded(expanded) {
+    const isExpanded = expanded !== null && expanded !== 'false';
+    this.#setExpandedState(isExpanded);
+  }
+  #updateContentId(contentId) {
+    this.#getHeadingElement().querySelector('.accordion-button').setAttribute('aria-controls', contentId);
+    this.#getContentElement().setAttribute('id', contentId);
+  }
+  #ensureContentId() {
+    const headingElement = this.#getHeadingElement();
+    const contentElement = this.#getContentElement();
+    if (!headingElement || !contentElement) return;
+    const buttonHeadingId = headingElement.querySelector('.accordion-button').getAttribute('aria-controls');
+    const contentId = contentElement.getAttribute('id');
+    if (this.hasAttribute('content-id')) {
+      this.#updateContentId(this.getAttribute('content-id'));
+    } else if (contentId && buttonHeadingId === contentId) {
+      return;
+    } else if (contentId) {
+      this.#updateContentId(contentId);
+    } else if (buttonHeadingId) {
+      this.#updateContentId(buttonHeadingId);
+    } else {
+      this.#updateContentId(generateAndVerifyUniqueId('acc'));
+    }
+  }
+  #updateVariant(text, icon) {
+    const button = this.#getHeadingElement().querySelector('button.accordion-button');
+    if (text && icon) {
+      let variantEl = button.querySelector('.accordion-icon');
+      if (!variantEl) {
+        variantEl = document.createElement('span');
+        variantEl.classList.add('accordion-icon');
+        button.appendChild(variantEl);
+      }
+      variantEl.innerHTML = '';
+      const textEl = document.createElement('span');
+      textEl.classList.add('icon_text');
+      textEl.textContent = text;
+      variantEl.appendChild(textEl);
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.classList.add('icon-svg');
+      svg.setAttribute('focusable', 'false');
+      svg.setAttribute('aria-hidden', 'true');
+      const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+      use.setAttributeNS(null, 'href', `#${icon}`);
+      svg.appendChild(use);
+      variantEl.appendChild(svg);
+    } else if (button.querySelector('.accordion-icon')) {
+      button.querySelector('.accordion-icon').remove();
+    }
+  }
+
+  //Apply all current attributes to the DOM
+  //Ensures that attr values take precedence if they conflict with pre-generated HTML.
+  #syncAll() {
+    if (this.hasAttribute('heading')) {
+      this.#updateHeading(this.getAttribute('heading'));
+    }
+    if (this.hasAttribute('heading-level')) {
+      this.#updateHeadingLevel(this.getAttribute('heading-level'));
+    }
+    this.#updateExpanded(this.getAttribute('expanded'));
+    this.#ensureContentId();
+    if (this.hasAttribute('variant-text') || this.hasAttribute('variant-icon')) {
+      this.#updateVariant(this.getAttribute('variant-text'), this.getAttribute('variant-icon'));
+    } else {
+      this.#updateVariant('', '');
+    }
+  }
+  #setupObserver() {
+    if (this.#accordionObserver) return;
+    this.#accordionObserver = new MutationObserver(this.#handleMutations);
+    const config = {
+      subtree: true,
+      childList: true
+    };
+    this.#accordionObserver.observe(this, config);
+  }
+  #handleMutations = records => {
+    const button = this.#getHeadingElement()?.querySelector('button.accordion-button');
+    if (button) {
+      button.addEventListener('click', this.#handleAccordionClick, false);
+    }
+  };
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['heading', 'heading-level', 'expanded', 'content-id', 'variant-text', 'variant-icon', 'ready'];
+
+  /* Getters and setters */
+
+  get heading() {
+    return this.getAttribute('heading');
+  }
+  set heading(val) {
+    this.setAttribute('heading', val);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+    this.#initialized = false;
+
+    /* Set up instance fields for event handling */
+
+    this.#handleAccordionClick = () => {
+      this.toggleAccordion();
+    };
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  init() {
+    if (this.#initialized) return;
+    this.#setupObserver();
+    if (this.innerHTML === '') return; // Accordions must have content. If no content is found at all, don't init as some frameworks have experienced problems otherwise.
+
+    const isValid = this.#ensureDOM();
+    if (!isValid) return;
+    this.#syncAll();
+    const button = this.#getHeadingElement()?.querySelector('button.accordion-button');
+    if (button) {
+      button.addEventListener('click', this.#handleAccordionClick, false);
+    }
+    this.#initialized = true;
+  }
+  expandAccordion() {
+    this.#setExpandedState(true);
+    if (this.getAttribute('expanded') !== 'true') {
+      this.setAttribute('expanded', 'true');
+    }
+    this.dispatchEvent(new CustomEvent('fds-accordion-expanded', {
+      bubbles: true
+    }));
+  }
+  collapseAccordion() {
+    this.#setExpandedState(false);
+    if (this.getAttribute('expanded') !== 'false') {
+      this.setAttribute('expanded', 'false');
+    }
+    this.dispatchEvent(new CustomEvent('fds-accordion-collapsed', {
+      bubbles: true
+    }));
+  }
+  toggleAccordion() {
+    this.isExpanded() ? this.collapseAccordion() : this.expandAccordion();
+  }
+  isExpanded() {
+    return this.hasAttribute('expanded') && this.getAttribute('expanded') !== 'false';
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    const button = this.#getHeadingElement()?.querySelector('button.accordion-button');
+    if (button) {
+      button.removeEventListener('click', this.#handleAccordionClick, false);
+    }
+    this.#initialized = false;
+    if (this.#accordionObserver) {
+      this.#accordionObserver.disconnect();
+      this.#accordionObserver = null;
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+    if (!this.#initialized) return;
+    if (attribute === 'heading') {
+      this.#updateHeading(newValue);
+    }
+    if (attribute === 'heading-level') {
+      this.#updateHeadingLevel(newValue);
+    }
+    if (attribute === 'expanded' && oldValue !== newValue) {
+      this.#updateExpanded(newValue);
+    }
+    if (attribute === 'content-id') {
+      if (newValue !== null && newValue !== '') {
+        this.#updateContentId(newValue);
+      }
+    }
+    if (attribute === 'variant-text') {
+      if (this.hasAttribute('variant-icon')) {
+        this.#updateVariant(newValue, this.getAttribute('variant-icon'));
+      } else {
+        this.#updateVariant(newValue, '');
+      }
+    }
+    if (attribute === 'variant-icon') {
+      if (this.hasAttribute('variant-text')) {
+        this.#updateVariant(this.getAttribute('variant-text'), newValue);
+      } else {
+        this.#updateVariant('', newValue);
+      }
+    }
+  }
+}
+function registerAccordion() {
+  if (customElements.get('fds-accordion') === undefined) {
+    window.customElements.define('fds-accordion', FDSAccordion);
+  }
+}
+/* harmony default export */ const fds_accordion = (registerAccordion);
+;// ./src/js/custom-elements/accordion/fds-accordion-group.js
+
+
+class FDSAccordionGroup extends HTMLElement {
+  /* Private instance fields */
+
+  #rendered;
+  #listenersAttached;
+  #bulkButton;
+  #handleBulkClick;
+  #handleAccordionExpanded;
+  #handleAccordionCollapsed;
+
+  /* Private methods */
+
+  #getBulkButton() {
+    if (this.#bulkButton) return this.#bulkButton;
+    this.#bulkButton = this.querySelector(':scope > .bulk-button');
+    return this.#bulkButton;
+  }
+  #renderBulkButton() {
+    if (!this.#getBulkButton()) {
+      const bulkButton = document.createElement('button');
+      bulkButton.classList.add('bulk-button');
+      this.prepend(bulkButton);
+      this.#bulkButton = bulkButton;
+    }
+  }
+  #render() {
+    if (this.#rendered) return;
+    const hasRenderedBulkButton = this.querySelectorAll('button.bulk-button').length > 0;
+    const hasBulkButtonFromAttr = this.getAttribute('has-bulk-button') !== null && this.getAttribute('has-bulk-button') !== 'false';
+    if (hasBulkButtonFromAttr && !hasRenderedBulkButton) {
+      this.#renderBulkButton();
+    }
+    this.#updateBulkButtonText();
+    this.#rendered = true;
+  }
+  #getAllAccordions() {
+    return Array.from(this.querySelectorAll(':scope > fds-accordion'));
+  }
+  #areAllExpanded() {
+    return this.#getAllAccordions().every(acc => {
+      const expandedAttr = acc.getAttribute('expanded');
+      if (expandedAttr != null) return expandedAttr === 'true';
+      const button = acc.querySelector('button.accordion-button');
+      return button?.getAttribute('aria-expanded') === 'true';
+    });
+  }
+  #updateHeadingLevel(headingLevel) {
+    const valid = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+    if (!valid.includes(headingLevel)) return;
+    this.#getAllAccordions().forEach(acc => acc.setAttribute('heading-level', headingLevel));
+  }
+  #updateHasBulkButton(attrValue) {
+    const mustHasBulkButton = attrValue !== null && attrValue !== 'false';
+    const hasBulkButton = this.#getBulkButton();
+    if (mustHasBulkButton) {
+      this.#renderBulkButton();
+      this.#getBulkButton()?.removeEventListener('click', this.#handleBulkClick);
+      this.#getBulkButton()?.addEventListener('click', this.#handleBulkClick);
+    } else if (!mustHasBulkButton && hasBulkButton) {
+      this.#getBulkButton()?.removeEventListener('click', this.#handleBulkClick);
+      this.#getBulkButton()?.remove();
+      this.#bulkButton = null;
+    }
+    this.#updateBulkButtonText();
+  }
+  #updateBulkButtonText() {
+    const button = this.#getBulkButton();
+    if (!button) return;
+    const openText = this.getAttribute('open-all-text') || 'Åbn alle';
+    const closeText = this.getAttribute('close-all-text') || 'Luk alle';
+    const allExpanded = this.#areAllExpanded();
+    button.textContent = allExpanded ? closeText : openText;
+    allExpanded ? button.classList.add('close') : button.classList.remove('close');
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['heading-level', 'has-bulk-button', 'open-all-text', 'close-all-text'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+    this.#rendered = false;
+    this.#listenersAttached = false;
+    this.#bulkButton = null;
+    this.#handleBulkClick = () => this.toggleAllAccordions();
+    this.#handleAccordionExpanded = e => {
+      e.stopPropagation();
+      this.#updateBulkButtonText();
+    };
+    this.#handleAccordionCollapsed = e => {
+      e.stopPropagation();
+      this.#updateBulkButtonText();
+    };
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  toggleAllAccordions() {
+    const accordions = this.#getAllAccordions();
+    const shouldExpandAll = !this.#areAllExpanded();
+    const newValue = shouldExpandAll ? 'true' : 'false';
+    accordions.forEach(acc => acc.setAttribute('expanded', newValue));
+    this.#updateBulkButtonText();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.#rendered) return;
+    this.#render();
+    if (this.#listenersAttached) return;
+    this.addEventListener('fds-accordion-expanded', this.#handleAccordionExpanded);
+    this.addEventListener('fds-accordion-collapsed', this.#handleAccordionCollapsed);
+    if (this.#getBulkButton()) {
+      this.#getBulkButton().addEventListener('click', this.#handleBulkClick);
+    }
+    this.#listenersAttached = true;
+    if (this.hasAttribute('heading-level')) {
+      this.#updateHeadingLevel(this.getAttribute('heading-level'));
+    }
+    this.#updateBulkButtonText();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#rendered = false;
+    if (!this.#listenersAttached) return;
+    this.removeEventListener('fds-accordion-expanded', this.#handleAccordionExpanded);
+    this.removeEventListener('fds-accordion-collapsed', this.#handleAccordionCollapsed);
+    if (this.#getBulkButton()) {
+      this.#getBulkButton().removeEventListener('click', this.#handleBulkClick);
+    }
+    this.#listenersAttached = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#rendered) return;
+    if (attribute === 'heading-level') {
+      this.#updateHeadingLevel(newValue);
+    }
+    if (attribute === 'has-bulk-button') {
+      this.#updateHasBulkButton(newValue);
+    }
+    if (attribute === 'open-all-text' || attribute === 'close-all-text') {
+      this.#updateBulkButtonText();
+    }
+  }
+}
+function registerAccordionGroup() {
+  if (customElements.get('fds-accordion-group') === undefined) {
+    window.customElements.define('fds-accordion-group', FDSAccordionGroup);
+  }
+}
+/* harmony default export */ const fds_accordion_group = (registerAccordionGroup);
+;// ./src/js/custom-elements/custom-element-utils.js
+
+
+/**
+ * Configuration object for a MutationObserver.
+ * Tracked attributes: `hidden`, `aria-hidden`, `id`, `class`, `disabled`, `required`.
+ *
+ * @type {MutationObserverInit}
+ */
+const mutationObserverConfig = {
+  subtree: true,
+  childList: true,
+  attributes: true,
+  attributeFilter: ['hidden', 'aria-hidden', 'id', 'class', 'disabled', 'required', 'aria-required'],
+  attributeOldValue: false,
+  characterData: false,
+  characterDataOldValue: false
+};
+
+/**
+ * Associates a label element with an (input) element.
+ * If the element lacks an ID, a unique one is generated using the given prefix.
+ * If no element is provided, the `for` attribute is removed from the label.
+ *
+ * @param {HTMLLabelElement} label - The label element to associate.
+ * @param {HTMLElement} element - The element to associate the label with.
+ * @param {string} prefix - The prefix used when generating a unique ID for the element.
+ */
+function associateLabelWithElement(label, element, prefix) {
+  if (!label) return;
+  if (element) {
+    if (!element.id) {
+      element.id = generateAndVerifyUniqueId(prefix);
+    }
+    label.htmlFor = element.id;
+  } else {
+    label.removeAttribute('for');
+  }
+}
+
+/**
+ * Creates an SVG icon element with a single path.
+ * The SVG is given a fixed viewBox of '0 -960 960 960'.
+ *
+ * @param {string} pathD - The `d` attribute value defining the shape of the SVG path.
+ * @returns {SVGSVGElement} The constructed SVG element containing the specified path.
+ */
+function createSvgIcon(pathD) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  svg.setAttribute('viewBox', '0 -960 960 960');
+  svg.setAttribute('focusable', 'false');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.classList.add('icon-svg');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', pathD);
+  svg.appendChild(path);
+  return svg;
+}
+
+/**
+ * Shows or hides a required status indicator in a label element based on the given value.
+ * If value is null, the indicator is removed. If value is an empty string, a default
+ * text is used based on whether the element is required or not.
+ *
+ * @param {HTMLLabelElement} label - The label element to update.
+ * @param {HTMLElement|HTMLFieldSetElement} element - The form element or fieldset to check for required status.
+ * @param {string|null} value - The value to display in the status indicator.
+ */
+function showRequiredStatus(label, element, value) {
+  if (!label || !element) return;
+  let statusIndicator = label.querySelector(':scope > span.weight-normal');
+  if (value === null && statusIndicator) {
+    statusIndicator.remove();
+    return;
+  }
+  if (!statusIndicator) {
+    const span = document.createElement('span');
+    span.className = 'weight-normal';
+    label.appendChild(span);
+    statusIndicator = span;
+  }
+  const isRequired = isElementRequired(element);
+  let text = value;
+  if (value === '' && isRequired) text = 'skal udfyldes';
+  if (value === '' && !isRequired) text = 'frivilligt';
+  statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
+}
+
+/**
+ * Determines whether a form element or fieldset is considered required.
+ * For fieldsets, returns true if any child form element is required.
+ *
+ * @param {HTMLElement|HTMLFieldSetElement} element - The element to check.
+ * @returns {boolean} Whether the element (or any child within a fieldset) is required.
+ */
+function isElementRequired(element) {
+  if (element instanceof HTMLFieldSetElement) {
+    const fields = element.querySelectorAll('input, select, textarea');
+    return Array.from(fields).some(field => field.hasAttribute('required') || field.hasAttribute('aria-required') && field.getAttribute('aria-required') !== 'false');
+  }
+  return element.hasAttribute('required') || element.hasAttribute('aria-required') && element.getAttribute('aria-required') !== 'false';
+}
+
+/**
+ * Notifies the error summary that error messages have been disconnected/removed.
+ * The parent wrapper dispatches 'error-message-callback' events for each error message found.
+ *
+ * @param {HTMLElement} element - The element to query for error messages.
+ */
+function notifySummaryOnDisconnect(element) {
+  if (!document.querySelector('fds-error-summary[auto]')) return;
+  element.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+    document.dispatchEvent(new CustomEvent('error-message-callback', {
+      detail: {
+        errorId: errorMessage.id,
+        isRemoved: true
+      }
+    }));
+  });
+}
+
+/**
+ * Notifies the error summary of visibility changes in error messages.
+ * The parent wrapper dispatches 'error-message-visibility-changed' events for each error message found.
+ *
+ * @param {HTMLElement} element - The element to query for error messages.
+ */
+function notifySummaryOnVisibilityChange(element) {
+  if (!document.querySelector('fds-error-summary[auto]')) return;
+  element.querySelectorAll('fds-error-message[id]').forEach(errorMessage => {
+    document.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+      detail: {
+        errorId: errorMessage.id
+      }
+    }));
+  });
+}
+
+/**
+ * Determines whether an element is visible to screen readers.
+ *
+ * @param {HTMLElement} element - The element to check.
+ * @returns {boolean} True if the element is visible to screen readers, false otherwise.
+ */
+function isVisibleToScreenReader(element) {
+  return !element.closest('.d-none, [hidden]:not([hidden="false"]), [aria-hidden="true"]');
+}
+
+/**
+ * Matches the disabled class of a label element to the disabled attribute of a form element.
+ *
+ * @param {HTMLLabelElement} label - The label element to update.
+ * @param {HTMLElement} element - The form element to match the disabled state from.
+ */
+function setDisabledClass(label, element) {
+  if (!label || !element) return;
+  label.classList.toggle('disabled', element.hasAttribute('disabled'));
+}
+
+/**
+ * Sets the `aria-describedby` attribute on a form element or fieldset based on
+ * the IDs of visible error messages, help texts, and an optional character limit element.
+ *
+ * @param {HTMLElement|HTMLFieldSetElement} element - The form element or fieldset to update.
+ * @param {NodeList} errorMessages - Error message elements to consider.
+ * @param {NodeList} helpTexts - Help text elements to consider.
+ * @param {HTMLElement|null} [characterLimit=null] - Optional character limit element to consider.
+ */
+function setAriaDescribedBy(element, errorMessages, helpTexts) {
+  let characterLimit = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+  if (!element) return;
+  const ids = [...errorMessages, ...helpTexts, characterLimit].filter(el => el && el.id && isVisibleToScreenReader(el)).map(el => el.id);
+  ids.length > 0 ? element.setAttribute('aria-describedby', ids.join(' ')) : element.removeAttribute('aria-describedby');
+}
+
+/**
+ * Sets or removes the `aria-invalid` attribute on a form element
+ * based on whether any error messages are visible to screen readers.
+ *
+ * @param {HTMLElement} element - The form element to update.
+ * @param {NodeList} errorMessages - Error message elements to evaluate.
+ */
+function setInvalid(element, errorMessages) {
+  if (!element) return;
+  const invalid = Array.from(errorMessages).some(el => isVisibleToScreenReader(el));
+  invalid ? element.setAttribute('aria-invalid', 'true') : element.removeAttribute('aria-invalid');
+}
+
+/**
+ * Determines if an element is visible and focusable.
+ *
+ * @param {HTMLElement} element - The element to check.
+ * @returns {boolean} True if the element is visible and focusable, false otherwise.
+ */
+function isVisibleAndFocusable(element) {
+  return element.offsetParent !== null && !element.disabled && element.tabIndex >= 0;
+}
+;// ./src/js/custom-elements/input/fds-input.js
+
+
+class FDSInput extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+  #inputObserver = null;
+
+  /* Private methods */
+
+  #setupObserver() {
+    if (this.#inputObserver) return;
+    this.#inputObserver = new MutationObserver(this.#handleMutations);
+    this.#inputObserver.observe(this, mutationObserverConfig);
+  }
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      // A relevant child element was added or removed.
+      const relevantTagNames = ['LABEL', 'INPUT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT', 'FDS-CHARACTER-LIMIT'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        const label = this.querySelector('label');
+        const input = this.querySelector('input');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+        associateLabelWithElement(label, input, 'inp');
+        setAriaDescribedBy(input, errorMessages, helpTexts, characterLimit);
+        setInvalid(input, errorMessages);
+        if (this.hasAttribute('show-required-status')) {
+          showRequiredStatus(label, input, this.getAttribute('show-required-status'));
+        }
+        break;
+      }
+
+      // The input's required attribute changed
+      if (attributeName === 'required' && target?.tagName === 'INPUT') {
+        if (this.hasAttribute('show-required-status')) {
+          const label = this.querySelector('label');
+          showRequiredStatus(label, target, this.getAttribute('show-required-status'));
+        }
+      }
+      // Attributes which might affect aria-describedby
+      else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class') {
+        const label = this.querySelector('label');
+        const input = this.querySelector('input');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+        associateLabelWithElement(label, input, 'inp');
+        setAriaDescribedBy(input, errorMessages, helpTexts, characterLimit);
+        setInvalid(input, errorMessages);
+        if (attributeName === 'hidden' && target === this) {
+          notifySummaryOnVisibilityChange(this);
+        }
+      }
+    }
+  };
+  #init() {
+    this.#setupObserver();
+    const label = this.querySelector('label');
+    const input = this.querySelector('input');
+    const errorMessages = this.querySelectorAll('fds-error-message');
+    const helpTexts = this.querySelectorAll('fds-help-text');
+    const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+    associateLabelWithElement(label, input, 'inp');
+    setAriaDescribedBy(input, errorMessages, helpTexts, characterLimit);
+    setInvalid(input, errorMessages);
+    if (this.hasAttribute('show-required-status')) {
+      showRequiredStatus(label, input, this.getAttribute('show-required-status'));
+    }
+    this.#initialized = true;
+  }
+
+  /* Maxwidth */
+
+  #setMaxwidth(value) {
+    const input = this.querySelector('input');
+    if (!input) return;
+    if (value !== '') {
+      const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
+      input.classList.remove(maxwidthClass);
+      if (['xxs', 'xs', 's', 'm', 'l', 'xl'].includes(value)) {
+        input.classList.add(`input-width-${value}`);
+      } else if (/^\d+$/.test(value)) {
+        input.classList.add(`input-char-${value}`);
+      }
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['show-required-status', 'input-maxwidth'];
+
+  /* --------------------------------------------------
+  GETTERS AND SETTERS
+  -------------------------------------------------- */
+
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (!this.#initialized) {
+      this.#init();
+    }
+    if (this.hasAttribute('input-maxwidth')) {
+      this.#setMaxwidth(this.getAttribute('input-maxwidth'));
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    notifySummaryOnDisconnect(this);
+    this.#initialized = false;
+    if (this.#inputObserver) {
+      this.#inputObserver.disconnect();
+      this.#inputObserver = null;
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (attribute === 'show-required-status' && oldValue !== newValue) {
+      const label = this.querySelector('label');
+      const input = this.querySelector('input');
+      showRequiredStatus(label, input, newValue);
+    }
+    if (attribute === 'input-maxwidth' && oldValue !== newValue) {
+      if (this.hasAttribute('input-maxwidth')) {
+        this.#setMaxwidth(newValue);
+      }
+      // The attribute has previously been used but has now been removed from the element.
+      // Remove all classes set by the attribute from when it was used.
+      else {
+        const input = this.querySelector('input');
+        if (!input) return;
+        const maxwidthClass = [...input.classList].find(cls => cls.startsWith('input-width-') || cls.startsWith('input-char-'));
+        input.classList.remove(maxwidthClass);
+      }
+    }
+  }
+}
+function registerInput() {
+  if (customElements.get('fds-input') === undefined) {
+    window.customElements.define('fds-input', FDSInput);
+  }
+}
+/* harmony default export */ const fds_input = (registerInput);
+;// ./src/js/custom-elements/help-text/fds-help-text.js
+
+
+
+class FDSHelpText extends HTMLElement {
+  /* Private instance fields */
+
+  #rendered;
+  #parentWrapper;
+
+  /* Private methods */
+
+  #render() {
+    if (this.#rendered) return;
+    this.classList.add('help-text');
+    this.#rendered = true;
+  }
+  #shouldBeHidden(hiddenValue) {
+    return hiddenValue === 'true' || hiddenValue === '';
+  }
+  #setAriaHidden() {
+    this.setAttribute('aria-hidden', 'true');
+  }
+  #removeAriaHidden() {
+    this.removeAttribute('aria-hidden');
+  }
+  #notifyParent() {
+    this.#parentWrapper?.dispatchEvent(new CustomEvent('help-text-visibility-changed', {
+      bubbles: true,
+      detail: {
+        helptextId: this.id,
+        isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
+      }
+    }));
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['id', 'hidden'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+    this.#rendered = false;
+    this.#parentWrapper = null;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.#rendered) return;
+    this.#render();
+    if (!this.id) {
+      this.id = generateAndVerifyUniqueId('help');
+    }
+
+    // Handle initial hidden state
+    if (this.#shouldBeHidden(this.getAttribute('hidden'))) {
+      this.#setAriaHidden();
+    }
+
+    // During disconnect, the custom element may lose connection to the wrapper.
+    // Save the wrapper and use it to dispatch events - otherwise, the events may be lost.
+    this.#parentWrapper = this.closest('fds-input, fds-checkbox, fds-checkbox-group, fds-radio-button, fds-radio-button-group, fds-date-input, fds-upload-file');
+    this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
+    this.#parentWrapper = null;
+    this.#rendered = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#rendered) return;
+    if (attribute === 'hidden' && oldValue !== newValue) {
+      if (this.#shouldBeHidden(newValue)) {
+        this.#setAriaHidden();
+      } else {
+        this.#removeAriaHidden();
+      }
+      this.#notifyParent();
+    }
+    this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
+  }
+}
+function registerHelpText() {
+  if (customElements.get('fds-help-text') === undefined) {
+    window.customElements.define('fds-help-text', FDSHelpText);
+  }
+}
+/* harmony default export */ const fds_help_text = (registerHelpText);
+;// ./src/js/custom-elements/character-limit/fds-character-limit.js
+
+
+
+class FDSCharacterLimit extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+  #messages = {
+    'one_character_remaining': "Du har {value} tegn tilbage",
+    'several_characters_remaining': "Du har {value} tegn tilbage",
+    'one_character_too_many': "Du har {value} tegn for meget",
+    'several_characters_too_many': "Du har {value} tegn for meget",
+    'max_limit': "Du kan indtaste op til {value} tegn"
+  };
+  #spanSrMaxLimit = (() => document.createElement('span'))();
+  #spanSrUpdate = (() => document.createElement('span'))();
+  #spanVisualUpdate = (() => document.createElement('span'))();
+  #parentWrapper = null;
+  #field = null;
+  #intervalID = null;
+  #lastKeyUpTimestamp = null;
+  #oldValue = null;
+  #forceSRUpdate = false;
+  #handleKeyUp = event => {
+    // Update the visible message immediately
+    this.#updateVisibleMessage(this.#charactersLeft());
+
+    // Safe the timestamp so the SR message won't update until the user has stopped typing
+    this.#lastKeyUpTimestamp = Date.now();
+
+    // The user typed something so the SR message must be updated
+    this.#forceSRUpdate = true;
+  };
+  #handleFocus = event => {
+    // Clear any previous timers
+    if (this.#intervalID !== null) {
+      window.clearInterval(this.#intervalID);
+      this.#intervalID = null;
+    }
+    if (!this.#field) return;
+    this.#spanVisualUpdate.setAttribute('aria-hidden', 'true');
+    this.#spanSrUpdate.setAttribute('aria-hidden', 'false');
+
+    // Set a timer to prevent SR users from being spammed with audio notifications while typing
+    this.#intervalID = window.setInterval(() => {
+      if (!this.#lastKeyUpTimestamp || Date.now() - 500 >= this.#lastKeyUpTimestamp) {
+        const inputValueChanged = this.#oldValue !== this.#field.value;
+        const messageInconsistency = this.#spanSrUpdate.textContent !== this.#spanVisualUpdate.textContent;
+        if (inputValueChanged || messageInconsistency || this.#forceSRUpdate) {
+          this.#forceSRUpdate = false;
+          this.#oldValue = this.#field.value;
+          this.#updateMessages(this.#charactersLeft());
+        }
+      }
+    }, 1000);
+  };
+  #handleBlur = event => {
+    // Stop the input timer
+    if (this.#intervalID !== null) {
+      window.clearInterval(this.#intervalID);
+      this.#intervalID = null;
+    }
+    if (!this.#field) return;
+    this.#updateVisibleMessage(this.#charactersLeft());
+    this.#spanSrUpdate.textContent = '';
+    this.#spanSrUpdate.setAttribute('aria-hidden', 'true');
+    this.#spanVisualUpdate.setAttribute('aria-hidden', 'false');
+  };
+  #handlePageshow = event => {
+    this.#updateVisibleMessage(this.#charactersLeft());
+  };
+
+  /* Private methods */
+
+  #charactersLeft() {
+    if (!this.#field) return;
+    const parsedLimit = parseInt(this.getAttribute('limit'), 10);
+    if (!Number.isNaN(parsedLimit)) {
+      return parsedLimit - this.#field.value.length;
+    } else {
+      return null;
+    }
+  }
+  #getMessage(charactersLeft) {
+    let msg = '';
+    if (charactersLeft === -1) {
+      const exceeded = Math.abs(charactersLeft);
+      msg = this.#messages.one_character_too_many.replace(/{value}/, exceeded);
+    } else if (charactersLeft === 1) {
+      msg = this.#messages.one_character_remaining.replace(/{value}/, charactersLeft);
+    } else if (charactersLeft >= 0) {
+      msg = this.#messages.several_characters_remaining.replace(/{value}/, charactersLeft);
+    } else {
+      const exceeded = Math.abs(charactersLeft);
+      msg = this.#messages.several_characters_too_many.replace(/{value}/, exceeded);
+    }
+    return msg;
+  }
+  #updateVisibleMessage(charactersLeft) {
+    this.#spanVisualUpdate.textContent = this.#getMessage(charactersLeft);
+    if (charactersLeft < 0) {
+      this.#spanVisualUpdate.classList.add('limit-exceeded');
+    } else {
+      this.#spanVisualUpdate.classList.remove('limit-exceeded');
+    }
+  }
+  #updateSRMessage(charactersLeft) {
+    this.#spanSrUpdate.textContent = this.#getMessage(charactersLeft);
+  }
+  #updateMessages(charactersLeft) {
+    this.#updateVisibleMessage(charactersLeft);
+    this.#updateSRMessage(charactersLeft);
+  }
+  #updateId(value) {
+    if (value) {
+      this.#spanSrMaxLimit.id = value;
+    } else {
+      this.#spanSrMaxLimit.id = generateAndVerifyUniqueId('lim');
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['limit', 'one-character-remaining-text', 'several-characters-remaining-text', 'one-character-too-many-text', 'several-characters-too-many-text', 'max-limit-text', 'limit-id'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (!this.hasAttribute('limit')) return;
+    if (this.children.length === 3) {
+      const [spanSrMaxLimit, spanSrUpdate, spanVisualUpdate] = this.children;
+      this.#spanSrMaxLimit = spanSrMaxLimit;
+      this.#spanSrUpdate = spanSrUpdate;
+      this.#spanVisualUpdate = spanVisualUpdate;
+    } else {
+      this.appendChild(this.#spanSrMaxLimit);
+      this.appendChild(this.#spanSrUpdate);
+      this.appendChild(this.#spanVisualUpdate);
+    }
+    this.#parentWrapper = this.closest('fds-input, fds-textarea');
+    this.#field = this.#parentWrapper?.querySelector('input, textarea');
+    if (!this.#field) return;
+    const charactersLeft = this.#charactersLeft();
+
+    // Update the default text used in the component
+    if (this.hasAttribute('one-character-remaining-text')) {
+      this.#messages.one_character_remaining = this.getAttribute('one-character-remaining-text');
+    }
+    if (this.hasAttribute('several-characters-remaining-text')) {
+      this.#messages.several_characters_remaining = this.getAttribute('several-characters-remaining-text');
+    }
+    if (this.hasAttribute('one-character-too-many-text')) {
+      this.#messages.one_character_too_many = this.getAttribute('one-character-too-many-text');
+    }
+    if (this.hasAttribute('several-characters-too-many-text')) {
+      this.#messages.several_characters_too_many = this.getAttribute('several-characters-too-many-text');
+    }
+    if (this.hasAttribute('max-limit-text')) {
+      this.#messages.max_limit = this.getAttribute('max-limit-text');
+    }
+
+    // <span> announcing the max limit to SR users
+    this.#spanSrMaxLimit.classList.add('sr-only');
+    this.#spanSrMaxLimit.textContent = this.#messages.max_limit.replace(/{value}/, this.getAttribute('limit'));
+    if (!this.hasAttribute('limit-id') && this.getAttribute('limit-id') !== '') {
+      this.#spanSrMaxLimit.id = generateAndVerifyUniqueId('lim');
+    } else {
+      this.#spanSrMaxLimit.id = this.getAttribute('limit-id');
+    }
+
+    // <span> visually showing the characters left
+    this.#spanVisualUpdate.classList.add('visual-message');
+    this.#spanVisualUpdate.setAttribute('aria-hidden', 'false');
+    this.#spanVisualUpdate.textContent = this.#getMessage(charactersLeft);
+
+    // <span> announcing characters left to SR users (updates are slightly delayed compared to the visual message)
+    this.#spanSrUpdate.classList.add('sr-only');
+    this.#spanSrUpdate.textContent = '';
+    this.#spanSrUpdate.setAttribute('aria-hidden', true);
+    this.#spanSrUpdate.setAttribute('aria-live', 'polite');
+
+    // Add event listeners
+    this.#field.addEventListener('keyup', this.#handleKeyUp);
+    this.#field.addEventListener('focus', this.#handleFocus);
+    this.#field.addEventListener('blur', this.#handleBlur);
+    if ('onpageshow' in window) {
+      window.addEventListener('pageshow', this.#handlePageshow);
+    } else {
+      document.addEventListener('DOMContentLoaded', this.#handlePageshow);
+    }
+    this.#initialized = true;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#field?.removeEventListener('keyup', this.#handleKeyUp);
+    this.#field?.removeEventListener('focus', this.#handleFocus);
+    this.#field?.removeEventListener('blur', this.#handleBlur);
+    window.removeEventListener('pageshow', this.#handlePageshow);
+    document.removeEventListener('DOMContentLoaded', this.#handlePageshow);
+    this.#initialized = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (attribute === 'limit') {
+      this.#updateMessages(this.#charactersLeft());
+    }
+    if (attribute === 'one-character-remaining-text') {
+      this.#messages.one_character_remaining = newValue;
+      this.#updateMessages(this.#charactersLeft());
+    }
+    if (attribute === 'several-characters-remaining-text') {
+      this.#messages.several_characters_remaining = newValue;
+      this.#updateMessages(this.#charactersLeft());
+    }
+    if (attribute === 'one-character-too-many-text') {
+      this.#messages.one_character_too_many = newValue;
+      this.#updateMessages(this.#charactersLeft());
+    }
+    if (attribute === 'several-characters-too-many-text') {
+      this.#messages.several_characters_too_many = newValue;
+      this.#updateMessages(this.#charactersLeft());
+    }
+    if (attribute === 'max-limit-text') {
+      this.#messages.max_limit = newValue;
+      this.#updateMessages(this.#charactersLeft());
+    }
+    if (attribute === 'limit-id') {
+      this.#updateId(newValue);
+    }
+    this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
+  }
+}
+function registerCharacterLimit() {
+  if (customElements.get('fds-character-limit') === undefined) {
+    window.customElements.define('fds-character-limit', FDSCharacterLimit);
+  }
+}
+/* harmony default export */ const fds_character_limit = (registerCharacterLimit);
+;// ./src/js/custom-elements/error-message/fds-error-message.js
+
+
+
+class FDSErrorMessage extends HTMLElement {
+  /* Private instance fields */
+
+  #rendered;
+  #iconText;
+  #parentWrapper;
+  #render() {
+    if (this.#rendered) return;
+    const hasElements = this.children.length > 0;
+    if (!hasElements) {
+      const iconText = this.getAttribute('icon-text');
+      if (iconText !== null && iconText !== '') {
+        this.#iconText = iconText;
+      }
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.classList.add('icon-svg', 'alert-icon');
+      svg.setAttribute('aria-label', this.#iconText);
+      svg.setAttribute('focusable', 'false');
+      const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+      use.setAttribute('href', '#error');
+      svg.appendChild(use);
+      const visibleMessage = document.createElement('span');
+      visibleMessage.classList.add('visible-message');
+      visibleMessage.textContent = this.getAttribute('message') || this.textContent;
+      this.textContent = '';
+      this.appendChild(svg);
+      this.appendChild(visibleMessage);
+    }
+    this.#rendered = true;
+  }
+  #shouldBeHidden(hiddenValue) {
+    return hiddenValue === 'true' || hiddenValue === '';
+  }
+  #notifyParent() {
+    this.#parentWrapper?.dispatchEvent(new CustomEvent('error-message-visibility-changed', {
+      bubbles: true,
+      detail: {
+        errorId: this.id,
+        targets: this.getTargets(),
+        isHidden: this.#shouldBeHidden(this.getAttribute('hidden'))
+      }
+    }));
+  }
+  #dispatchErrorMessageCallback() {
+    if (!this.#parentWrapper) return;
+    this.#parentWrapper.dispatchEvent(new CustomEvent('error-message-callback', {
+      bubbles: true,
+      detail: {
+        errorId: this.id,
+        isHidden: this.#shouldBeHidden(this.getAttribute('hidden')),
+        targets: this.getTargets()
+      }
+    }));
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  getTargets() {
+    const targets = this.getAttribute('targets');
+    if (!targets) return [];
+    return targets.split(',').map(target => target.trim()).filter(target => target);
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['id', 'icon-text', 'hidden', 'targets', 'message'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+    this.#rendered = false;
+    this.#iconText = 'Fejl';
+    this.#parentWrapper = null;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.#rendered) return;
+    this.#render();
+    if (!this.id) {
+      this.id = generateAndVerifyUniqueId('error');
+    }
+
+    // Save reference to parent wrapper
+    this.#parentWrapper = this.closest('fds-input, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input, fds-textarea, fds-select, fds-upload-file, fds-date-picker');
+    this.#dispatchErrorMessageCallback();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#parentWrapper?.dispatchEvent(new CustomEvent('error-message-callback', {
+      bubbles: true,
+      detail: {
+        errorId: this.id,
+        targets: this.getTargets()
+      }
+    }));
+    this.#parentWrapper = null;
+    this.#rendered = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#rendered) return;
+    if (attribute === 'icon-text' && oldValue !== newValue) {
+      this.#iconText = newValue;
+      this.querySelector(':scope > .alert-icon').setAttribute('aria-label', this.#iconText);
+    }
+    if (attribute === 'hidden' && oldValue !== newValue) {
+      this.#notifyParent();
+    }
+    if (attribute === 'message' && oldValue !== newValue) {
+      this.querySelector(':scope > .visible-message').textContent = newValue;
+    }
+    this.#dispatchErrorMessageCallback();
+  }
+}
+function registerErrorMessage() {
+  if (customElements.get('fds-error-message') === undefined) {
+    window.customElements.define('fds-error-message', FDSErrorMessage);
+  }
+}
+/* harmony default export */ const fds_error_message = (registerErrorMessage);
+;// ./src/js/custom-elements/checkbox/fds-checkbox.js
+
+
+
+
+class FDSCheckbox extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+  #checkboxObserver = null;
+  #input;
+  #label;
+  #onInputChange;
+
+  /* Private methods */
+
+  #getInputElement() {
+    return this.querySelector(':scope > input[type="checkbox"]');
+  }
+  #getLabelElement() {
+    return this.querySelector(':scope > label');
+  }
+  #getHelpTextElements() {
+    return this.querySelectorAll(':scope > fds-help-text');
+  }
+  #getErrorMessages() {
+    return this.querySelectorAll(':scope > fds-error-message');
+  }
+  #setupObserver() {
+    if (this.#checkboxObserver) return;
+    this.#checkboxObserver = new MutationObserver(this.#handleMutations);
+    this.#checkboxObserver.observe(this, mutationObserverConfig);
+  }
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      const relevantTagNames = ['LABEL', 'INPUT', 'FDS-HELP-TEXT', 'FDS-ERROR-MESSAGE'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        this.#input = this.#getInputElement();
+        this.#label = this.#getLabelElement();
+        this.#setClasses();
+        setDisabledClass(this.#label, this.#input);
+        this.#updateAccessibilityState();
+        if (this.hasAttribute('show-required-status')) {
+          showRequiredStatus(this.#label, this.#input, this.getAttribute('show-required-status'));
+        }
+        break;
+      }
+      if (attributeName === 'disabled' && target === this.#getInputElement()) {
+        setDisabledClass(this.#getLabelElement(), target);
+      } else if ((attributeName === 'required' || attributeName === 'aria-required') && target === this.#getInputElement()) {
+        if (this.hasAttribute('show-required-status')) {
+          showRequiredStatus(this.#getLabelElement(), target, this.getAttribute('show-required-status'));
+        }
+      } else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class' && target?.tagName !== 'LABEL') {
+        this.#updateAccessibilityState();
+        if (attributeName === 'hidden' && target === this) {
+          notifySummaryOnVisibilityChange(this);
+        }
+      }
+    }
+  };
+  #updateAccessibilityState() {
+    const label = this.#getLabelElement();
+    const input = this.#getInputElement();
+    const errorMessages = this.#getErrorMessages();
+    const helpTexts = this.#getHelpTextElements();
+    associateLabelWithElement(label, input, 'chk');
+    setAriaDescribedBy(input, errorMessages, helpTexts);
+    setInvalid(input, errorMessages);
+  }
+  #setClasses() {
+    if (!this.#label || !this.#input) return;
+    this.#label.classList.add('form-label');
+    this.#input.classList.add('form-checkbox');
+  }
+
+  /* Collapsible content */
+
+  #handleCollapsibleCheckboxes() {
+    const input = this.#input;
+    const possibleContent = this.querySelector(':scope > div.checkbox-content');
+    if (!input || !possibleContent) return;
+
+    // Ensure the div has the expected classes
+    possibleContent.classList.add('checkbox-content');
+
+    // Ensure the content has an ID
+    if (!possibleContent.id) {
+      possibleContent.id = generateAndVerifyUniqueId('exp');
+    }
+    const updateState = () => {
+      const expanded = input.checked;
+      input.setAttribute('data-aria-controls', possibleContent.id);
+      input.setAttribute('data-aria-expanded', String(expanded));
+      possibleContent.setAttribute('aria-hidden', String(!expanded));
+      possibleContent.classList.toggle('collapsed', !expanded);
+    };
+    if (this.#onInputChange) {
+      input.removeEventListener('change', this.#onInputChange);
+    }
+    this.#onInputChange = updateState;
+    updateState();
+    input.addEventListener('change', this.#onInputChange);
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['show-required-status', 'ready'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+  init() {
+    this.#input = this.#getInputElement();
+    this.#label = this.#getLabelElement();
+    this.#setClasses();
+    setDisabledClass(this.#label, this.#input);
+    this.#updateAccessibilityState();
+    if (this.hasAttribute('show-required-status')) {
+      showRequiredStatus(this.#label, this.#input, this.getAttribute('show-required-status'));
+    }
+    this.#handleCollapsibleCheckboxes();
+    this.#setupObserver();
+    this.#initialized = true;
+  }
+
+  /* --------------------------------------------------
+  GETTERS AND SETTERS
+  -------------------------------------------------- */
+
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.getAttribute('ready') === 'false') return;
+    if (!this.#initialized) {
+      this.init();
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    notifySummaryOnDisconnect(this);
+    if (this.#input) {
+      this.#input.removeEventListener('change', this.#onInputChange);
+    }
+    this.#initialized = false;
+    if (this.#checkboxObserver) {
+      this.#checkboxObserver.disconnect();
+      this.#checkboxObserver = null;
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue === 'true') {
+        this.init();
+      }
+      return;
+    }
+    if (!this.#initialized) return;
+    if (attribute === 'show-required-status' && oldValue !== newValue) {
+      const label = this.#getLabelElement();
+      const input = this.#getInputElement();
+      showRequiredStatus(label, input, newValue);
+    }
+  }
+}
+function registerCheckbox() {
+  if (customElements.get('fds-checkbox') === undefined) {
+    window.customElements.define('fds-checkbox', FDSCheckbox);
+  }
+}
+/* harmony default export */ const fds_checkbox = (registerCheckbox);
+;// ./src/js/custom-elements/checkbox/fds-checkbox-group.js
+
+
+
+class FDSCheckboxGroup extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+  #checkboxGroupObserver = null;
+  #fieldset;
+  #legend;
+
+  /* Private methods */
+
+  #getFieldsetElement() {
+    return this.querySelector('fieldset');
+  }
+  #getLegendElement() {
+    return this.querySelector(':scope > fieldset > legend');
+  }
+  #getGroupHelpTexts() {
+    return this.querySelectorAll(':scope > fieldset > fds-help-text');
+  }
+  #getErrorMessages() {
+    return this.querySelectorAll(':scope > fieldset > fds-error-message');
+  }
+  #setupObserver() {
+    if (this.#checkboxGroupObserver) return;
+    this.#checkboxGroupObserver = new MutationObserver(this.#handleMutations);
+    this.#checkboxGroupObserver.observe(this, mutationObserverConfig);
+  }
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      const relevantTagNames = ['FIELDSET', 'LEGEND', 'FDS-HELP-TEXT', 'FDS-ERROR-MESSAGE'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        this.#fieldset = this.#getFieldsetElement();
+        this.#legend = this.#getLegendElement();
+        this.#setClasses();
+        this.#setDisabledClass();
+        this.#updateAccessibilityState();
+        break;
+      }
+      if (attributeName === 'disabled' && target === this.#getFieldsetElement()) {
+        target.classList.toggle('disabled', target.hasAttribute('disabled'));
+      } else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class' && !['LEGEND', 'FIELDSET'].includes(target?.tagName)) {
+        this.#updateAccessibilityState();
+        if (attributeName === 'hidden' && target === this) {
+          notifySummaryOnVisibilityChange(this);
+        }
+      }
+    }
+  };
+  #updateAccessibilityState() {
+    const fieldset = this.#getFieldsetElement();
+    const errorMessages = this.#getErrorMessages();
+    const helpTexts = this.#getGroupHelpTexts();
+    setAriaDescribedBy(fieldset, errorMessages, helpTexts);
+  }
+  #setClasses() {
+    this.#legend?.classList.add('form-label');
+  }
+  #setDisabledClass() {
+    const fieldset = this.#getFieldsetElement();
+    if (!fieldset) return;
+    fieldset.classList.toggle('disabled', fieldset.hasAttribute('disabled'));
+  }
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  init() {
+    this.#fieldset = this.#getFieldsetElement();
+    this.#legend = this.#getLegendElement();
+    this.#setClasses();
+    this.#setDisabledClass();
+    this.#updateAccessibilityState();
+    this.#setupObserver();
+    this.#initialized = true;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (!this.#initialized) {
+      this.init();
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    notifySummaryOnDisconnect(this);
+    this.#initialized = false;
+    if (this.#checkboxGroupObserver) {
+      this.#checkboxGroupObserver.disconnect();
+      this.#checkboxGroupObserver = null;
+    }
+  }
+}
+function registerCheckboxGroup() {
+  if (!customElements.get('fds-checkbox-group')) {
+    customElements.define('fds-checkbox-group', FDSCheckboxGroup);
+  }
+}
+/* harmony default export */ const fds_checkbox_group = (registerCheckboxGroup);
+;// ./src/js/custom-elements/radio-button/fds-radio-button.js
+
+
+
+
+class FDSRadioButton extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+  #radioButtonObserver = null;
+  #input;
+  #label;
+  #onInputChange;
+  #updateExpandableContent;
+
+  /* Private methods */
+
+  #getInputElement() {
+    return this.querySelector(':scope > input[type="radio"]');
+  }
+  #getLabelElement() {
+    return this.querySelector(':scope > label');
+  }
+  #getHelpTextElements() {
+    return this.querySelectorAll(':scope > fds-help-text');
+  }
+  #setupObserver() {
+    if (this.#radioButtonObserver) return;
+    this.#radioButtonObserver = new MutationObserver(this.#handleMutations);
+    this.#radioButtonObserver.observe(this, mutationObserverConfig);
+  }
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      const relevantTagNames = ['LABEL', 'INPUT', 'FDS-HELP-TEXT'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        this.#input = this.#getInputElement();
+        this.#label = this.#getLabelElement();
+        this.#setClasses();
+        setDisabledClass(this.#label, this.#input);
+        this.#updateAccessibilityState();
+        break;
+      }
+      if (attributeName === 'disabled' && target === this.#getInputElement()) {
+        setDisabledClass(this.#getLabelElement(), target);
+      } else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class' && target?.tagName !== 'LABEL') {
+        this.#updateAccessibilityState();
+      }
+    }
+  };
+  #updateAccessibilityState() {
+    const label = this.#getLabelElement();
+    const input = this.#getInputElement();
+    const helpTexts = this.#getHelpTextElements();
+    associateLabelWithElement(label, input, 'rad');
+    setAriaDescribedBy(input, [], helpTexts);
+  }
+  #setClasses() {
+    if (!this.#label || !this.#input) return;
+    this.#label.classList.add('form-label');
+    this.#input.classList.add('form-radio');
+  }
+  #handleCollapsibleContent() {
+    const input = this.#input;
+    const possibleContent = this.querySelector(':scope > div.radio-content');
+    if (!input || !possibleContent) return;
+    possibleContent.classList.add('radio-content');
+    if (!possibleContent.id) {
+      possibleContent.id = generateAndVerifyUniqueId('exp');
+    }
+    const updateState = () => {
+      const expanded = input.checked;
+      input.setAttribute('data-aria-controls', possibleContent.id);
+      input.setAttribute('data-aria-expanded', String(expanded));
+      possibleContent.setAttribute('aria-hidden', String(!expanded));
+      possibleContent.classList.toggle('collapsed', !expanded);
+    };
+    this.#updateExpandableContent = updateState;
+    updateState();
+  }
+  collapseContent() {
+    const content = this.querySelector(':scope > div.radio-content');
+    if (content && this.#input) {
+      this.#input.setAttribute('data-aria-expanded', 'false');
+      content.setAttribute('aria-hidden', 'true');
+      content.classList.add('collapsed');
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['ready'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  init() {
+    this.#input = this.#getInputElement();
+    this.#label = this.#getLabelElement();
+    this.#setClasses();
+    setDisabledClass(this.#label, this.#input);
+    this.#updateAccessibilityState();
+    this.#handleCollapsibleContent();
+    if (this.#input) {
+      if (this.#onInputChange) {
+        this.#input.removeEventListener('change', this.#onInputChange);
+      }
+      this.#onInputChange = () => {
+        this.#updateExpandableContent?.();
+        this.dispatchEvent(new CustomEvent('radio-changed', {
+          detail: {
+            checked: this.#input.checked
+          },
+          bubbles: true
+        }));
+      };
+      this.#input.addEventListener('change', this.#onInputChange);
+    }
+    this.#setupObserver();
+    this.#initialized = true;
+  }
+
+  /* Getters and setters */
+
+  get checked() {
+    return this.#input?.checked ?? false;
+  }
+  set checked(value) {
+    if (!this.#input) return;
+    this.#input.checked = Boolean(value);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.getAttribute('ready') === 'false') return;
+    if (!this.#initialized) {
+      this.init();
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    if (this.#input) {
+      this.#input.removeEventListener('change', this.#onInputChange);
+    }
+    this.#initialized = false;
+    if (this.#radioButtonObserver) {
+      this.#radioButtonObserver.disconnect();
+      this.#radioButtonObserver = null;
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue === 'true') {
+        this.init();
+      }
+      return;
+    }
+  }
+}
+function registerRadioButton() {
+  if (customElements.get('fds-radio-button') === undefined) {
+    window.customElements.define('fds-radio-button', FDSRadioButton);
+  }
+}
+/* harmony default export */ const fds_radio_button = (registerRadioButton);
+;// ./src/js/custom-elements/radio-button/fds-radio-button-group.js
+
+
+
+class FDSRadioButtonGroup extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+  #radioButtonGroupObserver = null;
+  #fieldset;
+  #legend;
+
+  /* Private methods */
+
+  #getFieldsetElement() {
+    return this.querySelector('fieldset');
+  }
+  #getLegendElement() {
+    return this.querySelector(':scope > fieldset > legend');
+  }
+  #getGroupHelpTexts() {
+    return this.querySelectorAll(':scope > fieldset > fds-help-text');
+  }
+  #getErrorMessages() {
+    return this.querySelectorAll(':scope > fieldset > fds-error-message');
+  }
+  #setupObserver() {
+    if (this.#radioButtonGroupObserver) return;
+    this.#radioButtonGroupObserver = new MutationObserver(this.#handleMutations);
+    this.#radioButtonGroupObserver.observe(this, mutationObserverConfig);
+  }
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      const relevantTagNames = ['FIELDSET', 'LEGEND', 'FDS-HELP-TEXT', 'FDS-ERROR-MESSAGE'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        this.#fieldset = this.#getFieldsetElement();
+        this.#legend = this.#getLegendElement();
+        this.#setClasses();
+        this.#setDisabledClass();
+        this.#updateAccessibilityState();
+        break;
+      }
+      if (attributeName === 'disabled' && target === this.#getFieldsetElement()) {
+        target.classList.toggle('disabled', target.hasAttribute('disabled'));
+      } else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class' && !['LEGEND', 'FIELDSET'].includes(target?.tagName)) {
+        this.#updateAccessibilityState();
+        if (attributeName === 'hidden' && target === this) {
+          notifySummaryOnVisibilityChange(this);
+        }
+      }
+    }
+  };
+  #updateAccessibilityState() {
+    const fieldset = this.#getFieldsetElement();
+    const errorMessages = this.#getErrorMessages();
+    const helpTexts = this.#getGroupHelpTexts();
+    setAriaDescribedBy(fieldset, errorMessages, helpTexts);
+  }
+  #setClasses() {
+    this.#legend?.classList.add('form-label');
+  }
+  #setDisabledClass() {
+    const fieldset = this.#getFieldsetElement();
+    if (!fieldset) return;
+    fieldset.classList.toggle('disabled', fieldset.hasAttribute('disabled'));
+  }
+  #handleRadioChange = event => {
+    const changedRadioButton = event.target.closest('fds-radio-button');
+    if (event.detail.checked) {
+      const allRadios = this.querySelectorAll('fds-radio-button');
+      allRadios.forEach(radio => {
+        if (radio !== changedRadioButton) {
+          radio.collapseContent?.();
+        }
+      });
+    }
+  };
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  init() {
+    this.#fieldset = this.#getFieldsetElement();
+    this.#legend = this.#getLegendElement();
+    this.#setClasses();
+    this.#setDisabledClass();
+    this.#updateAccessibilityState();
+    this.removeEventListener('radio-changed', this.#handleRadioChange);
+    this.addEventListener('radio-changed', this.#handleRadioChange);
+    this.#setupObserver();
+    this.#initialized = true;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (!this.#initialized) {
+      this.init();
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    notifySummaryOnDisconnect(this);
+    this.removeEventListener('radio-changed', this.#handleRadioChange);
+    this.#initialized = false;
+    if (this.#radioButtonGroupObserver) {
+      this.#radioButtonGroupObserver.disconnect();
+      this.#radioButtonGroupObserver = null;
+    }
+  }
+}
+function registerRadioButtonGroup() {
+  if (customElements.get('fds-radio-button-group') === undefined) {
+    window.customElements.define('fds-radio-button-group', FDSRadioButtonGroup);
+  }
+}
+/* harmony default export */ const fds_radio_button_group = (registerRadioButtonGroup);
+;// ./src/js/custom-elements/date-input/fds-date-input.js
+//import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
+
+class FDSDateInput extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+  #dateInputObserver = null;
+
+  /* Private methods */
+
+  #setupObserver() {
+    if (this.#dateInputObserver) return;
+    this.#dateInputObserver = new MutationObserver(this.#handleMutations);
+    this.#dateInputObserver.observe(this, mutationObserverConfig);
+  }
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      // A relevant child element was added or removed.
+      const relevantTagNames = ['LABEL', 'INPUT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        const legend = this.querySelector('legend');
+        const fieldset = this.querySelector('fieldset');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        const label_day = this.querySelector('[data-attribute="day"] label');
+        const label_month = this.querySelector('[data-attribute="month"] label');
+        const label_year = this.querySelector('[data-attribute="year"] label');
+        const input_day = this.querySelector('[data-attribute="day"] input');
+        const input_month = this.querySelector('[data-attribute="month"] input');
+        const input_year = this.querySelector('[data-attribute="year"] input');
+        associateLabelWithElement(label_day, input_day, 'day');
+        associateLabelWithElement(label_month, input_month, 'month');
+        associateLabelWithElement(label_year, input_year, 'year');
+        setAriaDescribedBy(fieldset, errorMessages, helpTexts);
+        this.#setInvalidForInput('day', input_day, errorMessages);
+        this.#setInvalidForInput('month', input_month, errorMessages);
+        this.#setInvalidForInput('year', input_year, errorMessages);
+        if (this.hasAttribute('show-required-status')) {
+          showRequiredStatus(legend, fieldset, this.getAttribute('show-required-status'));
+        }
+        break;
+      }
+
+      // The input's required attribute changed
+      if (attributeName === 'required' && target?.tagName === 'INPUT') {
+        if (this.hasAttribute('show-required-status')) {
+          const legend = this.querySelector('legend');
+          const fieldset = this.querySelector('fieldset');
+          showRequiredStatus(legend, fieldset, this.getAttribute('show-required-status'));
+        }
+      }
+      // Attributes which might affect aria-describedby
+      else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class' || attributeName === 'targets') {
+        const legend = this.querySelector('legend');
+        const fieldset = this.querySelector('fieldset');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        const label_day = this.querySelector('[data-attribute="day"] label');
+        const label_month = this.querySelector('[data-attribute="month"] label');
+        const label_year = this.querySelector('[data-attribute="year"] label');
+        const input_day = this.querySelector('[data-attribute="day"] input');
+        const input_month = this.querySelector('[data-attribute="month"] input');
+        const input_year = this.querySelector('[data-attribute="year"] input');
+        associateLabelWithElement(label_day, input_day, 'day');
+        associateLabelWithElement(label_month, input_month, 'month');
+        associateLabelWithElement(label_year, input_year, 'year');
+        setAriaDescribedBy(fieldset, errorMessages, helpTexts);
+        this.#setInvalidForInput('day', input_day, errorMessages);
+        this.#setInvalidForInput('month', input_month, errorMessages);
+        this.#setInvalidForInput('year', input_year, errorMessages);
+        if (attributeName === 'hidden' && target === this) {
+          notifySummaryOnVisibilityChange(this);
+        }
+      }
+    }
+  };
+  #setupHTML() {
+    // Fieldset
+    let fieldset = this.querySelector('fieldset');
+    if (fieldset === null) {
+      fieldset = document.createElement('fieldset');
+      this.appendChild(fieldset);
+    }
+
+    // Legend
+    let legend = fieldset.querySelector('legend');
+    if (legend === null) {
+      legend = document.createElement('legend');
+      fieldset.appendChild(legend);
+    }
+    if (legend.textContent === '') {
+      legend.textContent = 'Indtast dato';
+    }
+
+    // Div wrapper
+    let divWrapper = fieldset.querySelector(':scope > div');
+    if (divWrapper === null) {
+      divWrapper = document.createElement('div');
+      fieldset.appendChild(divWrapper);
+    }
+
+    // Div for day input
+    let divDay = divWrapper.querySelector('[data-attribute="day"]');
+    if (divDay === null) {
+      divDay = document.createElement('div');
+      divDay.setAttribute('data-attribute', 'day');
+      divWrapper.appendChild(divDay);
+    }
+
+    // Div for month input
+    let divMonth = divWrapper.querySelector('[data-attribute="month"]');
+    if (divMonth === null) {
+      divMonth = document.createElement('div');
+      divMonth.setAttribute('data-attribute', 'month');
+      divWrapper.appendChild(divMonth);
+    }
+
+    // Div for year input
+    let divYear = divWrapper.querySelector('[data-attribute="year"]');
+    if (divYear === null) {
+      divYear = document.createElement('div');
+      divYear.setAttribute('data-attribute', 'year');
+      divWrapper.appendChild(divYear);
+    }
+
+    // Day label
+    let labelDay = divDay.querySelector('label');
+    if (labelDay === null) {
+      labelDay = document.createElement('label');
+      divDay.appendChild(labelDay);
+    }
+    if (labelDay.textContent === '') {
+      labelDay.textContent = 'Dag';
+    }
+
+    // Day input
+    let inputDay = divDay.querySelector('input');
+    if (inputDay === null) {
+      inputDay = document.createElement('input');
+      divDay.appendChild(inputDay);
+    }
+    if (!inputDay.hasAttribute('name')) {
+      inputDay.setAttribute('name', 'day');
+    }
+    if (!inputDay.hasAttribute('type')) {
+      inputDay.setAttribute('type', 'number');
+    }
+
+    // Month label
+    let labelMonth = divMonth.querySelector('label');
+    if (labelMonth === null) {
+      labelMonth = document.createElement('label');
+      divMonth.appendChild(labelMonth);
+    }
+    if (labelMonth.textContent === '') {
+      labelMonth.textContent = 'Måned';
+    }
+
+    // Month input
+    let inputMonth = divMonth.querySelector('input');
+    if (inputMonth === null) {
+      inputMonth = document.createElement('input');
+      divMonth.appendChild(inputMonth);
+    }
+    if (!inputMonth.hasAttribute('name')) {
+      inputMonth.setAttribute('name', 'month');
+    }
+    if (!inputMonth.hasAttribute('type')) {
+      inputMonth.setAttribute('type', 'number');
+    }
+
+    // Year label
+    let labelYear = divYear.querySelector('label');
+    if (labelYear === null) {
+      labelYear = document.createElement('label');
+      divYear.appendChild(labelYear);
+    }
+    if (labelYear.textContent === '') {
+      labelYear.textContent = 'År';
+    }
+
+    // Year input
+    let inputYear = divYear.querySelector('input');
+    if (inputYear === null) {
+      inputYear = document.createElement('input');
+      divYear.appendChild(inputYear);
+    }
+    if (!inputYear.hasAttribute('name')) {
+      inputYear.setAttribute('name', 'year');
+    }
+    if (!inputYear.hasAttribute('type')) {
+      inputYear.setAttribute('type', 'number');
+    }
+  }
+  #setInvalidForInput(target, inputElement, errorMessages) {
+    const relevantErrors = Array.from(errorMessages).filter(errorMsg => {
+      const targets = errorMsg.getAttribute('targets');
+      return targets && targets.includes(target);
+    });
+    if (relevantErrors.length > 0) {
+      setInvalid(inputElement, relevantErrors);
+    }
+  }
+  #init() {
+    this.#setupHTML();
+    this.#setupObserver();
+    const legend = this.querySelector('legend');
+    const fieldset = this.querySelector('fieldset');
+    const errorMessages = this.querySelectorAll('fds-error-message');
+    const helpTexts = this.querySelectorAll('fds-help-text');
+    const label_day = this.querySelector('[data-attribute="day"] label');
+    const label_month = this.querySelector('[data-attribute="month"] label');
+    const label_year = this.querySelector('[data-attribute="year"] label');
+    const input_day = this.querySelector('[data-attribute="day"] input');
+    const input_month = this.querySelector('[data-attribute="month"] input');
+    const input_year = this.querySelector('[data-attribute="year"] input');
+    associateLabelWithElement(label_day, input_day, 'day');
+    associateLabelWithElement(label_month, input_month, 'month');
+    associateLabelWithElement(label_year, input_year, 'year');
+    setAriaDescribedBy(fieldset, errorMessages, helpTexts);
+    this.#setInvalidForInput('day', input_day, errorMessages);
+    this.#setInvalidForInput('month', input_month, errorMessages);
+    this.#setInvalidForInput('year', input_year, errorMessages);
+    if (this.hasAttribute('show-required-status')) {
+      showRequiredStatus(legend, fieldset, this.getAttribute('show-required-status'));
+    }
+    this.#initialized = true;
+  }
+  #setReadonly() {
+    const inputs = this.querySelectorAll('input');
+    inputs.forEach(input => {
+      if (this.getAttribute('input-readonly') !== null && this.getAttribute('input-readonly') !== 'false') {
+        input.setAttribute('readonly', '');
+      } else {
+        input.removeAttribute('readonly');
+      }
+    });
+  }
+  #setRequired() {
+    const inputs = this.querySelectorAll('input');
+    inputs.forEach(input => {
+      if (this.getAttribute('input-required') !== null && this.getAttribute('input-required') !== 'false') {
+        input.setAttribute('required', '');
+      } else {
+        input.removeAttribute('required');
+      }
+    });
+  }
+  #setInputId() {
+    const inputWrappers = this.querySelectorAll('div[data-attribute]');
+    inputWrappers.forEach(inputWrapper => {
+      const label = inputWrapper.querySelector('label');
+      const input = inputWrapper.querySelector('input');
+      if (this.getAttribute('input-id') !== null && this.getAttribute('input-id') !== '') {
+        input.id = `${inputWrapper.getAttribute('data-attribute')}-${this.getAttribute('input-id')}`;
+      }
+    });
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['show-required-status', 'input-readonly', 'input-required', 'legend', 'input-id'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (!this.#initialized) {
+      this.#init();
+    }
+    if (this.hasAttribute('input-readonly')) {
+      this.#setReadonly();
+    }
+    if (this.hasAttribute('input-required')) {
+      this.#setRequired();
+    }
+    if (this.hasAttribute('legend')) {
+      this.querySelector('legend').textContent = this.getAttribute('legend');
+    }
+    if (this.hasAttribute('input-id')) {
+      this.#setInputId();
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    notifySummaryOnDisconnect(this);
+    this.#initialized = false;
+    if (this.#dateInputObserver) {
+      this.#dateInputObserver.disconnect();
+      this.#dateInputObserver = null;
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (attribute === 'show-required-status' && oldValue !== newValue) {
+      const legend = this.querySelector('legend');
+      const fieldset = this.querySelector('fieldset');
+      showRequiredStatus(legend, fieldset, newValue);
+    }
+    if (attribute === 'input-readonly' && oldValue !== newValue) {
+      this.#setReadonly();
+    }
+    if (attribute === 'input-required' && oldValue !== newValue) {
+      this.#setRequired();
+    }
+    if (attribute === 'legend' && oldValue !== newValue && newValue !== null) {
+      this.querySelector('legend').textContent = newValue;
+    }
+    if (attribute === 'input-id' && oldValue !== newValue) {
+      this.#setInputId();
+    }
+  }
+}
+function registerDateInput() {
+  if (customElements.get('fds-date-input') === undefined) {
+    window.customElements.define('fds-date-input', FDSDateInput);
+  }
+}
+/* harmony default export */ const fds_date_input = (registerDateInput);
+;// ./src/js/custom-elements/select/fds-select.js
+
+class FDSSelect extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+  #selectObserver = null;
+
+  /* Private methods */
+
+  #setupObserver() {
+    if (this.#selectObserver) return;
+    this.#selectObserver = new MutationObserver(this.#handleMutations);
+    this.#selectObserver.observe(this, mutationObserverConfig);
+  }
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      // A relevant child element was added or removed.
+      const relevantTagNames = ['LABEL', 'SELECT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        const label = this.querySelector('label');
+        const select = this.querySelector('select');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        associateLabelWithElement(label, select, 'sel');
+        setAriaDescribedBy(select, errorMessages, helpTexts);
+        setInvalid(select, errorMessages);
+        if (this.hasAttribute('show-required-status')) {
+          showRequiredStatus(label, select, this.getAttribute('show-required-status'));
+        }
+        break;
+      }
+
+      // The select's required attribute changed
+      if (attributeName === 'required' && target?.tagName === 'SELECT') {
+        if (this.hasAttribute('show-required-status')) {
+          const label = this.querySelector('label');
+          showRequiredStatus(label, target, this.getAttribute('show-required-status'));
+        }
+      }
+      // Attributes which might affect aria-describedby
+      else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class') {
+        const label = this.querySelector('label');
+        const select = this.querySelector('select');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        associateLabelWithElement(label, select, 'sel');
+        setAriaDescribedBy(select, errorMessages, helpTexts);
+        setInvalid(select, errorMessages);
+        if (attributeName === 'hidden' && target === this) {
+          notifySummaryOnVisibilityChange(this);
+        }
+      }
+    }
+  };
+  #init() {
+    this.#setupObserver();
+    const label = this.querySelector('label');
+    const select = this.querySelector('select');
+    const errorMessages = this.querySelectorAll('fds-error-message');
+    const helpTexts = this.querySelectorAll('fds-help-text');
+    associateLabelWithElement(label, select, 'sel');
+    setAriaDescribedBy(select, errorMessages, helpTexts);
+    setInvalid(select, errorMessages);
+    if (this.hasAttribute('show-required-status')) {
+      showRequiredStatus(label, select, this.getAttribute('show-required-status'));
+    }
+    this.#initialized = true;
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['show-required-status'];
+
+  /* --------------------------------------------------
+  GETTERS AND SETTERS
+  -------------------------------------------------- */
+
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (!this.#initialized) {
+      this.#init();
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    notifySummaryOnDisconnect(this);
+    this.#initialized = false;
+    if (this.#selectObserver) {
+      this.#selectObserver.disconnect();
+      this.#selectObserver = null;
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (attribute === 'show-required-status' && oldValue !== newValue) {
+      const label = this.querySelector('label');
+      const select = this.querySelector('select');
+      showRequiredStatus(label, select, newValue);
+    }
+  }
+}
+function registerSelect() {
+  if (customElements.get('fds-select') === undefined) {
+    window.customElements.define('fds-select', FDSSelect);
+  }
+}
+/* harmony default export */ const fds_select = (registerSelect);
+;// ./src/js/custom-elements/upload-file/fds-upload-file.js
+
+
+class FDSUploadFile extends HTMLElement {
+  /**
+   * Internal state:
+   * - #files holds the canonical list of selected files (source of truth).
+   * - UI (dropzone vs file list) is rendered based on #files.length.
+   * - DOM is partially cached (#dropzoneEl, #fileListEl) to allow toggling without recreating elements unnecessarily.
+   */
+
+  #inputEl = null;
+  #initialized = false;
+  #files = [];
+  #uploadObserver = null;
+  #dropzoneEl = null;
+  #fileListEl = null;
+  #onClick;
+  #onInputChange;
+
+  /* Private methods */
+
+  #getDropzonePrefix() {
+    return this.getAttribute('dropzone-prefix') ?? 'Træk dine filer herhen eller';
+  }
+  #getDropzoneLink() {
+    return this.getAttribute('dropzone-link') ?? 'vælg filer';
+  }
+  #getDropzoneSuffix() {
+    return this.getAttribute('dropzone-suffix') ?? '';
+  }
+  #getFileListHeader() {
+    return this.getAttribute('file-list-header') ?? 'Valgte filer';
+  }
+  #getFileListMore() {
+    return this.getAttribute('file-list-more') ?? 'Vælg flere filer';
+  }
+  #getFileListHeadingLevel() {
+    const headingLevel = this.getAttribute('heading-level');
+    if (!headingLevel || !['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(headingLevel)) {
+      return 'h5';
+    }
+    return headingLevel;
+  }
+  #setupInput(input) {
+    const label = this.querySelector('label');
+    if (!label || !input) return;
+    label.classList.add('fds-upload-label');
+    input.classList.add('fds-upload-input');
+    if (!input.id) {
+      input.id = generateAndVerifyUniqueId('file-input');
+    }
+    label.setAttribute('for', input.id);
+    input.removeEventListener('change', this.#onInputChange);
+    input.addEventListener('change', this.#onInputChange);
+    this.#inputEl = input;
+    setDisabledClass(label, input);
+    if (this.hasAttribute('show-required-status')) {
+      this.#updateRequiredStatus();
+    }
+  }
+  #hydrateExistingDropzone() {
+    this.#setupInput(this.querySelector('.fds-upload-dropzone input[type="file"]'));
+  }
+  #setText(selector, value) {
+    const element = this.querySelector(selector);
+    if (element) {
+      element.textContent = value;
+    }
+  }
+  #setFileItemsRemoveText() {
+    const fileItems = this.querySelectorAll('fds-file-item');
+    const removeText = this.getAttribute('remove-text') || 'Fjern';
+    fileItems.forEach(item => {
+      item.setAttribute('remove-text', removeText);
+    });
+  }
+  #setDropzoneText(container) {
+    container.replaceChildren();
+    const prefix = this.#getDropzonePrefix();
+    if (prefix) {
+      container.append(prefix + ' ');
+    }
+    const linkText = document.createElement('span');
+    linkText.className = 'fds-upload-choose';
+    linkText.textContent = this.#getDropzoneLink();
+    container.appendChild(linkText);
+    const suffix = this.#getDropzoneSuffix();
+    if (suffix) {
+      container.append(' ' + suffix);
+    }
+  }
+  #syncAddMoreVisibility() {
+    const addMore = this.#fileListEl?.querySelector('.fds-upload-add-more');
+    if (addMore) {
+      addMore.hidden = !this.#inputEl?.multiple;
+    }
+  }
+  #showDropzone() {
+    if (!this.#dropzoneEl) {
+      const input = this.#inputEl || this.querySelector('input[type="file"]');
+      if (!input) return;
+      const originalParent = input.parentNode;
+      const originalNextSibling = input.nextSibling;
+      this.#dropzoneEl = this.#renderDropzone();
+      if (!this.#dropzoneEl) return;
+      if (originalParent === this) {
+        this.insertBefore(this.#dropzoneEl, originalNextSibling);
+      }
+    }
+    this.#fileListEl?.remove();
+    this.#fileListEl = null;
+    if (!this.contains(this.#dropzoneEl)) {
+      const errorMessage = this.querySelector('fds-error-message');
+      if (errorMessage) {
+        this.insertBefore(this.#dropzoneEl, errorMessage);
+      } else {
+        this.appendChild(this.#dropzoneEl);
+      }
+    }
+  }
+  #showFileList() {
+    const dropzoneNextSibling = this.#dropzoneEl?.nextSibling ?? null;
+    if (!this.#fileListEl) {
+      this.#fileListEl = this.#renderFileList();
+    } else {
+      this.#updateFileList();
+    }
+    this.#syncAddMoreVisibility();
+    this.#dropzoneEl?.remove();
+    this.#dropzoneEl = null;
+    if (!this.contains(this.#fileListEl)) {
+      const errorMessage = this.querySelector('fds-error-message');
+      if (dropzoneNextSibling && this.contains(dropzoneNextSibling)) {
+        this.insertBefore(this.#fileListEl, dropzoneNextSibling);
+      } else if (errorMessage) {
+        this.insertBefore(this.#fileListEl, errorMessage);
+      } else {
+        this.appendChild(this.#fileListEl);
+      }
+    }
+  }
+  #updateFileList() {
+    const filesContainer = this.#fileListEl.querySelector('.fds-upload-files');
+    if (!filesContainer) return;
+    filesContainer.replaceChildren();
+    this.#files.forEach(fileObj => {
+      filesContainer.appendChild(this.#renderFileItem(fileObj));
+    });
+  }
+  #updateFileListHeadingLevel() {
+    if (!this.#fileListEl) return;
+    const currentTitle = this.#fileListEl.querySelector('.fds-upload-title');
+    if (!currentTitle) return;
+    const newTag = this.#getFileListHeadingLevel();
+    const currentTag = currentTitle.tagName.toLowerCase();
+    if (currentTag === newTag) return;
+    const newTitle = document.createElement(newTag);
+    newTitle.className = currentTitle.className;
+    newTitle.textContent = currentTitle.textContent;
+    currentTitle.replaceWith(newTitle);
+  }
+  #updateDropzoneContent() {
+    const content = this.#dropzoneEl?.querySelector('.fds-upload-dropzone-content p');
+    if (!content) return;
+    this.#setDropzoneText(content);
+  }
+
+  /* Mutation observer */
+
+  #setupObserver() {
+    if (this.#uploadObserver) return;
+    this.#uploadObserver = new MutationObserver(this.#handleMutations);
+    this.#uploadObserver.observe(this, mutationObserverConfig);
+  }
+  #handleMutations = records => {
+    let shouldUpdateAccessibility = false;
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      if (attributeName === 'hidden' && target === this) {
+        notifySummaryOnVisibilityChange(this);
+      }
+
+      // The input's disabled attribute changed
+      if (attributeName === 'disabled' && target?.tagName === 'INPUT') {
+        const label = this.querySelector('label');
+        setDisabledClass(label, target);
+      }
+
+      // The input's required attribute changed
+      else if (attributeName === 'required' && target?.tagName === 'INPUT') {
+        if (this.hasAttribute('show-required-status')) {
+          this.#updateRequiredStatus();
+        }
+      }
+      if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
+        shouldUpdateAccessibility = true;
+        continue;
+      }
+      const relevantTagNames = ['FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        shouldUpdateAccessibility = true;
+      }
+    }
+    if (shouldUpdateAccessibility) {
+      this.#setupAccessibility();
+    }
+  };
+  #setupAccessibility() {
+    const input = this.#inputEl;
+    if (!input) return;
+    const idsForAriaDescribedby = [];
+    let isInvalid = false;
+
+    // Preserve dropzone description for screen reader
+    const dropzoneDesc = this.querySelector('.fds-upload-dropzone-content');
+    if (dropzoneDesc && dropzoneDesc.id) {
+      idsForAriaDescribedby.push(dropzoneDesc.id);
+    }
+    const errorMessages = this.querySelectorAll('fds-error-message:not([targets])');
+    const helpTexts = this.querySelectorAll('fds-help-text');
+    const ariaDescribedbyElements = [...errorMessages, ...helpTexts];
+
+    // Build aria-describedby attribute from visible elements
+    for (const element of ariaDescribedbyElements) {
+      const isHidden = element.hasAttribute('hidden');
+      const isAriaHidden = element.getAttribute('aria-hidden') === 'true';
+      if (element.id && !isHidden && !isAriaHidden) {
+        idsForAriaDescribedby.push(element.id);
+        if (element.tagName === 'FDS-ERROR-MESSAGE') {
+          isInvalid = true;
+        }
+      }
+    }
+    if (idsForAriaDescribedby.length > 0) {
+      const describedBy = idsForAriaDescribedby.join(' ');
+      input.setAttribute('aria-describedby', describedBy);
+    } else {
+      input.removeAttribute('aria-describedby');
+    }
+    if (input) {
+      isInvalid ? input.setAttribute('aria-invalid', 'true') : input.removeAttribute('aria-invalid');
+    }
+  }
+
+  /* -----------------------------
+     Rendering
+  ----------------------------- */
+
+  #render() {
+    if (this.#files.length === 0) {
+      this.#showDropzone();
+    } else {
+      this.#showFileList();
+    }
+    this.#setupAccessibility();
+  }
+  #renderDropzone() {
+    const dropzone = document.createElement('div');
+    dropzone.className = 'fds-upload-dropzone';
+
+    // Input
+    const input = this.#inputEl || this.querySelector('input[type="file"]');
+    if (!input) return null;
+    this.#setupInput(input);
+
+    // Dropzone content
+    const content = document.createElement('div');
+    content.className = 'fds-upload-dropzone-content';
+    content.id = `dropzone-${input.id}`;
+    ;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.classList.add('icon-svg');
+    svg.setAttribute('aria-hidden', 'true');
+    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttribute('href', '#plus-circle');
+    svg.appendChild(use);
+    const p = document.createElement('p');
+
+    // Text content: prefix + link + suffix
+    this.#setDropzoneText(p);
+    content.append(svg, p);
+    dropzone.append(input, content);
+    return dropzone;
+  }
+  #renderFileList() {
+    const container = document.createElement('div');
+    container.className = 'fds-upload-file-list';
+    const header = document.createElement('div');
+    header.className = 'fds-upload-header';
+    const level = this.#getFileListHeadingLevel();
+    const title = document.createElement(level);
+    title.className = 'fds-upload-title';
+    title.textContent = this.#getFileListHeader();
+    const addMore = document.createElement('button');
+    addMore.type = 'button';
+    addMore.className = 'fds-upload-add-more';
+    addMore.textContent = this.#getFileListMore();
+    addMore.hidden = !this.#inputEl?.multiple;
+    header.append(title, addMore);
+    const filesContainer = document.createElement('div');
+    filesContainer.setAttribute('role', 'list');
+    filesContainer.className = 'fds-upload-files';
+    this.#files.forEach(fileObj => {
+      filesContainer.appendChild(this.#renderFileItem(fileObj));
+    });
+    container.append(header, filesContainer);
+    return container;
+  }
+  #renderFileItem(fileObj) {
+    const {
+      id,
+      file
+    } = fileObj;
+    const fileItem = document.createElement('fds-file-item');
+    const removeText = this.getAttribute('remove-text') || 'Fjern';
+    fileItem.setAttribute('remove-text', removeText);
+    fileItem.setFileData(file, id);
+    return fileItem;
+  }
+
+  /* -----------------------------
+     State updates
+  ----------------------------- */
+
+  #addFiles(fileList) {
+    const isFirstFile = this.#files.length === 0;
+    const incomingFiles = Array.from(fileList);
+    const allowedFiles = this.#inputEl?.multiple ? incomingFiles : incomingFiles.slice(0, Math.max(0, 1 - this.#files.length));
+    if (allowedFiles.length === 0) return;
+    const newFiles = allowedFiles.map(file => ({
+      id: generateAndVerifyUniqueId('file'),
+      file
+    }));
+    this.#files.push(...newFiles);
+
+    // Emit event with added files
+    this.dispatchEvent(new CustomEvent('files-added', {
+      detail: newFiles.map(f => f.file),
+      bubbles: true,
+      composed: true
+    }));
+
+    // If this is the first file, we must re-render to switch from dropzone view to file list view.
+    if (isFirstFile) {
+      this.#render();
+      return;
+    }
+    const filesContainer = this.querySelector('.fds-upload-files');
+    newFiles.forEach(fileObj => {
+      filesContainer?.appendChild(this.#renderFileItem(fileObj));
+    });
+  }
+  #removeFileByKey(key) {
+    // Find the file to remove before filtering
+    const removedFile = this.#files.find(f => f.id === key);
+
+    // Remove it from internal state
+    this.#files = this.#files.filter(f => f.id !== key);
+    const fileItem = this.querySelector(`fds-file-item[data-file-key="${key}"]`);
+    if (fileItem) {
+      fileItem.remove();
+    }
+
+    // Emit event with removed file
+    if (removedFile) {
+      this.dispatchEvent(new CustomEvent('files-removed', {
+        detail: removedFile.file,
+        bubbles: true,
+        composed: true
+      }));
+    }
+
+    // Re-render to show dropzone if all files are removed
+    if (this.#files.length === 0) {
+      this.#render();
+    }
+  }
+  #updateRequiredStatus() {
+    const label = this.querySelector('label');
+    const input = this.#inputEl || this.querySelector('input[type="file"]');
+    showRequiredStatus(label, input, this.getAttribute('show-required-status'));
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  getFiles() {
+    return this.#files.map(fileObj => ({
+      id: fileObj.id,
+      file: fileObj.file
+    }));
+  }
+  addError(message) {
+    let fileId = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+    const errorMessage = document.createElement('fds-error-message');
+    errorMessage.textContent = message;
+    if (fileId) {
+      errorMessage.setAttribute('targets', fileId);
+    }
+    this.appendChild(errorMessage);
+    this.#setupAccessibility();
+    return errorMessage;
+  }
+  removeError(errorElement) {
+    if (this.contains(errorElement)) {
+      errorElement.remove();
+      this.#setupAccessibility();
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'file-list-header', 'file-list-more', 'remove-text', 'heading-level', 'show-required-status'];
+
+  /* --------------------------------------------------
+  GETTERS AND SETTERS
+  -------------------------------------------------- */
+
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+    this.#onInputChange = e => this.#addFiles(e.target.files);
+    this.#onClick = e => {
+      if (this.#inputEl?.disabled) return;
+      const removeBtn = e.target.closest('.fds-upload-remove');
+      if (removeBtn) {
+        const fileKey = removeBtn.dataset.fileKey;
+        if (fileKey) {
+          this.#removeFileByKey(fileKey);
+          return;
+        }
+      }
+      const addMore = e.target.closest('.fds-upload-add-more');
+      if (addMore) {
+        if (!this.#inputEl?.multiple) return;
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = true;
+        input.style.display = 'none';
+        const cleanup = () => {
+          input.remove();
+          window.removeEventListener('focus', cleanup);
+        };
+        input.addEventListener('change', e => {
+          if (e.target.files?.length) {
+            this.#addFiles(e.target.files);
+          }
+          cleanup();
+        }, {
+          once: true
+        });
+        window.addEventListener('focus', cleanup, {
+          once: true
+        });
+        document.body.appendChild(input);
+        input.click();
+      }
+    };
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.#initialized) return;
+    this.addEventListener('click', this.#onClick);
+    this.#setupObserver();
+    const existingDropzone = this.querySelector('.fds-upload-dropzone');
+    const existingFileList = this.querySelector('.fds-upload-file-list');
+    this.#dropzoneEl = existingDropzone;
+    this.#fileListEl = existingFileList;
+    if (existingDropzone) {
+      this.#hydrateExistingDropzone();
+    } else {
+      this.#setupInput(this.querySelector('input[type="file"]'));
+    }
+    if (!existingDropzone && !existingFileList) {
+      this.#render();
+    }
+    this.#setupAccessibility();
+    this.#initialized = true;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    notifySummaryOnDisconnect(this);
+    this.#initialized = false;
+    this.removeEventListener('click', this.#onClick);
+    this.#inputEl?.removeEventListener('change', this.#onInputChange);
+    if (this.#uploadObserver) {
+      this.#uploadObserver.disconnect();
+      this.#uploadObserver = null;
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (attribute === 'show-required-status' && oldValue !== newValue) {
+      this.#updateRequiredStatus();
+    }
+    if (['dropzone-prefix', 'dropzone-link', 'dropzone-suffix'].includes(attribute) && oldValue !== newValue) {
+      if (this.#files.length === 0) {
+        this.#updateDropzoneContent();
+      }
+    }
+    if (attribute === 'file-list-header' && oldValue !== newValue) {
+      this.#setText('.fds-upload-title', this.#getFileListHeader());
+    }
+    if (attribute === 'file-list-more' && oldValue !== newValue) {
+      this.#setText('.fds-upload-add-more', this.#getFileListMore());
+    }
+    if (attribute === 'remove-text' && oldValue !== newValue) {
+      this.#setFileItemsRemoveText();
+    }
+    if (attribute === 'heading-level' && oldValue !== newValue) {
+      this.#updateFileListHeadingLevel();
+    }
+  }
+}
+function registerUploadFile() {
+  if (customElements.get('fds-upload-file') === undefined) {
+    window.customElements.define('fds-upload-file', FDSUploadFile);
+  }
+}
+/* harmony default export */ const fds_upload_file = (registerUploadFile);
+;// ./src/js/custom-elements/upload-file/fds-file-item.js
+
+class FDSFileItem extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+  #file = null;
+  #fileId = null;
+  #observer = null;
+
+  /* Private methods */
+
+  #getFileTypeIcon(file) {
+    const mimeType = file.type;
+    if (mimeType.startsWith('image/')) return 'file-image';
+    if (mimeType === 'application/pdf') return 'file-pdf';
+    if (mimeType.includes('word')) return 'file-word';
+    if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return 'file-excel';
+    return 'file';
+  }
+  #createFileIcon(file) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.classList.add('icon-svg', 'fds-upload-file-icon');
+    svg.setAttribute('aria-hidden', 'true');
+    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttribute('href', `#${this.#getFileTypeIcon(file)}`);
+    svg.appendChild(use);
+    return svg;
+  }
+  #getRemoveText() {
+    return this.getAttribute('remove-text') ?? 'Fjern';
+  }
+  #updateRemoveButtonText() {
+    const removeTextSpan = this.querySelector('.fds-upload-remove-text');
+    const removeButton = this.querySelector('.fds-upload-remove');
+    if (!removeTextSpan || !removeButton || !this.#file) return;
+    const removeText = this.#getRemoveText();
+    removeTextSpan.textContent = ` ${removeText}`;
+    removeButton.setAttribute('aria-label', `${removeText} ${this.#file.name}`);
+  }
+  #setupErrorObserver() {
+    if (this.#observer) {
+      this.#observer.disconnect();
+    }
+    this.#observer = new MutationObserver(() => {
+      this.#updateErrorState();
+    });
+    const uploadParent = this.closest('fds-upload-file');
+    if (uploadParent) {
+      const config = {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        attributeFilter: ['hidden', 'aria-hidden', 'targets']
+      };
+      this.#observer.observe(uploadParent, config);
+    }
+    this.#updateErrorState();
+  }
+  #updateErrorState() {
+    if (!this.#fileId) return;
+    const uploadParent = this.closest('fds-upload-file');
+    if (!uploadParent) return;
+    const allErrors = uploadParent.querySelectorAll('fds-error-message[targets]');
+    const matchingErrors = Array.from(allErrors).filter(errorEl => {
+      const targetsAttr = errorEl.getAttribute('targets');
+      if (!targetsAttr) return false;
+      const targets = targetsAttr.split(',').map(t => t.trim());
+      return targets.includes(this.#fileId);
+    });
+    this.classList.remove('fds-upload-file-item-error');
+    this.removeAttribute('aria-invalid');
+    this.removeAttribute('aria-describedby');
+    matchingErrors.forEach(errorEl => {
+      if (errorEl.parentElement !== this) {
+        this.appendChild(errorEl);
+      }
+    });
+    if (matchingErrors.length > 0) {
+      this.classList.add('fds-upload-file-item-error');
+      this.setAttribute('aria-invalid', 'true');
+      const errorIds = matchingErrors.map(error => error.id).filter(Boolean);
+      if (errorIds.length > 0) {
+        this.setAttribute('aria-describedby', errorIds.join(' '));
+      }
+    }
+  }
+  #render() {
+    if (!this.#file || !this.#fileId) return;
+    this.innerHTML = '';
+    this.className = 'fds-upload-file-item';
+    this.dataset.fileKey = this.#fileId;
+    this.setAttribute('role', 'listitem');
+    const row = document.createElement('div');
+    row.className = 'fds-upload-file-row';
+    const fileIcon = this.#createFileIcon(this.#file);
+    const name = document.createElement('span');
+    name.className = 'fds-upload-file-name';
+    name.textContent = this.#file.name;
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'fds-upload-remove';
+    remove.dataset.fileKey = this.#fileId;
+    const removeTextSpan = document.createElement('span');
+    removeTextSpan.className = 'fds-upload-remove-text';
+    removeTextSpan.textContent = ` ${this.#getRemoveText()}`;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.classList.add('icon-svg');
+    svg.setAttribute('aria-hidden', 'true');
+    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttribute('href', '#close');
+    svg.appendChild(use);
+    remove.appendChild(svg);
+    remove.appendChild(removeTextSpan);
+    remove.setAttribute('aria-label', `${this.#getRemoveText()} ${this.#file.name}`);
+    row.append(fileIcon, name, remove);
+    this.appendChild(row);
+    this.#setupErrorObserver();
+  }
+
+  /* Public methods */
+
+  setFileData(file, fileId) {
+    this.#file = file;
+    this.#fileId = fileId;
+    if (this.isConnected) {
+      this.#render();
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['remove-text'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.#initialized) return;
+    if (this.#file && this.#fileId && !this.innerHTML) {
+      this.#render();
+    }
+    this.#initialized = true;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#initialized = false;
+    if (this.#observer) {
+      this.#observer.disconnect();
+      this.#observer = null;
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (attribute === 'remove-text' && oldValue !== newValue) {
+      if (this.#file && this.#fileId) {
+        this.#updateRemoveButtonText();
+      }
+    }
+  }
+}
+function registerFileItem() {
+  if (customElements.get('fds-file-item') === undefined) {
+    window.customElements.define('fds-file-item', FDSFileItem);
+  }
+}
+/* harmony default export */ const fds_file_item = (registerFileItem);
+;// ./src/js/custom-elements/date-picker/fds-date-picker-utils.js
+/**
+ * Get weekday index with Monday as 0
+ *
+ * @param {Date} date - Date to get weekday for
+ * @return {number} Weekday index (0=Mon..6=Sun)
+ */
+function getWeekday(date) {
+  const day = (date.getDay() + 6) % 7; // First day of the week changed from Sunday to Monday
+  return day;
+}
+
+/**
+ * Get the number of days in a month
+ *
+ * @param {Date} date - Any date in the month, for which you want the total number of days
+ * @return {number} The month's total number of days
+ */
+function totalDaysInMonth(date) {
+  const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+
+  newDate.setFullYear(date.getFullYear());
+  newDate.setMonth(date.getMonth() + 1);
+  newDate.setDate(0); // Sets the date to the last day of the previous month
+
+  return newDate.getDate();
+}
+
+/**
+ * Converts a date string to a Date object, setting time to 00:00:00.
+ * Accepts various separators: slash (/), dash (-), dot (.), or space.
+ * 
+ * @param {string} str - The date string in YYYY-MM-DD format (or DD-MM-YYYY if reverse is true)
+ * @param {boolean} [reverse=false] - If true, expects DD-MM-YYYY format; if false, expects YYYY-MM-DD format
+ * @return {Date} A new Date object (time set to 00:00:00), or invalid Date if string format is invalid
+ */
+function stringToDate(str) {
+  let reverse = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+  if (typeof str !== 'string') {
+    return new Date('invalid');
+  }
+  let regex = /^(\d{4})[\/\-\. ](\d{1,2})[\/\-\. ](\d{1,2})$/; // Matches year first, e.g. YYYY-MM-DD
+  if (reverse) {
+    regex = /^(\d{1,2})[\/\-\. ](\d{1,2})[\/\-\. ](\d{4})$/; // Matches day first, e.g. DD-MM-YYYY
+  }
+  const match = str.match(regex);
+  if (match) {
+    if (reverse) {
+      const day = parseInt(match[1], 10);
+      const month = parseInt(match[2], 10) - 1;
+      const year = parseInt(match[3], 10);
+      return dateFromIntegers(year, month, day);
+    } else {
+      const year = parseInt(match[1], 10);
+      const month = parseInt(match[2], 10) - 1;
+      const day = parseInt(match[3], 10);
+      return dateFromIntegers(year, month, day);
+    }
+  } else {
+    return new Date('invalid');
+  }
+}
+
+/**
+ * Checks whether the date is a valid Date
+ *
+ * @param {*} date - The value to check if it's a valid Date object
+ * @return {boolean} True if the value is a valid Date object, false otherwise
+ */
+function isValidDate(date) {
+  return date instanceof Date && !isNaN(date.getTime());
+}
+
+/**
+ * Checks whether the string would be a valid Date if converted
+ *
+ * @param {*} date - The value to check if it's a valid Date object
+ * @return {boolean} True if the value is a valid Date object, false otherwise
+ */
+function isValidDateStr(str) {
+  const date = stringToDate(str);
+  return date instanceof Date && !isNaN(date.getTime());
+}
+
+/**
+ * Constrains a date to be within the specified range and sets time to 00:00:00
+ * 
+ * @param {Date} minDate - The minimum allowed date (lower bound, ignored if invalid)
+ * @param {Date} date - The date to constrain within the range
+ * @param {Date} maxDate - The maximum allowed date (upper bound, ignored if invalid)
+ * @return {Date} A new Date object with the constrained date, or invalid Date if input date is invalid
+ */
+function constrainDate(minDate, date, maxDate) {
+  if (!isValidDate(date)) {
+    return new Date('invalid');
+  }
+  date.setHours(0, 0, 0, 0);
+  if (isValidDate(minDate)) {
+    minDate.setHours(0, 0, 0, 0);
+  }
+  if (isValidDate(maxDate)) {
+    maxDate.setHours(0, 0, 0, 0);
+  }
+  if (isValidDate(minDate) && date < minDate) {
+    return minDate;
+  } else if (isValidDate(maxDate) && maxDate < date) {
+    return maxDate;
+  } else {
+    return date;
+  }
+}
+
+/**
+ * Create a date from integers with timestamp 00:00:00. Unlike new Date(yyyy, mm, dd) this function don't allow date roll overs.
+ *
+ * @param {number} year - The year in the date
+ * @param {number} month - The month in the date (0=January..11=December)
+ * @param {number} day - The day in the date
+ */
+function dateFromIntegers(year, month, day) {
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+    throw new Error('dateFromIntegers() must receive integers');
+  }
+  if (0 <= month && month <= 11 && 0 <= year && year <= 9999) {
+    const totalMonthDays = totalDaysInMonth(new Date(year, month, 1));
+    if (1 <= day && day <= totalMonthDays) {
+      const date = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+      date.setFullYear(year);
+      date.setMonth(month);
+      date.setDate(day);
+      return date;
+    } else {
+      return new Date('invalid');
+    }
+  } else {
+    return new Date('invalid');
+  }
+}
+
+/**
+ * Format date as YYYY-MM-DD
+ *
+ * @param {Date} date - Date to format
+ * @return {string} ISO-like local date (YYYY-MM-DD)
+ */
+function ISOFormatFromDate(date) {
+  const year = String(date.getFullYear()).padStart(4, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Get the previous day
+ *
+ * @param {Date} date - Reference date
+ * @return {Date} New Date representing yesterday
+ */
+function getYesterday(date) {
+  const yesterday = new Date(date);
+  yesterday.setDate(yesterday.getDate() - 1);
+  return yesterday;
+}
+
+/**
+ * Get the next day
+ *
+ * @param {Date} date - Reference date
+ * @return {Date} New Date representing tomorrow
+ */
+function getTomorrow(date) {
+  const tomorrow = new Date(date);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow;
+}
+function getPrevWeek(date) {
+  const prevWeek = new Date(date);
+  prevWeek.setDate(prevWeek.getDate() - 7);
+  return prevWeek;
+}
+function getNextWeek(date) {
+  const nextWeek = new Date(date);
+  nextWeek.setDate(nextWeek.getDate() + 7);
+  return nextWeek;
+}
+function getPrevMonth(date) {
+  let day = date.getDate();
+  let month = date.getMonth();
+  let year = date.getFullYear();
+  let prevMonth = month - 1;
+  if (prevMonth === -1) {
+    prevMonth = 11;
+    year = year - 1;
+  }
+  const newDaysInMonth = totalDaysInMonth(new Date(year, prevMonth, 1));
+  if (newDaysInMonth < day) {
+    day = newDaysInMonth;
+  }
+  const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+  newDate.setFullYear(year); // Use setFullYear as new Date(year, month, date) would set year "20" to "1920"
+  newDate.setMonth(prevMonth);
+  newDate.setDate(day);
+  return newDate;
+}
+function getNextMonth(date) {
+  let day = date.getDate();
+  let month = date.getMonth();
+  let year = date.getFullYear();
+  let nextMonth = month + 1;
+  if (nextMonth === 12) {
+    nextMonth = 0;
+    year = year + 1;
+  }
+  const newDaysInMonth = totalDaysInMonth(new Date(year, nextMonth, 1));
+  if (newDaysInMonth < day) {
+    day = newDaysInMonth;
+  }
+  const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+  newDate.setFullYear(year); // Use setFullYear as new Date(year, month, date) would set year "20" to "1920"
+  newDate.setMonth(nextMonth);
+  newDate.setDate(day);
+  return newDate;
+}
+function getPrevYear(date) {
+  let day = date.getDate();
+  const month = date.getMonth();
+  let year = date.getFullYear();
+  let prevYear = year - 1;
+  const newDaysInMonth = totalDaysInMonth(new Date(prevYear, month, 1));
+  if (newDaysInMonth < day) {
+    day = newDaysInMonth;
+  }
+  const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+  newDate.setFullYear(prevYear); // Use setFullYear as new Date(year, month, date) would set year "20" to "1920"
+  newDate.setMonth(month);
+  newDate.setDate(day);
+  return newDate;
+}
+function getNextYear(date) {
+  let day = date.getDate();
+  const month = date.getMonth();
+  let year = date.getFullYear();
+  let nextYear = year + 1;
+  const newDaysInMonth = totalDaysInMonth(new Date(nextYear, month, 1));
+  if (newDaysInMonth < day) {
+    day = newDaysInMonth;
+  }
+  const newDate = new Date(1990, 1, 1); // Date() uses an argument to create a timestamp of 00:00:00
+  newDate.setFullYear(nextYear); // Use setFullYear as new Date(year, month, date) would set year "20" to "1920"
+  newDate.setMonth(month);
+  newDate.setDate(day);
+  return newDate;
+}
+
+/**
+ * Checks if two dates are exactly the same
+ * 
+ * @param {Date} date1 - The first date to compare
+ * @param {Date} date2 - The second date to compare
+ * @returns {boolean} True if the dates are exactly equal, false otherwise
+ */
+function datesAreEqual(date1, date2) {
+  if (!isValidDate(date1) || !isValidDate(date2)) {
+    return false;
+  }
+  return date1.getTime() === date2.getTime();
+}
+;// ./src/js/custom-elements/date-picker/fds-date-picker.js
+
+
+
+class FDSDatePicker extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+  #datePickerObserver = null;
+  #handleDatePickerButtonClick;
+  #handleFocusOut;
+  #handleDateSelection;
+  #handleDateClick;
+  #handleCloseClick;
+  #handleInput;
+  #handlePageShow;
+  #handleKeydown;
+  #MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
+  #FORMATS = ['DD/MM/YYYY', 'DD-MM-YYYY', 'DD.MM.YYYY', 'DD MM YYYY', 'DD/MM-YYYY'];
+  #textOpen = 'Åbn datovælger';
+  #textSelectedDate = 'valgt dato er DAY. MONTH YEAR';
+
+  /* Private methods */
+
+  #setupLabel() {
+    const label = this.querySelector('label');
+    if (!label) return;
+    const input = this.querySelector('input');
+    if (input) {
+      label.classList.toggle('disabled', input.hasAttribute('disabled'));
+    }
+  }
+  #setupInput() {
+    const input = this.querySelector('input');
+    if (!input) return;
+
+    /* Add or remove aria-describedby */
+
+    input.removeAttribute('aria-describedby');
+    const idsForAriaDescribedby = [];
+    let isInvalid = false;
+    const errorMessages = this.querySelectorAll('fds-error-message');
+    const helpTexts = this.querySelectorAll('fds-help-text');
+    const ariaDescribedbyElements = [...errorMessages, ...helpTexts];
+    for (const element of ariaDescribedbyElements) {
+      const notDisplayNone = window.getComputedStyle(element).display !== 'none';
+      const notAriaHidden = !element.hasAttribute('aria-hidden') || element.getAttribute('aria-hidden') === 'false';
+      const visibleToScreenReaders = notDisplayNone && notAriaHidden;
+      if (element.id && visibleToScreenReaders) {
+        idsForAriaDescribedby.push(element.id);
+        if (element.tagName === 'FDS-ERROR-MESSAGE') {
+          isInvalid = true;
+        }
+      }
+    }
+    idsForAriaDescribedby.length > 0 ? input.setAttribute('aria-describedby', idsForAriaDescribedby.join(' ')) : input.removeAttribute('aria-describedby');
+    isInvalid ? input.setAttribute('aria-invalid', 'true') : input.removeAttribute('aria-invalid');
+  }
+  #init() {
+    if (this.#initialized) return;
+
+    /* Confirm that the element was initialized with the required elements */
+
+    const label = this.querySelector('label');
+    const input = this.querySelector('div input');
+    const grid = this.querySelector('div fds-date-picker-grid');
+    if (!label || !input || !grid) return;
+
+    /* Add mutation observer */
+
+    this.#setupObserver();
+
+    /* Setup elements */
+
+    associateLabelWithElement(label, input, 'datp');
+    this.#setupInput();
+    this.#setupLabel();
+
+    /* Update text */
+
+    if (this.hasAttribute('text-open')) {
+      this.#textOpen = this.getAttribute('text-open');
+    }
+    if (this.hasAttribute('text-selecteddate')) {
+      this.#textSelectedDate = this.getAttribute('text-selecteddate');
+    }
+    if (this.hasAttribute('text-months')) {
+      this.#updateTextMonths(this.getAttribute('text-months'));
+    }
+
+    /* Add date picker button next to the input */
+
+    const dateButton = this.querySelector('.date-button') || document.createElement('button');
+    if (!dateButton.querySelector('svg')) {
+      dateButton.setAttribute('aria-haspopup', 'dialog');
+      dateButton.classList.add('button', 'button-icon-only', 'date-button');
+      dateButton.setAttribute('aria-label', this.#textOpen);
+      const svg = createSvgIcon("M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z");
+      dateButton.appendChild(svg);
+    }
+    input.insertAdjacentElement('afterend', dateButton);
+    input.parentElement.classList.add('input-wrapper');
+
+    /* Add close button and setup dialog */
+
+    const closeButtonContainer = this.querySelector('[tabindex="-1"]') || document.createElement('div');
+    closeButtonContainer.setAttribute('tabindex', '-1');
+    const closeButton = this.querySelector('.close-button') || document.createElement('button');
+    closeButton.textContent = 'Luk';
+    closeButton.classList.add('close-button', 'function-link');
+    if (!closeButton.querySelector('svg')) {
+      const svgClose = createSvgIcon('m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z');
+      closeButton.prepend(svgClose);
+    }
+    if (!closeButtonContainer.querySelector('.close-button')) {
+      closeButtonContainer.appendChild(closeButton);
+    }
+
+    /* Add wrapper for fds-date-picker-grid and close button */
+
+    const datePicker = grid.parentElement;
+    datePicker.classList.add('ce-date-picker', 'd-none');
+    datePicker.setAttribute('role', 'dialog');
+    datePicker.setAttribute('aria-modal', 'false');
+    datePicker.appendChild(closeButtonContainer);
+    this.#initialized = true;
+  }
+  #setupObserver() {
+    if (this.#datePickerObserver) return;
+    this.#datePickerObserver = new MutationObserver(this.#handleMutations);
+    this.#datePickerObserver.observe(this, mutationObserverConfig);
+  }
+  #handleMutations = (records, observer) => {
+    const wrapperHiddenChanged = records.some(record => record.attributeName === 'hidden' && record.target === this);
+    if (wrapperHiddenChanged) {
+      notifySummaryOnVisibilityChange(this);
+    }
+    const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
+    if (shouldUpdate) {
+      this.#setupInput();
+      this.#setupLabel();
+      if (this.hasAttribute('show-required-status')) {
+        const label = this.querySelector('label');
+        const input = this.querySelector('input');
+        showRequiredStatus(label, input, this.getAttribute('show-required-status'));
+      }
+      if (this.querySelector('.date-button')) {
+        this.querySelector('input')?.hasAttribute('disabled') ? this.querySelector('.date-button').setAttribute('disabled', '') : this.querySelector('.date-button').removeAttribute('disabled');
+      }
+    }
+  };
+  #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
+    if (attributeName === 'disabled' && target?.tagName === 'INPUT' || attributeName === 'required' && target?.tagName === 'INPUT' || attributeName === 'class' && target?.tagName !== 'LABEL' || attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
+      return true;
+    }
+    const relevantTagNames = ['LABEL', 'INPUT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+    const allNodes = [...addedNodes, ...removedNodes];
+    return allNodes.some(node => relevantTagNames.includes(node?.tagName));
+  }
+  #updateDateButton(date) {
+    if (isValidDate(date)) {
+      const day = date.getDate();
+      const month = date.getMonth();
+      const year = date.getFullYear();
+      const ariaLabel = this.#textSelectedDate.replace('DAY', day).replace('MONTH', this.#MONTHS[month]).replace('YEAR', year);
+      this.querySelector('.date-button').setAttribute('aria-label', `${this.#textOpen}, ${ariaLabel}`);
+    } else {
+      this.querySelector('.date-button').setAttribute('aria-label', this.#textOpen);
+    }
+  }
+  #updateSelectedDateAttr(date) {
+    if (isValidDate(date)) {
+      this.querySelector('fds-date-picker-grid').setAttribute('selected-date', ISOFormatFromDate(date));
+    } else {
+      this.querySelector('fds-date-picker-grid').setAttribute('selected-date', '');
+    }
+  }
+  #closeOnFocusOut(event) {
+    if (!this.contains(event.relatedTarget)) {
+      // If anything is entered in the input field, the date picker must match
+      if (this.querySelector('input').value !== '') {
+        const dayMonthYearFormat = true;
+        const date = stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+        this.#updateDateButton(date);
+        this.#updateSelectedDateAttr(date);
+      }
+      this.close();
+    }
+  }
+  #datePickerButtonClicked() {
+    if (this.querySelector('input').value !== '') {
+      const dayMonthYearFormat = true;
+      const date = stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+      this.#updateDateButton(date);
+      this.#updateSelectedDateAttr(date);
+    }
+    this.toggle();
+    if (!this.querySelector('.ce-date-picker').classList.contains('d-none')) {
+      this.querySelector('fds-date-picker-grid').focusFocusableDate();
+    }
+  }
+  #dateSelected() {
+    const selectedDate = stringToDate(this.querySelector('fds-date-picker-grid').getAttribute('selected-date'));
+    this.#updateDateButton(selectedDate);
+
+    // Update value in input field unless focus is on the input - otherwise, you risk moving the caret during typing
+    if (document.activeElement !== this.querySelector('input')) {
+      if (isValidDate(selectedDate)) {
+        let format = this.#FORMATS[0];
+        if (this.hasAttribute('format') && this.#FORMATS.includes(this.getAttribute('format'))) {
+          format = this.getAttribute('format');
+        }
+        const dayWithZeros = String(selectedDate.getDate()).padStart(2, '0');
+        const monthWithZeros = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const yearWithZeros = String(selectedDate.getFullYear()).padStart(4, '0');
+        this.querySelector('input').value = format.replace('DD', dayWithZeros).replace('MM', monthWithZeros).replace('YYYY', yearWithZeros);
+      }
+    }
+  }
+  #closeAndFocusButton() {
+    this.close();
+    this.querySelector('.date-button').focus();
+  }
+  #inputUpdated(event) {
+    const dayMonthYearFormat = true;
+    const inputDate = stringToDate(event.target.value, dayMonthYearFormat);
+    if (isValidDate(inputDate)) {
+      this.querySelector('fds-date-picker-grid').setAttribute('selected-date', ISOFormatFromDate(inputDate));
+    } else {
+      this.querySelector('fds-date-picker-grid').setAttribute('selected-date', '');
+    }
+  }
+  #updateOnPageshow() {
+    let date = new Date('invalid');
+    if (this.querySelector('input').value !== '') {
+      const dayMonthYearFormat = true;
+      date = stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+      this.#updateDateButton(date);
+      this.#updateSelectedDateAttr(date); // The value in the input field supersedes the selected-date attribute
+    } else if (this.querySelector('fds-date-picker-grid').hasAttribute('selected-date')) {
+      date = stringToDate(this.querySelector('fds-date-picker-grid').getAttribute('selected-date'));
+      this.#updateDateButton(date);
+      this.#dateSelected();
+    }
+  }
+  #keyboardNavigation(event) {
+    switch (event.key) {
+      case 'Tab':
+        const previousButton = this.querySelector('fds-date-picker-grid').shadowRoot.querySelector('.previous-month');
+        const monthSelect = this.querySelector('fds-date-picker-grid').shadowRoot.querySelector('.selected-month');
+        if (event.shiftKey) {
+          const path = event.composedPath();
+          const innerTarget = path[0];
+          if (innerTarget === monthSelect && previousButton.hasAttribute('disabled') || innerTarget === previousButton) {
+            event.preventDefault();
+            this.querySelector('.close-button').focus();
+          }
+        } else {
+          if (event.target === this.querySelector('.close-button')) {
+            event.preventDefault();
+            if (!previousButton.hasAttribute('disabled')) {
+              previousButton.focus();
+            } else {
+              monthSelect.focus();
+            }
+          }
+        }
+        break;
+      case 'Escape':
+        this.#closeAndFocusButton();
+        break;
+    }
+  }
+  #updateTextMonths(str) {
+    const newMonths = str.split(" ");
+    if (newMonths.length === 12) {
+      this.#MONTHS = newMonths;
+      this.querySelector('fds-date-picker-grid')?.setAttribute('text-months', str);
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['show-required-status', 'format', 'text-open', 'text-selecteddate', 'text-months'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+
+    /* Set up instance fields for event handling */
+
+    this.#handleDatePickerButtonClick = () => {
+      this.#datePickerButtonClicked();
+    };
+    this.#handleFocusOut = event => {
+      this.#closeOnFocusOut(event);
+    };
+    this.#handleDateSelection = () => {
+      this.#dateSelected();
+    };
+    this.#handleDateClick = () => {
+      this.#closeAndFocusButton();
+    };
+    this.#handleCloseClick = () => {
+      this.#closeAndFocusButton();
+    };
+    this.#handleInput = event => {
+      this.#inputUpdated(event);
+    };
+    this.#handlePageShow = () => {
+      this.#updateOnPageshow();
+    };
+    this.#handleKeydown = event => {
+      this.#keyboardNavigation(event);
+    };
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  open() {
+    if (!this.querySelector('.ce-date-picker')) return;
+    this.querySelector('.ce-date-picker').classList.remove('d-none');
+    this.querySelector('fds-date-picker-grid').resizeMonth();
+  }
+  close() {
+    if (!this.querySelector('.ce-date-picker')) return;
+    this.querySelector('.ce-date-picker').classList.add('d-none');
+  }
+  toggle() {
+    if (!this.querySelector('.ce-date-picker')) return;
+    this.querySelector('.ce-date-picker').classList.toggle('d-none');
+    this.querySelector('fds-date-picker-grid').resizeMonth();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.#initialized) return;
+    this.#init();
+    const label = this.querySelector('label');
+    const input = this.querySelector('input');
+    if (this.hasAttribute('show-required-status')) {
+      showRequiredStatus(label, input, this.getAttribute('show-required-status'));
+    }
+
+    // Add event listeners
+    this.querySelector('.date-button')?.addEventListener('click', this.#handleDatePickerButtonClick, false);
+    this.addEventListener('focusout', this.#handleFocusOut, false);
+    this.querySelector('fds-date-picker-grid')?.addEventListener('date-selected', this.#handleDateSelection, false);
+    this.querySelector('fds-date-picker-grid')?.addEventListener('date-clicked', this.#handleDateClick, false);
+    this.querySelector('.close-button')?.addEventListener('click', this.#handleCloseClick, false);
+    this.querySelector('input')?.addEventListener('input', this.#handleInput, false);
+    this.querySelector('.ce-date-picker')?.addEventListener('keydown', this.#handleKeydown, false);
+
+    // Handles previously entered input when using the browser's back button
+    window.addEventListener('pageshow', this.#handlePageShow, false);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    notifySummaryOnDisconnect(this);
+    this.#initialized = false;
+    if (this.#datePickerObserver) {
+      this.#datePickerObserver.disconnect();
+      this.#datePickerObserver = null;
+    }
+    this.querySelector('.date-button')?.removeEventListener('click', this.#handleDatePickerButtonClick, false);
+    this.removeEventListener('focusout', this.#handleFocusOut, false);
+    this.querySelector('fds-date-picker-grid')?.removeEventListener('date-selected', this.#handleDateSelection, false);
+    this.querySelector('fds-date-picker-grid')?.removeEventListener('date-clicked', this.#handleDateClick, false);
+    this.querySelector('.close-button')?.removeEventListener('click', this.#handleCloseClick, false);
+    this.querySelector('input')?.removeEventListener('input', this.#handleInput, false);
+    this.querySelector('.ce-date-picker')?.removeEventListener('keydown', this.#handleKeydown, false);
+    window.removeEventListener('pageshow', this.#handlePageShow, false);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (attribute === 'show-required-status' && oldValue !== newValue) {
+      const label = this.querySelector('label');
+      const input = this.querySelector('input');
+      showRequiredStatus(label, input, newValue);
+    }
+    if (attribute === 'format' && oldValue !== newValue) {
+      if (document.activeElement !== this.querySelector('input')) {
+        // If the new format is valid...
+        if (this.hasAttribute('format') && this.#FORMATS.includes(newValue)) {
+          const dayMonthYearFormat = true;
+          const date = stringToDate(this.querySelector('input').value, dayMonthYearFormat);
+
+          // ...and if the input field contains a valid date...
+          if (isValidDate(date)) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = String(date.getFullYear()).padStart(4, '0');
+
+            // ...then update the date displayed
+            this.querySelector('input').value = newValue.replace('DD', day).replace('MM', month).replace('YYYY', year);
+          }
+        }
+      }
+    }
+    if (attribute === 'text-open') {
+      this.#textOpen = newValue;
+    }
+    if (attribute === 'text-selecteddate') {
+      // Check that string contains exactly one "DAY", one "MONTH", and one "YEAR" substring
+      const dayCount = (newValue.match(/DAY/g) || []).length;
+      const monthCount = (newValue.match(/MONTH/g) || []).length;
+      const yearCount = (newValue.match(/YEAR/g) || []).length;
+      if (dayCount === 1 && monthCount === 1 && yearCount === 1) {
+        this.#textSelectedDate = newValue;
+      }
+    }
+    if (attribute === 'text-months') {
+      this.#updateTextMonths(newValue);
+    }
+  }
+}
+function registerDatePicker() {
+  if (customElements.get('fds-date-picker') === undefined) {
+    window.customElements.define('fds-date-picker', FDSDatePicker);
+  }
+}
+/* harmony default export */ const fds_date_picker = (registerDatePicker);
+;// ./src/js/custom-elements/date-picker/fds-date-picker-grid-styling.js
+const styles = `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        border: 0;
+        user-select: none;
+        white-space: nowrap;
+    }
+
+    button,
+    select {
+        text-transform: none;
+        appearance: none;
+        font-family: inherit;
+        font-size: 100%;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    button:focus,
+    input:focus,
+    select:focus {
+        outline: 3px solid #454545;
+        outline-offset: 1px;
+    }
+
+    :host {
+        display: block;
+        border: 1px solid #8E8E8E;
+        background-color: white;
+        max-width: calc(7 * 40px + 8 * 0.4rem + 2px);
+        border-radius: 8px;
+        overflow: auto;
+    }
+
+    .grid-container {
+        width: fit-content;
+    }
+
+    .grid-container:focus {
+        outline: 0;
+    }
+
+    .date-picker-header {
+        display: flex;
+        justify-content: space-between;
+        background-color: #F5F5F5;
+        padding-top: 4px;
+        padding-bottom: 4px;
+        min-width: 220px;
+        position: relative;
+        z-index: 3;
+    }
+
+    .month-year-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .month-wrapper,
+    .year-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        margin-left: 4px;
+        margin-right: 4px;
+    }
+
+    .select-arrow {
+        position: absolute;
+        width: 24px;
+        right: 0;
+        pointer-events: none;
+    }
+
+    .selected-month,
+    .selected-year {
+        border: 0;
+        background-color: #F5F5F5;
+        border-radius: 8px;
+        background-position: 100%;
+        background-size: 2.4rem;
+        padding-right: 24px;
+        padding-left: 8px;
+        font-weight: 600;
+        height: calc(1.6rem + 24px);
+    }
+
+    .selected-month:hover,
+    .selected-year:hover {
+        background-color: #DCDCDC;
+    }
+
+    .selected-month:active,
+    .selected-year:active {
+        background-color: #BFBFBF;
+    }
+
+    .selected-month:focus,
+    .selected-year:focus {
+        outline-offset: -3px;
+    }
+
+    .selected-month option,
+    .selected-year option {
+        background-color: #ffffff;
+    }
+
+    .previous-month,
+    .next-month {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1.5;
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        margin: 0;
+        overflow-wrap: break-word;
+        max-width: 100%;
+        font-weight: inherit;
+        font-size: 1.6rem;
+        min-height: 32px;
+        padding: 2px;
+        border-width: 2px;
+        border-style: solid;
+        text-decoration: none;
+        border-color: transparent;
+        color: #1a1a1a;
+        background-color: transparent;
+        width: 40px;
+        height: 40px;
+        border-radius: 20px;
+    }
+
+    .previous-month {
+        margin-left: 4px;
+    }
+
+    .next-month {
+        margin-right: 4px;
+    }
+
+    .previous-month:hover,
+    .next-month:hover {
+        border-color: #DCDCDC;
+        color: #1a1a1a;
+        background-color: #DCDCDC;
+    }
+
+    .previous-month:active,
+    .next-month:active {
+        border-color: #BFBFBF;
+        color: #1a1a1a;
+        background-color: #BFBFBF;
+    }
+
+    .previous-month:disabled,
+    .next-month:disabled {
+        opacity: 0.25;
+        cursor: not-allowed;
+        box-shadow: none !important;
+        border-color: transparent;
+        color: #1a1a1a;
+        background-color: transparent;
+    }
+
+    .previous-month svg,
+    .next-month svg {
+        margin: 0;
+        fill: currentColor;
+        width: 2.4rem;
+        pointer-events: none;
+    }
+
+    table {
+        border-collapse: separate;
+        border-spacing: 0.4rem;
+        min-width: 220px;
+    }
+
+    thead th {
+        position: relative;
+        font-size: 1.4rem;
+        font-weight: 400;
+        height: 40px;
+    }
+
+    thead th span[aria-hidden="true"] {
+        position: relative;
+        z-index: 1;
+        top: -4px;
+    }
+
+    thead th::before {
+        content: '';
+        position: absolute;
+        z-index: 1;
+        background-color: #F5F5F5;
+        display: block;
+        left: calc(0rem - 0.4rem);
+        top: calc(0rem - 0.4rem - 4px);
+        width: calc(100% + 2 * 0.4rem);
+        height: calc(100% + 2 * 0.4rem);
+        border-bottom: 1px solid #DCDCDC;
+    }
+
+    td {
+        height: 40px;
+        width: 40px;
+        max-width: 40px;
+        text-align: center;
+        border-radius: 20px;
+    }
+
+    td[data-date]:focus {
+        outline: 3px solid #454545;
+        outline-offset: 1px;
+    }
+
+    td:not([data-date]):focus {
+        outline: none;
+    }
+
+    td[aria-selected] {
+        cursor: pointer;
+    }
+
+    td[aria-selected]:hover {
+        background-color: #DCDCDC;
+    }
+
+    td[aria-selected="true"],
+    td[aria-selected="true"]:hover {
+        background-color: #1a1a1a;
+        color: #ffffff;
+    }
+
+    td[aria-disabled="true"] {
+        color: #BFBFBF;
+    }
+
+    td[aria-disabled="true"]:focus {
+        outline: none;
+    }
+
+    td[aria-current="date"] {
+        font-weight: 700;
+        text-decoration: underline;
+    }
+`;
+;// ./src/js/custom-elements/date-picker/fds-date-picker-grid.js
+
+
+
+const CHEVRON_DOWN_PATH = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
+const CHEVRON_LEFT_PATH = 'M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z';
+const CHEVRON_RIGHT_PATH = 'M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z';
+const sheet = new CSSStyleSheet();
+sheet.replaceSync(styles);
+class FDSDatePickerGrid extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+  #previousMinDate;
+  #previousMaxDate;
+  #correctedMinDate;
+  #correctedMaxDate;
+  #MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
+  #DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
+  #GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
+  #TOTAL_GRIDCELLS;
+  #CELL_DATE_FORMAT = 'DAY. MONTH YEAR';
+  #DEFAULT_MIN_DATE;
+  #DEFAULT_MAX_DATE;
+  #handleKeydown = event => {
+    if (event.target.hasAttribute('data-date')) {
+      const focusedDay = stringToDate(event.target.getAttribute('data-date'));
+      const minDate = this.#correctedMinDate;
+      const maxDate = this.#correctedMaxDate;
+      switch (event.key) {
+        case 'ArrowLeft':
+          event.preventDefault();
+          let yesterday = getYesterday(focusedDay);
+          if (yesterday < minDate) {
+            yesterday = minDate;
+          }
+          this.#redraw(yesterday, true);
+          break;
+        case 'ArrowRight':
+          event.preventDefault();
+          let tomorrow = getTomorrow(focusedDay);
+          if (maxDate < tomorrow) {
+            tomorrow = maxDate;
+          }
+          this.#redraw(tomorrow, true);
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          let prevWeek = getPrevWeek(focusedDay);
+          if (prevWeek < minDate) {
+            prevWeek = minDate;
+          }
+          this.#redraw(prevWeek, true);
+          break;
+        case 'ArrowDown':
+          event.preventDefault();
+          let nextWeek = getNextWeek(focusedDay);
+          if (maxDate < nextWeek) {
+            nextWeek = maxDate;
+          }
+          this.#redraw(nextWeek, true);
+          break;
+        case 'Enter':
+        case ' ':
+          event.preventDefault();
+          this.setAttribute('selected-date', event.target.getAttribute('data-date'));
+          this.dispatchEvent(new Event('date-clicked'));
+          break;
+        case 'PageDown':
+          event.preventDefault();
+          if (event.shiftKey) {
+            let nextYear = getNextYear(focusedDay);
+            if (maxDate < nextYear) {
+              nextYear = maxDate;
+            }
+            this.#redraw(nextYear, true);
+          } else {
+            let nextMonth = getNextMonth(focusedDay);
+            if (maxDate < nextMonth) {
+              nextMonth = maxDate;
+            }
+            this.#redraw(nextMonth, true);
+          }
+          break;
+        case 'PageUp':
+          event.preventDefault();
+          if (event.shiftKey) {
+            let prevYear = getPrevYear(focusedDay);
+            if (prevYear < minDate) {
+              prevYear = minDate;
+            }
+            this.#redraw(prevYear, true);
+          } else {
+            let prevMonth = getPrevMonth(focusedDay);
+            if (prevMonth < minDate) {
+              prevMonth = minDate;
+            }
+            this.#redraw(prevMonth, true);
+          }
+          break;
+        case 'Home':
+          event.preventDefault();
+          // Go to first day of the month
+          if (event.ctrlKey) {
+            const month = parseInt(this.shadowRoot.querySelector('.selected-month').value, 10);
+            const year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
+            let firstDay = dateFromIntegers(year, month, 1);
+            if (firstDay < minDate) {
+              firstDay = minDate;
+            }
+            this.#redraw(firstDay, true);
+          }
+          // Go to first day of the week (Monday)
+          else {
+            const weekDay = getWeekday(focusedDay);
+            if (weekDay !== 0) {
+              let monday = new Date(focusedDay);
+              monday.setDate(focusedDay.getDate() - weekDay);
+              if (monday < minDate) {
+                monday = minDate;
+              }
+              this.#redraw(monday, true);
+            }
+          }
+          break;
+        case 'End':
+          event.preventDefault();
+          // Go to last day of the month
+          if (event.ctrlKey) {
+            const month = parseInt(this.shadowRoot.querySelector('.selected-month').value, 10);
+            const year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
+            const day = totalDaysInMonth(dateFromIntegers(year, month, 1));
+            let lastDay = dateFromIntegers(year, month, day);
+            if (maxDate < lastDay) {
+              lastDay = maxDate;
+            }
+            this.#redraw(lastDay, true);
+          }
+          // Go to last day of the week (Sunday)
+          else {
+            const weekDay = getWeekday(focusedDay);
+            if (weekDay !== 6) {
+              let sunday = new Date(focusedDay);
+              sunday.setDate(focusedDay.getDate() + (6 - weekDay));
+              if (maxDate < sunday) {
+                sunday = maxDate;
+              }
+              this.#redraw(sunday, true);
+            }
+          }
+          break;
+      }
+    }
+  };
+  #handleChangeMonth;
+  #handleChangeYear;
+  #handlePrevMonth;
+  #handleNextMonth;
+  #handleDateClick;
+  #textMinDate;
+  #textMaxDate;
+  #hasDatePickerConnection;
+
+  /* Private methods */
+
+  #init() {
+    if (this.#initialized) return;
+    this.#create();
+
+    // Determine which date to place the focus on in the grid
+    let dateToFocus = new Date();
+    if (this.getAttribute('selected-date')) {
+      dateToFocus = stringToDate(this.getAttribute('selected-date'));
+    } else if (this.getAttribute('default-date')) {
+      dateToFocus = stringToDate(this.getAttribute('default-date'));
+    }
+    this.#redraw(dateToFocus, false);
+    this.#initialized = true;
+  }
+  #create() {
+    const gridContainer = document.createElement('div');
+    gridContainer.classList.add('grid-container');
+    gridContainer.setAttribute('tabindex', '-1'); // Used to prevent focus from escaping when non-clickable items are clicked
+    this.shadowRoot.appendChild(gridContainer);
+
+    /* Create the date picker header with previous button, next button, year selection, and month selection */
+
+    const datePickerHeader = document.createElement('div');
+    datePickerHeader.classList.add('date-picker-header');
+
+    // sr messages
+    const srMessage = document.createElement('span');
+    srMessage.classList.add('sr-only');
+    srMessage.setAttribute('aria-live', 'polite');
+    datePickerHeader.appendChild(srMessage);
+
+    // Previous button
+    const prevButton = document.createElement('button');
+    prevButton.classList.add('previous-month');
+    const svgPrev = createSvgIcon(CHEVRON_LEFT_PATH);
+    const prevButtonSR = document.createElement('span');
+    prevButtonSR.textContent = 'Forrige';
+    prevButtonSR.classList.add('sr-only');
+    prevButton.appendChild(svgPrev);
+    prevButton.appendChild(prevButtonSR);
+    datePickerHeader.appendChild(prevButton);
+
+    // Wrapper for month and year
+    const monthYearWrapper = document.createElement('div');
+    monthYearWrapper.classList.add('month-year-wrapper');
+
+    // Select month
+    const monthWrapper = document.createElement('div');
+    monthWrapper.classList.add('month-wrapper');
+    const monthSelect = document.createElement('select');
+    monthSelect.setAttribute('name', 'month');
+    monthSelect.setAttribute('aria-label', 'Måned');
+    monthSelect.classList.add('selected-month');
+    for (let i = 0; i < this.#MONTHS.length; i++) {
+      monthSelect.innerHTML += `<option value="${i}">${this.#MONTHS[i].charAt(0).toUpperCase() + this.#MONTHS[i].slice(1)}</option>`;
+    }
+    monthWrapper.appendChild(monthSelect);
+    const svgArrow = createSvgIcon(CHEVRON_DOWN_PATH);
+    svgArrow.classList.add('select-arrow');
+    monthWrapper.appendChild(svgArrow);
+    monthYearWrapper.appendChild(monthWrapper);
+
+    // Select year
+    const yearWrapper = document.createElement('div');
+    yearWrapper.classList.add('year-wrapper');
+    const yearSelect = document.createElement('select');
+    yearSelect.setAttribute('name', 'year');
+    yearSelect.setAttribute('aria-label', 'År');
+    yearSelect.classList.add('selected-year');
+    yearWrapper.appendChild(yearSelect);
+    const svgYearArrow = createSvgIcon(CHEVRON_DOWN_PATH);
+    svgYearArrow.classList.add('select-arrow');
+    yearWrapper.appendChild(svgYearArrow);
+    monthYearWrapper.appendChild(yearWrapper);
+    datePickerHeader.appendChild(monthYearWrapper);
+
+    // Next button
+    const nextButton = document.createElement('button');
+    nextButton.classList.add('next-month');
+    const svgNext = createSvgIcon(CHEVRON_RIGHT_PATH);
+    const nextButtonSR = document.createElement('span');
+    nextButtonSR.textContent = 'Næste';
+    nextButtonSR.classList.add('sr-only');
+    nextButton.appendChild(svgNext);
+    nextButton.appendChild(nextButtonSR);
+    datePickerHeader.appendChild(nextButton);
+    gridContainer.appendChild(datePickerHeader);
+
+    /* The grid with dates */
+
+    if (this.hasAttribute('text-mindate')) {
+      this.#textMinDate = this.getAttribute('text-mindate');
+    }
+    if (this.hasAttribute('text-maxdate')) {
+      this.#textMaxDate = this.getAttribute('text-maxdate');
+    }
+    const grid = document.createElement('table');
+    grid.setAttribute('role', 'grid');
+    grid.classList.add('date-picker-grid');
+    const gridHead = document.createElement('thead');
+    const gridHeadRow = document.createElement('tr');
+    for (let i = 0; i < this.#DAYS.length; i++) {
+      const gridHeader = document.createElement('th');
+      gridHeader.setAttribute('scope', 'col');
+      gridHeader.innerHTML = `<span aria-hidden="true">${this.#DAYS[i].slice(0, 2)}</span><span class="sr-only">${this.#DAYS[i]}</span>`;
+      gridHeadRow.appendChild(gridHeader);
+    }
+    gridHead.appendChild(gridHeadRow);
+    grid.appendChild(gridHead);
+    const gridBody = document.createElement('tbody');
+    for (let i = 0; i < this.#GRID_ROWS; i++) {
+      const gridBodyRow = document.createElement('tr');
+      for (let j = 0; j < this.#DAYS.length; j++) {
+        const gridCell = document.createElement('td');
+        gridBodyRow.appendChild(gridCell);
+      }
+      gridBody.appendChild(gridBodyRow);
+    }
+    grid.appendChild(gridBody);
+    gridContainer.appendChild(grid);
+  }
+  #redraw(date) {
+    let setFocus = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+    const gridContainer = this.shadowRoot.querySelector('.grid-container');
+    const TODAY = new Date();
+    TODAY.setHours(0, 0, 0, 0);
+    if (!gridContainer) return;
+    if (!isValidDate(date)) {
+      date = TODAY;
+    }
+
+    /* Check if any changes were made to minimum date or maximum date */
+
+    let updatedMinMaxDates = false;
+    if (this.#previousMinDate !== this.getAttribute('min-date') || this.#previousMaxDate !== this.getAttribute('max-date') || !isValidDate(this.#correctedMinDate) || !isValidDate(this.#correctedMaxDate) || this.#correctedMinDate > this.#correctedMaxDate) {
+      this.#previousMinDate = this.getAttribute('min-date');
+      this.#previousMaxDate = this.getAttribute('max-date');
+      this.#correctedMinDate = stringToDate(this.getAttribute('min-date'));
+      this.#correctedMaxDate = stringToDate(this.getAttribute('max-date'));
+      if (!isValidDate(this.#correctedMinDate)) {
+        this.#correctedMinDate = this.#DEFAULT_MIN_DATE;
+      }
+      if (!isValidDate(this.#correctedMaxDate)) {
+        this.#correctedMaxDate = this.#DEFAULT_MAX_DATE;
+      }
+
+      // If the grid has another connected date picker grid, the min-date or max-date might need adjustment
+      if (this.hasAttribute('start-date-id')) {
+        const endDateGrid = document.querySelector(`[end-date-id="${this.getAttribute('start-date-id')}"]`);
+        if (endDateGrid && endDateGrid.hasAttribute('selected-date')) {
+          const potentialMaxDate = stringToDate(endDateGrid.getAttribute('selected-date'));
+          if (isValidDate(potentialMaxDate) && potentialMaxDate < this.#correctedMaxDate) {
+            this.#correctedMaxDate = potentialMaxDate;
+          }
+        }
+      } else if (this.hasAttribute('end-date-id')) {
+        const startDateGrid = document.querySelector(`[start-date-id="${this.getAttribute('end-date-id')}"]`);
+        if (startDateGrid && startDateGrid.hasAttribute('selected-date')) {
+          const potentialMinDate = stringToDate(startDateGrid.getAttribute('selected-date'));
+          if (isValidDate(potentialMinDate) && this.#correctedMinDate < potentialMinDate) {
+            this.#correctedMinDate = potentialMinDate;
+          }
+        }
+      }
+      if (this.#correctedMinDate > this.#correctedMaxDate) {
+        this.#correctedMinDate = this.#correctedMaxDate;
+      }
+      updatedMinMaxDates = true;
+    }
+
+    /* Constrain the date to always be between the minimum date and maximum date */
+    date = constrainDate(this.#correctedMinDate, date, this.#correctedMaxDate);
+
+    /* Changes to minimum date or maximum date can affect the selectable years
+       and requires the select to be updated */
+
+    if (updatedMinMaxDates) {
+      let minYear = this.#correctedMinDate.getFullYear();
+      let maxYear = this.#correctedMaxDate.getFullYear();
+      const yearSelect = this.shadowRoot.querySelector('.selected-year');
+      yearSelect.innerHTML = '';
+      for (let i = minYear; i <= maxYear; i++) {
+        yearSelect.innerHTML += `<option value="${i}">${i}</option>`;
+      }
+    }
+    const year = date.getFullYear();
+    gridContainer.querySelector('.selected-year').value = date.getFullYear();
+
+    /* Disable unselectable months */
+
+    const monthSelect = this.shadowRoot.querySelector('.selected-month');
+    const monthOptions = monthSelect.querySelectorAll('option');
+    const chosenYear = this.shadowRoot.querySelector('.selected-year').value;
+    for (let i = 0; i < monthOptions.length; i++) {
+      monthOptions[i].removeAttribute('disabled'); // Reset disabled status on all options
+    }
+    if (this.#correctedMinDate.getFullYear() === parseInt(chosenYear, 10)) {
+      const minMonth = this.#correctedMinDate.getMonth();
+      for (let i = 0; i < monthOptions.length; i++) {
+        if (i < minMonth) {
+          monthOptions[i].setAttribute('disabled', '');
+        }
+      }
+    }
+    if (this.#correctedMaxDate.getFullYear() === parseInt(chosenYear, 10)) {
+      const maxMonth = this.#correctedMaxDate.getMonth();
+      for (let i = 0; i < monthOptions.length; i++) {
+        if (i > maxMonth) {
+          monthOptions[i].setAttribute('disabled', '');
+        }
+      }
+    }
+    const month = date.getMonth();
+    gridContainer.querySelector('.selected-month').value = month;
+    this.resizeMonth();
+
+    /* Remove existing dates in the grid */
+
+    // Prevent focusout event to trigger in fds-date-picker when tabindex is updated
+    const activeElement = document.activeElement;
+    const isDateCellFocused = activeElement && activeElement.tagName === 'TD' && activeElement.hasAttribute('data-date') && gridContainer.contains(activeElement);
+    if (isDateCellFocused) {
+      gridContainer.focus();
+    }
+    const gridcells = gridContainer.querySelectorAll('td');
+    for (let i = 0; i < this.#TOTAL_GRIDCELLS; i++) {
+      gridcells[i].setAttribute('tabindex', '-1');
+      gridcells[i].removeAttribute('data-date');
+      gridcells[i].removeAttribute('aria-label');
+      gridcells[i].removeAttribute('aria-selected');
+      gridcells[i].removeAttribute('aria-disabled');
+      gridcells[i].removeAttribute('aria-current');
+      gridcells[i].innerHTML = '';
+    }
+
+    /* Add new dates */
+
+    const totalDays = totalDaysInMonth(date);
+    const offset = getWeekday(dateFromIntegers(year, month, 1));
+    for (let i = 1; i <= totalDays; i++) {
+      const gridcellDate = dateFromIntegers(year, month, i);
+
+      // Set the data-date attribute for each date cell
+      gridcells[i + offset - 1].setAttribute('data-date', `${ISOFormatFromDate(gridcellDate)}`);
+
+      // Set the aria-label for each cell
+      const ariaLabel = this.#CELL_DATE_FORMAT.replace('DAY', i).replace('MONTH', this.#MONTHS[month]).replace('YEAR', year);
+      gridcells[i + offset - 1].setAttribute('aria-label', ariaLabel);
+
+      // If the cell is the minimum or maximum date, add additional info in the aria-label
+      if (datesAreEqual(gridcellDate, this.#correctedMinDate)) {
+        const minAriaLabel = `${ariaLabel}, ${this.#textMinDate}`;
+        gridcells[i + offset - 1].setAttribute('aria-label', minAriaLabel);
+      } else if (datesAreEqual(gridcellDate, this.#correctedMaxDate)) {
+        const maxAriaLabel = `${ariaLabel}, ${this.#textMaxDate}`;
+        gridcells[i + offset - 1].setAttribute('aria-label', maxAriaLabel);
+      }
+      if (datesAreEqual(gridcellDate, TODAY)) {
+        gridcells[i + offset - 1].setAttribute('aria-current', 'date');
+      }
+
+      // Set the content of each cell (a number from 1-31)
+      gridcells[i + offset - 1].innerHTML = `${i}`;
+      const dateIsBetweenMinAndMax = isValidDate(this.#correctedMinDate) && isValidDate(this.#correctedMaxDate) && this.#correctedMinDate <= gridcellDate && gridcellDate <= this.#correctedMaxDate;
+      const dateIsGreaterThanMinNoMax = isValidDate(this.#correctedMinDate) && !isValidDate(this.#correctedMaxDate) && this.#correctedMinDate <= gridcellDate;
+      const dateIsSmallerThanMaxNoMin = !isValidDate(this.#correctedMinDate) && isValidDate(this.#correctedMaxDate) && gridcellDate <= this.#correctedMaxDate;
+      const noMinNoMax = !isValidDate(this.#correctedMinDate) && !isValidDate(this.#correctedMaxDate);
+      if (dateIsBetweenMinAndMax || dateIsGreaterThanMinNoMax || dateIsSmallerThanMaxNoMin || noMinNoMax) {
+        gridcells[i + offset - 1].setAttribute('aria-selected', `false`);
+      } else {
+        gridcells[i + offset - 1].setAttribute('aria-disabled', `true`);
+      }
+    }
+
+    // If a date is selected and visible in the grid, ensure it is properly marked
+    const selectedDate = this.getAttribute('selected-date');
+    if (this.hasAttribute('selected-date') && isValidDateStr(selectedDate)) {
+      const selectedDateCell = gridContainer.querySelector(`[data-date="${selectedDate}"]`);
+      // Disabled dates can not be selected
+      if (selectedDateCell && !selectedDateCell.hasAttribute('aria-disabled')) {
+        selectedDateCell?.setAttribute('aria-selected', 'true');
+      }
+    }
+
+    // Ensure it is possible to tab to the date which caused the grid to be redrawn
+    gridContainer.querySelector(`[data-date="${ISOFormatFromDate(date)}"]`).setAttribute('tabindex', '0');
+
+    // Ensure previous and next month buttons have the proper disabled state
+    const prevMonthButton = this.shadowRoot.querySelector('.previous-month');
+    const nextMonthButton = this.shadowRoot.querySelector('.next-month');
+    const visibleMinDate = this.shadowRoot.querySelector(`[data-date="${ISOFormatFromDate(this.#correctedMinDate)}"]`);
+    const visibleMaxDate = this.shadowRoot.querySelector(`[data-date="${ISOFormatFromDate(this.#correctedMaxDate)}"]`);
+    const focusedElement = this.shadowRoot?.activeElement ?? document.activeElement;
+    if (visibleMinDate) {
+      if (focusedElement.classList.contains('previous-month')) {
+        this.focusFocusableDate();
+      }
+      prevMonthButton.setAttribute('disabled', '');
+    } else {
+      prevMonthButton.removeAttribute('disabled');
+    }
+    if (visibleMaxDate) {
+      if (focusedElement.classList.contains('next-month')) {
+        this.focusFocusableDate();
+      }
+      nextMonthButton.setAttribute('disabled', '');
+    } else {
+      nextMonthButton.removeAttribute('disabled');
+    }
+
+    // If wanted, set focus on the date causing the redraw unless the grid is hidden or the focus is on the date input field
+    const isDisplayed = this.offsetParent;
+    if (setFocus && isDisplayed && document.activeElement.tagName !== 'INPUT') {
+      this.focusFocusableDate();
+    }
+  }
+  #selectChange(event) {
+    const focusedDay = this.shadowRoot.querySelector('td[data-date][tabindex="0"]');
+    const focusedDayAsDate = stringToDate(focusedDay.getAttribute('data-date'));
+    let day = focusedDayAsDate.getDate();
+    let month = parseInt(this.shadowRoot.querySelector('.selected-month').value, 10);
+    let year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
+    if (event.target === this.shadowRoot.querySelector('.selected-month')) {
+      month = parseInt(event.target.value, 10);
+    } else if (event.target === this.shadowRoot.querySelector('.selected-year')) {
+      year = parseInt(event.target.value, 10);
+    }
+    const daysInNewMonth = totalDaysInMonth(dateFromIntegers(year, month, 1));
+    if (daysInNewMonth < day) {
+      day = daysInNewMonth;
+    }
+    const newDate = dateFromIntegers(year, month, day);
+    this.#redraw(newDate, false);
+    event.target.focus();
+  }
+  #monthButtonClicked(event) {
+    const focusedDay = this.shadowRoot.querySelector('td[data-date][tabindex="0"]');
+    const focusedDayAsDate = stringToDate(focusedDay.getAttribute('data-date'));
+    let prevMonth = getPrevMonth(focusedDayAsDate);
+    let nextMonth = getNextMonth(focusedDayAsDate);
+    if (event.target === this.shadowRoot.querySelector('.previous-month')) {
+      this.#redraw(prevMonth, false);
+      if (event.target.getAttribute('disabled') !== null) {
+        this.shadowRoot.querySelector('.sr-only').textContent = '';
+        // Focus the earliest selectable date for proper sr announcement
+        this.shadowRoot.querySelector('td[tabindex="0"]')?.setAttribute('tabindex', '-1');
+        this.shadowRoot.querySelector('td[aria-selected]')?.setAttribute('tabindex', '0');
+        this.focusFocusableDate();
+      }
+    } else if (event.target === this.shadowRoot.querySelector('.next-month')) {
+      this.#redraw(nextMonth, false);
+      if (event.target.getAttribute('disabled') !== null) {
+        this.shadowRoot.querySelector('.sr-only').textContent = '';
+        // Focus the last selectable date for proper sr announcement
+        this.shadowRoot.querySelector('td[tabindex="0"]')?.setAttribute('tabindex', '-1');
+        const tds = this.shadowRoot.querySelectorAll('td[aria-selected]');
+        tds[tds.length - 1]?.setAttribute('tabindex', '0');
+        this.focusFocusableDate();
+      }
+    }
+    if (event.target.getAttribute('disabled') === null) {
+      // Update screen reader message so the new month (and year) is announced
+      const month = this.#MONTHS[parseInt(this.shadowRoot.querySelector('.selected-month').value, 10)];
+      const year = parseInt(this.shadowRoot.querySelector('.selected-year').value, 10);
+      this.shadowRoot.querySelector('.sr-only').textContent = `${month} ${year}`;
+    }
+  }
+  #dateClicked(event) {
+    if (event.target.hasAttribute('data-date') && !event.target.hasAttribute('aria-disabled')) {
+      this.setAttribute('selected-date', event.target.getAttribute('data-date'));
+      this.dispatchEvent(new Event('date-clicked'));
+    }
+  }
+  #updateTextDays(str) {
+    const newDays = str.split(" ");
+    if (newDays.length === 7) {
+      this.#DAYS = newDays;
+      const tableHeaders = this.shadowRoot.querySelectorAll('th');
+      for (let i = 0; i < tableHeaders.length; i++) {
+        tableHeaders[i].innerHTML = `<span aria-hidden="true">${this.#DAYS[i].slice(0, 2)}</span><span class="sr-only">${this.#DAYS[i]}</span>`;
+      }
+    }
+  }
+  #updateTextMonths(str) {
+    const newMonths = str.split(" ");
+    if (newMonths.length === 12) {
+      this.#MONTHS = newMonths;
+      const header = this.shadowRoot.querySelector('.date-picker-header');
+      if (header && header.querySelector('.sr-only')) {
+        header.querySelector('.sr-only').textContent = '';
+      }
+      const monthOptions = this.shadowRoot.querySelectorAll('.selected-month option');
+      for (let i = 0; i < monthOptions.length; i++) {
+        monthOptions[i].textContent = this.#MONTHS[i].charAt(0).toUpperCase() + this.#MONTHS[i].slice(1);
+      }
+      this.resizeMonth();
+    }
+  }
+  #updateTextPrevButton(str) {
+    if (this.shadowRoot.querySelector('.previous-month')) {
+      this.shadowRoot.querySelector('.previous-month .sr-only').textContent = str;
+    }
+  }
+  #updateTextNextButton(str) {
+    if (this.shadowRoot.querySelector('.next-month')) {
+      this.shadowRoot.querySelector('.next-month .sr-only').textContent = str;
+    }
+  }
+  #updateTextDateAnnouncement(str) {
+    // Check that string contains exactly one "DAY", one "MONTH", and one "YEAR" substring
+    const dayCount = (str.match(/DAY/g) || []).length;
+    const monthCount = (str.match(/MONTH/g) || []).length;
+    const yearCount = (str.match(/YEAR/g) || []).length;
+    if (dayCount === 1 && monthCount === 1 && yearCount === 1) {
+      this.#CELL_DATE_FORMAT = str;
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['min-date', 'max-date', 'selected-date', 'default-date', 'text-months', 'text-days', 'text-prevbutton', 'text-nextbutton', 'text-date-announcement', 'text-mindate', 'text-maxdate'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
+  -------------------------------------------------- */
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [sheet];
+    this.#TOTAL_GRIDCELLS = this.#GRID_ROWS * this.#DAYS.length;
+    this.#CELL_DATE_FORMAT = 'DAY. MONTH YEAR';
+    this.#textMinDate = 'tidligste valgbare dato';
+    this.#textMaxDate = 'seneste valgbare dato';
+    this.#DEFAULT_MIN_DATE = new Date();
+    this.#DEFAULT_MIN_DATE.setHours(0, 0, 0, 0);
+    this.#DEFAULT_MAX_DATE = new Date(this.#DEFAULT_MIN_DATE);
+    this.#DEFAULT_MAX_DATE.setFullYear(this.#DEFAULT_MIN_DATE.getFullYear() + 10);
+    this.#previousMinDate = 0;
+    this.#previousMaxDate = 0;
+    this.#correctedMinDate = null;
+    this.#correctedMaxDate = null;
+    this.#handleChangeMonth = event => {
+      this.#selectChange(event);
+    };
+    this.#handleChangeYear = event => {
+      this.#selectChange(event);
+    };
+    this.#handlePrevMonth = event => {
+      this.#monthButtonClicked(event);
+    };
+    this.#handleNextMonth = event => {
+      this.#monthButtonClicked(event);
+    };
+    this.#handleDateClick = event => {
+      this.#dateClicked(event);
+    };
+    this.#hasDatePickerConnection = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.#initialized) return;
+    if (this.hasAttribute('text-days')) {
+      this.#updateTextDays(this.getAttribute('text-days'));
+    }
+    if (this.hasAttribute('text-months')) {
+      this.#updateTextMonths(this.getAttribute('text-months'));
+    }
+    if (this.hasAttribute('text-date-announcement')) {
+      this.#updateTextDateAnnouncement(this.getAttribute('text-date-announcement'));
+    }
+    this.#init();
+    if (this.hasAttribute('text-prevbutton')) {
+      this.#updateTextPrevButton(this.getAttribute('text-prevbutton'));
+    }
+    if (this.hasAttribute('text-nextbutton')) {
+      this.#updateTextNextButton(this.getAttribute('text-nextbutton'));
+    }
+
+    // Add event listeners
+    this.shadowRoot.querySelector('.grid-container').addEventListener('keydown', this.#handleKeydown, false);
+    this.shadowRoot.querySelector('.selected-month').addEventListener('change', this.#handleChangeMonth, false);
+    this.shadowRoot.querySelector('.selected-year').addEventListener('change', this.#handleChangeYear, false);
+    this.shadowRoot.querySelector('.previous-month').addEventListener('click', this.#handlePrevMonth, false);
+    this.shadowRoot.querySelector('.next-month').addEventListener('click', this.#handleNextMonth, false);
+    this.shadowRoot.querySelector('.date-picker-grid').addEventListener('click', this.#handleDateClick, false);
+
+    // If the date picker is part of a "duo" defining start date and end date, add event listeners when both grids exist
+    const isStartDate = this.hasAttribute('start-date-id');
+    const isEndDate = this.hasAttribute('end-date-id');
+    const startDateGrid = document.querySelector(`[start-date-id="${this.getAttribute('end-date-id')}"]`);
+    const endDateGrid = document.querySelector(`[end-date-id="${this.getAttribute('start-date-id')}"]`);
+    if (isStartDate && endDateGrid) {
+      customElements.whenDefined('fds-date-picker-grid').then(() => {
+        if (!this.getHasDatePickerConnection() && !endDateGrid?.getHasDatePickerConnection()) {
+          this.addEventListener('date-selected', () => {
+            const focusableDate = endDateGrid.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+            endDateGrid.forceCompleteRedraw(stringToDate(focusableDate));
+          });
+          endDateGrid.addEventListener('date-selected', () => {
+            const focusableDate = this.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+            this.forceCompleteRedraw(stringToDate(focusableDate));
+          });
+          this.setHasDatePickerConnection(true);
+          endDateGrid.setHasDatePickerConnection(true);
+        }
+      });
+    } else if (isEndDate && startDateGrid) {
+      customElements.whenDefined('fds-date-picker-grid').then(() => {
+        if (!this.getHasDatePickerConnection() && !startDateGrid?.getHasDatePickerConnection()) {
+          startDateGrid.addEventListener('date-selected', () => {
+            const focusableDate = this.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+            this.forceCompleteRedraw(stringToDate(focusableDate));
+          });
+          this.addEventListener('date-selected', () => {
+            const focusableDate = startDateGrid.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+            startDateGrid.forceCompleteRedraw(stringToDate(focusableDate));
+          });
+          startDateGrid.setHasDatePickerConnection(true);
+          this.setHasDatePickerConnection(true);
+        }
+      });
+    }
+
+    // Resize again on load - the font may initially be missing, when the width of the month <select> is calculated
+    const onLoad = () => {
+      this.resizeMonth();
+      window.removeEventListener('load', onLoad);
+    };
+    window.addEventListener('load', onLoad);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  forceCompleteRedraw(date) {
+    let setFocus = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+    this.#previousMaxDate = 0; // Force update of select element with possible years
+    this.#redraw(date, setFocus);
+  }
+  setHasDatePickerConnection(val) {
+    this.#hasDatePickerConnection = val;
+  }
+  getHasDatePickerConnection() {
+    return this.#hasDatePickerConnection;
+  }
+  focusFocusableDate() {
+    this.shadowRoot.querySelector('td[tabindex="0"]')?.focus();
+  }
+  resizeMonth() {
+    const monthSelect = this.shadowRoot.querySelector('.selected-month');
+    if (!monthSelect) return;
+    const ROOT_FONT_SIZE = 10; // px, result of the 62.5% trick
+    const ARROW_OFFSET_PX = 24; // px, is converted to rem
+    const PADDING_PX = 8; // px, kept as pixels
+
+    const selectedOption = monthSelect.options?.[monthSelect.selectedIndex];
+    if (!selectedOption) return;
+    const tempSpan = document.createElement('span');
+    tempSpan.style.visibility = 'hidden';
+    tempSpan.style.position = 'absolute';
+    tempSpan.style.fontFamily = '"IBM Plex Sans", "system-ui", system, sans-serif';
+    tempSpan.style.fontSize = '16px';
+    tempSpan.style.lineHeight = '1.5';
+    tempSpan.style.fontWeight = '600';
+    tempSpan.textContent = selectedOption.text;
+    this.shadowRoot.appendChild(tempSpan);
+    if (tempSpan.offsetWidth > 0) {
+      const remWidth = tempSpan.offsetWidth / ROOT_FONT_SIZE;
+      monthSelect.style.width = `calc(${remWidth}rem + ${PADDING_PX + ARROW_OFFSET_PX}px)`;
+    }
+    this.shadowRoot.removeChild(tempSpan);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#initialized = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized && oldValue !== newValue) return;
+    let redrawNeeded = false;
+    if (attribute === 'selected-date') {
+      const date = stringToDate(newValue);
+      const setFocusOnDate = true;
+      if (isValidDate(date)) {
+        this.#redraw(date, setFocusOnDate);
+      } else {
+        // An invalid date might be temporary while the user enters a date in the fds-date-picker's input field
+        // Keep displaying the previous dates to give a more "steady" experience with no rapid updates
+        const dateWithCurrentFocus = this.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+        this.#redraw(stringToDate(dateWithCurrentFocus), setFocusOnDate);
+      }
+      this.dispatchEvent(new Event('date-selected'));
+    }
+    if (attribute === 'min-date' || attribute === 'max-date') {
+      redrawNeeded = true;
+    }
+    if (attribute === 'text-days') {
+      this.#updateTextDays(newValue);
+    }
+    if (attribute === 'text-months') {
+      this.#updateTextMonths(newValue);
+    }
+    if (attribute === 'text-prevbutton') {
+      this.#updateTextPrevButton(newValue);
+    }
+    if (attribute === 'text-nextbutton') {
+      this.#updateTextNextButton(newValue);
+    }
+    if (attribute === 'text-date-announcement') {
+      this.#updateTextDateAnnouncement(newValue);
+    }
+    if (attribute === 'text-mindate') {
+      this.#textMinDate = newValue;
+      redrawNeeded = true;
+    }
+    if (attribute === 'text-maxdate') {
+      this.#textMaxDate = newValue;
+      redrawNeeded = true;
+    }
+    if (redrawNeeded) {
+      const dateWithCurrentFocus = this.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+      let placeFocusOnDate = stringToDate(dateWithCurrentFocus);
+      if (!isValidDate(placeFocusOnDate)) {
+        placeFocusOnDate = new Date();
+      }
+      this.#redraw(placeFocusOnDate, true);
+    }
+  }
+}
+function registerDatePickerGrid() {
+  if (customElements.get('fds-date-picker-grid') === undefined) {
+    window.customElements.define('fds-date-picker-grid', FDSDatePickerGrid);
+  }
+}
+/* harmony default export */ const fds_date_picker_grid = (registerDatePickerGrid);
+;// ./src/js/custom-elements/textarea/fds-textarea.js
+
+
+class FDSTextarea extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+  #textareaObserver = null;
+
+  /* Private methods */
+
+  #setupObserver() {
+    if (this.#textareaObserver) return;
+    this.#textareaObserver = new MutationObserver(this.#handleMutations);
+    this.#textareaObserver.observe(this, mutationObserverConfig);
+  }
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      // A relevant child element was added or removed.
+      const relevantTagNames = ['LABEL', 'TEXTAREA', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT', 'FDS-CHARACTER-LIMIT'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        const label = this.querySelector('label');
+        const textarea = this.querySelector('textarea');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+        associateLabelWithElement(label, textarea, 'tex');
+        setAriaDescribedBy(textarea, errorMessages, helpTexts, characterLimit);
+        setInvalid(textarea, errorMessages);
+        if (this.hasAttribute('show-required-status')) {
+          showRequiredStatus(label, textarea, this.getAttribute('show-required-status'));
+        }
+        break;
+      }
+
+      // The textarea's required attribute changed
+      if (attributeName === 'required' && target?.tagName === 'TEXTAREA') {
+        if (this.hasAttribute('show-required-status')) {
+          const label = this.querySelector('label');
+          showRequiredStatus(label, target, this.getAttribute('show-required-status'));
+        }
+      }
+      // Attributes which might affect aria-describedby
+      else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class') {
+        const label = this.querySelector('label');
+        const textarea = this.querySelector('textarea');
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+        associateLabelWithElement(label, textarea, 'tex');
+        setAriaDescribedBy(textarea, errorMessages, helpTexts, characterLimit);
+        setInvalid(textarea, errorMessages);
+        if (attributeName === 'hidden' && target === this) {
+          notifySummaryOnVisibilityChange(this);
+        }
+      }
+    }
+  };
+  #init() {
+    this.#setupObserver();
+    const label = this.querySelector('label');
+    const textarea = this.querySelector('textarea');
+    const errorMessages = this.querySelectorAll('fds-error-message');
+    const helpTexts = this.querySelectorAll('fds-help-text');
+    const characterLimit = this.querySelector('fds-character-limit span.sr-only[id]');
+    associateLabelWithElement(label, textarea, 'tex');
+    setAriaDescribedBy(textarea, errorMessages, helpTexts, characterLimit);
+    setInvalid(textarea, errorMessages);
+    if (this.hasAttribute('show-required-status')) {
+      showRequiredStatus(label, textarea, this.getAttribute('show-required-status'));
+    }
+    this.#initialized = true;
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['show-required-status'];
+
+  /* --------------------------------------------------
+  GETTERS AND SETTERS
+  -------------------------------------------------- */
+
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (!this.#initialized) {
+      this.#init();
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    notifySummaryOnDisconnect(this);
+    this.#initialized = false;
+    if (this.#textareaObserver) {
+      this.#textareaObserver.disconnect();
+      this.#textareaObserver = null;
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (attribute === 'show-required-status' && oldValue !== newValue) {
+      const label = this.querySelector('label');
+      const textarea = this.querySelector('textarea');
+      showRequiredStatus(label, textarea, newValue);
+    }
+  }
+}
+function registerTextarea() {
+  if (customElements.get('fds-textarea') === undefined) {
+    window.customElements.define('fds-textarea', FDSTextarea);
+  }
+}
+/* harmony default export */ const fds_textarea = (registerTextarea);
+;// ./src/js/custom-elements/error-summary/fds-error-summary.js
+
+
+
+const ERROR_WRAPPER_SELECTORS = ['fds-input', 'fds-checkbox', 'fds-checkbox-group', 'fds-radio-button-group', 'fds-date-input', 'fds-textarea', 'fds-select', 'fds-upload-file', 'fds-date-picker'];
+const ERROR_WRAPPER_SELECTOR = ERROR_WRAPPER_SELECTORS.join(', ');
+const ERROR_MESSAGE_SELECTOR = ERROR_WRAPPER_SELECTORS.map(selector => `${selector} fds-error-message`).join(', ');
+class FDSErrorSummary extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized;
+  #handleErrorMessageEvents;
+
+  /* Private methods */
+
+  #getSummaryElements() {
+    const navElement = this.querySelector(':scope > nav');
+    const headingElement = navElement?.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
+    const listElement = navElement?.querySelector(':scope > ul');
+    return {
+      navElement,
+      headingElement,
+      listElement
+    };
+  }
+  #getErrorWrapper(errorMessage) {
+    return errorMessage?.closest(ERROR_WRAPPER_SELECTOR);
+  }
+  #findFocusableControl(errorMessage) {
+    const wrapper = this.#getErrorWrapper(errorMessage);
+    if (!wrapper) return null;
+    return wrapper.querySelector('input:not([disabled]), ' + 'select:not([disabled]), ' + 'textarea:not([disabled]), ' + 'button:not([disabled]), ' + '[tabindex]:not([tabindex="-1"])');
+  }
+  #normalizeHeadingLevel(headingLevel) {
+    const normalizedHeadingLevel = (headingLevel || 'h2').toLowerCase();
+    return ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(normalizedHeadingLevel) ? normalizedHeadingLevel : 'h2';
+  }
+  #hasHiddenAttribute(element) {
+    if (!element) return true;
+    const hiddenValue = element.getAttribute('hidden');
+    return hiddenValue === '' || hiddenValue === 'true';
+  }
+  #isEligibleErrorMessage(errorMessage) {
+    if (!errorMessage?.matches('fds-error-message')) return false;
+    const wrapper = this.#getErrorWrapper(errorMessage);
+    if (!wrapper) return false;
+    return !this.#hasHiddenAttribute(wrapper);
+  }
+  #syncVisibility() {
+    const {
+      listElement
+    } = this.#getSummaryElements();
+    const hasErrors = !!listElement?.querySelector(':scope > li');
+    this.hidden = !hasErrors;
+  }
+  #updateHeadingId(headingId) {
+    const {
+      navElement,
+      headingElement
+    } = this.#getSummaryElements();
+    if (!navElement || !headingElement) return;
+    headingElement.id = headingId || headingElement.id || generateAndVerifyUniqueId('error-summary-heading');
+    navElement.setAttribute('aria-labelledby', headingElement.id);
+  }
+  #ensureDOM() {
+    const headingLevel = this.#normalizeHeadingLevel(this.getAttribute('heading-level'));
+    let navElement = this.querySelector(':scope > nav');
+
+    // Attribute mode:
+    // No nav markup provided, so create canonical structure from attributes
+    if (!navElement) {
+      navElement = document.createElement('nav');
+      const iconElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      iconElement.setAttribute('aria-label', 'Fejl');
+      iconElement.setAttribute('focusable', 'false');
+      const useElement = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+      useElement.setAttributeNS(null, 'href', '#error');
+      iconElement.appendChild(useElement);
+      const headingElement = document.createElement(headingLevel);
+      headingElement.textContent = this.getAttribute('heading') || 'Der er problemer';
+      const listElement = document.createElement('ul');
+      navElement.appendChild(iconElement);
+      navElement.appendChild(headingElement);
+      navElement.appendChild(listElement);
+      this.appendChild(navElement);
+      this.#updateHeadingId();
+      return true;
+    }
+    const headingElement = navElement.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
+    if (!headingElement) {
+      console.warn('<fds-error-summary> Missing direct child heading inside nav.');
+      return false;
+    }
+
+    // Enhance mode: 
+    // Nav exists, so the supported prerendered structure must already be present
+    const listElement = navElement.querySelector(':scope > ul');
+    if (!listElement) {
+      console.warn('<fds-error-summary> Missing direct child ul inside nav.');
+      return false;
+    }
+    this.#updateHeadingId();
+    return true;
+  }
+  #updateHeading(heading) {
+    const {
+      headingElement
+    } = this.#getSummaryElements();
+    if (headingElement) {
+      headingElement.textContent = heading;
+    }
+  }
+  #updateHeadingLevel(headingLevel) {
+    const normalizedHeadingLevel = this.#normalizeHeadingLevel(headingLevel);
+    const {
+      navElement,
+      headingElement
+    } = this.#getSummaryElements();
+    if (!headingElement || headingElement.tagName.toLowerCase() === normalizedHeadingLevel) return;
+    const newHeadingElement = document.createElement(normalizedHeadingLevel);
+    for (const attr of headingElement.attributes) {
+      newHeadingElement.setAttribute(attr.name, attr.value);
+    }
+    newHeadingElement.append(...headingElement.childNodes);
+    headingElement.replaceWith(newHeadingElement);
+    if (navElement && newHeadingElement.id) {
+      navElement.setAttribute('aria-labelledby', newHeadingElement.id);
+    }
+  }
+  #syncAll() {
+    const heading = this.getAttribute('heading');
+    const headingLevel = this.getAttribute('heading-level');
+    const headingId = this.getAttribute('heading-id');
+    if (heading !== null) {
+      this.#updateHeading(heading);
+    }
+    if (headingLevel !== null) {
+      this.#updateHeadingLevel(headingLevel);
+    }
+    this.#updateHeadingId(headingId);
+  }
+  #addError(errorId, message) {
+    const {
+      listElement
+    } = this.#getSummaryElements();
+    if (!listElement || !errorId || !message) return;
+    const sourceError = document.getElementById(errorId);
+    if (!sourceError) return;
+    const focusTarget = this.#findFocusableControl(sourceError);
+    let li = listElement.querySelector(`[data-error-id="${errorId}"]`);
+    if (!li) {
+      li = document.createElement('li');
+      li.dataset.errorId = errorId;
+      const link = document.createElement('a');
+      link.classList.add('function-link');
+      li.appendChild(link);
+      listElement.appendChild(li);
+    }
+    const link = li.querySelector('a');
+    if (link) {
+      link.href = focusTarget?.id ? `#${focusTarget.id}` : '#';
+      link.textContent = message;
+      link.onclick = e => {
+        e.preventDefault();
+        if (focusTarget) {
+          focusTarget.focus();
+        }
+      };
+    }
+
+    // Reinsert in correct DOM order
+    const items = [...listElement.querySelectorAll(':scope > li')].filter(item => item !== li);
+    let inserted = false;
+    for (const item of items) {
+      const itemErrorId = item.dataset.errorId;
+      const itemSourceError = itemErrorId ? document.getElementById(itemErrorId) : null;
+      if (!itemSourceError) continue;
+      const isBefore = sourceError.compareDocumentPosition(itemSourceError) & Node.DOCUMENT_POSITION_FOLLOWING;
+      if (isBefore) {
+        listElement.insertBefore(li, item);
+        inserted = true;
+        break;
+      }
+    }
+    if (!inserted) {
+      listElement.appendChild(li);
+    }
+    this.#syncVisibility();
+  }
+  #removeError(errorId) {
+    const {
+      listElement
+    } = this.#getSummaryElements();
+    listElement?.querySelector(`[data-error-id="${errorId}"]`)?.remove();
+    this.#syncVisibility();
+  }
+  #syncErrorMessage(errorMessage) {
+    if (!errorMessage?.id || !this.#isEligibleErrorMessage(errorMessage)) {
+      if (errorMessage?.id) {
+        this.#removeError(errorMessage.id);
+      }
+      return;
+    }
+    const isHidden = this.#hasHiddenAttribute(errorMessage);
+    const message = errorMessage.querySelector(':scope > .visible-message')?.textContent?.trim() || errorMessage.textContent?.trim();
+    if (isHidden || !message) {
+      this.#removeError(errorMessage.id);
+      return;
+    }
+    this.#addError(errorMessage.id, message);
+  }
+  #syncErrorById(errorId) {
+    if (!errorId) return;
+    const errorMessage = document.getElementById(errorId);
+    if (!errorMessage || !this.#isEligibleErrorMessage(errorMessage)) {
+      this.#removeError(errorId);
+      return;
+    }
+    this.#syncErrorMessage(errorMessage);
+  }
+  #scanAllErrors() {
+    document.querySelectorAll(ERROR_MESSAGE_SELECTOR).forEach(errorMessage => {
+      this.#syncErrorMessage(errorMessage);
+    });
+    this.#syncVisibility();
+  }
+  #cleanupAutoMode() {
+    if (!this.#handleErrorMessageEvents) return;
+    document.removeEventListener('error-message-visibility-changed', this.#handleErrorMessageEvents);
+    document.removeEventListener('error-message-callback', this.#handleErrorMessageEvents);
+    this.#handleErrorMessageEvents = null;
+  }
+  #initAutoMode() {
+    this.#cleanupAutoMode();
+    const {
+      listElement
+    } = this.#getSummaryElements();
+    if (listElement) {
+      listElement.innerHTML = '';
+    }
+    this.#syncVisibility();
+    this.#scanAllErrors();
+    this.#handleErrorMessageEvents = e => {
+      const {
+        errorId,
+        isRemoved
+      } = e.detail || {};
+      if (e.type === 'error-message-callback' && !errorId) {
+        this.#scanAllErrors();
+        return;
+      }
+      if (!errorId) return;
+      if (isRemoved) {
+        this.#removeError(errorId);
+        return;
+      }
+      this.#syncErrorById(errorId);
+    };
+    document.addEventListener('error-message-visibility-changed', this.#handleErrorMessageEvents);
+    document.addEventListener('error-message-callback', this.#handleErrorMessageEvents);
+  }
+  static observedAttributes = ['heading', 'heading-level', 'heading-id', 'auto'];
+  constructor() {
+    super();
+    this.#initialized = false;
+    this.#handleErrorMessageEvents = null;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  init() {
+    if (this.#initialized) return;
+    const isValid = this.#ensureDOM();
+    if (!isValid) return;
+    this.#syncAll();
+    if (this.hasAttribute('auto')) {
+      this.#initAutoMode();
+    }
+    this.#initialized = true;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    this.init();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#cleanupAutoMode();
+    this.#initialized = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'auto') {
+      if (this.#initialized && newValue !== null && oldValue === null) {
+        this.#initAutoMode();
+      } else if (this.#initialized && newValue === null && oldValue !== null) {
+        this.#cleanupAutoMode();
+      }
+      return;
+    }
+    if (!this.#initialized) return;
+    if (attribute === 'heading') {
+      this.#updateHeading(newValue);
+    }
+    if (attribute === 'heading-id') {
+      this.#updateHeadingId(newValue);
+    }
+    if (attribute === 'heading-level') {
+      this.#updateHeadingLevel(newValue);
+    }
+  }
+}
+function registerErrorSummary() {
+  if (customElements.get('fds-error-summary') === undefined) {
+    window.customElements.define('fds-error-summary', FDSErrorSummary);
+  }
+}
+/* harmony default export */ const fds_error_summary = (registerErrorSummary);
+;// ./src/js/custom-elements/input-affix/input-affix.js
+
+
+
+class FDSInputAffix extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+
+  /* Private methods */
+
+  #init() {
+    const input = this.querySelector('input');
+    if (!input) return;
+    if (this.hasAttribute('input-prefix')) {
+      this.#setAffix(this.getAttribute('input-prefix'), 'prefix');
+    }
+    if (this.hasAttribute('input-suffix')) {
+      this.#setAffix(this.getAttribute('input-suffix'), 'suffix');
+    }
+    this.#initialized = true;
+  }
+  #setAffix(value, affix) {
+    let element = null;
+    if (affix === 'prefix') {
+      element = this.querySelector('.form-input-prefix');
+    } else if (affix === 'suffix') {
+      element = this.querySelector('.form-input-suffix');
+    }
+    if (value !== null && value !== '') {
+      if (!element) {
+        element = document.createElement('div');
+        if (affix === 'prefix') {
+          element.className = 'form-input-prefix';
+          this.prepend(element);
+        } else if (affix === 'suffix') {
+          element.className = 'form-input-suffix';
+          this.appendChild(element);
+        }
+      }
+      element.setAttribute('aria-hidden', 'true');
+      element.textContent = value;
+    } else {
+      element?.remove();
+    }
+  }
+
+  /* Attributes which can invoke attributeChangedCallback() */
+
+  static observedAttributes = ['input-prefix', 'input-suffix'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (!this.#initialized) {
+      this.#init();
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#initialized = false;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (attribute === 'input-prefix' && oldValue !== newValue) {
+      this.#setAffix(newValue, 'prefix');
+    }
+    if (attribute === 'input-suffix' && oldValue !== newValue) {
+      this.#setAffix(newValue, 'suffix');
+    }
+  }
+}
+function registerInputAffix() {
+  if (customElements.get('fds-input-affix') === undefined) {
+    window.customElements.define('fds-input-affix', FDSInputAffix);
+  }
+}
+/* harmony default export */ const input_affix = (registerInputAffix);
+;// ./src/js/custom-elements/header/fds-drawer.js
+
+
+class FDSDrawer extends HTMLElement {
+  /* --------------------------------------------------
+  Private instance fields
+  -------------------------------------------------- */
+
+  #initialized = false;
+  #resizeObserver = null;
+  #handleCloseClick = () => {
+    this.close();
+  };
+  #handleDrawerLinkClick = event => {
+    if (event.target.closest('a')) {
+      this.close();
+    }
+  };
+  #handleResize = entries => {
+    entries.forEach(entry => {
+      const style = window.getComputedStyle(entry.target);
+      const isVisible = style.display !== 'none';
+      if (!isVisible && this.hasAttribute('open')) {
+        this.close();
+      }
+    });
+  };
+  #handleKeydown = event => {
+    switch (event.key) {
+      case 'Tab':
+        {
+          const focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]';
+          const drawer = this.querySelector('.mobile-drawer');
+          const focusableElements = [...drawer.querySelectorAll(focusableElementsString)].filter(el => el.offsetWidth > 0 && el.offsetHeight > 0); // Exclude hidden elements from the focus trap
+
+          const firstTabStop = focusableElements[0];
+          const lastTabStop = focusableElements[focusableElements.length - 1];
+          if (event.shiftKey) {
+            if (document.activeElement === firstTabStop) {
+              event.preventDefault();
+              lastTabStop.focus();
+            }
+          } else {
+            if (document.activeElement === lastTabStop) {
+              event.preventDefault();
+              firstTabStop.focus();
+            }
+          }
+          break;
+        }
+      case 'Escape':
+        this.close();
+        break;
+    }
+  };
+
+  /* --------------------------------------------------
+  Private methods
+  -------------------------------------------------- */
+
+  #setupHTML() {
+    let overlay = this.querySelector('.overlay');
+    let drawer = this.querySelector('.mobile-drawer');
+    let menuTop = this.querySelector('.menu-top');
+    let heading = this.querySelector('.menu-heading');
+    let closeButton = this.querySelector('.button-menu-close');
+
+    // Dark overlay when drawer is open
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.classList.add('overlay');
+      drawer ? this.insertBefore(overlay, drawer) : this.appendChild(overlay);
+    }
+
+    // Drawer
+    if (!drawer) {
+      drawer = document.createElement('div');
+      drawer.classList.add('mobile-drawer');
+      this.appendChild(drawer);
+    }
+    drawer.setAttribute('role', 'dialog');
+    drawer.setAttribute('aria-modal', 'true');
+
+    // The top container element inside the drawer
+    if (!menuTop) {
+      menuTop = document.createElement('div');
+      menuTop.classList.add('menu-top');
+      drawer.prepend(menuTop);
+    }
+
+    // Heading inside the drawer
+    if (!heading) {
+      heading = document.createElement('h2');
+      heading.classList.add('menu-heading');
+      menuTop.appendChild(heading);
+    }
+    let headingId = heading.id;
+    if (!headingId) {
+      headingId = generateAndVerifyUniqueId('hea');
+      heading.id = headingId;
+    }
+    heading.textContent = this.getAttribute('heading') || 'Menu';
+    drawer.setAttribute('aria-labelledby', headingId);
+
+    // Close button inside the drawer
+    if (!closeButton) {
+      closeButton = document.createElement('button');
+      closeButton.classList.add('function-link', 'button-menu-close');
+      menuTop.appendChild(closeButton);
+      const closeButtonIcon = createSvgIcon('m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z');
+      closeButton.appendChild(closeButtonIcon);
+      const closeButtonText = document.createElement('span');
+      closeButtonText.textContent = this.getAttribute('close-button-text') || 'Luk';
+      closeButton.appendChild(closeButtonText);
+    }
+    closeButton.setAttribute('aria-label', 'Luk menu');
+  }
+  #setupObserver() {
+    if (this.#resizeObserver) return;
+    this.#resizeObserver = new ResizeObserver(this.#handleResize);
+    this.#resizeObserver.observe(this);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ATTRIBUTES (can invoke attributeChangedCallback())
+  -------------------------------------------------- */
+
+  static observedAttributes = ['open', 'ready', 'heading', 'close-button-text'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT METHODS
+  -------------------------------------------------- */
+
+  init() {
+    this.#setupHTML();
+    this.querySelector('.button-menu-close').addEventListener('click', this.#handleCloseClick, false);
+    this.querySelector('.overlay').addEventListener('click', this.#handleCloseClick, false);
+    this.querySelector('.mobile-drawer').addEventListener('click', this.#handleDrawerLinkClick, false);
+    this.#setupObserver();
+    this.#initialized = true;
+  }
+  toggle() {
+    if (!this.#initialized) return;
+    const drawerIsVisible = this.hasAttribute('open') && this.getAttribute('open') !== 'false';
+    drawerIsVisible ? this.close() : this.open();
+  }
+  open() {
+    if (!this.#initialized) return;
+    if (!this.hasAttribute('open') || this.getAttribute('open') === 'false') {
+      this.setAttribute('open', '');
+      document.addEventListener('fds.modal.shown', this.#handleCloseClick, false);
+      document.addEventListener('keydown', this.#handleKeydown, false);
+      this.querySelector('.button-menu-close')?.focus();
+    }
+  }
+  close() {
+    if (!this.#initialized) return;
+    if (this.hasAttribute('open')) {
+      this.removeAttribute('open');
+      document.removeEventListener('fds.modal.shown', this.#handleCloseClick, false);
+      document.removeEventListener('keydown', this.#handleKeydown, false);
+      const drawerButton = document.querySelector(`fds-drawer-button[drawer=${this.id}] button`);
+      const visibleDrawerButton = isVisibleAndFocusable(drawerButton);
+      if (visibleDrawerButton) {
+        drawerButton.focus();
+      }
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#initialized = false;
+    this.querySelector('.button-menu-close')?.removeEventListener('click', this.#handleCloseClick, false);
+    this.querySelector('.overlay')?.removeEventListener('click', this.#handleCloseClick, false);
+    this.querySelector('.mobile-drawer').removeEventListener('click', this.#handleDrawerLinkClick, false);
+    document.removeEventListener('fds.modal.shown', this.#handleCloseClick, false);
+    document.removeEventListener('keydown', this.#handleKeydown, false);
+    if (this.#resizeObserver) {
+      this.#resizeObserver.disconnect();
+      this.#resizeObserver = null;
+    }
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'open':
+        const closeDrawer = newValue === null || newValue === false;
+        if (closeDrawer) {
+          this.querySelector('.overlay')?.classList.remove('is-visible');
+          this.querySelector('.mobile-drawer')?.classList.remove('is-visible');
+          document.body.classList.remove('mobile-nav-active');
+        } else {
+          this.querySelector('.overlay')?.classList.add('is-visible');
+          this.querySelector('.mobile-drawer')?.classList.add('is-visible');
+          document.body.classList.add('mobile-nav-active');
+        }
+        break;
+      case 'heading':
+        const heading = this.querySelector('.menu-heading');
+        if (heading) {
+          heading.textContent = newValue;
+        }
+        break;
+      case 'close-button-text':
+        if (newValue === null) return;
+        const closeButtonText = this.querySelector('.button-menu-close span');
+        if (closeButtonText) {
+          closeButtonText.textContent = newValue;
+        }
+        break;
+    }
+  }
+}
+function registerDrawer() {
+  if (customElements.get('fds-drawer') === undefined) {
+    window.customElements.define('fds-drawer', FDSDrawer);
+  }
+}
+/* harmony default export */ const fds_drawer = (registerDrawer);
+;// ./src/js/custom-elements/header/fds-drawer-button.js
+
+class FDSDrawerButton extends HTMLElement {
+  /* Private instance fields */
+
+  #initialized = false;
+  #handleClick = () => {
+    document.getElementById(this.getAttribute('drawer'))?.open();
+  };
+
+  /* Private methods */
+
+  #setupHTML() {
+    let button = this.querySelector('button');
+    if (!button) {
+      button = document.createElement('button');
+      this.appendChild(button);
+      const svg = createSvgIcon("M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z");
+      button.appendChild(svg);
+      const text = document.createElement('span');
+      text.textContent = this.getAttribute('button-text') || 'Menu';
+      button.appendChild(text);
+    }
+    button.setAttribute('type', 'button');
+    button.setAttribute('aria-haspopup', 'dialog');
+  }
+  #init() {
+    if (this.#initialized) return;
+    this.#setupHTML();
+    this.querySelector('button').addEventListener('click', this.#handleClick, false);
+    this.#initialized = true;
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ATTRIBUTES (can invoke attributeChangedCallback())
+  -------------------------------------------------- */
+
+  static observedAttributes = ['drawer', 'button-text'];
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT ADDED TO DOCUMENT
+  -------------------------------------------------- */
+
+  connectedCallback() {
+    this.#init();
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT REMOVED FROM DOCUMENT
+  -------------------------------------------------- */
+
+  disconnectedCallback() {
+    this.#initialized = false;
+    this.querySelector('button')?.removeEventListener('click', this.#handleClick, false);
+  }
+
+  /* --------------------------------------------------
+  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
+  -------------------------------------------------- */
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    if (attribute === 'button-text') {
+      const text = this.querySelector('button > span');
+      if (text) {
+        text.textContent = newValue || '';
+      }
+    }
+  }
+}
+function registerDrawerButton() {
+  if (customElements.get('fds-drawer-button') === undefined) {
+    window.customElements.define('fds-drawer-button', FDSDrawerButton);
+  }
+}
+/* harmony default export */ const fds_drawer_button = (registerDrawerButton);
+;// ./src/js/custom-elements/header/fds-portal-info-styling.js
+/**
+ * Breakpoint is passed as a parameter rather than read from a CSS custom property
+ * due to unreliable timing in execution order.
+ *
+ * @param {string} breakpoint - The min-width breakpoint value, e.g. '992px'.
+ * @returns {string} The CSS string for the Shadow DOM stylesheet.
+ */
+const fds_portal_info_styling_styles = breakpoint => `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    .portal-info-inner {
+        width: 100%;
+        max-width: 1200px;
+        min-height: 48px;
+        padding-top: 4px;
+        padding-bottom: 4px;
+        padding-right: 16px;
+        padding-left: 16px;
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        margin-right: auto;
+        margin-left: auto;
+    }
+
+    .portal-user {
+        margin-left: auto;
+        display: none;
+        align-items: center;
+        justify-content: flex-end;
+        max-width: 70%;
+
+        @media (min-width: ${breakpoint}) {
+            display: flex;
+        }
+    }
+
+    .portal-info-mobile {
+        border-top: 1px solid #8e8e8e;
+        padding: 24px;
+        text-align: left;
+        background-color: var(--header-portal-background-color, #FFFFFF);
+    }
+`;
+;// ./src/js/custom-elements/header/fds-portal-info.js
+
+
+class FDSPortalInfo extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['breakpoint', 'ready'];
+
+  // #endregion
+
+  // #region - Private instance fields --------------------------------------------------------------------
+
+  #initialized = false;
+  #sheet = (() => new CSSStyleSheet())();
+
+  // #endregion
+
+  // #region - Private event handlers ---------------------------------------------------------------------
+
+  #handleSlotDrawerButtonChange = event => {
+    event.target.assignedElements().forEach(element => {
+      element.classList.add('ml-auto');
+    });
+  };
+  #handleSlotUserChange = event => {
+    event.target.assignedElements().forEach(element => {
+      element.classList.add('user');
+    });
+  };
+  #handleSlotLogOffButtonChange = event => {
+    event.target.assignedElements().forEach(element => {
+      element.classList.add('function-link', 'd-print-none', 'log-off');
+    });
+  };
+
+  // #endregion
+
+  // #region - Private methods ----------------------------------------------------------------------------
+
+  #updateStyles() {
+    const breakpoint = this.getAttribute('breakpoint') || '992px';
+    this.#sheet.replaceSync(fds_portal_info_styling_styles(breakpoint));
+  }
+  #setupHTML() {
+    if (this.closest('fds-drawer')) {
+      // --- Section ---
+      let section = this.shadowRoot.querySelector('.portal-info-mobile');
+      if (!section) {
+        section = document.createElement('section');
+        section.classList.add('portal-info-mobile');
+        this.shadowRoot.appendChild(section);
+      }
+
+      // --- User ---
+      let userSlot = section.querySelector('slot[name="user"]');
+      if (!userSlot) {
+        userSlot = document.createElement('slot');
+        userSlot.name = 'user';
+        section.appendChild(userSlot);
+      }
+
+      // --- Log off button ---
+      let logOffButtonSlot = section.querySelector('slot[name="log-off-button"]');
+      if (!logOffButtonSlot) {
+        logOffButtonSlot = document.createElement('slot');
+        logOffButtonSlot.name = 'log-off-button';
+        section.appendChild(logOffButtonSlot);
+      }
+    } else {
+      // --- Inner wrapper ---
+      let divWrapper = this.shadowRoot.querySelector('.portal-info-inner');
+      if (!divWrapper) {
+        divWrapper = document.createElement('div');
+        divWrapper.classList.add('portal-info-inner');
+        this.shadowRoot.appendChild(divWrapper);
+      }
+
+      // --- Logo ---
+      let portalLogo = divWrapper.querySelector('slot[name="logo"]');
+      if (!portalLogo) {
+        portalLogo = document.createElement('slot');
+        portalLogo.name = 'logo';
+        divWrapper.appendChild(portalLogo);
+      }
+
+      // --- Drawer button ---
+      let drawerButtonSlot = divWrapper.querySelector('slot[name="drawer-button"]');
+      if (!drawerButtonSlot) {
+        drawerButtonSlot = document.createElement('slot');
+        drawerButtonSlot.name = 'drawer-button';
+        divWrapper.appendChild(drawerButtonSlot);
+      }
+
+      // --- User wrapper ---
+      let userWrapper = divWrapper.querySelector('.portal-user');
+      if (!userWrapper) {
+        userWrapper = document.createElement('div');
+        userWrapper.classList.add('portal-user');
+        divWrapper.appendChild(userWrapper);
+      }
+
+      // --- User ---
+      let userSlot = userWrapper.querySelector('slot[name="user"]');
+      if (!userSlot) {
+        userSlot = document.createElement('slot');
+        userSlot.name = 'user';
+        userWrapper.appendChild(userSlot);
+      }
+
+      // --- Log off button ---
+      let logOffButtonSlot = userWrapper.querySelector('slot[name="log-off-button"]');
+      if (!logOffButtonSlot) {
+        logOffButtonSlot = document.createElement('slot');
+        logOffButtonSlot.name = 'log-off-button';
+        userWrapper.appendChild(logOffButtonSlot);
+      }
+    }
+  }
+  #addEventListeners() {
+    this.shadowRoot.querySelector('slot[name="drawer-button"]')?.addEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+    this.shadowRoot.querySelector('slot[name="user"]')?.addEventListener('slotchange', this.#handleSlotUserChange);
+    this.shadowRoot.querySelector('slot[name="log-off-button"]')?.addEventListener('slotchange', this.#handleSlotLogOffButtonChange);
+  }
+  #removeEventListeners() {
+    this.shadowRoot.querySelector('slot[name="drawer-button"]')?.removeEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+    this.shadowRoot.querySelector('slot[name="user"]')?.removeEventListener('slotchange', this.#handleSlotUserChange);
+    this.shadowRoot.querySelector('slot[name="log-off-button"]')?.removeEventListener('slotchange', this.#handleSlotLogOffButtonChange);
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [this.#sheet];
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  init() {
+    this.#updateStyles();
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'breakpoint':
+        this.#updateStyles();
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerPortalInfo() {
+  if (!customElements.get('fds-portal-info')) {
+    customElements.define('fds-portal-info', FDSPortalInfo);
+  }
+}
+/* harmony default export */ const fds_portal_info = (registerPortalInfo);
+;// ./src/js/custom-elements/header/fds-solution-info-styling.js
+const fds_solution_info_styling_styles = `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    .solution-info-inner {
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+        padding-top: calc(16px - 1px);
+        padding-bottom: calc(16px - 1px);
+        padding-right: 16px;
+        padding-left: 16px;
+        max-width: 1200px;
+        margin-right: auto;
+        margin-left: auto;
+    }
+`;
+;// ./src/js/custom-elements/header/fds-solution-info.js
+
+const fds_solution_info_sheet = new CSSStyleSheet();
+fds_solution_info_sheet.replaceSync(fds_solution_info_styling_styles);
+class FDSSolutionInfo extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['attr', 'ready'];
+
+  // #endregion
+
+  // #region - Private instance fields --------------------------------------------------------------------
+
+  #initialized = false;
+
+  // #endregion
+
+  // #region - Private event handlers ---------------------------------------------------------------------
+
+  #handleSlotDrawerButtonChange = event => {
+    event.target.assignedElements().forEach(element => {
+      element.classList.add('ml-auto');
+    });
+  };
+
+  // #endregion
+
+  // #region - Private methods ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    if (this.closest('fds-drawer')) {
+      // --- Section ---
+      let section = this.shadowRoot.querySelector('.solution-info-mobile');
+      if (!section) {
+        section = document.createElement('section');
+        section.classList.add('solution-info-mobile');
+        this.shadowRoot.appendChild(section);
+      }
+
+      // --- Additional info ---
+      let additionalInfo = section.querySelector('slot[name="additional-info"]');
+      if (!additionalInfo) {
+        additionalInfo = document.createElement('slot');
+        additionalInfo.name = 'additional-info';
+        section.appendChild(additionalInfo);
+      }
+    } else {
+      // --- Inner wrapper ---
+      let divWrapper = this.shadowRoot.querySelector('.solution-info-inner');
+      if (!divWrapper) {
+        divWrapper = document.createElement('div');
+        divWrapper.classList.add('solution-info-inner');
+        this.shadowRoot.appendChild(divWrapper);
+      }
+
+      // --- Solution heading ---
+      let solutionHeading = divWrapper.querySelector('slot[name="solution-heading"]');
+      if (!solutionHeading) {
+        solutionHeading = document.createElement('slot');
+        solutionHeading.name = 'solution-heading';
+        divWrapper.appendChild(solutionHeading);
+      }
+
+      // --- Additional info ---
+      let additionalInfo = divWrapper.querySelector('slot[name="additional-info"]');
+      if (!additionalInfo) {
+        additionalInfo = document.createElement('slot');
+        additionalInfo.name = 'additional-info';
+        divWrapper.appendChild(additionalInfo);
+      }
+
+      // --- Drawer button ---
+      let drawerButtonSlot = divWrapper.querySelector('slot[name="drawer-button"]');
+      if (!drawerButtonSlot) {
+        drawerButtonSlot = document.createElement('slot');
+        drawerButtonSlot.name = 'drawer-button';
+        divWrapper.appendChild(drawerButtonSlot);
+      }
+    }
+  }
+  #addEventListeners() {
+    this.shadowRoot.querySelector('slot[name="drawer-button"]')?.addEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+  }
+  #removeEventListeners() {
+    this.shadowRoot.querySelector('slot[name="drawer-button"]')?.removeEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [fds_solution_info_sheet];
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  init() {
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    // The 'ready' attribute can be used to defer initialization.
+    // Omit the attribute or set it to anything other than 'false' to initialize immediately.
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'attr':
+        console.log('attr changed to', newValue);
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerSolutionInfo() {
+  if (!customElements.get('fds-solution-info')) {
+    customElements.define('fds-solution-info', FDSSolutionInfo);
+  }
+}
+/* harmony default export */ const fds_solution_info = (registerSolutionInfo);
+;// ./src/js/new-dkfds.js
+
+
+// Custom elements
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const registerCustomElements = () => {
+  fds_accordion();
+  fds_accordion_group();
+  fds_input();
+  fds_help_text();
+  fds_character_limit();
+  fds_error_message();
+  fds_checkbox();
+  fds_checkbox_group();
+  fds_radio_button();
+  fds_radio_button_group();
+  fds_date_input();
+  fds_select();
+  fds_date_picker();
+  fds_date_picker_grid();
+  fds_textarea();
+  fds_upload_file();
+  fds_file_item();
+  fds_error_summary();
+  input_affix();
+  fds_drawer();
+  fds_drawer_button();
+  fds_portal_info();
+  fds_solution_info();
+};
+registerCustomElements();
+
+/******/ 	return __webpack_exports__;
+/******/ })()
+;
+});

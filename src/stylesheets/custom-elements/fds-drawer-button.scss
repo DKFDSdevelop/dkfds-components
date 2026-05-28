@@ -11,7 +11,6 @@ fds-drawer-button,
         white-space: nowrap;
         background: none;
         padding: 0;
-        text-decoration: underline;
         text-align: left;
         border: none;
         @include mixins.body-copy-text;
@@ -31,6 +30,10 @@ fds-drawer-button,
             fill: currentColor;
             vertical-align: top;
             margin-top: calc(func.units(1, 'rem') / 2); // Align icon with text
+        }
+
+        span {
+            text-decoration: underline;
         }
     }
 }
