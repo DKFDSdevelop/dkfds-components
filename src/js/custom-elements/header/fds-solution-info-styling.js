@@ -5,12 +5,6 @@ export const styles = `
         box-sizing: border-box;
     }
 
-    :host {
-        display: block;
-        background-color: #FFFFFF;
-        width: 100%;
-    }
-
     .solution-info-inner {
         display: flex;
         align-items: center;

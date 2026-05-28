@@ -12,12 +12,6 @@ export const styles = (breakpoint) => `
         box-sizing: border-box;
     }
 
-    :host {
-        display: block;
-        background-color: var(--header-portal-background-color, #FFFFFF);
-        width: 100%;
-    }
-
     .portal-info-inner {
         width: 100%;
         max-width: 1200px;
@@ -31,16 +25,6 @@ export const styles = (breakpoint) => `
         flex-direction: row;
         margin-right: auto;
         margin-left: auto;
-    }
-
-    .logo {
-        display: inline-block;
-        width: 100%;
-        height: 24px;
-
-        @media (min-width: ${breakpoint}) {
-            max-width: 30%;
-        }
     }
 
     .portal-user {

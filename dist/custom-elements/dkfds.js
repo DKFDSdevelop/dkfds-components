@@ -5951,12 +5951,6 @@ const fds_portal_info_styling_styles = breakpoint => `
         box-sizing: border-box;
     }
 
-    :host {
-        display: block;
-        background-color: var(--header-portal-background-color, #FFFFFF);
-        width: 100%;
-    }
-
     .portal-info-inner {
         width: 100%;
         max-width: 1200px;
@@ -5970,16 +5964,6 @@ const fds_portal_info_styling_styles = breakpoint => `
         flex-direction: row;
         margin-right: auto;
         margin-left: auto;
-    }
-
-    .logo {
-        display: inline-block;
-        width: 100%;
-        height: 24px;
-
-        @media (min-width: ${breakpoint}) {
-            max-width: 30%;
-        }
     }
 
     .portal-user {
@@ -6078,20 +6062,12 @@ class FDSPortalInfo extends HTMLElement {
         this.shadowRoot.appendChild(divWrapper);
       }
 
-      // --- Logo wrapper ---
-      let logoWrapper = divWrapper.querySelector('.logo');
-      if (!logoWrapper) {
-        logoWrapper = document.createElement('div');
-        logoWrapper.classList.add('logo');
-        divWrapper.appendChild(logoWrapper);
-      }
-
       // --- Logo ---
-      let portalLogo = logoWrapper.querySelector('slot[name="logo"]');
+      let portalLogo = divWrapper.querySelector('slot[name="logo"]');
       if (!portalLogo) {
         portalLogo = document.createElement('slot');
         portalLogo.name = 'logo';
-        logoWrapper.appendChild(portalLogo);
+        divWrapper.appendChild(portalLogo);
       }
 
       // --- Drawer button ---
@@ -6213,12 +6189,6 @@ const fds_solution_info_styling_styles = `
     *::before,
     *::after {
         box-sizing: border-box;
-    }
-
-    :host {
-        display: block;
-        background-color: #FFFFFF;
-        width: 100%;
     }
 
     .solution-info-inner {

@@ -11,7 +11,7 @@
     "./new-dkfds": "./dist/custom-elements/dkfds.js"
   },
   "scripts": {
-    "build": "webpack"
+    "build": "npx webpack"
   },
   "homepage": "https://designsystem.dk/",
   "repository": {

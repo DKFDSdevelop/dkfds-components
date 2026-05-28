@@ -436,3 +436,10 @@ body {
 .section + .section {
     margin-top: func.units(5)
 }
+
+// Header
+
+.header {
+    width: 100%;
+    border-bottom: func.border(vars.$header-last-border);
+}
