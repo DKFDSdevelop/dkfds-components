@@ -24,6 +24,7 @@ import registerDrawer from './custom-elements/header/fds-drawer';
 import registerDrawerButton from './custom-elements/header/fds-drawer-button';
 import registerPortalInfo from './custom-elements/header/fds-portal-info';
 import registerSolutionInfo from './custom-elements/header/fds-solution-info';
+import registerDropdownMenu from './custom-elements/dropdown-menu/fds-dropdown-menu';
 
 const registerCustomElements = () => {
   registerAccordion();
@@ -49,8 +50,9 @@ const registerCustomElements = () => {
   registerDrawerButton();
   registerPortalInfo();
   registerSolutionInfo();
+  registerDropdownMenu();
 };
 
 registerCustomElements();
 
-export { registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerDrawer, registerDrawerButton, registerPortalInfo, registerSolutionInfo };
+export { registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerDrawer, registerDrawerButton, registerPortalInfo, registerSolutionInfo, registerDropdownMenu };

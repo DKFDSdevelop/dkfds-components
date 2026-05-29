@@ -60,6 +60,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerDatePickerGrid: () => (/* reexport */ fds_date_picker_grid),
   registerDrawer: () => (/* reexport */ fds_drawer),
   registerDrawerButton: () => (/* reexport */ fds_drawer_button),
+  registerDropdownMenu: () => (/* reexport */ fds_dropdown_menu),
   registerErrorMessage: () => (/* reexport */ fds_error_message),
   registerErrorSummary: () => (/* reexport */ fds_error_summary),
   registerFileItem: () => (/* reexport */ fds_file_item),
@@ -5862,6 +5863,12 @@ function registerDrawer() {
 ;// ./src/js/custom-elements/header/fds-drawer-button.js
 
 class FDSDrawerButton extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['drawer', 'button-text'];
+
+  // #endregion
+
   /* Private instance fields */
 
   #initialized = false;
@@ -5891,12 +5898,6 @@ class FDSDrawerButton extends HTMLElement {
     this.querySelector('button').addEventListener('click', this.#handleClick, false);
     this.#initialized = true;
   }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ATTRIBUTES (can invoke attributeChangedCallback())
-  -------------------------------------------------- */
-
-  static observedAttributes = ['drawer', 'button-text'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT ADDED TO DOCUMENT
@@ -6362,10 +6363,100 @@ function registerSolutionInfo() {
   }
 }
 /* harmony default export */ const fds_solution_info = (registerSolutionInfo);
+;// ./src/js/custom-elements/dropdown-menu/fds-dropdown-menu.js
+class FDSDropdownMenu extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['attr'];
+
+  // #endregion
+
+  // #region - Private instance fields --------------------------------------------------------------------
+
+  #initialized = false;
+
+  // #endregion
+
+  // #region - Private event handlers ---------------------------------------------------------------------
+
+  #handleClick = event => {
+    console.log('Click event:', event);
+  };
+
+  // #endregion
+
+  // #region - Private methods ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    // --- Button ---
+    let button = this.querySelector('button');
+    if (!button) {
+      button = document.createElement('button');
+      this.appendChild(button);
+    }
+    button.textContent = 'Click me';
+  }
+  #addEventListeners() {
+    this.addEventListener('click', this.#handleClick);
+  }
+  #removeEventListeners() {
+    this.removeEventListener('click', this.#handleClick);
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  init() {
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    this.init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'attr':
+        console.log('attr changed to', newValue);
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerDropdownMenu() {
+  if (!customElements.get('fds-dropdown-menu')) {
+    customElements.define('fds-dropdown-menu', FDSDropdownMenu);
+  }
+}
+/* harmony default export */ const fds_dropdown_menu = (registerDropdownMenu);
 ;// ./src/js/new-dkfds.js
 
 
 // Custom elements
+
 
 
 
@@ -6413,6 +6504,7 @@ const registerCustomElements = () => {
   fds_drawer_button();
   fds_portal_info();
   fds_solution_info();
+  fds_dropdown_menu();
 };
 registerCustomElements();
 

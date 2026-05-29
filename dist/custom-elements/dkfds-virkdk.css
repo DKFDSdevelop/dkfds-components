@@ -13015,3 +13015,8 @@ fds-drawer .fds-solution-info:last-child,
 .fds-drawer .fds-solution-info:last-child{
   border-bottom:1px solid #8E8E8E;
 }
+
+fds-dropdown-menu,
+.fds-dropdown-menu{
+  display:block;
+}
