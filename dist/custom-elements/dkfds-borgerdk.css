@@ -13156,6 +13156,37 @@ fds-dropdown-menu,
   font-weight:700;
 }
 
+fds-drawer .fds-main-menu fds-dropdown-menu > .dropdown-button > span,
+fds-drawer .fds-main-menu .fds-dropdown-menu > .dropdown-button > span{
+  display:inline-flex;
+  width:100%;
+  overflow-wrap:break-word;
+}
+fds-drawer .fds-main-menu fds-dropdown-menu > .dropdown-button > span .plus,
+fds-drawer .fds-main-menu .fds-dropdown-menu > .dropdown-button > span .plus{
+  display:none;
+}
+fds-drawer .fds-main-menu fds-dropdown-menu > .dropdown-button > span .minus,
+fds-drawer .fds-main-menu .fds-dropdown-menu > .dropdown-button > span .minus{
+  display:inline-block;
+}
+fds-drawer .fds-main-menu fds-dropdown-menu > .dropdown-button > span .icon-svg,
+fds-drawer .fds-main-menu .fds-dropdown-menu > .dropdown-button > span .icon-svg{
+  margin-left:auto;
+}
+fds-drawer .fds-main-menu fds-dropdown-menu > .dropdown-menu.collapsed,
+fds-drawer .fds-main-menu .fds-dropdown-menu > .dropdown-menu.collapsed{
+  display:none;
+}
+fds-drawer .fds-main-menu fds-dropdown-menu[expanded=false] > .dropdown-button > span .plus,
+fds-drawer .fds-main-menu .fds-dropdown-menu[expanded=false] > .dropdown-button > span .plus{
+  display:inline-block;
+}
+fds-drawer .fds-main-menu fds-dropdown-menu[expanded=false] > .dropdown-button > span .minus,
+fds-drawer .fds-main-menu .fds-dropdown-menu[expanded=false] > .dropdown-button > span .minus{
+  display:none;
+}
+
 .fds-main-menu{
   display:block;
 }
@@ -13228,6 +13259,83 @@ fds-drawer .fds-main-menu > nav > ul,
   margin:0;
   list-style-type:none;
   padding-left:0;
+}
+fds-drawer .fds-main-menu > nav > ul li,
+.fds-drawer .fds-main-menu > nav > ul li{
+  border-top:1px solid #dcdcdc;
+  margin-bottom:0;
+  margin-top:0;
+  padding-left:0;
+  background-color:#fff;
+}
+fds-drawer .fds-main-menu > nav > ul li::before,
+.fds-drawer .fds-main-menu > nav > ul li::before{
+  content:"" !important;
+  padding-right:0 !important;
+}
+fds-drawer .fds-main-menu > nav > ul li:first-child,
+.fds-drawer .fds-main-menu > nav > ul li:first-child{
+  border-top:0;
+}
+fds-drawer .fds-main-menu > nav > ul li a,
+fds-drawer .fds-main-menu > nav > ul li .dropdown-button,
+.fds-drawer .fds-main-menu > nav > ul li a,
+.fds-drawer .fds-main-menu > nav > ul li .dropdown-button{
+  padding-top:16px;
+  padding-bottom:16px;
+  padding-right:24px;
+  text-decoration:none;
+  color:#1a1a1a;
+  font-size:1.6rem;
+  background-color:rgba(0, 0, 0, 0);
+  display:block;
+  line-height:2.4rem;
+  white-space:normal;
+  width:100%;
+  max-width:unset;
+  cursor:pointer;
+  text-align:left;
+  border:0;
+}
+fds-drawer .fds-main-menu > nav > ul li a:focus,
+fds-drawer .fds-main-menu > nav > ul li .dropdown-button:focus,
+.fds-drawer .fds-main-menu > nav > ul li a:focus,
+.fds-drawer .fds-main-menu > nav > ul li .dropdown-button:focus{
+  position:relative;
+  z-index:2;
+}
+fds-drawer .fds-main-menu > nav > ul li > a, fds-drawer .fds-main-menu > nav > ul li > fds-dropdown-menu > .dropdown-button,
+.fds-drawer .fds-main-menu > nav > ul li > a,
+.fds-drawer .fds-main-menu > nav > ul li > fds-dropdown-menu > .dropdown-button{
+  padding-left:24px;
+}
+fds-drawer .fds-main-menu > nav > ul li li > a,
+fds-drawer .fds-main-menu > nav > ul li li > fds-dropdown-menu > .dropdown-button,
+.fds-drawer .fds-main-menu > nav > ul li li > a,
+.fds-drawer .fds-main-menu > nav > ul li li > fds-dropdown-menu > .dropdown-button{
+  padding-left:48px;
+}
+fds-drawer .fds-main-menu > nav > ul li li li > a,
+fds-drawer .fds-main-menu > nav > ul li li li > fds-dropdown-menu > .dropdown-button,
+.fds-drawer .fds-main-menu > nav > ul li li li > a,
+.fds-drawer .fds-main-menu > nav > ul li li li > fds-dropdown-menu > .dropdown-button{
+  padding-left:72px;
+}
+fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]),
+.fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]){
+  border-left:8px solid var(--color-primary);
+}
+fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]) a,
+fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]) fds-dropdown-menu > .dropdown-button,
+.fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]) a,
+.fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]) fds-dropdown-menu > .dropdown-button{
+  margin-left:-8px;
+  width:calc(100% + 8px);
+}
+fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]) > a, fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]) > fds-dropdown-menu > .dropdown-button,
+.fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]) > a,
+.fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]) > fds-dropdown-menu > .dropdown-button{
+  font-weight:700;
 }
 
 fds-solution-info + .fds-main-menu,

@@ -145,3 +145,43 @@ fds-dropdown-menu,
         }
     }
 }
+
+fds-drawer .fds-main-menu fds-dropdown-menu,
+fds-drawer .fds-main-menu .fds-dropdown-menu {
+    & > .dropdown-button {
+
+        & > span {
+            display: inline-flex;
+            width: 100%;
+            overflow-wrap: break-word;
+
+            .plus {
+                display: none;
+            }
+
+            .minus {
+                display: inline-block;
+            }
+
+            .icon-svg {
+                margin-left: auto;
+            }
+        }
+    }
+
+    & > .dropdown-menu {
+        &.collapsed {
+            display: none;
+        }
+    }
+
+    &[expanded="false"] > .dropdown-button > span {
+        .plus {
+            display: inline-block;
+        }
+
+        .minus {
+            display: none;
+        }
+    }
+}

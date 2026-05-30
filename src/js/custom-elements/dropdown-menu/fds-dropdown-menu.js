@@ -47,13 +47,24 @@ class FDSDropdownMenu extends HTMLElement {
 
         // Dropdown button icon
         if (!this.querySelector(':scope > .dropdown-button span svg')) {
-            const span = this.querySelector(':scope > .dropdown-button span');
-            const chevronDown = CE.createSvgIcon('M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z');
-            chevronDown.classList.add('chevron-down');
-            span?.appendChild(chevronDown);
-            const chevronUp = CE.createSvgIcon('M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z');
-            chevronUp.classList.add('chevron-up');
-            span?.appendChild(chevronUp);
+            if (this.closest('fds-drawer .fds-main-menu')) {
+                const span = this.querySelector(':scope > .dropdown-button span');
+                const plus = CE.createSvgIcon('M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z');
+                plus.classList.add('plus');
+                span?.appendChild(plus);
+                const minus = CE.createSvgIcon('M200-440v-80h560v80H200Z');
+                minus.classList.add('minus');
+                span?.appendChild(minus);
+            }
+            else if (this.closest('.fds-main-menu .main-menu-inner')) {
+                const span = this.querySelector(':scope > .dropdown-button span');
+                const chevronDown = CE.createSvgIcon('M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z');
+                chevronDown.classList.add('chevron-down');
+                span?.appendChild(chevronDown);
+                const chevronUp = CE.createSvgIcon('M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z');
+                chevronUp.classList.add('chevron-up');
+                span?.appendChild(chevronUp);
+            }
         }
 
         // Dropdown menu
@@ -83,14 +94,18 @@ class FDSDropdownMenu extends HTMLElement {
 
     #addEventListeners() {
         this.querySelector(':scope > .dropdown-button')?.addEventListener('click', this.#handleClick);
-        this.addEventListener('focusout', this.#handleFocusOut, false);
-        this.addEventListener('keydown', this.#handleKeydown, false);
+        if (this.closest('.fds-main-menu .main-menu-inner')) {
+            this.addEventListener('focusout', this.#handleFocusOut, false);
+            this.addEventListener('keydown', this.#handleKeydown, false);
+        }
     }
 
     #removeEventListeners() {
         this.querySelector(':scope > .dropdown-button')?.removeEventListener('click', this.#handleClick);
-        this.removeEventListener('focusout', this.#handleFocusOut, false);
-        this.removeEventListener('keydown', this.#handleKeydown, false);
+        if (this.closest('.fds-main-menu .main-menu-inner')) {
+            this.removeEventListener('focusout', this.#handleFocusOut, false);
+            this.removeEventListener('keydown', this.#handleKeydown, false);
+        }
     }
 
     // #endregion
