@@ -88,3 +88,8 @@ fds-drawer .fds-main-menu,
         padding-left: 0;
     }
 }
+
+fds-solution-info + .fds-main-menu,
+.fds-solution-info + .fds-main-menu {
+    border-top: 1px solid #bfbfbf;
+}

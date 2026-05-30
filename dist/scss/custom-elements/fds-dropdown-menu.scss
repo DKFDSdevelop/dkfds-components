@@ -91,6 +91,10 @@ fds-dropdown-menu,
                     padding-right: 0 !important;
                 }
 
+                &:has([aria-current="page"]) {
+                    background-color: #f5f5f5;
+                }
+
                 & > a {
                     padding: 8px 16px;
                     white-space: normal;
@@ -110,6 +114,15 @@ fds-dropdown-menu,
                         font-weight: 400;
                         padding-bottom: 0;
                     }
+
+                    &[aria-current="page"] span {
+                        font-weight: 700;
+                    }
+
+                    &:focus {
+                        position: relative;
+                        z-index: 2;
+                    }
                 }
             }
         }
@@ -122,6 +135,13 @@ fds-dropdown-menu,
 
         .chevron-up {
             display: none;
+        }
+    }
+
+    &:has([aria-current="page"]) {
+        & > .dropdown-button span {
+            border-bottom: 4px solid var(--color-primary);
+            font-weight: 700;
         }
     }
 }

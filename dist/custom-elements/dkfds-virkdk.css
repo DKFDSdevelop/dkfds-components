@@ -13108,6 +13108,10 @@ fds-dropdown-menu,
   content:"" !important;
   padding-right:0 !important;
 }
+.fds-main-menu > .main-menu-inner fds-dropdown-menu > .dropdown-menu > ul > li:has([aria-current=page]),
+.fds-main-menu > .main-menu-inner .fds-dropdown-menu > .dropdown-menu > ul > li:has([aria-current=page]){
+  background-color:#f5f5f5;
+}
 .fds-main-menu > .main-menu-inner fds-dropdown-menu > .dropdown-menu > ul > li > a,
 .fds-main-menu > .main-menu-inner .fds-dropdown-menu > .dropdown-menu > ul > li > a{
   padding:8px 16px;
@@ -13129,6 +13133,15 @@ fds-dropdown-menu,
   font-weight:400;
   padding-bottom:0;
 }
+.fds-main-menu > .main-menu-inner fds-dropdown-menu > .dropdown-menu > ul > li > a[aria-current=page] span,
+.fds-main-menu > .main-menu-inner .fds-dropdown-menu > .dropdown-menu > ul > li > a[aria-current=page] span{
+  font-weight:700;
+}
+.fds-main-menu > .main-menu-inner fds-dropdown-menu > .dropdown-menu > ul > li > a:focus,
+.fds-main-menu > .main-menu-inner .fds-dropdown-menu > .dropdown-menu > ul > li > a:focus{
+  position:relative;
+  z-index:2;
+}
 .fds-main-menu > .main-menu-inner fds-dropdown-menu[expanded=false] > .dropdown-button > span .chevron-down,
 .fds-main-menu > .main-menu-inner .fds-dropdown-menu[expanded=false] > .dropdown-button > span .chevron-down{
   display:inline-block;
@@ -13136,6 +13149,11 @@ fds-dropdown-menu,
 .fds-main-menu > .main-menu-inner fds-dropdown-menu[expanded=false] > .dropdown-button > span .chevron-up,
 .fds-main-menu > .main-menu-inner .fds-dropdown-menu[expanded=false] > .dropdown-button > span .chevron-up{
   display:none;
+}
+.fds-main-menu > .main-menu-inner fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span,
+.fds-main-menu > .main-menu-inner .fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span{
+  border-bottom:4px solid var(--color-primary);
+  font-weight:700;
 }
 
 .fds-main-menu{
@@ -13210,4 +13228,9 @@ fds-drawer .fds-main-menu > nav > ul,
   margin:0;
   list-style-type:none;
   padding-left:0;
+}
+
+fds-solution-info + .fds-main-menu,
+.fds-solution-info + .fds-main-menu{
+  border-top:1px solid #bfbfbf;
 }
