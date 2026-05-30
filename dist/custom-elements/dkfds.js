@@ -6364,10 +6364,11 @@ function registerSolutionInfo() {
 }
 /* harmony default export */ const fds_solution_info = (registerSolutionInfo);
 ;// ./src/js/custom-elements/dropdown-menu/fds-dropdown-menu.js
+
 class FDSDropdownMenu extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['attr'];
+  static observedAttributes = ['expanded'];
 
   // #endregion
 
@@ -6380,37 +6381,85 @@ class FDSDropdownMenu extends HTMLElement {
   // #region - Private event handlers ---------------------------------------------------------------------
 
   #handleClick = event => {
-    console.log('Click event:', event);
+    this.toggle();
   };
+  #handleFocusOut(event) {
+    if (!this.contains(event.relatedTarget)) {
+      this.close();
+    }
+  }
+  #handleKeydown(event) {
+    switch (event.key) {
+      case 'Escape':
+        this.close();
+        this.querySelector(':scope > .dropdown-button')?.focus();
+        break;
+    }
+  }
 
   // #endregion
 
   // #region - Private methods ----------------------------------------------------------------------------
 
   #setupHTML() {
-    // --- Button ---
-    let button = this.querySelector('button');
-    if (!button) {
-      button = document.createElement('button');
-      this.appendChild(button);
+    // Dropdown button
+    if (!this.querySelector(':scope > .dropdown-button')) {
+      this.querySelector(':scope > button')?.classList.add('dropdown-button');
     }
-    button.textContent = 'Click me';
+
+    // Dropdown button icon
+    if (!this.querySelector(':scope > .dropdown-button span svg')) {
+      const span = this.querySelector(':scope > .dropdown-button span');
+      const chevronDown = createSvgIcon('M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z');
+      chevronDown.classList.add('chevron-down');
+      span?.appendChild(chevronDown);
+      const chevronUp = createSvgIcon('M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z');
+      chevronUp.classList.add('chevron-up');
+      span?.appendChild(chevronUp);
+    }
+
+    // Dropdown menu
+    if (!this.querySelector(':scope > .dropdown-menu')) {
+      this.querySelector(':scope > div')?.classList.add('dropdown-menu');
+    }
+
+    // Expanded attribute on fds-dropdown-menu
+    if (!this.hasAttribute('expanded')) {
+      this.setAttribute('expanded', 'false');
+    }
+    this.#updateExpanded(this.getAttribute('expanded'));
+  }
+  #updateExpanded(value) {
+    const dropdownButton = this.querySelector(':scope > .dropdown-button');
+    const menu = this.querySelector(':scope > .dropdown-menu');
+    if (value === 'false') {
+      dropdownButton?.setAttribute('aria-expanded', 'false');
+      menu?.classList.add('collapsed');
+    } else {
+      dropdownButton?.setAttribute('aria-expanded', 'true');
+      menu?.classList.remove('collapsed');
+    }
   }
   #addEventListeners() {
-    this.addEventListener('click', this.#handleClick);
+    this.querySelector(':scope > .dropdown-button')?.addEventListener('click', this.#handleClick);
+    this.addEventListener('focusout', this.#handleFocusOut, false);
+    this.addEventListener('keydown', this.#handleKeydown, false);
   }
   #removeEventListeners() {
-    this.removeEventListener('click', this.#handleClick);
+    this.querySelector(':scope > .dropdown-button')?.removeEventListener('click', this.#handleClick);
+    this.removeEventListener('focusout', this.#handleFocusOut, false);
+    this.removeEventListener('keydown', this.#handleKeydown, false);
   }
 
   // #endregion
 
   // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
-  init() {
-    this.#setupHTML();
-    this.#addEventListeners();
-    this.#initialized = true;
+  toggle() {
+    this.getAttribute('expanded') === 'false' ? this.setAttribute('expanded', 'true') : this.setAttribute('expanded', 'false');
+  }
+  close() {
+    this.setAttribute('expanded', 'false');
   }
 
   // #endregion
@@ -6418,7 +6467,9 @@ class FDSDropdownMenu extends HTMLElement {
   // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
-    this.init();
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#initialized = true;
   }
 
   // #endregion
@@ -6438,8 +6489,8 @@ class FDSDropdownMenu extends HTMLElement {
     if (!this.#initialized) return;
     if (oldValue === newValue) return;
     switch (attribute) {
-      case 'attr':
-        console.log('attr changed to', newValue);
+      case 'expanded':
+        this.#updateExpanded(newValue);
         break;
     }
   }

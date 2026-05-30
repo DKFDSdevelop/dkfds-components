@@ -1,4 +1,127 @@
+@use "../variables" as vars;
+@use "../functions" as func;
+@use "../mixins" as mixins;
+
 fds-dropdown-menu,
 .fds-dropdown-menu {
     display: block;
+}
+
+.fds-main-menu > .main-menu-inner fds-dropdown-menu,
+.fds-main-menu > .main-menu-inner .fds-dropdown-menu {
+    & > .dropdown-button {
+        display: block;
+        padding: 16px 12px 0;
+        text-decoration: none;
+        background-color: #fff;
+        color: #1a1a1a;
+        border: 0;
+        line-height: 1.5;
+        cursor: pointer;
+        text-align: left;
+        white-space: nowrap;
+        max-width: unset;
+
+        &:focus {
+            position: relative;
+            z-index: 2;
+        }
+
+        &:hover {
+            span {
+                border-bottom: 4px solid var(--color-primary);
+            }
+        }
+
+        & > span {
+            display: flex;
+            align-items: center;
+            border-bottom: 4px solid rgba(0, 0, 0, 0);
+            padding-bottom: 12px;
+
+            .icon-svg {
+                margin-left: 4px;
+            }
+
+            .chevron-down {
+                display: none;
+            }
+
+            .chevron-up {
+                display: inline-block;
+            }
+        }
+    }
+
+    & > .dropdown-menu {
+        position: absolute;
+        z-index: 1;
+        top: 100%;
+        width: 30rem;
+        border: 1px solid #707070;
+        background-color: #fff;
+        margin-left: -4px;
+        box-shadow: 0 4px 12px 0 rgba(0, 0, 0, .2);
+
+        &.collapsed {
+            display: none;
+        }
+
+        & > ul {
+            margin: 0;
+            list-style-type: none;
+            padding-left: 0;
+            color: #1a1a1a;
+            font-size: 1.6rem;
+            line-height: 2.4rem;
+
+            & > li {
+                border-bottom: 1px solid #dcdcdc;
+                padding-left: 0;
+                padding-right: 0;
+                margin-bottom: 0;
+                margin-top: 0;
+
+                &:last-child {
+                    border-bottom: 0;
+                }
+
+                &::before {
+                    content: "" !important;
+                    padding-right: 0 !important;
+                }
+
+                & > a {
+                    padding: 8px 16px;
+                    white-space: normal;
+                    overflow-wrap: break-word;
+                    background-color: rgba(0, 0, 0, 0);
+                    display: block;
+                    text-decoration: none;
+                    color: #1a1a1a;
+                    border: 0;
+                    line-height: 1.5;
+                    cursor: pointer;
+                    text-align: left;
+                    max-width: unset;
+
+                    span {
+                        border-bottom: none;
+                        font-weight: 400;
+                        padding-bottom: 0;
+                    }
+                }
+            }
+        }
+    }
+
+    &[expanded="false"] > .dropdown-button > span {
+        .chevron-down {
+            display: inline-block;
+        }
+
+        .chevron-up {
+            display: none;
+        }
+    }
 }
