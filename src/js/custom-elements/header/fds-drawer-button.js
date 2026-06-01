@@ -2,6 +2,12 @@ import * as CE from '../custom-element-utils';
 
 class FDSDrawerButton extends HTMLElement {
 
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['drawer', 'button-text'];
+
+    // #endregion
+
     /* Private instance fields */
 
     #initialized = false;
@@ -38,12 +44,6 @@ class FDSDrawerButton extends HTMLElement {
 
         this.#initialized = true;
     }
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ATTRIBUTES (can invoke attributeChangedCallback())
-    -------------------------------------------------- */
-
-    static observedAttributes = ['drawer', 'button-text'];
 
     /* --------------------------------------------------
     CUSTOM ELEMENT ADDED TO DOCUMENT

@@ -60,6 +60,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerDatePickerGrid: () => (/* reexport */ fds_date_picker_grid),
   registerDrawer: () => (/* reexport */ fds_drawer),
   registerDrawerButton: () => (/* reexport */ fds_drawer_button),
+  registerDropdownMenu: () => (/* reexport */ fds_dropdown_menu),
   registerErrorMessage: () => (/* reexport */ fds_error_message),
   registerErrorSummary: () => (/* reexport */ fds_error_summary),
   registerFileItem: () => (/* reexport */ fds_file_item),
@@ -5862,6 +5863,12 @@ function registerDrawer() {
 ;// ./src/js/custom-elements/header/fds-drawer-button.js
 
 class FDSDrawerButton extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['drawer', 'button-text'];
+
+  // #endregion
+
   /* Private instance fields */
 
   #initialized = false;
@@ -5891,12 +5898,6 @@ class FDSDrawerButton extends HTMLElement {
     this.querySelector('button').addEventListener('click', this.#handleClick, false);
     this.#initialized = true;
   }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ATTRIBUTES (can invoke attributeChangedCallback())
-  -------------------------------------------------- */
-
-  static observedAttributes = ['drawer', 'button-text'];
 
   /* --------------------------------------------------
   CUSTOM ELEMENT ADDED TO DOCUMENT
@@ -6362,10 +6363,165 @@ function registerSolutionInfo() {
   }
 }
 /* harmony default export */ const fds_solution_info = (registerSolutionInfo);
+;// ./src/js/custom-elements/dropdown-menu/fds-dropdown-menu.js
+
+class FDSDropdownMenu extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['expanded'];
+
+  // #endregion
+
+  // #region - Private instance fields --------------------------------------------------------------------
+
+  #initialized = false;
+
+  // #endregion
+
+  // #region - Private event handlers ---------------------------------------------------------------------
+
+  #handleClick = event => {
+    this.toggle();
+  };
+  #handleFocusOut(event) {
+    if (!this.contains(event.relatedTarget)) {
+      this.close();
+    }
+  }
+  #handleKeydown(event) {
+    switch (event.key) {
+      case 'Escape':
+        this.close();
+        this.querySelector(':scope > .dropdown-button')?.focus();
+        break;
+    }
+  }
+
+  // #endregion
+
+  // #region - Private methods ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    // Dropdown button
+    if (!this.querySelector(':scope > .dropdown-button')) {
+      this.querySelector(':scope > button')?.classList.add('dropdown-button');
+    }
+
+    // Dropdown button icon
+    if (!this.querySelector(':scope > .dropdown-button span svg')) {
+      if (this.closest('fds-drawer .fds-main-menu')) {
+        const span = this.querySelector(':scope > .dropdown-button span');
+        const plus = createSvgIcon('M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z');
+        plus.classList.add('plus');
+        span?.appendChild(plus);
+        const minus = createSvgIcon('M200-440v-80h560v80H200Z');
+        minus.classList.add('minus');
+        span?.appendChild(minus);
+      } else if (this.closest('.fds-main-menu .main-menu-inner')) {
+        const span = this.querySelector(':scope > .dropdown-button span');
+        const chevronDown = createSvgIcon('M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z');
+        chevronDown.classList.add('chevron-down');
+        span?.appendChild(chevronDown);
+        const chevronUp = createSvgIcon('M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z');
+        chevronUp.classList.add('chevron-up');
+        span?.appendChild(chevronUp);
+      }
+    }
+
+    // Dropdown menu
+    if (!this.querySelector(':scope > .dropdown-menu')) {
+      this.querySelector(':scope > div')?.classList.add('dropdown-menu');
+    }
+
+    // Expanded attribute on fds-dropdown-menu
+    if (!this.hasAttribute('expanded')) {
+      this.setAttribute('expanded', 'false');
+    }
+    this.#updateExpanded(this.getAttribute('expanded'));
+  }
+  #updateExpanded(value) {
+    const dropdownButton = this.querySelector(':scope > .dropdown-button');
+    const menu = this.querySelector(':scope > .dropdown-menu');
+    if (value === 'false') {
+      dropdownButton?.setAttribute('aria-expanded', 'false');
+      menu?.classList.add('collapsed');
+    } else {
+      dropdownButton?.setAttribute('aria-expanded', 'true');
+      menu?.classList.remove('collapsed');
+    }
+  }
+  #addEventListeners() {
+    this.querySelector(':scope > .dropdown-button')?.addEventListener('click', this.#handleClick);
+    if (this.closest('.fds-main-menu .main-menu-inner')) {
+      this.addEventListener('focusout', this.#handleFocusOut, false);
+      this.addEventListener('keydown', this.#handleKeydown, false);
+    }
+  }
+  #removeEventListeners() {
+    this.querySelector(':scope > .dropdown-button')?.removeEventListener('click', this.#handleClick);
+    if (this.closest('.fds-main-menu .main-menu-inner')) {
+      this.removeEventListener('focusout', this.#handleFocusOut, false);
+      this.removeEventListener('keydown', this.#handleKeydown, false);
+    }
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  toggle() {
+    this.getAttribute('expanded') === 'false' ? this.setAttribute('expanded', 'true') : this.setAttribute('expanded', 'false');
+  }
+  close() {
+    this.setAttribute('expanded', 'false');
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'expanded':
+        this.#updateExpanded(newValue);
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerDropdownMenu() {
+  if (!customElements.get('fds-dropdown-menu')) {
+    customElements.define('fds-dropdown-menu', FDSDropdownMenu);
+  }
+}
+/* harmony default export */ const fds_dropdown_menu = (registerDropdownMenu);
 ;// ./src/js/new-dkfds.js
 
 
 // Custom elements
+
 
 
 
@@ -6413,6 +6569,7 @@ const registerCustomElements = () => {
   fds_drawer_button();
   fds_portal_info();
   fds_solution_info();
+  fds_dropdown_menu();
 };
 registerCustomElements();
 
