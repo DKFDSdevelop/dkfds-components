@@ -6445,9 +6445,11 @@ class FDSDropdownMenu extends HTMLElement {
     if (value === 'false') {
       dropdownButton?.setAttribute('aria-expanded', 'false');
       menu?.classList.add('collapsed');
+      this.dispatchEvent(new Event('fds-dropdown-menu-closed'));
     } else {
       dropdownButton?.setAttribute('aria-expanded', 'true');
       menu?.classList.remove('collapsed');
+      this.dispatchEvent(new Event('fds-dropdown-menu-opened'));
     }
   }
   #addEventListeners() {
@@ -6471,6 +6473,9 @@ class FDSDropdownMenu extends HTMLElement {
 
   toggle() {
     this.getAttribute('expanded') === 'false' ? this.setAttribute('expanded', 'true') : this.setAttribute('expanded', 'false');
+  }
+  open() {
+    this.setAttribute('expanded', 'true');
   }
   close() {
     this.setAttribute('expanded', 'false');
