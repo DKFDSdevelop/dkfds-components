@@ -1,6 +1,7 @@
 @use "../variables" as vars;
 @use "../functions" as func;
 @use "../mixins" as mixins;
+@use "../placeholder-selectors";
 
 .fds-main-menu {
     display: block;
@@ -36,38 +37,10 @@
                 }
 
                 & > a {
-                    display: block;
-                    padding: 16px 12px 0;
-                    text-decoration: none;
-                    background-color: #fff;
-                    color: #1a1a1a;
-                    border: 0;
-                    line-height: 1.5;
-                    cursor: pointer;
-                    text-align: left;
-                    white-space: nowrap;
-                    max-width: unset;
+                    @extend %main-menu-item;
 
-                    &:focus {
-                        position: relative;
-                        z-index: 2;
-                    }
-
-                    span {
-                        display: block;
-                        border-bottom: 4px solid rgba(0, 0, 0, 0);
-                        padding-bottom: 12px;
-                    }
-
-                    &[aria-current="page"] span {
-                        border-bottom: 4px solid var(--color-primary);
-                        font-weight: 700;
-                    }
-
-                    &:hover {
-                        span {
-                            border-bottom: 4px solid var(--color-primary);
-                        }
+                    &[aria-current="page"] {
+                        @extend %current-main-menu-item;
                     }
                 }
             }

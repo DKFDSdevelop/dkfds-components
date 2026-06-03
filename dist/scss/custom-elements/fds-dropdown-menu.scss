@@ -1,6 +1,7 @@
 @use "../variables" as vars;
 @use "../functions" as func;
 @use "../mixins" as mixins;
+@use "../placeholder-selectors";
 
 fds-dropdown-menu,
 .fds-dropdown-menu {
@@ -10,35 +11,9 @@ fds-dropdown-menu,
 .fds-main-menu > .main-menu-inner fds-dropdown-menu,
 .fds-main-menu > .main-menu-inner .fds-dropdown-menu {
     & > .dropdown-button {
-        display: block;
-        padding: 16px 12px 0;
-        text-decoration: none;
-        background-color: #fff;
-        color: #1a1a1a;
-        border: 0;
-        line-height: 1.5;
-        cursor: pointer;
-        text-align: left;
-        white-space: nowrap;
-        max-width: unset;
-
-        &:focus {
-            position: relative;
-            z-index: 2;
-        }
-
-        &:hover {
-            span {
-                border-bottom: 4px solid var(--color-primary);
-            }
-        }
+        @extend %main-menu-item;
 
         & > span {
-            display: flex;
-            align-items: center;
-            border-bottom: 4px solid rgba(0, 0, 0, 0);
-            padding-bottom: 12px;
-
             .icon-svg {
                 margin-left: 4px;
             }
@@ -51,6 +26,20 @@ fds-dropdown-menu,
                 display: inline-block;
             }
         }
+    }
+
+    &[expanded="false"] > .dropdown-button > span {
+        .chevron-down {
+            display: inline-block;
+        }
+
+        .chevron-up {
+            display: none;
+        }
+    }
+
+    &:has([aria-current="page"]) > .dropdown-button {
+        @extend %current-main-menu-item;
     }
 
     & > .dropdown-menu {
@@ -125,23 +114,6 @@ fds-dropdown-menu,
                     }
                 }
             }
-        }
-    }
-
-    &[expanded="false"] > .dropdown-button > span {
-        .chevron-down {
-            display: inline-block;
-        }
-
-        .chevron-up {
-            display: none;
-        }
-    }
-
-    &:has([aria-current="page"]) {
-        & > .dropdown-button span {
-            border-bottom: 4px solid var(--color-primary);
-            font-weight: 700;
         }
     }
 }
