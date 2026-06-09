@@ -3,6 +3,8 @@
 @use "../mixins" as mixins;
 @use "../placeholder-selectors";
 
+$-drawer-border-width: 8px;
+
 fds-main-menu,
 .fds-main-menu {
     display: block;
@@ -99,7 +101,7 @@ fds-drawer fds-main-menu,
             margin-bottom: 0;
             margin-top: 0;
             padding-left: 0;
-            background-color: #fff;
+            background-color: #ffffff;
 
             &::before {
                 content: "" !important;
@@ -130,6 +132,10 @@ fds-drawer fds-main-menu,
                     outline-offset: -3px;
                 }
 
+                &:hover {
+                    background-color: #f5f5f5;
+                }
+
                 .helptext {
                     color: #707070;
                     font-weight: 400;
@@ -154,16 +160,29 @@ fds-drawer fds-main-menu,
             border-top: 1px solid #dcdcdc;
 
             &:has([aria-current="page"]) {
-                border-left: 8px solid var(--color-primary);
+                border-left: $-drawer-border-width solid var(--color-primary);
 
                 .main-menu-item {
-                    margin-left: -8px;
-                    width: calc(100% + 8px);
+                    margin-left: -$-drawer-border-width;
+                    width: calc(100% + $-drawer-border-width);
 
                     .helptext {
                         color: #454545;
                         font-weight: 400;
                     }
+
+                    &:hover {
+                        border-left: $-drawer-border-width solid var(--color-primary); // Ensure the hover background color doesn't override the border
+                        padding-left: calc(24px - $-drawer-border-width);
+                    }
+                }
+
+                li .main-menu-item:hover {
+                    padding-left: calc(48px - $-drawer-border-width);
+                }
+
+                li li .main-menu-item:hover {
+                    padding-left: calc(72px - $-drawer-border-width);
                 }
 
                 button.main-menu-item,

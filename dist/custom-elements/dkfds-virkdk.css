@@ -13316,7 +13316,7 @@ fds-drawer fds-main-menu > nav > ul li,
   margin-bottom:0;
   margin-top:0;
   padding-left:0;
-  background-color:#fff;
+  background-color:#ffffff;
 }
 fds-drawer .fds-main-menu > nav > ul li::before,
 .fds-drawer .fds-main-menu > nav > ul li::before,
@@ -13353,6 +13353,12 @@ fds-drawer fds-main-menu > nav > ul li .main-menu-item:focus,
   position:relative;
   z-index:2;
   outline-offset:-3px;
+}
+fds-drawer .fds-main-menu > nav > ul li .main-menu-item:hover,
+.fds-drawer .fds-main-menu > nav > ul li .main-menu-item:hover,
+fds-drawer fds-main-menu > nav > ul li .main-menu-item:hover,
+.fds-drawer fds-main-menu > nav > ul li .main-menu-item:hover{
+  background-color:#f5f5f5;
 }
 fds-drawer .fds-main-menu > nav > ul li .main-menu-item .helptext,
 .fds-drawer .fds-main-menu > nav > ul li .main-menu-item .helptext,
@@ -13404,6 +13410,25 @@ fds-drawer fds-main-menu > nav > ul > li:has([aria-current=page]) .main-menu-ite
 .fds-drawer fds-main-menu > nav > ul > li:has([aria-current=page]) .main-menu-item .helptext{
   color:#454545;
   font-weight:400;
+}
+fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]) .main-menu-item:hover,
+.fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]) .main-menu-item:hover,
+fds-drawer fds-main-menu > nav > ul > li:has([aria-current=page]) .main-menu-item:hover,
+.fds-drawer fds-main-menu > nav > ul > li:has([aria-current=page]) .main-menu-item:hover{
+  border-left:8px solid var(--color-primary);
+  padding-left:16px;
+}
+fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]) li .main-menu-item:hover,
+.fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]) li .main-menu-item:hover,
+fds-drawer fds-main-menu > nav > ul > li:has([aria-current=page]) li .main-menu-item:hover,
+.fds-drawer fds-main-menu > nav > ul > li:has([aria-current=page]) li .main-menu-item:hover{
+  padding-left:40px;
+}
+fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]) li li .main-menu-item:hover,
+.fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]) li li .main-menu-item:hover,
+fds-drawer fds-main-menu > nav > ul > li:has([aria-current=page]) li li .main-menu-item:hover,
+.fds-drawer fds-main-menu > nav > ul > li:has([aria-current=page]) li li .main-menu-item:hover{
+  padding-left:64px;
 }
 fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]) button.main-menu-item,
 fds-drawer .fds-main-menu > nav > ul > li:has([aria-current=page]) [aria-current=page],

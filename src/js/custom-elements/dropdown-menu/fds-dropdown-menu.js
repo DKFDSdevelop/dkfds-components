@@ -85,11 +85,28 @@ class FDSDropdownMenu extends HTMLElement {
         if (value === 'false') {
             dropdownButton?.setAttribute('aria-expanded', 'false');
             menu?.classList.add('collapsed');
+            menu.removeAttribute('style');
             this.dispatchEvent(new Event('fds-dropdown-menu-closed'));
         }
         else {
             dropdownButton?.setAttribute('aria-expanded', 'true');
             menu?.classList.remove('collapsed');
+
+            /* Check if the dropdown is within the screen borders */
+
+            const rect = menu.getBoundingClientRect();
+            const viewportWidth = window.visualViewport?.width ?? document.documentElement.clientWidth;
+
+            if (menu.offsetWidth > viewportWidth) {
+                menu.style.maxWidth = `${viewportWidth}px`;
+            } else if (rect.left < 0) {
+                menu.style.left = '0px';
+            } else if (rect.left + menu.offsetWidth > viewportWidth) {
+                menu.style.right = '0px';
+            }
+
+            /* Dispatch event */
+
             this.dispatchEvent(new Event('fds-dropdown-menu-opened'));
         }
     }
