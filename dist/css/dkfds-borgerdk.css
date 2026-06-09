@@ -6621,6 +6621,7 @@ figure{
 .hide-base-svg{
   display:none;
 }
+
 .form-select, .form-input{
   appearance:none;
   display:block;
@@ -6634,6 +6635,7 @@ figure{
   outline:3px solid #454545;
   outline-offset:1px;
 }
+
 .form-group{
   margin-top:24px;
 }
@@ -9499,7 +9501,7 @@ body.mobile-nav-active{
   background-color:transparent;
 }
 .navigation-menu ul.mainmenu .overflow-menu-inner ul .nav-link span{
-  border-bottom:none;
+  border-bottom:0;
   font-weight:400;
   padding-bottom:0;
 }

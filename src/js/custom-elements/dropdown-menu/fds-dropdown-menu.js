@@ -47,7 +47,7 @@ class FDSDropdownMenu extends HTMLElement {
 
         // Dropdown button icon
         if (!this.querySelector(':scope > .dropdown-button span svg')) {
-            if (this.closest('fds-drawer .fds-main-menu')) {
+            if (this.closest('fds-drawer fds-main-menu')) {
                 const span = this.querySelector(':scope > .dropdown-button span');
                 const plus = CE.createSvgIcon('M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z');
                 plus.classList.add('plus');
@@ -56,7 +56,7 @@ class FDSDropdownMenu extends HTMLElement {
                 minus.classList.add('minus');
                 span?.appendChild(minus);
             }
-            else if (this.closest('.fds-main-menu .main-menu-inner')) {
+            else if (this.closest('fds-main-menu .main-menu-inner')) {
                 const span = this.querySelector(':scope > .dropdown-button span');
                 const chevronDown = CE.createSvgIcon('M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z');
                 chevronDown.classList.add('chevron-down');
@@ -96,7 +96,7 @@ class FDSDropdownMenu extends HTMLElement {
 
     #addEventListeners() {
         this.querySelector(':scope > .dropdown-button')?.addEventListener('click', this.#handleClick);
-        if (this.closest('.fds-main-menu .main-menu-inner')) {
+        if (this.closest('fds-main-menu .main-menu-inner')) {
             this.addEventListener('focusout', this.#handleFocusOut, false);
             this.addEventListener('keydown', this.#handleKeydown, false);
         }
@@ -104,7 +104,7 @@ class FDSDropdownMenu extends HTMLElement {
 
     #removeEventListeners() {
         this.querySelector(':scope > .dropdown-button')?.removeEventListener('click', this.#handleClick);
-        if (this.closest('.fds-main-menu .main-menu-inner')) {
+        if (this.closest('fds-main-menu .main-menu-inner')) {
             this.removeEventListener('focusout', this.#handleFocusOut, false);
             this.removeEventListener('keydown', this.#handleKeydown, false);
         }

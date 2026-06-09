@@ -67,6 +67,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerHelpText: () => (/* reexport */ fds_help_text),
   registerInput: () => (/* reexport */ fds_input),
   registerInputAffix: () => (/* reexport */ input_affix),
+  registerMainMenu: () => (/* reexport */ fds_main_menu),
   registerPortalInfo: () => (/* reexport */ fds_portal_info),
   registerRadioButton: () => (/* reexport */ fds_radio_button),
   registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
@@ -6409,7 +6410,7 @@ class FDSDropdownMenu extends HTMLElement {
 
     // Dropdown button icon
     if (!this.querySelector(':scope > .dropdown-button span svg')) {
-      if (this.closest('fds-drawer .fds-main-menu')) {
+      if (this.closest('fds-drawer fds-main-menu')) {
         const span = this.querySelector(':scope > .dropdown-button span');
         const plus = createSvgIcon('M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z');
         plus.classList.add('plus');
@@ -6417,7 +6418,7 @@ class FDSDropdownMenu extends HTMLElement {
         const minus = createSvgIcon('M200-440v-80h560v80H200Z');
         minus.classList.add('minus');
         span?.appendChild(minus);
-      } else if (this.closest('.fds-main-menu .main-menu-inner')) {
+      } else if (this.closest('fds-main-menu .main-menu-inner')) {
         const span = this.querySelector(':scope > .dropdown-button span');
         const chevronDown = createSvgIcon('M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z');
         chevronDown.classList.add('chevron-down');
@@ -6454,14 +6455,14 @@ class FDSDropdownMenu extends HTMLElement {
   }
   #addEventListeners() {
     this.querySelector(':scope > .dropdown-button')?.addEventListener('click', this.#handleClick);
-    if (this.closest('.fds-main-menu .main-menu-inner')) {
+    if (this.closest('fds-main-menu .main-menu-inner')) {
       this.addEventListener('focusout', this.#handleFocusOut, false);
       this.addEventListener('keydown', this.#handleKeydown, false);
     }
   }
   #removeEventListeners() {
     this.querySelector(':scope > .dropdown-button')?.removeEventListener('click', this.#handleClick);
-    if (this.closest('.fds-main-menu .main-menu-inner')) {
+    if (this.closest('fds-main-menu .main-menu-inner')) {
       this.removeEventListener('focusout', this.#handleFocusOut, false);
       this.removeEventListener('keydown', this.#handleKeydown, false);
     }
@@ -6522,10 +6523,89 @@ function registerDropdownMenu() {
   }
 }
 /* harmony default export */ const fds_dropdown_menu = (registerDropdownMenu);
+;// ./src/js/custom-elements/header/fds-main-menu.js
+class FDSMainMenu extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['attr'];
+
+  // #endregion
+
+  // #region - Private instance fields --------------------------------------------------------------------
+
+  #initialized = false;
+
+  // #endregion
+
+  // #region - Private event handlers ---------------------------------------------------------------------
+
+  /* #handleClick = (event) => {
+      console.log('Click event:', event);
+  }; */
+
+  // #endregion
+
+  // #region - Private methods ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    const listItems = this.querySelectorAll('li > fds-dropdown-menu > button, li > a');
+    listItems.forEach(item => {
+      item.classList.add('main-menu-item');
+    });
+  }
+  #addEventListeners() {
+    //this.addEventListener('click', this.#handleClick);
+  }
+  #removeEventListeners() {
+    //this.removeEventListener('click', this.#handleClick);
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'attr':
+        console.log('attr changed to', newValue);
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerMainMenu() {
+  if (!customElements.get('fds-main-menu')) {
+    customElements.define('fds-main-menu', FDSMainMenu);
+  }
+}
+/* harmony default export */ const fds_main_menu = (registerMainMenu);
 ;// ./src/js/new-dkfds.js
 
 
 // Custom elements
+
 
 
 
@@ -6575,6 +6655,7 @@ const registerCustomElements = () => {
   fds_portal_info();
   fds_solution_info();
   fds_dropdown_menu();
+  fds_main_menu();
 };
 registerCustomElements();
 

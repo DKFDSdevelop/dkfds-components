@@ -9,22 +9,23 @@ fds-dropdown-menu,
 }
 
 .fds-main-menu > .main-menu-inner fds-dropdown-menu,
-.fds-main-menu > .main-menu-inner .fds-dropdown-menu {
-    & > .dropdown-button {
-        @extend %main-menu-item;
+.fds-main-menu > .main-menu-inner .fds-dropdown-menu,
+fds-main-menu > .main-menu-inner fds-dropdown-menu,
+fds-main-menu > .main-menu-inner .fds-dropdown-menu {
 
-        & > span {
-            .icon-svg {
-                margin-left: 4px;
-            }
+    // Styling of dropdown menu button is mostly handled by the main menu
 
-            .chevron-down {
-                display: none;
-            }
+    & > .dropdown-button > span {
+        .icon-svg {
+            margin-left: 4px;
+        }
 
-            .chevron-up {
-                display: inline-block;
-            }
+        .chevron-down {
+            display: none;
+        }
+
+        .chevron-up {
+            display: inline-block;
         }
     }
 
@@ -42,6 +43,8 @@ fds-dropdown-menu,
         @extend %current-main-menu-item;
     }
 
+    // Styling of items inside the dropdown menu
+    
     & > .dropdown-menu {
         position: absolute;
         z-index: 1;
@@ -99,7 +102,7 @@ fds-dropdown-menu,
                     max-width: unset;
 
                     span {
-                        border-bottom: none;
+                        border-bottom: 0;
                         font-weight: 400;
                         padding-bottom: 0;
                     }
@@ -112,6 +115,14 @@ fds-dropdown-menu,
                         position: relative;
                         z-index: 2;
                     }
+
+                    &:hover {
+                        background-color: #f5f5f5;
+
+                        span {
+                            border-bottom: 0;
+                        }
+                    }
                 }
             }
         }
@@ -119,11 +130,14 @@ fds-dropdown-menu,
 }
 
 fds-drawer .fds-main-menu fds-dropdown-menu,
-fds-drawer .fds-main-menu .fds-dropdown-menu {
+fds-drawer .fds-main-menu .fds-dropdown-menu,
+fds-drawer fds-main-menu fds-dropdown-menu,
+fds-drawer fds-main-menu .fds-dropdown-menu {
     & > .dropdown-button {
 
         & > span {
             display: inline-flex;
+            align-items: center;
             width: 100%;
             overflow-wrap: break-word;
 
@@ -137,6 +151,9 @@ fds-drawer .fds-main-menu .fds-dropdown-menu {
 
             .icon-svg {
                 margin-left: auto;
+                min-width: 2.8rem;
+                min-height: 2.4rem;
+                transform: translateX(0.2rem);
             }
         }
     }
