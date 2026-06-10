@@ -39,7 +39,7 @@ fds-main-menu,
                     padding-right: 0 !important;
                 }
 
-                .main-menu-item {
+                [data-menu-item] {
                     display: block;
                     padding: 16px 12px 0;
                     text-decoration: none;
@@ -75,7 +75,7 @@ fds-main-menu,
                     }
                 }
 
-                ul li .main-menu-item[aria-current="page"] span {
+                ul li [data-menu-item][aria-current="page"] span {
                     border-bottom: 0; // Don't add the bottom border to submenus in the main menu
                 }
             }
@@ -108,7 +108,7 @@ fds-drawer fds-main-menu,
                 padding-right: 0 !important;
             }
 
-            .main-menu-item {
+            [data-menu-item] {
                 padding-top: 16px;
                 padding-bottom: 16px;
                 padding-right: 24px;
@@ -143,15 +143,15 @@ fds-drawer fds-main-menu,
 
             }
 
-            li .main-menu-item {
+            li [data-menu-item] {
                 padding-left: 48px;
             }
 
-            li li .main-menu-item {
+            li li [data-menu-item] {
                 padding-left: 72px;
             }
 
-            &:has(> .main-menu-item[aria-current="page"]) {
+            &:has(> [data-menu-item][aria-current="page"]) {
                 background-color: #f5f5f5;
             }
         }
@@ -162,7 +162,7 @@ fds-drawer fds-main-menu,
             &:has([aria-current="page"]) {
                 border-left: $-drawer-border-width solid var(--color-primary);
 
-                .main-menu-item {
+                [data-menu-item] {
                     margin-left: -$-drawer-border-width;
                     width: calc(100% + $-drawer-border-width);
 
@@ -177,15 +177,15 @@ fds-drawer fds-main-menu,
                     }
                 }
 
-                li .main-menu-item:hover {
+                li [data-menu-item]:hover {
                     padding-left: calc(48px - $-drawer-border-width);
                 }
 
-                li li .main-menu-item:hover {
+                li li [data-menu-item]:hover {
                     padding-left: calc(72px - $-drawer-border-width);
                 }
 
-                button.main-menu-item,
+                button[data-menu-item],
                 [aria-current="page"] {
                     font-weight: 700;
                 }

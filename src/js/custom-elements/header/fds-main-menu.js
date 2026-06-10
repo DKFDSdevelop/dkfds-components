@@ -25,7 +25,7 @@ class FDSMainMenu extends HTMLElement {
     #setupHTML() {
         const listItems = this.querySelectorAll('li > fds-dropdown-menu > button, li > a');
         listItems.forEach(item => {
-            item.classList.add('main-menu-item');
+            item.dataset.menuItem = '';
         });
     }
 
