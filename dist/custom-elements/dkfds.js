@@ -6376,6 +6376,11 @@ class FDSDropdownMenu extends HTMLElement {
   // #region - Private instance fields --------------------------------------------------------------------
 
   #initialized = false;
+  #plusIcon = 'M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z';
+  #minusIcon = 'M200-440v-80h560v80H200Z';
+  #chevronDownIcon = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
+  #chevronUpIcon = 'M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z';
+  #moreVertIcon = 'M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z';
 
   // #endregion
 
@@ -6410,23 +6415,22 @@ class FDSDropdownMenu extends HTMLElement {
 
     // Dropdown button icon
     if (!this.querySelector(':scope > .dropdown-button span svg')) {
+      let collapsedIcon = this.#moreVertIcon;
+      let expandedIcon = this.#moreVertIcon;
       if (this.closest('fds-drawer fds-main-menu')) {
-        const span = this.querySelector(':scope > .dropdown-button span');
-        const plus = createSvgIcon('M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z');
-        plus.classList.add('plus');
-        span?.appendChild(plus);
-        const minus = createSvgIcon('M200-440v-80h560v80H200Z');
-        minus.classList.add('minus');
-        span?.appendChild(minus);
-      } else if (this.closest('fds-main-menu .main-menu-inner')) {
-        const span = this.querySelector(':scope > .dropdown-button span');
-        const chevronDown = createSvgIcon('M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z');
-        chevronDown.classList.add('chevron-down');
-        span?.appendChild(chevronDown);
-        const chevronUp = createSvgIcon('M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z');
-        chevronUp.classList.add('chevron-up');
-        span?.appendChild(chevronUp);
+        collapsedIcon = this.#plusIcon;
+        expandedIcon = this.#minusIcon;
+      } else if (this.closest('fds-main-menu .main-menu-inner li:not(.more-button)')) {
+        collapsedIcon = this.#chevronDownIcon;
+        expandedIcon = this.#chevronUpIcon;
       }
+      const span = this.querySelector(':scope > .dropdown-button span');
+      const collapsed = createSvgIcon(collapsedIcon);
+      collapsed.classList.add('collapsed-icon');
+      span?.appendChild(collapsed);
+      const expanded = createSvgIcon(expandedIcon);
+      expanded.classList.add('expanded-icon');
+      span?.appendChild(expanded);
     }
 
     // Dropdown menu
