@@ -1483,9 +1483,7 @@ h6 a:focus, .h6 a, .h6 a:hover, .h6 a:visited, .h6 a:focus{
   text-decoration:underline;
 }
 
-p,
-ul:not(.accordion):not(.accordion-bordered):not(.nav-primary):not(.mainmenu):not(.inline-list):not(.tabnav):not(.tab-list):not(.sidenav-list):not(.sidenav-sub_list):not(.sidemenu):not(.function-link-wrapper):not(.no-max-width):not(.overflow-list),
-ol:not(.accordion):not(.accordion-bordered):not(.sidenav-list):not(.sidemenu):not(.step-indicator):not(.no-max-width){
+p, .paragraph{
   max-width:66ch;
 }
 
@@ -13294,6 +13292,10 @@ fds-main-menu > .main-menu-inner > nav > ul > li [data-menu-item]:hover span,
 fds-main-menu > .main-menu-inner > nav > ul > li ul li [data-menu-item][aria-current=page] span,
 .fds-main-menu > .main-menu-inner > nav > ul > li ul li [data-menu-item][aria-current=page] span{
   border-bottom:0;
+}
+fds-main-menu > .main-menu-inner .search,
+.fds-main-menu > .main-menu-inner .search{
+  flex:0 0 auto;
 }
 
 fds-drawer .fds-main-menu > nav > ul,

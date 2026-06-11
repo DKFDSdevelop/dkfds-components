@@ -76,9 +76,13 @@ fds-main-menu,
                 }
 
                 ul li [data-menu-item][aria-current="page"] span {
-                    border-bottom: 0; // Don't add the bottom border to submenus in the main menu
+                    border-bottom: 0; // Don't add the colored "current page" bottom border to submenus in the main menu
                 }
             }
+        }
+
+        .search {
+            flex: 0 0 auto;
         }
     }
 }
