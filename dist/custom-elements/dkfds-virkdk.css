@@ -11211,10 +11211,10 @@ fds-textarea textarea:focus,
 }
 
 fds-main-menu > .main-menu-inner > nav > ul > li [data-menu-item][aria-current=page] span,
-.fds-main-menu > .main-menu-inner > nav > ul > li [data-menu-item][aria-current=page] span, .fds-main-menu > .main-menu-inner fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span,
-.fds-main-menu > .main-menu-inner .fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span,
-fds-main-menu > .main-menu-inner fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span,
-fds-main-menu > .main-menu-inner .fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span{
+.fds-main-menu > .main-menu-inner > nav > ul > li [data-menu-item][aria-current=page] span, .fds-main-menu > .main-menu-inner li:not(.more-button) fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span,
+.fds-main-menu > .main-menu-inner li:not(.more-button) .fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span,
+fds-main-menu > .main-menu-inner li:not(.more-button) fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span,
+fds-main-menu > .main-menu-inner li:not(.more-button) .fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span{
   border-bottom:4px solid var(--color-primary);
   font-weight:700;
 }
@@ -13031,6 +13031,12 @@ fds-drawer .fds-solution-info:last-child,
 fds-dropdown-menu,
 .fds-dropdown-menu{
   display:block;
+}
+fds-dropdown-menu > .dropdown-button > span,
+.fds-dropdown-menu > .dropdown-button > span{
+  display:flex;
+  flex-wrap:nowrap;
+  align-items:center;
 }
 
 .fds-main-menu > .main-menu-inner fds-dropdown-menu > .dropdown-button > span .icon-svg,

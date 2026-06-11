@@ -32,6 +32,7 @@ class FDSMainMenu extends HTMLElement {
         const moreMenuButtonSpan = document.createElement('span');
         moreMenuButtonSpan.textContent = 'Mere';
         const moreMenuButton = document.createElement('button');
+        moreMenuButton.setAttribute('data-menu-item', '');
         moreMenuButton.appendChild(moreMenuButtonSpan);
 
         const moreMenuDropdownList = document.createElement('ul');
@@ -75,14 +76,15 @@ class FDSMainMenu extends HTMLElement {
 
     // The main menu may contain other elements than <nav> such as search - get the space available to show main menu items
     #getAvailableSpace() {
-        let usedWidth = 0;
+        const MAIN_MENU_INNER_PADDING_RIGHT = 16;
+        let usedWidth = MAIN_MENU_INNER_PADDING_RIGHT;
 
         const otherMainMenuElements = this.querySelectorAll('.main-menu-inner > *:not(nav)');
         otherMainMenuElements.forEach(el => {
-            usedWidth += el.getBoundingClientRect().width;
+            usedWidth += Math.ceil(el.getBoundingClientRect().width);
         });
 
-        const totalSpace = this.querySelector('.main-menu-inner')?.getBoundingClientRect().width;
+        const totalSpace = Math.floor(this.querySelector('.main-menu-inner')?.getBoundingClientRect().width);
 
         return totalSpace - usedWidth;
     }
@@ -92,7 +94,7 @@ class FDSMainMenu extends HTMLElement {
         const isHidden = listItem.hasAttribute('data-hidden');
 
         if (isHidden) { listItem.removeAttribute('data-hidden'); }
-        const width = listItem.getBoundingClientRect().width;
+        const width = Math.ceil(listItem.getBoundingClientRect().width);
         if (isHidden) { listItem.setAttribute('data-hidden', ''); }
 
         return width;
@@ -103,12 +105,20 @@ class FDSMainMenu extends HTMLElement {
         const availableSpace = this.#getAvailableSpace();
         const listItems = [...this.querySelectorAll('.main-menu-inner > nav > ul > li:not(.more-button)')];
 
+        let totalListWidth = 0;
+        listItems.forEach(item => totalListWidth += this.#getListItemWidth(item));
+
+        // All items fit without the more button
+        if (totalListWidth <= availableSpace) return listItems.length;
+
+        // Not all items fit, recalculate with more button width included
+        const moreButtonWidth = this.#getListItemWidth(this.querySelector('.more-button'));
         let totalWidth = 0;
         let count = 0;
 
         for (const item of listItems) {
             totalWidth += this.#getListItemWidth(item);
-            if (totalWidth >= availableSpace) break;
+            if (totalWidth + moreButtonWidth >= availableSpace) break;
             count++;
         }
 
@@ -128,7 +138,7 @@ class FDSMainMenu extends HTMLElement {
 
         this.querySelector('.more-button').toggleAttribute('data-hidden', listItems.length === maxVisibleListItems);
 
-        const moreMenuDropdownMenu = this.querySelector('.main-menu-inner li.more-button > fds-dropdown-menu > div > ul');
+        const moreMenuDropdownMenu = this.querySelector('.main-menu-inner li.more-button > fds-dropdown-menu > .dropdown-menu > ul');
 
         moreMenuDropdownMenu.innerHTML = '';
 

@@ -6,6 +6,12 @@
 fds-dropdown-menu,
 .fds-dropdown-menu {
     display: block;
+
+    & > .dropdown-button > span {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+    }
 }
 
 .fds-main-menu > .main-menu-inner fds-dropdown-menu,
@@ -37,10 +43,6 @@ fds-main-menu > .main-menu-inner .fds-dropdown-menu {
         .expanded-icon {
             display: none;
         }
-    }
-
-    &:has([aria-current="page"]) > .dropdown-button {
-        @extend %current-main-menu-item;
     }
 
     // Styling of items inside the dropdown menu
@@ -126,6 +128,15 @@ fds-main-menu > .main-menu-inner .fds-dropdown-menu {
                 }
             }
         }
+    }
+}
+
+.fds-main-menu > .main-menu-inner li:not(.more-button) fds-dropdown-menu,
+.fds-main-menu > .main-menu-inner li:not(.more-button) .fds-dropdown-menu,
+fds-main-menu > .main-menu-inner li:not(.more-button) fds-dropdown-menu,
+fds-main-menu > .main-menu-inner li:not(.more-button) .fds-dropdown-menu {
+    &:has([aria-current="page"]) > .dropdown-button {
+        @extend %current-main-menu-item;
     }
 }
 
