@@ -9,6 +9,10 @@ fds-main-menu,
 .fds-main-menu {
     display: block;
 
+    [data-hidden] {
+        display: none !important;
+    }
+
     & > .main-menu-inner {
         padding-left: 16px;
         padding-right: 16px;

@@ -1,11 +1,5 @@
 class FDSMainMenu extends HTMLElement {
 
-    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
-
-    static observedAttributes = ['attr'];
-
-    // #endregion
-
     // #region - Private instance fields --------------------------------------------------------------------
 
     #initialized = false;
@@ -26,7 +20,7 @@ class FDSMainMenu extends HTMLElement {
     #setupHTML() {
         const listItems = this.querySelectorAll('li > fds-dropdown-menu > button, li > a');
         listItems.forEach(item => {
-            item.dataset.menuItem = '';
+            item.setAttribute('data-menu-item', '');
         });
 
         // More menu
@@ -50,7 +44,8 @@ class FDSMainMenu extends HTMLElement {
         moreMenu.appendChild(moreMenuDropdown);
 
         const moreMenuListItem = document.createElement('li');
-        moreMenuListItem.classList.add('more-button', 'd-none');
+        moreMenuListItem.classList.add('more-button');
+        moreMenuListItem.setAttribute('data-hidden', '');
         moreMenuListItem.appendChild(moreMenu);
 
         const mainMenu = this.querySelector('.main-menu-inner > nav > ul');
@@ -94,11 +89,11 @@ class FDSMainMenu extends HTMLElement {
 
     // List items may be hidden in the main menu - get the length of a <li> regardless of visibility
     #getListItemWidth(listItem) {
-        const isHidden = listItem.classList.contains('d-none');
+        const isHidden = listItem.hasAttribute('data-hidden');
 
-        if (isHidden) { listItem.classList.remove('d-none'); }
+        if (isHidden) { listItem.removeAttribute('data-hidden'); }
         const width = listItem.getBoundingClientRect().width;
-        if (isHidden) { listItem.classList.add('d-none'); }
+        if (isHidden) { listItem.setAttribute('data-hidden', ''); }
 
         return width;
     };
@@ -131,9 +126,7 @@ class FDSMainMenu extends HTMLElement {
         const listItems = this.querySelectorAll('.main-menu-inner > nav > ul > li:not(.more-button)');
         const maxVisibleListItems = this.#maxVisibleListItems();
 
-        console.log('maxVisibleListItems', maxVisibleListItems);
-
-        this.querySelector('.more-button').classList.toggle('d-none', listItems.length === maxVisibleListItems);
+        this.querySelector('.more-button').toggleAttribute('data-hidden', listItems.length === maxVisibleListItems);
 
         const moreMenuDropdownMenu = this.querySelector('.main-menu-inner li.more-button > fds-dropdown-menu > div > ul');
 
@@ -141,13 +134,13 @@ class FDSMainMenu extends HTMLElement {
 
         listItems.forEach((item, index) => {
             if (index < maxVisibleListItems) {
-                item.classList.remove('d-none');
+                item.removeAttribute('data-hidden');
             }
             else {
-                item.classList.add('d-none');
+                item.setAttribute('data-hidden', '');
 
                 const clone = item.cloneNode(true);
-                clone.classList.remove('d-none');
+                clone.removeAttribute('data-hidden');
                 moreMenuDropdownMenu.appendChild(clone);
             }
         });
@@ -170,21 +163,6 @@ class FDSMainMenu extends HTMLElement {
     disconnectedCallback() {
         this.#removeEventListeners();
         this.#initialized = false;
-    }
-
-    // #endregion
-
-    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
-
-    attributeChangedCallback(attribute, oldValue, newValue) {
-        if (!this.#initialized) return;
-        if (oldValue === newValue) return;
-
-        switch (attribute) {
-            case 'attr':
-                console.log('attr changed to', newValue);
-                break;
-        }
     }
 
     // #endregion

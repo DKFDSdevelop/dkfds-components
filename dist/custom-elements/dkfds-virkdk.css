@@ -13226,6 +13226,10 @@ fds-main-menu,
 .fds-main-menu{
   display:block;
 }
+fds-main-menu [data-hidden],
+.fds-main-menu [data-hidden]{
+  display:none !important;
+}
 fds-main-menu > .main-menu-inner,
 .fds-main-menu > .main-menu-inner{
   padding-left:16px;
