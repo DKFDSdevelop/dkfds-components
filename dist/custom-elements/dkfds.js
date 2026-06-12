@@ -6390,7 +6390,8 @@ class FDSDropdownMenu extends HTMLElement {
     this.toggle();
   };
   #handleFocusOut(event) {
-    if (!this.contains(event.relatedTarget)) {
+    const focusLeftDropdownMenu = !this.contains(event.relatedTarget);
+    if (focusLeftDropdownMenu) {
       this.close();
     }
   }
@@ -6402,6 +6403,11 @@ class FDSDropdownMenu extends HTMLElement {
         break;
     }
   }
+  #handleMenuItemClick = event => {
+    if (event.target.closest('[data-menu-item]')) {
+      this.close();
+    }
+  };
 
   // #endregion
 
@@ -6443,6 +6449,11 @@ class FDSDropdownMenu extends HTMLElement {
       this.setAttribute('expanded', 'false');
     }
     this.#updateExpanded(this.getAttribute('expanded'));
+
+    // If the overflow menu opens on top of content, ensure it doesn't close on misclick inside the opened menu
+    if (this.closest('fds-main-menu .main-menu-inner')) {
+      this.querySelector(':scope > .dropdown-menu').setAttribute('tabindex', '-1');
+    }
   }
   #updateExpanded(value) {
     const dropdownButton = this.querySelector(':scope > .dropdown-button');
@@ -6478,6 +6489,7 @@ class FDSDropdownMenu extends HTMLElement {
     if (this.closest('fds-main-menu .main-menu-inner')) {
       this.addEventListener('focusout', this.#handleFocusOut, false);
       this.addEventListener('keydown', this.#handleKeydown, false);
+      this.querySelector('.dropdown-menu').addEventListener('click', this.#handleMenuItemClick, false);
     }
   }
   #removeEventListeners() {
@@ -6485,6 +6497,7 @@ class FDSDropdownMenu extends HTMLElement {
     if (this.closest('fds-main-menu .main-menu-inner')) {
       this.removeEventListener('focusout', this.#handleFocusOut, false);
       this.removeEventListener('keydown', this.#handleKeydown, false);
+      this.querySelector('.dropdown-menu').removeEventListener('click', this.#handleMenuItemClick, false);
     }
   }
 

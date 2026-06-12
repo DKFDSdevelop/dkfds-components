@@ -26,7 +26,8 @@ class FDSDropdownMenu extends HTMLElement {
     };
 
     #handleFocusOut(event) {
-        if (!this.contains(event.relatedTarget)) {
+        const focusLeftDropdownMenu = !this.contains(event.relatedTarget);
+        if (focusLeftDropdownMenu) {
             this.close();
         }
     }
@@ -37,6 +38,12 @@ class FDSDropdownMenu extends HTMLElement {
                 this.close();
                 this.querySelector(':scope > .dropdown-button')?.focus();
                 break;
+        }
+    }
+
+    #handleMenuItemClick = (event) => {
+        if (event.target.closest('[data-menu-item]')) {
+            this.close();
         }
     }
 
@@ -81,6 +88,11 @@ class FDSDropdownMenu extends HTMLElement {
             this.setAttribute('expanded', 'false');
         }
         this.#updateExpanded(this.getAttribute('expanded'));
+
+        // If the overflow menu opens on top of content, ensure it doesn't close on misclick inside the opened menu
+        if (this.closest('fds-main-menu .main-menu-inner')) {
+            this.querySelector(':scope > .dropdown-menu').setAttribute('tabindex', '-1');
+        }
     }
 
     #updateExpanded(value) {
@@ -103,9 +115,11 @@ class FDSDropdownMenu extends HTMLElement {
 
             if (menu.offsetWidth > viewportWidth) {
                 menu.style.maxWidth = `${viewportWidth}px`;
-            } else if (rect.left < 0) {
+            } 
+            else if (rect.left < 0) {
                 menu.style.left = '0px';
-            } else if (rect.left + menu.offsetWidth > viewportWidth) {
+            } 
+            else if (rect.left + menu.offsetWidth > viewportWidth) {
                 menu.style.right = '0px';
             }
 
@@ -120,6 +134,7 @@ class FDSDropdownMenu extends HTMLElement {
         if (this.closest('fds-main-menu .main-menu-inner')) {
             this.addEventListener('focusout', this.#handleFocusOut, false);
             this.addEventListener('keydown', this.#handleKeydown, false);
+            this.querySelector('.dropdown-menu').addEventListener('click', this.#handleMenuItemClick, false);
         }
     }
 
@@ -128,6 +143,7 @@ class FDSDropdownMenu extends HTMLElement {
         if (this.closest('fds-main-menu .main-menu-inner')) {
             this.removeEventListener('focusout', this.#handleFocusOut, false);
             this.removeEventListener('keydown', this.#handleKeydown, false);
+            this.querySelector('.dropdown-menu').removeEventListener('click', this.#handleMenuItemClick, false);
         }
     }
 
