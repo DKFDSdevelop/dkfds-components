@@ -1412,9 +1412,7 @@ h6 a:focus, .h6 a, .h6 a:hover, .h6 a:visited, .h6 a:focus{
   text-decoration:underline;
 }
 
-p,
-ul:not(.accordion):not(.accordion-bordered):not(.nav-primary):not(.mainmenu):not(.inline-list):not(.tabnav):not(.tab-list):not(.sidenav-list):not(.sidenav-sub_list):not(.sidemenu):not(.function-link-wrapper):not(.no-max-width):not(.overflow-list),
-ol:not(.accordion):not(.accordion-bordered):not(.sidenav-list):not(.sidemenu):not(.step-indicator):not(.no-max-width){
+p, .paragraph{
   max-width:66ch;
 }
 
@@ -6621,6 +6619,7 @@ figure{
 .hide-base-svg{
   display:none;
 }
+
 .form-select, .form-input{
   appearance:none;
   display:block;
@@ -9500,7 +9499,7 @@ body.mobile-nav-active{
   background-color:transparent;
 }
 .navigation-menu ul.mainmenu .overflow-menu-inner ul .nav-link span{
-  border-bottom:none;
+  border-bottom:0;
   font-weight:400;
   padding-bottom:0;
 }

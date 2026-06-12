@@ -1,7 +1,7 @@
 @use "../functions" as func;
 @use "../mixins" as mixins;
 
-/* Placeholder selectors meant to be extended by other selectors */
+// Placeholder selectors meant to be extended by other selectors
 
 %basic-form-element {
     @include mixins.appearance-none;

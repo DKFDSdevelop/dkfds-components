@@ -117,7 +117,7 @@ fds-upload-file,
         border-bottom: 1px solid func.color('gray-300');
 
         &:last-child {
-            border-bottom: none;
+            border-bottom: 0;
         }
     }
 

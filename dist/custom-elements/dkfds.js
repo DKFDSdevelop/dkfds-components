@@ -67,6 +67,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerHelpText: () => (/* reexport */ fds_help_text),
   registerInput: () => (/* reexport */ fds_input),
   registerInputAffix: () => (/* reexport */ input_affix),
+  registerMainMenu: () => (/* reexport */ fds_main_menu),
   registerPortalInfo: () => (/* reexport */ fds_portal_info),
   registerRadioButton: () => (/* reexport */ fds_radio_button),
   registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
@@ -6375,6 +6376,11 @@ class FDSDropdownMenu extends HTMLElement {
   // #region - Private instance fields --------------------------------------------------------------------
 
   #initialized = false;
+  #plusIcon = 'M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z';
+  #minusIcon = 'M200-440v-80h560v80H200Z';
+  #chevronDownIcon = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
+  #chevronUpIcon = 'M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z';
+  #moreVertIcon = 'M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z';
 
   // #endregion
 
@@ -6384,7 +6390,8 @@ class FDSDropdownMenu extends HTMLElement {
     this.toggle();
   };
   #handleFocusOut(event) {
-    if (!this.contains(event.relatedTarget)) {
+    const focusLeftDropdownMenu = !this.contains(event.relatedTarget);
+    if (focusLeftDropdownMenu) {
       this.close();
     }
   }
@@ -6396,6 +6403,11 @@ class FDSDropdownMenu extends HTMLElement {
         break;
     }
   }
+  #handleMenuItemClick = event => {
+    if (event.target.closest('[data-menu-item]')) {
+      this.close();
+    }
+  };
 
   // #endregion
 
@@ -6409,23 +6421,22 @@ class FDSDropdownMenu extends HTMLElement {
 
     // Dropdown button icon
     if (!this.querySelector(':scope > .dropdown-button span svg')) {
-      if (this.closest('fds-drawer .fds-main-menu')) {
-        const span = this.querySelector(':scope > .dropdown-button span');
-        const plus = createSvgIcon('M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z');
-        plus.classList.add('plus');
-        span?.appendChild(plus);
-        const minus = createSvgIcon('M200-440v-80h560v80H200Z');
-        minus.classList.add('minus');
-        span?.appendChild(minus);
-      } else if (this.closest('.fds-main-menu .main-menu-inner')) {
-        const span = this.querySelector(':scope > .dropdown-button span');
-        const chevronDown = createSvgIcon('M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z');
-        chevronDown.classList.add('chevron-down');
-        span?.appendChild(chevronDown);
-        const chevronUp = createSvgIcon('M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z');
-        chevronUp.classList.add('chevron-up');
-        span?.appendChild(chevronUp);
+      let collapsedIcon = this.#moreVertIcon;
+      let expandedIcon = this.#moreVertIcon;
+      if (this.closest('fds-drawer fds-main-menu')) {
+        collapsedIcon = this.#plusIcon;
+        expandedIcon = this.#minusIcon;
+      } else if (this.closest('fds-main-menu .main-menu-inner li:not(.more-button)')) {
+        collapsedIcon = this.#chevronDownIcon;
+        expandedIcon = this.#chevronUpIcon;
       }
+      const span = this.querySelector(':scope > .dropdown-button span');
+      const collapsed = createSvgIcon(collapsedIcon);
+      collapsed.classList.add('collapsed-icon');
+      span?.appendChild(collapsed);
+      const expanded = createSvgIcon(expandedIcon);
+      expanded.classList.add('expanded-icon');
+      span?.appendChild(expanded);
     }
 
     // Dropdown menu
@@ -6438,6 +6449,11 @@ class FDSDropdownMenu extends HTMLElement {
       this.setAttribute('expanded', 'false');
     }
     this.#updateExpanded(this.getAttribute('expanded'));
+
+    // If the overflow menu opens on top of content, ensure it doesn't close on misclick inside the opened menu
+    if (this.closest('fds-main-menu .main-menu-inner')) {
+      this.querySelector(':scope > .dropdown-menu').setAttribute('tabindex', '-1');
+    }
   }
   #updateExpanded(value) {
     const dropdownButton = this.querySelector(':scope > .dropdown-button');
@@ -6445,23 +6461,43 @@ class FDSDropdownMenu extends HTMLElement {
     if (value === 'false') {
       dropdownButton?.setAttribute('aria-expanded', 'false');
       menu?.classList.add('collapsed');
+      menu.removeAttribute('style');
+      this.dispatchEvent(new Event('fds-dropdown-menu-closed'));
     } else {
       dropdownButton?.setAttribute('aria-expanded', 'true');
       menu?.classList.remove('collapsed');
+
+      /* Check if the dropdown is within the screen borders */
+
+      const rect = menu.getBoundingClientRect();
+      const viewportWidth = window.visualViewport?.width ?? document.documentElement.clientWidth;
+      if (menu.offsetWidth > viewportWidth) {
+        menu.style.maxWidth = `${viewportWidth}px`;
+      } else if (rect.left < 0) {
+        menu.style.left = '0px';
+      } else if (rect.left + menu.offsetWidth > viewportWidth) {
+        menu.style.right = '0px';
+      }
+
+      /* Dispatch event */
+
+      this.dispatchEvent(new Event('fds-dropdown-menu-opened'));
     }
   }
   #addEventListeners() {
     this.querySelector(':scope > .dropdown-button')?.addEventListener('click', this.#handleClick);
-    if (this.closest('.fds-main-menu .main-menu-inner')) {
+    if (this.closest('fds-main-menu .main-menu-inner')) {
       this.addEventListener('focusout', this.#handleFocusOut, false);
       this.addEventListener('keydown', this.#handleKeydown, false);
+      this.querySelector('.dropdown-menu').addEventListener('click', this.#handleMenuItemClick, false);
     }
   }
   #removeEventListeners() {
     this.querySelector(':scope > .dropdown-button')?.removeEventListener('click', this.#handleClick);
-    if (this.closest('.fds-main-menu .main-menu-inner')) {
+    if (this.closest('fds-main-menu .main-menu-inner')) {
       this.removeEventListener('focusout', this.#handleFocusOut, false);
       this.removeEventListener('keydown', this.#handleKeydown, false);
+      this.querySelector('.dropdown-menu').removeEventListener('click', this.#handleMenuItemClick, false);
     }
   }
 
@@ -6471,6 +6507,9 @@ class FDSDropdownMenu extends HTMLElement {
 
   toggle() {
     this.getAttribute('expanded') === 'false' ? this.setAttribute('expanded', 'true') : this.setAttribute('expanded', 'false');
+  }
+  open() {
+    this.setAttribute('expanded', 'true');
   }
   close() {
     this.setAttribute('expanded', 'false');
@@ -6517,10 +6556,193 @@ function registerDropdownMenu() {
   }
 }
 /* harmony default export */ const fds_dropdown_menu = (registerDropdownMenu);
+;// ./src/js/custom-elements/header/fds-main-menu.js
+class FDSMainMenu extends HTMLElement {
+  // #region - Private instance fields --------------------------------------------------------------------
+
+  #initialized = false;
+  #resizeObserver = null;
+
+  // #endregion
+
+  // #region - Private event handlers ---------------------------------------------------------------------
+
+  #handleRebuildMoreMenu = () => {
+    this.rebuildMoreMenu();
+  };
+
+  // #endregion
+
+  // #region - Private methods ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    const listItems = this.querySelectorAll('li > fds-dropdown-menu > button, li > a');
+    listItems.forEach(item => {
+      item.setAttribute('data-menu-item', '');
+    });
+
+    // More menu
+
+    const isDesktopMainMenu = this.querySelector('.main-menu-inner');
+    if (!isDesktopMainMenu) return;
+    const moreMenuButtonSpan = document.createElement('span');
+    moreMenuButtonSpan.textContent = 'Mere';
+    const moreMenuButton = document.createElement('button');
+    moreMenuButton.setAttribute('data-menu-item', '');
+    moreMenuButton.appendChild(moreMenuButtonSpan);
+    const moreMenuDropdownList = document.createElement('ul');
+    const moreMenuDropdown = document.createElement('div');
+    moreMenuDropdown.appendChild(moreMenuDropdownList);
+    const moreMenu = document.createElement('fds-dropdown-menu');
+    moreMenu.setAttribute('expanded', 'false');
+    moreMenu.appendChild(moreMenuButton);
+    moreMenu.appendChild(moreMenuDropdown);
+    const moreMenuListItem = document.createElement('li');
+    moreMenuListItem.classList.add('more-button');
+    moreMenuListItem.setAttribute('data-hidden', '');
+    moreMenuListItem.appendChild(moreMenu);
+    const mainMenu = this.querySelector('.main-menu-inner > nav > ul');
+    mainMenu?.appendChild(moreMenuListItem);
+  }
+  #addEventListeners() {
+    const isDesktopMainMenu = this.querySelector('.main-menu-inner');
+    if (!isDesktopMainMenu) return;
+    window.addEventListener('load', this.#handleRebuildMoreMenu, {
+      once: true
+    });
+    if (this.#resizeObserver) return;
+    this.#resizeObserver = new ResizeObserver(this.#handleRebuildMoreMenu);
+    this.#resizeObserver.observe(this);
+  }
+  #removeEventListeners() {
+    if (this.#resizeObserver) {
+      this.#resizeObserver.disconnect();
+      this.#resizeObserver = null;
+    }
+  }
+
+  /* More menu helper functions */
+
+  // The main menu may contain other elements than <nav> such as search - get the space available to show main menu items
+  #getAvailableSpace() {
+    const MAIN_MENU_INNER_PADDING_RIGHT = 16;
+    let usedWidth = MAIN_MENU_INNER_PADDING_RIGHT;
+    const otherMainMenuElements = this.querySelectorAll('.main-menu-inner > *:not(nav)');
+    otherMainMenuElements.forEach(el => {
+      usedWidth += Math.ceil(el.getBoundingClientRect().width);
+    });
+    const totalSpace = Math.floor(this.querySelector('.main-menu-inner')?.getBoundingClientRect().width);
+    return totalSpace - usedWidth;
+  }
+
+  // List items may be hidden in the main menu - get the length of a <li> regardless of visibility
+  #getListItemWidth(listItem) {
+    const isHidden = listItem.hasAttribute('data-hidden');
+    if (isHidden) {
+      listItem.removeAttribute('data-hidden');
+    }
+    const width = Math.ceil(listItem.getBoundingClientRect().width);
+    if (isHidden) {
+      listItem.setAttribute('data-hidden', '');
+    }
+    return width;
+  }
+  // Get the number of list items that can be displayed before a more menu should appear
+  #maxVisibleListItems() {
+    const availableSpace = this.#getAvailableSpace();
+    const listItems = [...this.querySelectorAll('.main-menu-inner > nav > ul > li:not(.more-button)')];
+    let totalListWidth = 0;
+    listItems.forEach(item => totalListWidth += this.#getListItemWidth(item));
+
+    // All items fit without the more button
+    if (totalListWidth <= availableSpace) return listItems.length;
+
+    // Not all items fit, recalculate with more button width included
+    const moreButtonWidth = this.#getListItemWidth(this.querySelector('.more-button'));
+    let totalWidth = 0;
+    let count = 0;
+    for (const item of listItems) {
+      totalWidth += this.#getListItemWidth(item);
+      if (totalWidth + moreButtonWidth >= availableSpace) break;
+      count++;
+    }
+    return count;
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  rebuildMoreMenu() {
+    if (document.readyState !== 'complete') return;
+    if (!this.querySelector('.more-button')) return;
+    const listItems = this.querySelectorAll('.main-menu-inner > nav > ul > li:not(.more-button)');
+    const maxVisibleListItems = this.#maxVisibleListItems();
+    this.querySelector('.more-button').toggleAttribute('data-hidden', listItems.length === maxVisibleListItems);
+    const moreMenuDropdownMenu = this.querySelector('.main-menu-inner li.more-button > fds-dropdown-menu > .dropdown-menu > ul');
+    moreMenuDropdownMenu.innerHTML = '';
+    listItems.forEach((item, index) => {
+      if (index < maxVisibleListItems) {
+        item.removeAttribute('data-hidden');
+      } else {
+        item.setAttribute('data-hidden', '');
+        if (item.querySelector('fds-dropdown-menu')) {
+          const customListItem = document.createElement('li');
+          moreMenuDropdownMenu.appendChild(customListItem);
+          const subTitle = document.createElement('span');
+          subTitle.classList.add('sub-title');
+          subTitle.setAttribute('aria-hidden', 'true');
+          subTitle.textContent = item.querySelector('fds-dropdown-menu > .dropdown-button > span').textContent;
+          customListItem.appendChild(subTitle);
+          const customUnorderedList = document.createElement('ul');
+          customUnorderedList.setAttribute('aria-label', subTitle.textContent);
+          customListItem.appendChild(customUnorderedList);
+          const dropdownListItems = item.querySelectorAll('fds-dropdown-menu > .dropdown-menu > ul > li');
+          dropdownListItems.forEach(dropdownItem => {
+            const clone = dropdownItem.cloneNode(true);
+            customUnorderedList.appendChild(clone);
+          });
+        } else {
+          const clone = item.cloneNode(true);
+          clone.removeAttribute('data-hidden');
+          moreMenuDropdownMenu.appendChild(clone);
+        }
+      }
+    });
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+  }
+
+  // #endregion
+}
+function registerMainMenu() {
+  if (!customElements.get('fds-main-menu')) {
+    customElements.define('fds-main-menu', FDSMainMenu);
+  }
+}
+/* harmony default export */ const fds_main_menu = (registerMainMenu);
 ;// ./src/js/new-dkfds.js
 
 
 // Custom elements
+
 
 
 
@@ -6570,6 +6792,7 @@ const registerCustomElements = () => {
   fds_portal_info();
   fds_solution_info();
   fds_dropdown_menu();
+  fds_main_menu();
 };
 registerCustomElements();
 
