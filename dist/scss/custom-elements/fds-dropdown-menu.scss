@@ -14,129 +14,190 @@ fds-dropdown-menu,
     }
 }
 
-.fds-main-menu > .main-menu-inner fds-dropdown-menu,
-.fds-main-menu > .main-menu-inner .fds-dropdown-menu,
-fds-main-menu > .main-menu-inner fds-dropdown-menu,
-fds-main-menu > .main-menu-inner .fds-dropdown-menu {
+fds-main-menu,
+.fds-main-menu {
+    & > .main-menu-inner li {
 
-    // Styling of dropdown menu button is mostly handled by the main menu
+        fds-dropdown-menu,
+        .fds-dropdown-menu {
 
-    & > .dropdown-button > span {
-        .icon-svg {
-            margin-left: 4px;
-        }
-
-        .collapsed-icon {
-            display: none;
-        }
-
-        .expanded-icon {
-            display: inline-block;
-        }
-    }
-
-    &[expanded="false"] > .dropdown-button > span {
-        .collapsed-icon {
-            display: inline-block;
-        }
-
-        .expanded-icon {
-            display: none;
-        }
-    }
-
-    // Styling of items inside the dropdown menu
-    
-    & > .dropdown-menu {
-        position: absolute;
-        z-index: 1;
-        top: 100%;
-        width: 30rem;
-        border: 1px solid #707070;
-        background-color: #fff;
-        margin-left: -4px;
-        box-shadow: 0 4px 12px 0 rgba(0, 0, 0, .2);
-
-        &.collapsed {
-            display: none;
-        }
-
-        & > ul {
-            margin: 0;
-            list-style-type: none;
-            padding-left: 0;
-            color: #1a1a1a;
-            font-size: 1.6rem;
-            line-height: 2.4rem;
-
-            & > li {
-                border-bottom: 1px solid #dcdcdc;
-                padding-left: 0;
-                padding-right: 0;
-                margin-bottom: 0;
-                margin-top: 0;
-
-                &:last-child {
-                    border-bottom: 0;
+            & > .dropdown-button > span {
+                .icon-svg {
+                    margin-left: 4px;
                 }
 
-                &::before {
-                    content: "" !important;
-                    padding-right: 0 !important;
+                .collapsed-icon {
+                    display: none;
                 }
 
-                &:has([aria-current="page"]) {
-                    background-color: #f5f5f5;
+                .expanded-icon {
+                    display: inline-block;
+                }
+            }
+
+            &[expanded="false"] > .dropdown-button > span {
+                .collapsed-icon {
+                    display: inline-block;
                 }
 
-                & > a {
-                    padding: 8px 16px;
-                    white-space: normal;
-                    overflow-wrap: break-word;
-                    background-color: rgba(0, 0, 0, 0);
-                    display: block;
-                    text-decoration: none;
+                .expanded-icon {
+                    display: none;
+                }
+            }
+
+            // Styling of items inside the dropdown menu
+
+            & > .dropdown-menu {
+                position: absolute;
+                z-index: 1;
+                top: 100%;
+                width: 30rem;
+                border: 1px solid #707070;
+                background-color: #fff;
+                margin-left: -4px;
+                box-shadow: 0 4px 12px 0 rgba(0, 0, 0, .2);
+
+                &.collapsed {
+                    display: none;
+                }
+
+                & > ul {
+                    margin: 0;
+                    list-style-type: none;
+                    padding-left: 0;
                     color: #1a1a1a;
-                    border: 0;
-                    line-height: 1.5;
-                    cursor: pointer;
-                    text-align: left;
-                    max-width: unset;
+                    font-size: 1.6rem;
+                    line-height: 2.4rem;
 
-                    span {
-                        border-bottom: 0;
-                        font-weight: 400;
-                        padding-bottom: 0;
-                    }
+                    & > li {
+                        border-bottom: 1px solid #dcdcdc;
+                        padding-left: 0;
+                        padding-right: 0;
+                        margin-bottom: 0;
+                        margin-top: 0;
 
-                    &[aria-current="page"] span {
-                        font-weight: 700;
-                    }
-
-                    &:focus {
-                        position: relative;
-                        z-index: 2;
-                    }
-
-                    &:hover {
-                        background-color: #f5f5f5;
-
-                        span {
+                        &:last-child {
                             border-bottom: 0;
+                        }
+
+                        &::before {
+                            content: "" !important;
+                            padding-right: 0 !important;
+                        }
+
+                        &:has(> [aria-current="page"]) {
+                            background-color: #f5f5f5;
+                        }
+
+                        &:has([aria-current="page"]) {
+                            border-left: 4px solid var(--color-primary);
+
+                            [data-menu-item] {
+                                margin-left: -4px;
+
+                                &:hover {
+                                    border-left: 4px solid var(--color-primary);
+                                    padding-left: 12px;
+                                }
+                            }
+
+                            li [data-menu-item]:hover {
+                                padding-left: 36px;
+                            }
+                        }
+
+                        [data-menu-item] {
+                            padding: 8px 16px;
+                            white-space: normal;
+                            overflow-wrap: break-word;
+                            background-color: rgba(0, 0, 0, 0);
+                            display: block;
+                            text-decoration: none;
+                            color: #1a1a1a;
+                            border: 0;
+                            line-height: 1.5;
+                            cursor: pointer;
+                            text-align: left;
+                            max-width: unset;
+
+                            span {
+                                border-bottom: 0;
+                                font-weight: 400;
+                                padding-bottom: 0;
+                            }
+
+                            &[aria-current="page"] span {
+                                font-weight: 700;
+                            }
+
+                            &:focus {
+                                position: relative;
+                                z-index: 2;
+                            }
+
+                            &:hover {
+                                background-color: #f5f5f5;
+
+                                span {
+                                    border-bottom: 0;
+                                }
+                            }
+                        }
+
+                        // The main menu can contain a "more menu" which is a special case of the dropdown menu,
+                        // where additional elements and lists may be nested.
+
+                        .sub-title {
+                            font-weight: 500;
+                            font-size: 1.4rem;
+                            line-height: calc(20 / 14);
+                            color: #707070;
+                            border-bottom: 0;
+                            padding-left: 16px;
+                            padding-right: 16px;
+                            padding-top: 12px;
+                            display: inline-block;
+                        }
+
+                        & > ul {
+                            list-style-type: none;
+
+                            & > li {
+                                margin: 0;
+                                padding: 0;
+
+                                &::before {
+                                    content: "" !important;
+                                    padding-right: 0 !important;
+                                }
+
+                                &:has(> [aria-current="page"]) {
+                                    background-color: #f5f5f5;
+                                }
+
+                                &:last-child [data-menu-item] {
+                                    padding-bottom: 16px;
+                                }
+
+                                [data-menu-item] {
+                                    padding-left: 40px;
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-    }
-}
 
-.fds-main-menu > .main-menu-inner li:not(.more-button) fds-dropdown-menu,
-.fds-main-menu > .main-menu-inner li:not(.more-button) .fds-dropdown-menu,
-fds-main-menu > .main-menu-inner li:not(.more-button) fds-dropdown-menu,
-fds-main-menu > .main-menu-inner li:not(.more-button) .fds-dropdown-menu {
-    &:has([aria-current="page"]) > .dropdown-button {
-        @extend %current-main-menu-item;
+        &:not(.more-button) {
+
+            & > fds-dropdown-menu,
+            & > .fds-dropdown-menu {
+                &:has([aria-current="page"]) > .dropdown-button {
+                    @extend %current-main-menu-item;
+                }
+            }
+        }
     }
 }
 

@@ -6686,9 +6686,27 @@ class FDSMainMenu extends HTMLElement {
         item.removeAttribute('data-hidden');
       } else {
         item.setAttribute('data-hidden', '');
-        const clone = item.cloneNode(true);
-        clone.removeAttribute('data-hidden');
-        moreMenuDropdownMenu.appendChild(clone);
+        if (item.querySelector('fds-dropdown-menu')) {
+          const customListItem = document.createElement('li');
+          moreMenuDropdownMenu.appendChild(customListItem);
+          const subTitle = document.createElement('span');
+          subTitle.classList.add('sub-title');
+          subTitle.setAttribute('aria-hidden', 'true');
+          subTitle.textContent = item.querySelector('fds-dropdown-menu > .dropdown-button > span').textContent;
+          customListItem.appendChild(subTitle);
+          const customUnorderedList = document.createElement('ul');
+          customUnorderedList.setAttribute('aria-label', subTitle.textContent);
+          customListItem.appendChild(customUnorderedList);
+          const dropdownListItems = item.querySelectorAll('fds-dropdown-menu > .dropdown-menu > ul > li');
+          dropdownListItems.forEach(dropdownItem => {
+            const clone = dropdownItem.cloneNode(true);
+            customUnorderedList.appendChild(clone);
+          });
+        } else {
+          const clone = item.cloneNode(true);
+          clone.removeAttribute('data-hidden');
+          moreMenuDropdownMenu.appendChild(clone);
+        }
       }
     });
   }
