@@ -5,6 +5,13 @@
 
 :root{
   --header-portal-background-color:#f1f1f1;
+  --color-gray-100:#F5F5F5;
+  --color-gray-200:#DCDCDC;
+  --color-gray-300:#BFBFBF;
+  --color-gray-400:#8E8E8E;
+  --color-gray-500:#707070;
+  --color-gray-600:#454545;
+  --color-gray-900:#1a1a1a;
 }
 
 @font-face{
@@ -1541,6 +1548,49 @@ p, .paragraph{
 
 .lowercase{
   text-transform:lowercase;
+}
+
+fds-textarea textarea,
+.fds-textarea textarea, fds-date-picker input,
+.fds-date-picker input, fds-select select,
+.fds-select select, fds-date-input input,
+.fds-date-input input, fds-input input,
+.fds-input input{
+  appearance:none;
+  display:block;
+  border-radius:8px;
+  width:100%;
+  max-width:32rem;
+  margin-top:8px;
+  text-align:left;
+}
+fds-textarea textarea:focus,
+.fds-textarea textarea:focus, fds-date-picker input:focus,
+.fds-date-picker input:focus, fds-select select:focus,
+.fds-select select:focus, fds-date-input input:focus,
+.fds-date-input input:focus, fds-input input:focus,
+.fds-input input:focus, fds-textarea textarea.focus,
+.fds-textarea textarea.focus, fds-date-picker input.focus,
+.fds-date-picker input.focus, fds-select select.focus,
+.fds-select select.focus, fds-date-input input.focus,
+.fds-date-input input.focus, fds-input input.focus,
+.fds-input input.focus{
+  outline:3px solid #454545;
+  outline-offset:1px;
+}
+
+fieldset[disabled] legend,
+.disabled-label{
+  color:var(--color-gray-500);
+  font-weight:500;
+}
+
+fds-main-menu > .main-menu-inner > nav > ul > li [data-menu-item][aria-current=page] span,
+.fds-main-menu > .main-menu-inner > nav > ul > li [data-menu-item][aria-current=page] span, fds-main-menu > .main-menu-inner li:not(.more-button) > fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span, fds-main-menu > .main-menu-inner li:not(.more-button) > .fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span,
+.fds-main-menu > .main-menu-inner li:not(.more-button) > fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span,
+.fds-main-menu > .main-menu-inner li:not(.more-button) > .fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span{
+  border-bottom:4px solid var(--color-primary);
+  font-weight:700;
 }
 
 .embed-container{
@@ -11182,43 +11232,6 @@ fds-accordion-group button.bulk-button.close,
   background-image:url("../img/svg-icons/minus.svg");
 }
 
-fds-textarea textarea,
-.fds-textarea textarea, fds-date-picker input,
-.fds-date-picker input, fds-select select,
-.fds-select select, fds-date-input input,
-.fds-date-input input, fds-input input,
-.fds-input input{
-  appearance:none;
-  display:block;
-  border-radius:8px;
-  width:100%;
-  max-width:32rem;
-  margin-top:8px;
-  text-align:left;
-}
-fds-textarea textarea:focus,
-.fds-textarea textarea:focus, fds-date-picker input:focus,
-.fds-date-picker input:focus, fds-select select:focus,
-.fds-select select:focus, fds-date-input input:focus,
-.fds-date-input input:focus, fds-input input:focus,
-.fds-input input:focus, fds-textarea textarea.focus,
-.fds-textarea textarea.focus, fds-date-picker input.focus,
-.fds-date-picker input.focus, fds-select select.focus,
-.fds-select select.focus, fds-date-input input.focus,
-.fds-date-input input.focus, fds-input input.focus,
-.fds-input input.focus{
-  outline:3px solid #454545;
-  outline-offset:1px;
-}
-
-fds-main-menu > .main-menu-inner > nav > ul > li [data-menu-item][aria-current=page] span,
-.fds-main-menu > .main-menu-inner > nav > ul > li [data-menu-item][aria-current=page] span, fds-main-menu > .main-menu-inner li:not(.more-button) > fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span, fds-main-menu > .main-menu-inner li:not(.more-button) > .fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span,
-.fds-main-menu > .main-menu-inner li:not(.more-button) > fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span,
-.fds-main-menu > .main-menu-inner li:not(.more-button) > .fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span{
-  border-bottom:4px solid var(--color-primary);
-  font-weight:700;
-}
-
 fds-input,
 .fds-input{
   display:block;
@@ -11543,10 +11556,6 @@ fds-checkbox-group:first-child,
 .fds-checkbox-group:first-child{
   margin-top:0;
 }
-fds-checkbox-group > ::slotted(*) + ::slotted(fds-checkbox),
-.fds-checkbox-group > ::slotted(*) + ::slotted(fds-checkbox){
-  margin-top:8px;
-}
 fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) fds-checkbox .form-checkbox + label::before,
 fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) fds-checkbox .form-checkbox:checked + label::before,
 fds-checkbox-group:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden=false]) fds-checkbox .form-checkbox[aria-checked=mixed] + label::before,
@@ -11600,6 +11609,20 @@ fds-radio-button fds-help-text,
 fds-radio-button .form-radio + label,
 .fds-radio-button .form-radio + label{
   max-width:66ch;
+}
+fds-radio-button input[type=radio],
+.fds-radio-button input[type=radio]{
+  position:absolute;
+  left:0;
+  top:0;
+  box-sizing:border-box;
+  cursor:pointer;
+  z-index:1;
+  margin:0;
+  opacity:0;
+  height:24px;
+  width:24px;
+  margin-top:calc(1.2rem - 12px + 4px);
 }
 fds-radio-button input[type=radio] + label,
 .fds-radio-button input[type=radio] + label{
@@ -11741,10 +11764,6 @@ fds-radio-button-group,
 fds-radio-button-group:first-child,
 .fds-radio-button-group:first-child{
   margin-top:0;
-}
-fds-radio-button-group > ::slotted(*) + ::slotted(fds-radio-button),
-.fds-radio-button-group > ::slotted(*) + ::slotted(fds-radio-button){
-  margin-top:8px;
 }
 fds-radio-button-group:has(fieldset > fds-error-message:not([hidden]), fds-error-message[hidden=false]) fds-radio-button .form-radio + label::before,
 fds-radio-button-group:has(fieldset > fds-error-message:not([hidden]), fds-error-message[hidden=false]) fds-radio-button .form-radio:checked + label::before,

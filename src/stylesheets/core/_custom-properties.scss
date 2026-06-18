@@ -4,4 +4,12 @@
 
 :root {
     --header-portal-background-color: #{func.color(vars.$header-portal-background-color)};
+
+    --color-gray-100: #F5F5F5;
+    --color-gray-200: #DCDCDC;
+    --color-gray-300: #BFBFBF;
+    --color-gray-400: #8E8E8E;
+    --color-gray-500: #707070;
+    --color-gray-600: #454545;
+    --color-gray-900: #1a1a1a;
 }

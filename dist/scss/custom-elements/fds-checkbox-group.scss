@@ -13,11 +13,6 @@ fds-checkbox-group,
         margin-top: 0;
     }
 
-    // Spacing for direct children inside the group.
-    &> ::slotted(*)+ ::slotted(fds-checkbox) {
-        margin-top: $button-distance;
-    }
-
     &:has(fieldset > fds-error-message:not([hidden]), fieldset > fds-error-message[hidden="false"]),
     &:has(fieldset > .fds-error-message:not([hidden]), fieldset > .fds-error-message[hidden="false"]) {
 

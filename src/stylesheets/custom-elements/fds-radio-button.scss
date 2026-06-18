@@ -26,6 +26,20 @@ fds-radio-button,
         max-width: vars.$typography-text-max-width;
     }
 
+    input[type="radio"] {
+        position: absolute;
+        left: 0;
+        top: 0;
+        box-sizing: border-box;
+        cursor: pointer;
+        z-index: 1;
+        margin: 0;
+        opacity: 0;
+        height: 24px;
+        width: 24px;
+        margin-top: calc(1.2rem - 12px + 4px);
+    }
+
     // Checkbox label/text
     input[type="radio"] + label {
         cursor: pointer;

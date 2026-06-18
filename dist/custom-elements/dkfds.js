@@ -1948,8 +1948,6 @@ class FDSRadioButtonGroup extends HTMLElement {
 
   #initialized = false;
   #radioButtonGroupObserver = null;
-  #fieldset;
-  #legend;
 
   // #endregion
 
@@ -1976,10 +1974,6 @@ class FDSRadioButtonGroup extends HTMLElement {
       const relevantTagNames = ['FIELDSET', 'LEGEND', 'FDS-HELP-TEXT', 'FDS-ERROR-MESSAGE'];
       const allNodes = [...addedNodes, ...removedNodes];
       if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
-        this.#fieldset = this.#getFieldsetElement();
-        this.#legend = this.#getLegendElement();
-        this.#setClasses();
-        this.#setDisabledClass();
         this.#updateAccessibilityState();
         break;
       }
@@ -2016,14 +2010,6 @@ class FDSRadioButtonGroup extends HTMLElement {
     const helpTexts = this.#getGroupHelpTexts();
     setAriaDescribedBy(fieldset, errorMessages, helpTexts);
   }
-  #setClasses() {
-    this.#legend?.classList.add('form-label');
-  }
-  #setDisabledClass() {
-    const fieldset = this.#getFieldsetElement();
-    if (!fieldset) return;
-    fieldset.classList.toggle('disabled', fieldset.hasAttribute('disabled'));
-  }
   #addEventListeners() {
     this.addEventListener('radio-changed', this.#handleRadioChange);
     if (this.#radioButtonGroupObserver) return;
@@ -2043,10 +2029,6 @@ class FDSRadioButtonGroup extends HTMLElement {
   // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
   init() {
-    this.#fieldset = this.#getFieldsetElement();
-    this.#legend = this.#getLegendElement();
-    this.#setClasses();
-    this.#setDisabledClass();
     this.#updateAccessibilityState();
     this.#addEventListeners();
     this.#initialized = true;
