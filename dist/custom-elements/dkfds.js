@@ -1943,35 +1943,29 @@ function registerRadioButton() {
 /* harmony default export */ const fds_radio_button = (registerRadioButton);
 ;// ./src/js/custom-elements/radio-button/fds-radio-button-group.js
 
-
-
 class FDSRadioButtonGroup extends HTMLElement {
-  /* Private instance fields */
+  // #region - Private instance fields --------------------------------------------------------------------
 
   #initialized = false;
   #radioButtonGroupObserver = null;
   #fieldset;
   #legend;
 
-  /* Private methods */
+  // #endregion
 
-  #getFieldsetElement() {
-    return this.querySelector('fieldset');
-  }
-  #getLegendElement() {
-    return this.querySelector(':scope > fieldset > legend');
-  }
-  #getGroupHelpTexts() {
-    return this.querySelectorAll(':scope > fieldset > fds-help-text');
-  }
-  #getErrorMessages() {
-    return this.querySelectorAll(':scope > fieldset > fds-error-message');
-  }
-  #setupObserver() {
-    if (this.#radioButtonGroupObserver) return;
-    this.#radioButtonGroupObserver = new MutationObserver(this.#handleMutations);
-    this.#radioButtonGroupObserver.observe(this, mutationObserverConfig);
-  }
+  // #region - Private event handlers ---------------------------------------------------------------------
+
+  #handleRadioChange = event => {
+    const changedRadioButton = event.target.closest('fds-radio-button');
+    if (event.detail.checked) {
+      const allRadios = this.querySelectorAll('fds-radio-button');
+      allRadios.forEach(radio => {
+        if (radio !== changedRadioButton) {
+          radio.collapseContent?.();
+        }
+      });
+    }
+  };
   #handleMutations = records => {
     for (const {
       attributeName,
@@ -1999,6 +1993,23 @@ class FDSRadioButtonGroup extends HTMLElement {
       }
     }
   };
+
+  // #endregion
+
+  // #region - Private methods ----------------------------------------------------------------------------
+
+  #getFieldsetElement() {
+    return this.querySelector('fieldset');
+  }
+  #getLegendElement() {
+    return this.querySelector(':scope > fieldset > legend');
+  }
+  #getGroupHelpTexts() {
+    return this.querySelectorAll(':scope > fieldset > fds-help-text');
+  }
+  #getErrorMessages() {
+    return this.querySelectorAll(':scope > fieldset > fds-error-message');
+  }
   #updateAccessibilityState() {
     const fieldset = this.#getFieldsetElement();
     const errorMessages = this.#getErrorMessages();
@@ -2013,21 +2024,23 @@ class FDSRadioButtonGroup extends HTMLElement {
     if (!fieldset) return;
     fieldset.classList.toggle('disabled', fieldset.hasAttribute('disabled'));
   }
-  #handleRadioChange = event => {
-    const changedRadioButton = event.target.closest('fds-radio-button');
-    if (event.detail.checked) {
-      const allRadios = this.querySelectorAll('fds-radio-button');
-      allRadios.forEach(radio => {
-        if (radio !== changedRadioButton) {
-          radio.collapseContent?.();
-        }
-      });
+  #addEventListeners() {
+    this.addEventListener('radio-changed', this.#handleRadioChange);
+    if (this.#radioButtonGroupObserver) return;
+    this.#radioButtonGroupObserver = new MutationObserver(this.#handleMutations);
+    this.#radioButtonGroupObserver.observe(this, mutationObserverConfig);
+  }
+  #removeEventListeners() {
+    this.removeEventListener('radio-changed', this.#handleRadioChange);
+    if (this.#radioButtonGroupObserver) {
+      this.#radioButtonGroupObserver.disconnect();
+      this.#radioButtonGroupObserver = null;
     }
-  };
+  }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
   init() {
     this.#fieldset = this.#getFieldsetElement();
@@ -2035,15 +2048,13 @@ class FDSRadioButtonGroup extends HTMLElement {
     this.#setClasses();
     this.#setDisabledClass();
     this.#updateAccessibilityState();
-    this.removeEventListener('radio-changed', this.#handleRadioChange);
-    this.addEventListener('radio-changed', this.#handleRadioChange);
-    this.#setupObserver();
+    this.#addEventListeners();
     this.#initialized = true;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (!this.#initialized) {
@@ -2051,19 +2062,17 @@ class FDSRadioButtonGroup extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     notifySummaryOnDisconnect(this);
-    this.removeEventListener('radio-changed', this.#handleRadioChange);
+    this.#removeEventListeners();
     this.#initialized = false;
-    if (this.#radioButtonGroupObserver) {
-      this.#radioButtonGroupObserver.disconnect();
-      this.#radioButtonGroupObserver = null;
-    }
   }
+
+  // #endregion
 }
 function registerRadioButtonGroup() {
   if (customElements.get('fds-radio-button-group') === undefined) {
