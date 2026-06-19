@@ -2,14 +2,14 @@ import * as CE from '../custom-element-utils';
 
 class FDSRadioButtonGroup extends HTMLElement {
 
-    // #region - Private instance fields --------------------------------------------------------------------
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
-    #radioButtonGroupObserver = null;
+    #mutationObserver = null;
 
     // #endregion
 
-    // #region - Private event handlers ---------------------------------------------------------------------
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleRadioChange = (event) => {
         const changedRadioButton = event.target.closest('fds-radio-button');
@@ -26,34 +26,21 @@ class FDSRadioButtonGroup extends HTMLElement {
 
     #handleMutations = (records) => {
         for (const { attributeName, target, addedNodes, removedNodes } of records) {
-            const relevantTagNames = [
-                'FIELDSET',
-                'LEGEND',
-                'FDS-HELP-TEXT',
-                'FDS-ERROR-MESSAGE'
-            ];
+            const relevantTagNames = ['FIELDSET', 'LEGEND', 'FDS-HELP-TEXT', 'FDS-ERROR-MESSAGE'];
 
             const allNodes = [...addedNodes, ...removedNodes];
-
             if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
-                this.#updateAccessibilityState();
+                this.#updateAriaDescribedBy();
                 break;
             }
 
             if (
-                attributeName === 'disabled' &&
-                target === this.#getFieldsetElement()
-            ) {
-                target.classList.toggle('disabled', target.hasAttribute('disabled'));
-            }
-
-            else if (
                 attributeName === 'id' ||
                 attributeName === 'hidden' ||
                 attributeName === 'aria-hidden' ||
                 (attributeName === 'class' && !['LEGEND', 'FIELDSET'].includes(target?.tagName))
             ) {
-                this.#updateAccessibilityState();
+                this.#updateAriaDescribedBy();
 
                 if (attributeName === 'hidden' && target === this) {
                     CE.notifySummaryOnVisibilityChange(this);
@@ -64,46 +51,34 @@ class FDSRadioButtonGroup extends HTMLElement {
 
     // #endregion
 
-    // #region - Private methods ----------------------------------------------------------------------------
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
-    #getFieldsetElement() {
-        return this.querySelector('fieldset');
-    }
-
-    #getLegendElement() {
-        return this.querySelector(':scope > fieldset > legend');
-    }
-
-    #getGroupHelpTexts() {
-        return this.querySelectorAll(':scope > fieldset > fds-help-text');
-    }
-
-    #getErrorMessages() {
-        return this.querySelectorAll(':scope > fieldset > fds-error-message');
-    }
-
-    #updateAccessibilityState() {
-        const fieldset = this.#getFieldsetElement();
-        const errorMessages = this.#getErrorMessages();
-        const helpTexts = this.#getGroupHelpTexts();
+    #updateAriaDescribedBy() {
+        const fieldset = this.querySelector('fieldset');
+        const errorMessages = this.querySelectorAll(':scope > fieldset > fds-error-message');
+        const helpTexts = this.querySelectorAll(':scope > fieldset > fds-help-text');
 
         CE.setAriaDescribedBy(fieldset, errorMessages, helpTexts);
     }
 
-    #addEventListeners() {
+    #addEventListener() {
         this.addEventListener('radio-changed', this.#handleRadioChange);
-
-        if (this.#radioButtonGroupObserver) return;
-        this.#radioButtonGroupObserver = new MutationObserver(this.#handleMutations);
-        this.#radioButtonGroupObserver.observe(this, CE.mutationObserverConfig);
     }
 
-    #removeEventListeners() {
+    #removeEventListener() {
         this.removeEventListener('radio-changed', this.#handleRadioChange);
+    }
 
-        if (this.#radioButtonGroupObserver) {
-            this.#radioButtonGroupObserver.disconnect();
-            this.#radioButtonGroupObserver = null;
+    #connectMutationObserver(config = CE.mutationObserverConfig) {
+        if (this.#mutationObserver) return;
+        this.#mutationObserver = new MutationObserver(this.#handleMutations);
+        this.#mutationObserver.observe(this, config);
+    }
+
+    #disconnectMutationObserver() {
+        if (this.#mutationObserver) {
+            this.#mutationObserver.disconnect();
+            this.#mutationObserver = null;
         }
     }
 
@@ -112,10 +87,9 @@ class FDSRadioButtonGroup extends HTMLElement {
     // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
     init() {
-        this.#updateAccessibilityState();
-
-        this.#addEventListeners();
-
+        this.#updateAriaDescribedBy();
+        this.#addEventListener();
+        this.#connectMutationObserver();
         this.#initialized = true;
     }
 
@@ -133,7 +107,8 @@ class FDSRadioButtonGroup extends HTMLElement {
 
     disconnectedCallback() {
         CE.notifySummaryOnDisconnect(this);
-        this.#removeEventListeners();
+        this.#removeEventListener();
+        this.#disconnectMutationObserver();
         this.#initialized = false;
     }
 

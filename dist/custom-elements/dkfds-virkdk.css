@@ -1579,12 +1579,6 @@ fds-textarea textarea:focus,
   outline-offset:1px;
 }
 
-fieldset[disabled] legend,
-.disabled-label{
-  color:var(--color-gray-500);
-  font-weight:500;
-}
-
 fds-main-menu > .main-menu-inner > nav > ul > li [data-menu-item][aria-current=page] span,
 .fds-main-menu > .main-menu-inner > nav > ul > li [data-menu-item][aria-current=page] span, fds-main-menu > .main-menu-inner li:not(.more-button) > fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span, fds-main-menu > .main-menu-inner li:not(.more-button) > .fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span,
 .fds-main-menu > .main-menu-inner li:not(.more-button) > fds-dropdown-menu:has([aria-current=page]) > .dropdown-button span,
@@ -1626,6 +1620,23 @@ fieldset ul{
 
 fieldset + fieldset{
   margin-top:24px;
+}
+
+fieldset legend,
+.form-label{
+  font-size:1.6rem;
+  line-height:2.4rem;
+  font-weight:600;
+  color:#1a1a1a;
+  text-transform:none;
+  max-width:66ch;
+  display:inline-block;
+}
+
+fieldset[disabled] legend,
+.form-label.disabled{
+  color:var(--color-gray-500);
+  font-weight:500;
 }
 
 legend h1, legend .h1,

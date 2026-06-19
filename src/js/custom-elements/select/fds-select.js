@@ -2,19 +2,27 @@ import * as CE from '../custom-element-utils';
 
 class FDSSelect extends HTMLElement {
 
-    /* Private instance fields */
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['show-required-status'];
+
+    // #endregion
+
+    // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+    get showRequiredStatus() { return this.getAttribute('show-required-status'); }
+    set showRequiredStatus(value) { value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
-    #selectObserver = null;
+    #mutationObserver = null;
 
-    /* Private methods */
+    // #endregion
 
-    #setupObserver() {
-        if (this.#selectObserver) return;
-
-        this.#selectObserver = new MutationObserver(this.#handleMutations);
-        this.#selectObserver.observe(this, CE.mutationObserverConfig);
-    }
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleMutations = (records) => {
         for (const { attributeName, target, addedNodes, removedNodes } of records) {
@@ -23,16 +31,11 @@ class FDSSelect extends HTMLElement {
             const relevantTagNames = ['LABEL', 'SELECT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
             const allNodes = [...addedNodes, ...removedNodes];
             if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
-                const label = this.querySelector('label');
-                const select = this.querySelector('select');
-                const errorMessages = this.querySelectorAll('fds-error-message');
-                const helpTexts = this.querySelectorAll('fds-help-text');
-
-                CE.associateLabelWithElement(label, select, 'sel');
-                CE.setAriaDescribedBy(select, errorMessages, helpTexts);
-                CE.setInvalid(select, errorMessages);
+                this.#setAccessibilityAttributes();
 
                 if (this.hasAttribute('show-required-status')) {
+                    const label = this.querySelector('label');
+                    const select = this.querySelector('select');
                     CE.showRequiredStatus(label, select, this.getAttribute('show-required-status'));
                 }
 
@@ -47,20 +50,8 @@ class FDSSelect extends HTMLElement {
                 }
             }
             // Attributes which might affect aria-describedby
-            else if (
-                attributeName === 'id' ||
-                attributeName === 'hidden' ||
-                attributeName === 'aria-hidden' ||
-                attributeName === 'class')
-            {
-                const label = this.querySelector('label');
-                const select = this.querySelector('select');
-                const errorMessages = this.querySelectorAll('fds-error-message');
-                const helpTexts = this.querySelectorAll('fds-help-text');
-
-                CE.associateLabelWithElement(label, select, 'sel');
-                CE.setAriaDescribedBy(select, errorMessages, helpTexts);
-                CE.setInvalid(select, errorMessages);
+            else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class') {
+                this.#setAccessibilityAttributes();
 
                 if (attributeName === 'hidden' && target === this) {
                     CE.notifySummaryOnVisibilityChange(this);
@@ -69,9 +60,11 @@ class FDSSelect extends HTMLElement {
         }
     }
 
-    #init() {
-        this.#setupObserver();
+    // #endregion
 
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+    #setAccessibilityAttributes() {
         const label = this.querySelector('label');
         const select = this.querySelector('select');
         const errorMessages = this.querySelectorAll('fds-error-message');
@@ -80,61 +73,71 @@ class FDSSelect extends HTMLElement {
         CE.associateLabelWithElement(label, select, 'sel');
         CE.setAriaDescribedBy(select, errorMessages, helpTexts);
         CE.setInvalid(select, errorMessages);
+    }
+
+    #connectMutationObserver(config = CE.mutationObserverConfig) {
+        if (this.#mutationObserver) return;
+        this.#mutationObserver = new MutationObserver(this.#handleMutations);
+        this.#mutationObserver.observe(this, config);
+    }
+
+    #disconnectMutationObserver() {
+        if (this.#mutationObserver) {
+            this.#mutationObserver.disconnect();
+            this.#mutationObserver = null;
+        }
+    }
+
+    #init() {
+        this.#setAccessibilityAttributes();
 
         if (this.hasAttribute('show-required-status')) {
+            const label = this.querySelector('label');
+            const select = this.querySelector('select');
             CE.showRequiredStatus(label, select, this.getAttribute('show-required-status'));
         }
+
+        this.#connectMutationObserver();
 
         this.#initialized = true;
     }
 
-    /* Attributes which can invoke attributeChangedCallback() */
+    // #endregion
 
-    static observedAttributes = ['show-required-status'];
-
-    /* --------------------------------------------------
-    GETTERS AND SETTERS
-    -------------------------------------------------- */
-
-    get showRequiredStatus() { return this.getAttribute('show-required-status'); }
-    set showRequiredStatus(value) { value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
-        if (!this.#initialized) { this.#init(); }
+        this.#init();
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         CE.notifySummaryOnDisconnect(this);
-
+        this.#disconnectMutationObserver();
         this.#initialized = false;
-
-        if (this.#selectObserver) {
-            this.#selectObserver.disconnect();
-            this.#selectObserver = null;
-        }
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#initialized) return;
+        if (oldValue === newValue) return;
 
-        if (attribute === 'show-required-status' && (oldValue !== newValue)) {
-            const label = this.querySelector('label');
-            const select = this.querySelector('select');
-            CE.showRequiredStatus(label, select, newValue);
+        switch (attribute) {
+            case 'show-required-status':
+                const label = this.querySelector('label');
+                const select = this.querySelector('select');
+                CE.showRequiredStatus(label, select, newValue);
+                break;
         }
     }
+
+    // #endregion
 }
 
 function registerSelect() {

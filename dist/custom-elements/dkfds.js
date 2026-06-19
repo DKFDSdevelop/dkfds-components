@@ -74,6 +74,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerSelect: () => (/* reexport */ fds_select),
   registerSolutionInfo: () => (/* reexport */ fds_solution_info),
   registerTextarea: () => (/* reexport */ fds_textarea),
+  registerTooltip: () => (/* reexport */ fds_tooltip),
   registerUploadFile: () => (/* reexport */ fds_upload_file)
 });
 
@@ -1944,14 +1945,14 @@ function registerRadioButton() {
 ;// ./src/js/custom-elements/radio-button/fds-radio-button-group.js
 
 class FDSRadioButtonGroup extends HTMLElement {
-  // #region - Private instance fields --------------------------------------------------------------------
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
-  #radioButtonGroupObserver = null;
+  #mutationObserver = null;
 
   // #endregion
 
-  // #region - Private event handlers ---------------------------------------------------------------------
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
   #handleRadioChange = event => {
     const changedRadioButton = event.target.closest('fds-radio-button');
@@ -1974,13 +1975,11 @@ class FDSRadioButtonGroup extends HTMLElement {
       const relevantTagNames = ['FIELDSET', 'LEGEND', 'FDS-HELP-TEXT', 'FDS-ERROR-MESSAGE'];
       const allNodes = [...addedNodes, ...removedNodes];
       if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
-        this.#updateAccessibilityState();
+        this.#updateAriaDescribedBy();
         break;
       }
-      if (attributeName === 'disabled' && target === this.#getFieldsetElement()) {
-        target.classList.toggle('disabled', target.hasAttribute('disabled'));
-      } else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class' && !['LEGEND', 'FIELDSET'].includes(target?.tagName)) {
-        this.#updateAccessibilityState();
+      if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class' && !['LEGEND', 'FIELDSET'].includes(target?.tagName)) {
+        this.#updateAriaDescribedBy();
         if (attributeName === 'hidden' && target === this) {
           notifySummaryOnVisibilityChange(this);
         }
@@ -1990,37 +1989,30 @@ class FDSRadioButtonGroup extends HTMLElement {
 
   // #endregion
 
-  // #region - Private methods ----------------------------------------------------------------------------
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
-  #getFieldsetElement() {
-    return this.querySelector('fieldset');
-  }
-  #getLegendElement() {
-    return this.querySelector(':scope > fieldset > legend');
-  }
-  #getGroupHelpTexts() {
-    return this.querySelectorAll(':scope > fieldset > fds-help-text');
-  }
-  #getErrorMessages() {
-    return this.querySelectorAll(':scope > fieldset > fds-error-message');
-  }
-  #updateAccessibilityState() {
-    const fieldset = this.#getFieldsetElement();
-    const errorMessages = this.#getErrorMessages();
-    const helpTexts = this.#getGroupHelpTexts();
+  #updateAriaDescribedBy() {
+    const fieldset = this.querySelector('fieldset');
+    const errorMessages = this.querySelectorAll(':scope > fieldset > fds-error-message');
+    const helpTexts = this.querySelectorAll(':scope > fieldset > fds-help-text');
     setAriaDescribedBy(fieldset, errorMessages, helpTexts);
   }
-  #addEventListeners() {
+  #addEventListener() {
     this.addEventListener('radio-changed', this.#handleRadioChange);
-    if (this.#radioButtonGroupObserver) return;
-    this.#radioButtonGroupObserver = new MutationObserver(this.#handleMutations);
-    this.#radioButtonGroupObserver.observe(this, mutationObserverConfig);
   }
-  #removeEventListeners() {
+  #removeEventListener() {
     this.removeEventListener('radio-changed', this.#handleRadioChange);
-    if (this.#radioButtonGroupObserver) {
-      this.#radioButtonGroupObserver.disconnect();
-      this.#radioButtonGroupObserver = null;
+  }
+  #connectMutationObserver() {
+    let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mutationObserverConfig;
+    if (this.#mutationObserver) return;
+    this.#mutationObserver = new MutationObserver(this.#handleMutations);
+    this.#mutationObserver.observe(this, config);
+  }
+  #disconnectMutationObserver() {
+    if (this.#mutationObserver) {
+      this.#mutationObserver.disconnect();
+      this.#mutationObserver = null;
     }
   }
 
@@ -2029,8 +2021,9 @@ class FDSRadioButtonGroup extends HTMLElement {
   // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
   init() {
-    this.#updateAccessibilityState();
-    this.#addEventListeners();
+    this.#updateAriaDescribedBy();
+    this.#addEventListener();
+    this.#connectMutationObserver();
     this.#initialized = true;
   }
 
@@ -2050,7 +2043,8 @@ class FDSRadioButtonGroup extends HTMLElement {
 
   disconnectedCallback() {
     notifySummaryOnDisconnect(this);
-    this.#removeEventListeners();
+    this.#removeEventListener();
+    this.#disconnectMutationObserver();
     this.#initialized = false;
   }
 
@@ -2401,18 +2395,32 @@ function registerDateInput() {
 ;// ./src/js/custom-elements/select/fds-select.js
 
 class FDSSelect extends HTMLElement {
-  /* Private instance fields */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['show-required-status'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
-  #selectObserver = null;
+  #mutationObserver = null;
 
-  /* Private methods */
+  // #endregion
 
-  #setupObserver() {
-    if (this.#selectObserver) return;
-    this.#selectObserver = new MutationObserver(this.#handleMutations);
-    this.#selectObserver.observe(this, mutationObserverConfig);
-  }
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
   #handleMutations = records => {
     for (const {
       attributeName,
@@ -2424,14 +2432,10 @@ class FDSSelect extends HTMLElement {
       const relevantTagNames = ['LABEL', 'SELECT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
       const allNodes = [...addedNodes, ...removedNodes];
       if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
-        const label = this.querySelector('label');
-        const select = this.querySelector('select');
-        const errorMessages = this.querySelectorAll('fds-error-message');
-        const helpTexts = this.querySelectorAll('fds-help-text');
-        associateLabelWithElement(label, select, 'sel');
-        setAriaDescribedBy(select, errorMessages, helpTexts);
-        setInvalid(select, errorMessages);
+        this.#setAccessibilityAttributes();
         if (this.hasAttribute('show-required-status')) {
+          const label = this.querySelector('label');
+          const select = this.querySelector('select');
           showRequiredStatus(label, select, this.getAttribute('show-required-status'));
         }
         break;
@@ -2446,21 +2450,19 @@ class FDSSelect extends HTMLElement {
       }
       // Attributes which might affect aria-describedby
       else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class') {
-        const label = this.querySelector('label');
-        const select = this.querySelector('select');
-        const errorMessages = this.querySelectorAll('fds-error-message');
-        const helpTexts = this.querySelectorAll('fds-help-text');
-        associateLabelWithElement(label, select, 'sel');
-        setAriaDescribedBy(select, errorMessages, helpTexts);
-        setInvalid(select, errorMessages);
+        this.#setAccessibilityAttributes();
         if (attributeName === 'hidden' && target === this) {
           notifySummaryOnVisibilityChange(this);
         }
       }
     }
   };
-  #init() {
-    this.#setupObserver();
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setAccessibilityAttributes() {
     const label = this.querySelector('label');
     const select = this.querySelector('select');
     const errorMessages = this.querySelectorAll('fds-error-message');
@@ -2468,62 +2470,65 @@ class FDSSelect extends HTMLElement {
     associateLabelWithElement(label, select, 'sel');
     setAriaDescribedBy(select, errorMessages, helpTexts);
     setInvalid(select, errorMessages);
+  }
+  #connectMutationObserver() {
+    let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mutationObserverConfig;
+    if (this.#mutationObserver) return;
+    this.#mutationObserver = new MutationObserver(this.#handleMutations);
+    this.#mutationObserver.observe(this, config);
+  }
+  #disconnectMutationObserver() {
+    if (this.#mutationObserver) {
+      this.#mutationObserver.disconnect();
+      this.#mutationObserver = null;
+    }
+  }
+  #init() {
+    this.#setAccessibilityAttributes();
     if (this.hasAttribute('show-required-status')) {
+      const label = this.querySelector('label');
+      const select = this.querySelector('select');
       showRequiredStatus(label, select, this.getAttribute('show-required-status'));
     }
+    this.#connectMutationObserver();
     this.#initialized = true;
   }
 
-  /* Attributes which can invoke attributeChangedCallback() */
+  // #endregion
 
-  static observedAttributes = ['show-required-status'];
-
-  /* --------------------------------------------------
-  GETTERS AND SETTERS
-  -------------------------------------------------- */
-
-  get showRequiredStatus() {
-    return this.getAttribute('show-required-status');
-  }
-  set showRequiredStatus(value) {
-    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
-    if (!this.#initialized) {
-      this.#init();
-    }
+    this.#init();
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     notifySummaryOnDisconnect(this);
+    this.#disconnectMutationObserver();
     this.#initialized = false;
-    if (this.#selectObserver) {
-      this.#selectObserver.disconnect();
-      this.#selectObserver = null;
-    }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
-    if (attribute === 'show-required-status' && oldValue !== newValue) {
-      const label = this.querySelector('label');
-      const select = this.querySelector('select');
-      showRequiredStatus(label, select, newValue);
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'show-required-status':
+        const label = this.querySelector('label');
+        const select = this.querySelector('select');
+        showRequiredStatus(label, select, newValue);
+        break;
     }
   }
+
+  // #endregion
 }
 function registerSelect() {
   if (customElements.get('fds-select') === undefined) {
@@ -6729,10 +6734,186 @@ function registerMainMenu() {
   }
 }
 /* harmony default export */ const fds_main_menu = (registerMainMenu);
+;// ./src/js/custom-elements/tooltip/fds-tooltip.js
+
+const fds_tooltip_styles = `
+    :host {
+        display: block;
+    }
+`;
+const fds_tooltip_sheet = new CSSStyleSheet();
+fds_tooltip_sheet.replaceSync(fds_tooltip_styles);
+class FDSTooltip extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['attr', 'ready'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get attr() {
+    return this.getAttribute('attr');
+  }
+  set attr(value) {
+    value == null ? this.removeAttribute('attr') : this.setAttribute('attr', value);
+  }
+  get ready() {
+    return this.getAttribute('ready') !== 'false';
+  }
+  set ready(value) {
+    this.setAttribute('ready', value ? 'true' : 'false');
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+  #mutationObserver = null;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleClick = event => {
+    console.log('Click event:', event);
+  };
+  #handleKeyDown = event => {
+    console.log('KeyDown event:', event);
+  };
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      console.log('attributeName', attributeName);
+      console.log('target', target);
+      console.log('addedNodes', addedNodes);
+      console.log('removedNodes', removedNodes);
+    }
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    // --- Slot ---
+    if (!this.shadowRoot.querySelector('slot[name="element-slot"]')) {
+      const slot = document.createElement('slot');
+      slot.name = 'element-slot';
+      this.shadowRoot.appendChild(slot);
+    }
+
+    // --- Button ---
+    let button = this.shadowRoot.querySelector('button');
+    if (!button) {
+      button = document.createElement('button');
+      this.shadowRoot.appendChild(button);
+    }
+    button.textContent = 'Click me';
+  }
+  #addEventListeners() {
+    this.shadowRoot.querySelector('button').addEventListener('click', this.#handleClick);
+    this.shadowRoot.querySelector('button').addEventListener('keydown', this.#handleKeyDown);
+  }
+  #removeEventListeners() {
+    this.shadowRoot.querySelector('button').removeEventListener('click', this.#handleClick);
+    this.shadowRoot.querySelector('button').removeEventListener('keydown', this.#handleKeyDown);
+  }
+  #connectMutationObserver() {
+    let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mutationObserverConfig;
+    if (this.#mutationObserver) return;
+    this.#mutationObserver = new MutationObserver(this.#handleMutations);
+    this.#mutationObserver.observe(this, config);
+  }
+  #disconnectMutationObserver() {
+    if (this.#mutationObserver) {
+      this.#mutationObserver.disconnect();
+      this.#mutationObserver = null;
+    }
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [fds_tooltip_sheet];
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  init() {
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#connectMutationObserver();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    // The 'ready' attribute can be used to defer initialization.
+    // Omit the attribute or set it to anything other than 'false' to initialize immediately.
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#disconnectMutationObserver();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'attr':
+        console.log('attr changed to', newValue);
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerTooltip() {
+  if (!customElements.get('fds-tooltip')) {
+    customElements.define('fds-tooltip', FDSTooltip);
+  }
+}
+/* harmony default export */ const fds_tooltip = (registerTooltip);
 ;// ./src/js/new-dkfds.js
 
 
 // Custom elements
+
 
 
 
@@ -6784,6 +6965,7 @@ const registerCustomElements = () => {
   fds_solution_info();
   fds_dropdown_menu();
   fds_main_menu();
+  fds_tooltip();
 };
 registerCustomElements();
 

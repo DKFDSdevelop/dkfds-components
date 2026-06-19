@@ -47,9 +47,21 @@ fieldset + fieldset {
     margin-top: func.units(5);
 }
 
+fieldset legend,
+.form-label {
+    font-size: 1.6rem;
+    line-height: 2.4rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    text-transform: none;
+    max-width: 66ch;
+    display: inline-block;
+}
+
 fieldset[disabled] legend,
-.disabled-label {
-  @extend %disabled-label;
+.form-label.disabled {
+    color: var(--color-gray-500);
+    font-weight: func.font-weight('medium');
 }
 
 legend {
