@@ -25,14 +25,14 @@ class FDSDropdownMenu extends HTMLElement {
         this.toggle();
     };
 
-    #handleFocusOut(event) {
+    #handleFocusOut = (event) => {
         const focusLeftDropdownMenu = !this.contains(event.relatedTarget);
         if (focusLeftDropdownMenu) {
             this.close();
         }
     }
 
-    #handleKeydown(event) {
+    #handleKeydown = (event) => {
         switch (event.key) {
             case 'Escape':
                 this.close();

@@ -13,7 +13,7 @@ class FDSTooltip extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-    static observedAttributes = ['attr', 'ready'];
+    static observedAttributes = ['tooltip-text', 'ready'];
 
     // #endregion
 
@@ -157,8 +157,8 @@ class FDSTooltip extends HTMLElement {
         if (oldValue === newValue) return;
 
         switch (attribute) {
-            case 'attr':
-                console.log('attr changed to', newValue);
+            case 'tooltip-text':
+                console.log('tooltip-text changed to', newValue);
                 break;
         }
     }
