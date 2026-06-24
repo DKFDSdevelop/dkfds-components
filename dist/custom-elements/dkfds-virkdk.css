@@ -13111,39 +13111,21 @@ fds-tooltip-icon .tooltip,
   position:fixed;
   bottom:auto;
 }
-fds-tooltip-icon .tooltip::before,
-.fds-tooltip-icon .tooltip::before{
-  content:"";
-  border-right:9px solid transparent;
-  border-left:9px solid transparent;
-  display:block;
-  position:absolute;
-  left:calc(50% - 8px - 1px);
-  top:-12px;
-  z-index:11001;
-}
-fds-tooltip-icon .tooltip.open-left::before,
-.fds-tooltip-icon .tooltip.open-left::before{
-  right:12px;
-  left:auto;
-}
-fds-tooltip-icon .tooltip.open-right::before,
-.fds-tooltip-icon .tooltip.open-right::before{
-  left:12px;
-  right:auto;
-}
 fds-tooltip-icon .tooltip-arrow,
 .fds-tooltip-icon .tooltip-arrow{
   pointer-events:none;
+  position:fixed;
+  z-index:11000;
 }
 fds-tooltip-icon .tooltip-arrow::before,
 .fds-tooltip-icon .tooltip-arrow::before{
   content:"";
   border-right:9px solid transparent;
   border-left:9px solid transparent;
+  border-top:8px solid #454545;
   display:block;
   position:absolute;
-  left:calc(50% - 8px - 1px);
-  top:-12px;
+  left:-9px;
+  top:0;
   z-index:11001;
 }

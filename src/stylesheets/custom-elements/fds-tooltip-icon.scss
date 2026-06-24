@@ -2,8 +2,8 @@
 @use "../functions" as func;
 @use "../mixins" as mixins;
 
-$-arrow-height: func.units(3);            // Must match arrowHeight in src\js\components\tooltip.js
-$-arrow-dist-to-target: func.units(2);    // Must match arrowDistanceToTarget in src\js\components\tooltip.js
+$-arrow-height: func.units(3); // Must match arrowHeight in src\js\components\tooltip.js
+$-arrow-dist-to-target: func.units(2); // Must match arrowDistanceToTarget in src\js\components\tooltip.js
 
 fds-tooltip-icon,
 .fds-tooltip-icon {
@@ -32,40 +32,22 @@ fds-tooltip-icon,
         overflow-wrap: break-word;
         position: fixed;
         bottom: auto;
-
-        &::before {
-            content: '';
-            border-right: calc($-arrow-height + 1px) solid transparent;
-            border-left: calc($-arrow-height + 1px) solid transparent;
-            display: block;
-            position: absolute;
-            left: calc(50% - $-arrow-height - 1px);
-            top: calc(0px - $-arrow-height - $-arrow-dist-to-target);
-            z-index: vars.$zindex-tooltip + 1;
-        }
-
-        &.open-left::before {
-            right: func.units(305);
-            left: auto;
-        }
-
-        &.open-right::before {
-            left: func.units(305);
-            right: auto;
-        }
     }
 
     .tooltip-arrow {
         pointer-events: none;
+        position: fixed;
+        z-index: vars.$zindex-tooltip;
 
         &::before {
             content: '';
             border-right: calc($-arrow-height + 1px) solid transparent;
             border-left: calc($-arrow-height + 1px) solid transparent;
+            border-top: $-arrow-height solid func.color(vars.$tooltip-arrow-color);
             display: block;
             position: absolute;
-            left: calc(50% - $-arrow-height - 1px);
-            top: calc(0px - $-arrow-height - $-arrow-dist-to-target);
+            left: calc(0px - $-arrow-height - 1px);
+            top: 0;
             z-index: vars.$zindex-tooltip + 1;
         }
     }

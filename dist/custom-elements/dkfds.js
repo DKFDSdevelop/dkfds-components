@@ -6922,16 +6922,16 @@ class FDSTooltipIcon extends HTMLElement {
 
   // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
-  get text() {
+  get tooltipText() {
     return this.getAttribute('tooltip-text');
   }
-  set text(value) {
+  set tooltipText(value) {
     value == null ? this.removeAttribute('tooltip-text') : this.setAttribute('tooltip-text', value);
   }
-  get text() {
+  get srLabel() {
     return this.getAttribute('sr-label');
   }
-  set text(value) {
+  set srLabel(value) {
     value == null ? this.removeAttribute('sr-label') : this.setAttribute('sr-label', value);
   }
 
@@ -6982,7 +6982,6 @@ class FDSTooltipIcon extends HTMLElement {
     const ariaLive = document.createElement('span');
     this.appendChild(ariaLive);
     const tooltip = document.createElement('span');
-    tooltip.textContent = this.getAttribute('tooltip-text');
     tooltip.setAttribute('id', uniqueId);
     tooltip.setAttribute('tabindex', '-1');
     tooltip.classList.add('tooltip');
@@ -6995,6 +6994,32 @@ class FDSTooltipIcon extends HTMLElement {
     tooltipArrow.classList.add('tooltip-arrow');
     tooltipArrow.style.display = 'none';
     this.appendChild(tooltipArrow);
+  }
+  #updatePosition() {
+    const ARROW_HEIGHT = 8;
+    const ARROW_DIST_TO_TARGET = 4;
+    const MIN_MARGIN = 8;
+    const MAX_WIDTH = 304;
+    const button = this.querySelector('button');
+    const tooltip = this.querySelector('.tooltip');
+    const arrow = this.querySelector('.tooltip-arrow');
+    const buttonRect = button.getBoundingClientRect();
+
+    // Set width
+    tooltip.style.width = 'max-content';
+    const viewportMaxWidth = window.innerWidth - MIN_MARGIN * 2;
+    if (tooltip.offsetWidth > MAX_WIDTH) {
+      tooltip.style.width = `${MAX_WIDTH}px`;
+    }
+    if (tooltip.offsetWidth > viewportMaxWidth) {
+      tooltip.style.width = `${viewportMaxWidth}px`;
+    }
+    const left = buttonRect.left + buttonRect.width / 2 - tooltip.offsetWidth / 2;
+    const top = buttonRect.top - tooltip.offsetHeight - ARROW_HEIGHT - ARROW_DIST_TO_TARGET + 1;
+    tooltip.style.left = `${Math.round(left)}px`;
+    tooltip.style.top = `${Math.round(top)}px`;
+    arrow.style.left = `${Math.round(buttonRect.left + buttonRect.width / 2)}px`;
+    arrow.style.top = `${Math.round(buttonRect.top - ARROW_HEIGHT - ARROW_DIST_TO_TARGET)}px`;
   }
   #addEventListeners() {
     this.querySelector('button').addEventListener('click', this.#handleClick, false);
@@ -7018,13 +7043,16 @@ class FDSTooltipIcon extends HTMLElement {
   }
   open() {
     this.querySelector('button').setAttribute('aria-expanded', 'true');
-    this.querySelector('.tooltip').style.display = 'block';
     this.querySelector('.tooltip-arrow').style.display = 'block';
+    this.querySelector('.tooltip').style.display = 'block';
+    this.querySelector('.tooltip').textContent = this.getAttribute('tooltip-text');
+    this.#updatePosition();
   }
   close() {
     this.querySelector('button').setAttribute('aria-expanded', 'false');
     this.querySelector('.tooltip').style.display = 'none';
     this.querySelector('.tooltip-arrow').style.display = 'none';
+    this.querySelector('.tooltip').textContent = '';
   }
   toggle() {
     this.querySelector('button').getAttribute('aria-expanded') === 'false' ? this.open() : this.close();
