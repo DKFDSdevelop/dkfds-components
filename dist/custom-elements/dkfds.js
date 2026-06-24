@@ -6957,8 +6957,11 @@ class FDSTooltipIcon extends HTMLElement {
   #handleKeydown = event => {
     switch (event.key) {
       case 'Escape':
-        this.close();
-        this.querySelector('button').focus();
+        if (this.querySelector('button').getAttribute('aria-expanded') !== 'false') {
+          this.close();
+          this.querySelector('button').focus();
+          event.stopImmediatePropagation();
+        }
         break;
     }
   };

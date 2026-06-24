@@ -41,8 +41,11 @@ class FDSTooltipIcon extends HTMLElement {
     #handleKeydown = (event) => {
         switch (event.key) {
             case 'Escape':
-                this.close();
-                this.querySelector('button').focus();
+                if (this.querySelector('button').getAttribute('aria-expanded') !== 'false') {
+                    this.close();
+                    this.querySelector('button').focus();
+                    event.stopImmediatePropagation();
+                }
                 break;
         }
     };
@@ -101,7 +104,7 @@ class FDSTooltipIcon extends HTMLElement {
         // Set width
         tooltip.style.width = 'max-content';
         const viewportMaxWidth = window.innerWidth - (MIN_MARGIN * 2);
-        if (tooltip.offsetWidth > MAX_WIDTH) { tooltip.style.width = `${MAX_WIDTH}px`; } 
+        if (tooltip.offsetWidth > MAX_WIDTH) { tooltip.style.width = `${MAX_WIDTH}px`; }
         if (tooltip.offsetWidth > viewportMaxWidth) { tooltip.style.width = `${viewportMaxWidth}px`; }
 
         const left = buttonRect.left + (buttonRect.width / 2) - (tooltip.offsetWidth / 2);
