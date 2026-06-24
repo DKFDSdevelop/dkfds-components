@@ -3,6 +3,15 @@ import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 class FDSTooltipIcon extends HTMLElement {
 
+    // #region - PRIVATE STATIC FIELDS ----------------------------------------------------------------------
+
+    static #ARROW_HEIGHT = 8;
+    static #ARROW_DIST_TO_TARGET = 4;
+    static #MIN_MARGIN = 8;
+    static #MAX_WIDTH = 330;
+
+    // #endregion
+
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
     static observedAttributes = ['tooltip-text', 'sr-label'];
@@ -90,31 +99,62 @@ class FDSTooltipIcon extends HTMLElement {
         this.appendChild(tooltipArrow);
     }
 
-    #updatePosition() {
-        const ARROW_HEIGHT = 8;
-        const ARROW_DIST_TO_TARGET = 4;
-        const MIN_MARGIN = 8;
-        const MAX_WIDTH = 304;
-
-        const button = this.querySelector('button');
+    #setTooltipWidth() {
         const tooltip = this.querySelector('.tooltip');
-        const arrow = this.querySelector('.tooltip-arrow');
-        const buttonRect = button.getBoundingClientRect();
 
-        // Set width
+        // Start with natural width
         tooltip.style.width = 'max-content';
-        const viewportMaxWidth = window.innerWidth - (MIN_MARGIN * 2);
-        if (tooltip.offsetWidth > MAX_WIDTH) { tooltip.style.width = `${MAX_WIDTH}px`; }
-        if (tooltip.offsetWidth > viewportMaxWidth) { tooltip.style.width = `${viewportMaxWidth}px`; }
 
-        const left = buttonRect.left + (buttonRect.width / 2) - (tooltip.offsetWidth / 2);
-        const top = buttonRect.top - tooltip.offsetHeight - ARROW_HEIGHT - ARROW_DIST_TO_TARGET + 1;
+        // Cap at max width
+        if (tooltip.offsetWidth > FDSTooltipIcon.#MAX_WIDTH) { tooltip.style.width = `${FDSTooltipIcon.#MAX_WIDTH}px`; }
+
+        // Further cap if viewport is narrower than max width
+        const viewportMaxWidth = document.documentElement.clientWidth - (FDSTooltipIcon.#MIN_MARGIN * 2);
+        if (tooltip.offsetWidth > viewportMaxWidth) { tooltip.style.width = `${viewportMaxWidth}px`; }
+    }
+
+    #setTooltipLeft() {
+        const tooltip = this.querySelector('.tooltip');
+        const buttonRect = this.querySelector('button').getBoundingClientRect();
+
+        // Center tooltip on button
+        let left = buttonRect.left + (buttonRect.width / 2) - (tooltip.offsetWidth / 2);
+
+        // If tooltip exceeds right edge, shift left
+        if (left + tooltip.offsetWidth > document.documentElement.clientWidth - FDSTooltipIcon.#MIN_MARGIN) {
+            left = document.documentElement.clientWidth - FDSTooltipIcon.#MIN_MARGIN - tooltip.offsetWidth;
+        }
+
+        // If tooltip exceeds left edge (including full-width scenario), clamp to MIN_MARGIN
+        if (left < FDSTooltipIcon.#MIN_MARGIN) { left = FDSTooltipIcon.#MIN_MARGIN; }
 
         tooltip.style.left = `${Math.round(left)}px`;
-        tooltip.style.top = `${Math.round(top)}px`;
+    }
 
+    #setTooltipTop() {
+        const tooltip = this.querySelector('.tooltip');
+        const buttonRect = this.querySelector('button').getBoundingClientRect();
+
+        // Place tooltip above the button
+        const top = buttonRect.top - tooltip.offsetHeight - FDSTooltipIcon.#ARROW_HEIGHT - FDSTooltipIcon.#ARROW_DIST_TO_TARGET + 1;
+        tooltip.style.top = `${Math.round(top)}px`;
+    }
+
+    #setArrowPosition() {
+        const arrow = this.querySelector('.tooltip-arrow');
+        const buttonRect = this.querySelector('button').getBoundingClientRect();
+
+        // Center arrow on button and place between button and tooltip
         arrow.style.left = `${Math.round(buttonRect.left + (buttonRect.width / 2))}px`;
-        arrow.style.top = `${Math.round(buttonRect.top - ARROW_HEIGHT - ARROW_DIST_TO_TARGET)}px`;
+        arrow.style.top = `${Math.round(buttonRect.top - FDSTooltipIcon.#ARROW_HEIGHT - FDSTooltipIcon.#ARROW_DIST_TO_TARGET)}px`;
+    }
+
+    #updatePosition() {
+        // Width must be set before left, as left depends on tooltip width
+        this.#setTooltipWidth();
+        this.#setTooltipLeft();
+        this.#setTooltipTop();
+        this.#setArrowPosition();
     }
 
     #addEventListeners() {
