@@ -6974,6 +6974,9 @@ class FDSTooltipIcon extends HTMLElement {
         break;
     }
   };
+  #handleResize = () => {
+    this.#updatePosition();
+  };
 
   // #endregion
 
@@ -7091,12 +7094,14 @@ class FDSTooltipIcon extends HTMLElement {
     this.querySelector('.tooltip').style.display = 'block';
     this.querySelector('.tooltip').textContent = this.getAttribute('tooltip-text');
     this.#updatePosition();
+    window.addEventListener('resize', this.#handleResize, false);
   }
   close() {
     this.querySelector('button').setAttribute('aria-expanded', 'false');
     this.querySelector('.tooltip').style.display = 'none';
     this.querySelector('.tooltip-arrow').style.display = 'none';
     this.querySelector('.tooltip').textContent = '';
+    window.removeEventListener('resize', this.#handleResize, false);
   }
   toggle() {
     this.querySelector('button').getAttribute('aria-expanded') === 'false' ? this.open() : this.close();

@@ -59,6 +59,10 @@ class FDSTooltipIcon extends HTMLElement {
         }
     };
 
+    #handleResize = () => {
+        this.#updatePosition();
+    };
+
     // #endregion
 
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
@@ -185,6 +189,7 @@ class FDSTooltipIcon extends HTMLElement {
         this.querySelector('.tooltip').style.display = 'block';
         this.querySelector('.tooltip').textContent = this.getAttribute('tooltip-text');
         this.#updatePosition();
+        window.addEventListener('resize', this.#handleResize, false);
     }
 
     close() {
@@ -192,6 +197,7 @@ class FDSTooltipIcon extends HTMLElement {
         this.querySelector('.tooltip').style.display = 'none';
         this.querySelector('.tooltip-arrow').style.display = 'none';
         this.querySelector('.tooltip').textContent = '';
+        window.removeEventListener('resize', this.#handleResize, false);
     }
 
     toggle() {
