@@ -14,7 +14,7 @@ class FDSTooltipIcon extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-    static observedAttributes = ['tooltip-text', 'sr-label'];
+    static observedAttributes = ['tooltip-text', 'sr-label', 'placement'];
 
     // #endregion
 
@@ -135,30 +135,47 @@ class FDSTooltipIcon extends HTMLElement {
         tooltip.style.left = `${Math.round(left)}px`;
     }
 
-    #setTooltipTop() {
+    #setVerticalPlacement() {
         const tooltip = this.querySelector('.tooltip');
-        const buttonRect = this.querySelector('button').getBoundingClientRect();
-
-        // Place tooltip above the button
-        const top = buttonRect.top - tooltip.offsetHeight - FDSTooltipIcon.#ARROW_HEIGHT - FDSTooltipIcon.#ARROW_DIST_TO_TARGET + 1;
-        tooltip.style.top = `${Math.round(top)}px`;
-    }
-
-    #setArrowPosition() {
         const arrow = this.querySelector('.tooltip-arrow');
         const buttonRect = this.querySelector('button').getBoundingClientRect();
 
-        // Center arrow on button and place between button and tooltip
-        arrow.style.left = `${Math.round(buttonRect.left + (buttonRect.width / 2))}px`;
-        arrow.style.top = `${Math.round(buttonRect.top - FDSTooltipIcon.#ARROW_HEIGHT - FDSTooltipIcon.#ARROW_DIST_TO_TARGET)}px`;
+        // Calculate space available above and below the button
+        const spaceNeeded = tooltip.offsetHeight + FDSTooltipIcon.#ARROW_HEIGHT + FDSTooltipIcon.#ARROW_DIST_TO_TARGET;
+        const spaceAbove = buttonRect.top;
+        const spaceBelow = window.innerHeight - buttonRect.bottom;
+
+        // Determine placement based on preferred placement and available space
+        const preferredPlacement = this.getAttribute('placement') ?? 'above';
+        let actualPlacement = preferredPlacement;
+
+        if (preferredPlacement === 'above' && spaceAbove < spaceNeeded) {
+            actualPlacement = 'below';
+        } else if (preferredPlacement === 'below' && spaceBelow < spaceNeeded) {
+            actualPlacement = 'above';
+        }
+
+        // Position tooltip bubble and arrow based on actual placement
+        if (actualPlacement === 'above') {
+            tooltip.style.top = `${Math.round(buttonRect.top - tooltip.offsetHeight - FDSTooltipIcon.#ARROW_HEIGHT - FDSTooltipIcon.#ARROW_DIST_TO_TARGET + 1)}px`;
+            arrow.style.left = `${Math.round(buttonRect.left + (buttonRect.width / 2))}px`;
+            arrow.style.top = `${Math.round(buttonRect.top - FDSTooltipIcon.#ARROW_HEIGHT - FDSTooltipIcon.#ARROW_DIST_TO_TARGET)}px`;
+            arrow.classList.add('place-above');
+            arrow.classList.remove('place-below');
+        } else {
+            tooltip.style.top = `${Math.round(buttonRect.bottom + FDSTooltipIcon.#ARROW_HEIGHT + FDSTooltipIcon.#ARROW_DIST_TO_TARGET - 1)}px`;
+            arrow.style.left = `${Math.round(buttonRect.left + (buttonRect.width / 2))}px`;
+            arrow.style.top = `${Math.round(buttonRect.bottom + FDSTooltipIcon.#ARROW_DIST_TO_TARGET)}px`;
+            arrow.classList.add('place-below');
+            arrow.classList.remove('place-above');
+        }
     }
 
     #updatePosition() {
         // Width must be set before left, as left depends on tooltip width
         this.#setTooltipWidth();
         this.#setTooltipLeft();
-        this.#setTooltipTop();
-        this.#setArrowPosition();
+        this.#setVerticalPlacement();
     }
 
     #addEventListeners() {

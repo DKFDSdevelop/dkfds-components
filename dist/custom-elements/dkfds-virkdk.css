@@ -13122,10 +13122,17 @@ fds-tooltip-icon .tooltip-arrow::before,
   content:"";
   border-right:9px solid transparent;
   border-left:9px solid transparent;
-  border-top:8px solid #454545;
   display:block;
   position:absolute;
   left:-9px;
   top:0;
   z-index:11001;
+}
+fds-tooltip-icon .tooltip-arrow.place-above::before,
+.fds-tooltip-icon .tooltip-arrow.place-above::before{
+  border-top:8px solid #454545;
+}
+fds-tooltip-icon .tooltip-arrow.place-below::before,
+.fds-tooltip-icon .tooltip-arrow.place-below::before{
+  border-bottom:8px solid #454545;
 }

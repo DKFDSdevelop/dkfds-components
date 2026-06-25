@@ -43,12 +43,22 @@ fds-tooltip-icon,
             content: '';
             border-right: calc($-arrow-height + 1px) solid transparent;
             border-left: calc($-arrow-height + 1px) solid transparent;
-            border-top: $-arrow-height solid func.color(vars.$tooltip-arrow-color);
             display: block;
             position: absolute;
             left: calc(0px - $-arrow-height - 1px);
             top: 0;
             z-index: vars.$zindex-tooltip + 1;
         }
+
+        // Arrow points down when tooltip is above the button
+        &.place-above::before {
+            border-top: $-arrow-height solid func.color(vars.$tooltip-arrow-color);
+        }
+
+        // Arrow points up when tooltip is below the button
+        &.place-below::before {
+            border-bottom: $-arrow-height solid func.color(vars.$tooltip-arrow-color);
+        }
     }
+
 }
