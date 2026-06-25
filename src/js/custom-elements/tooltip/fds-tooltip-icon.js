@@ -179,7 +179,7 @@ class FDSTooltipIcon extends HTMLElement {
         const spaceBelow = window.innerHeight - buttonRect.bottom;
 
         // Determine placement based on preferred placement and available space
-        const preferredPlacement = this.getAttribute('placement') ?? 'above';
+        const preferredPlacement = this.placement;
         let actualPlacement = preferredPlacement;
 
         if (preferredPlacement === 'above' && spaceAbove < spaceNeeded) {
@@ -307,7 +307,18 @@ class FDSTooltipIcon extends HTMLElement {
 
         switch (attribute) {
             case 'tooltip-text':
-                console.log('tooltip-text changed to', newValue);
+                if (this.querySelector('button').getAttribute('aria-expanded') === 'true') {
+                    this.querySelector('.tooltip').textContent = newValue;
+                    this.#updatePosition();
+                }
+                break;
+            case 'sr-label':
+                this.querySelector('button').setAttribute('aria-label', newValue);
+                break;
+            case 'placement':
+                if (this.querySelector('button').getAttribute('aria-expanded') === 'true') {
+                    this.#updatePosition();
+                }
                 break;
         }
     }
