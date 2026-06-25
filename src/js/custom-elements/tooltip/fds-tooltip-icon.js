@@ -5,8 +5,6 @@ class FDSTooltipIcon extends HTMLElement {
 
     // #region - PRIVATE STATIC FIELDS ----------------------------------------------------------------------
 
-    static #ARROW_HEIGHT = 8;
-    static #ARROW_DIST_TO_TARGET = 4;
     static #MIN_MARGIN = 8;
     static #MAX_WIDTH = 330;
 
@@ -116,6 +114,14 @@ class FDSTooltipIcon extends HTMLElement {
         this.appendChild(tooltipArrow);
     }
 
+    #getArrowDimensions() {
+        const style = getComputedStyle(this);
+        return {
+            arrowHeight: parseInt(style.getPropertyValue('--tooltip-arrow-height')),
+            arrowDistanceToTarget: parseInt(style.getPropertyValue('--tooltip-arrow-distance-to-target'))
+        };
+    }
+
     #setTooltipWidth() {
         const tooltip = this.querySelector('.tooltip');
 
@@ -152,9 +158,10 @@ class FDSTooltipIcon extends HTMLElement {
         const tooltip = this.querySelector('.tooltip');
         const arrow = this.querySelector('.tooltip-arrow');
         const buttonRect = this.querySelector('button').getBoundingClientRect();
+        const { arrowHeight, arrowDistanceToTarget } = this.#getArrowDimensions();
 
         // Calculate space available above and below the button
-        const spaceNeeded = tooltip.offsetHeight + FDSTooltipIcon.#ARROW_HEIGHT + FDSTooltipIcon.#ARROW_DIST_TO_TARGET;
+        const spaceNeeded = tooltip.offsetHeight + arrowHeight + arrowDistanceToTarget;
         const spaceAbove = buttonRect.top;
         const spaceBelow = window.innerHeight - buttonRect.bottom;
 
@@ -170,15 +177,15 @@ class FDSTooltipIcon extends HTMLElement {
 
         // Position tooltip bubble and arrow based on actual placement
         if (actualPlacement === 'above') {
-            tooltip.style.top = `${Math.round(buttonRect.top - tooltip.offsetHeight - FDSTooltipIcon.#ARROW_HEIGHT - FDSTooltipIcon.#ARROW_DIST_TO_TARGET + 1)}px`;
+            tooltip.style.top = `${Math.round(buttonRect.top - tooltip.offsetHeight - arrowHeight - arrowDistanceToTarget + 1)}px`;
             arrow.style.left = `${Math.round(buttonRect.left + (buttonRect.width / 2))}px`;
-            arrow.style.top = `${Math.round(buttonRect.top - FDSTooltipIcon.#ARROW_HEIGHT - FDSTooltipIcon.#ARROW_DIST_TO_TARGET)}px`;
+            arrow.style.top = `${Math.round(buttonRect.top - arrowHeight - arrowDistanceToTarget)}px`;
             arrow.classList.add('place-above');
             arrow.classList.remove('place-below');
         } else {
-            tooltip.style.top = `${Math.round(buttonRect.bottom + FDSTooltipIcon.#ARROW_HEIGHT + FDSTooltipIcon.#ARROW_DIST_TO_TARGET - 1)}px`;
+            tooltip.style.top = `${Math.round(buttonRect.bottom + arrowHeight + arrowDistanceToTarget - 1)}px`;
             arrow.style.left = `${Math.round(buttonRect.left + (buttonRect.width / 2))}px`;
-            arrow.style.top = `${Math.round(buttonRect.bottom + FDSTooltipIcon.#ARROW_DIST_TO_TARGET)}px`;
+            arrow.style.top = `${Math.round(buttonRect.bottom + arrowDistanceToTarget)}px`;
             arrow.classList.add('place-below');
             arrow.classList.remove('place-above');
         }
@@ -244,7 +251,7 @@ class FDSTooltipIcon extends HTMLElement {
         this.querySelector('.tooltip').style.display = 'none';
         this.querySelector('.tooltip-arrow').style.display = 'none';
         this.querySelector('.tooltip').textContent = '';
-        
+
         window.removeEventListener('resize', this.#handleResize, false);
         document.removeEventListener('scroll', this.#handleScroll, true);
         this.#disconnectIntersectionObserver();
@@ -268,6 +275,12 @@ class FDSTooltipIcon extends HTMLElement {
 
     disconnectedCallback() {
         this.#removeEventListeners();
+
+        // Remove observer and event listeners that are temporarily added when the tooltip is open
+        this.#disconnectIntersectionObserver();
+        window.removeEventListener('resize', this.#handleResize, false);
+        document.removeEventListener('scroll', this.#handleScroll, true);
+        
         this.#initialized = false;
     }
 

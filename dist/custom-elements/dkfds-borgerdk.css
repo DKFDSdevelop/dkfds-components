@@ -12,6 +12,8 @@
   --color-gray-500:#707070;
   --color-gray-600:#454545;
   --color-gray-900:#1a1a1a;
+  --tooltip-arrow-height:8px;
+  --tooltip-arrow-distance-to-target:4px;
 }
 
 @font-face{
@@ -13120,19 +13122,19 @@ fds-tooltip-icon .tooltip-arrow,
 fds-tooltip-icon .tooltip-arrow::before,
 .fds-tooltip-icon .tooltip-arrow::before{
   content:"";
-  border-right:9px solid transparent;
-  border-left:9px solid transparent;
+  border-right:calc(var(--tooltip-arrow-height) + 1px) solid transparent;
+  border-left:calc(var(--tooltip-arrow-height) + 1px) solid transparent;
   display:block;
   position:absolute;
-  left:-9px;
+  left:calc(0px - var(--tooltip-arrow-height) - 1px);
   top:0;
   z-index:11001;
 }
 fds-tooltip-icon .tooltip-arrow.place-above::before,
 .fds-tooltip-icon .tooltip-arrow.place-above::before{
-  border-top:8px solid #454545;
+  border-top:var(--tooltip-arrow-height) solid #454545;
 }
 fds-tooltip-icon .tooltip-arrow.place-below::before,
 .fds-tooltip-icon .tooltip-arrow.place-below::before{
-  border-bottom:8px solid #454545;
+  border-bottom:var(--tooltip-arrow-height) solid #454545;
 }
