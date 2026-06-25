@@ -31,6 +31,7 @@ class FDSTooltipIcon extends HTMLElement {
     // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
+    #intersectionObserver = null;
 
     // #endregion
 
@@ -61,6 +62,18 @@ class FDSTooltipIcon extends HTMLElement {
 
     #handleResize = () => {
         this.#updatePosition();
+    };
+
+    #handleScroll = () => {
+        this.#updatePosition();
+    };
+
+    #handleIntersection = (entries) => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) {
+                this.close();
+            }
+        });
     };
 
     // #endregion
@@ -190,6 +203,20 @@ class FDSTooltipIcon extends HTMLElement {
         this.removeEventListener('keydown', this.#handleKeydown, false);
     }
 
+    #connectIntersectionObserver() {
+        if (this.#intersectionObserver) return;
+
+        this.#intersectionObserver = new IntersectionObserver(this.#handleIntersection, { threshold: 0 });
+        this.#intersectionObserver.observe(this.querySelector('button'));
+    }
+
+    #disconnectIntersectionObserver() {
+        if (this.#intersectionObserver) {
+            this.#intersectionObserver.disconnect();
+            this.#intersectionObserver = null;
+        }
+    }
+
     // #endregion
 
     // #region - PUBLIC METHODS -----------------------------------------------------------------------------
@@ -206,7 +233,10 @@ class FDSTooltipIcon extends HTMLElement {
         this.querySelector('.tooltip').style.display = 'block';
         this.querySelector('.tooltip').textContent = this.getAttribute('tooltip-text');
         this.#updatePosition();
+
         window.addEventListener('resize', this.#handleResize, false);
+        document.addEventListener('scroll', this.#handleScroll, true);
+        this.#connectIntersectionObserver();
     }
 
     close() {
@@ -214,7 +244,10 @@ class FDSTooltipIcon extends HTMLElement {
         this.querySelector('.tooltip').style.display = 'none';
         this.querySelector('.tooltip-arrow').style.display = 'none';
         this.querySelector('.tooltip').textContent = '';
+        
         window.removeEventListener('resize', this.#handleResize, false);
+        document.removeEventListener('scroll', this.#handleScroll, true);
+        this.#disconnectIntersectionObserver();
     }
 
     toggle() {
