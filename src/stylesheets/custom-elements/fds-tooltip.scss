@@ -68,4 +68,13 @@ fds-tooltip {
             border-bottom: var(--tooltip-arrow-height) solid func.color(vars.$tooltip-arrow-color);
         }
     }
+
+    & > :first-child {
+
+        &.js-pressing,
+        &.js-pressed {
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+    }
 }

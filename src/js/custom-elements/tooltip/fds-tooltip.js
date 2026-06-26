@@ -45,6 +45,33 @@ class FDSTooltip extends HTMLElement {
         if (event.pointerType === 'mouse') {
             this.firstElementChild.classList.remove('js-hover');
             this.close();
+        } 
+        else if (event.pointerType === 'touch') {
+            this.firstElementChild.classList.remove('js-pressing');
+            this.firstElementChild.classList.remove('js-pressed');
+        }
+    };
+
+    #handlePointerDown = (event) => {
+        if (event.pointerType === 'touch') {
+            this.firstElementChild.classList.remove('js-pressed');
+            this.firstElementChild.releasePointerCapture(event.pointerId);
+            this.firstElementChild.classList.add('js-pressing');
+            setTimeout(() => {
+                if (this.firstElementChild.classList.contains('js-pressing')) {
+                    this.firstElementChild.classList.add('js-pressed');
+                    this.firstElementChild.classList.remove('js-pressing');
+                }
+            }, 600);
+        }
+    };
+
+    #handlePointerUp = (event) => {
+        if (event.pointerType === 'touch') {
+            if (this.firstElementChild.classList.contains('js-pressed')) {
+                event.preventDefault();
+                this.open();
+            }
         }
     };
 
@@ -66,6 +93,12 @@ class FDSTooltip extends HTMLElement {
                 this.firstElementChild.focus();
                 event.stopImmediatePropagation();
             }
+        }
+    };
+
+    #handleClickOutside = (event) => {
+        if (!this.contains(event.target)) {
+            this.close();
         }
     };
 
@@ -116,6 +149,8 @@ class FDSTooltip extends HTMLElement {
     #addEventListeners() {
         this.firstElementChild.addEventListener('pointerenter', this.#handlePointerEnter, false);
         this.addEventListener('pointerleave', this.#handlePointerLeave, false);
+        this.firstElementChild.addEventListener('pointerdown', this.#handlePointerDown, false);
+        this.firstElementChild.addEventListener('pointerup', this.#handlePointerUp, false);
         this.firstElementChild.addEventListener('focus', this.#handleFocus, false);
         this.addEventListener('focusout', this.#handleFocusOut, false);
         this.addEventListener('keydown', this.#handleKeydown, false);
@@ -124,6 +159,8 @@ class FDSTooltip extends HTMLElement {
     #removeEventListeners() {
         this.firstElementChild.removeEventListener('pointerenter', this.#handlePointerEnter, false);
         this.removeEventListener('pointerleave', this.#handlePointerLeave, false);
+        this.firstElementChild.removeEventListener('pointerdown', this.#handlePointerDown, false);
+        this.firstElementChild.removeEventListener('pointerup', this.#handlePointerUp, false);
         this.firstElementChild.removeEventListener('focus', this.#handleFocus, false);
         this.removeEventListener('focusout', this.#handleFocusOut, false);
         this.removeEventListener('keydown', this.#handleKeydown, false);
@@ -148,12 +185,17 @@ class FDSTooltip extends HTMLElement {
     open() {
         this.querySelector('.tooltip').style.display = 'block';
         this.querySelector('.tooltip-arrow').style.display = 'block';
+        document.addEventListener('click', this.#handleClickOutside, false);
         this.#updatePosition();
     }
 
     close() {
         this.querySelector('.tooltip').style.display = 'none';
         this.querySelector('.tooltip-arrow').style.display = 'none';
+        this.firstElementChild.classList.remove('js-hover');
+        this.firstElementChild.classList.remove('js-pressing');
+        this.firstElementChild.classList.remove('js-pressed');
+        document.removeEventListener('click', this.#handleClickOutside, false);
     }
 
     toggle() {
@@ -174,6 +216,7 @@ class FDSTooltip extends HTMLElement {
 
     disconnectedCallback() {
         this.#removeEventListeners();
+        document.removeEventListener('click', this.#handleClickOutside, false);
         this.#initialized = false;
     }
 

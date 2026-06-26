@@ -13142,6 +13142,11 @@ fds-tooltip .tooltip-arrow.place-above::before{
 fds-tooltip .tooltip-arrow.place-below::before{
   border-bottom:var(--tooltip-arrow-height) solid #454545;
 }
+fds-tooltip > :first-child.js-pressing, fds-tooltip > :first-child.js-pressed{
+  -webkit-user-select:none;
+          user-select:none;
+  -webkit-touch-callout:none;
+}
 
 fds-tooltip-icon,
 .fds-tooltip-icon{
