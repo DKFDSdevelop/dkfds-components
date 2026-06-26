@@ -23,13 +23,23 @@ fds-tooltip {
         overflow-wrap: break-word;
         position: fixed;
 
-        // Bridge the gap between tooltip and trigger
-        &::after {
+        // Bridges the gap between tooltip and trigger to keep tooltip hoverable (WCAG 1.4.13).
+        &.place-above::after {
             content: '';
             position: absolute;
             left: 0;
             right: 0;
             top: 100%;
+            height: calc(var(--tooltip-arrow-height) + var(--tooltip-arrow-distance-to-target));
+        }
+
+        // Bridges the gap between tooltip and trigger to keep tooltip hoverable (WCAG 1.4.13).
+        &.place-below::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 100%;
             height: calc(var(--tooltip-arrow-height) + var(--tooltip-arrow-distance-to-target));
         }
     }
@@ -43,11 +53,19 @@ fds-tooltip {
             content: '';
             border-right: calc(var(--tooltip-arrow-height) + 1px) solid transparent;
             border-left: calc(var(--tooltip-arrow-height) + 1px) solid transparent;
-            border-top: var(--tooltip-arrow-height) solid func.color(vars.$tooltip-arrow-color);
             display: block;
             position: absolute;
             left: calc(0px - var(--tooltip-arrow-height) - 1px);
             top: 0;
+            z-index: vars.$zindex-tooltip + 1;
+        }
+
+        &.place-above::before {
+            border-top: var(--tooltip-arrow-height) solid func.color(vars.$tooltip-arrow-color);
+        }
+
+        &.place-below::before {
+            border-bottom: var(--tooltip-arrow-height) solid func.color(vars.$tooltip-arrow-color);
         }
     }
 }

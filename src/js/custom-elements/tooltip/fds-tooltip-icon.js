@@ -1,14 +1,8 @@
 import * as CE from '../custom-element-utils';
+import * as TooltipUtils from './fds-tooltip-utils';
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 class FDSTooltipIcon extends HTMLElement {
-
-    // #region - PRIVATE STATIC FIELDS ----------------------------------------------------------------------
-
-    static #MIN_MARGIN = 8;
-    static #MAX_WIDTH = 330;
-
-    // #endregion
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -127,90 +121,6 @@ class FDSTooltipIcon extends HTMLElement {
         tooltipArrow.style.display = 'none';
     }
 
-    #getArrowDimensions() {
-        const style = getComputedStyle(this);
-        return {
-            arrowHeight: parseInt(style.getPropertyValue('--tooltip-arrow-height')),
-            arrowDistanceToTarget: parseInt(style.getPropertyValue('--tooltip-arrow-distance-to-target'))
-        };
-    }
-
-    #setTooltipWidth() {
-        const tooltip = this.querySelector('.tooltip');
-
-        // Start with natural width
-        tooltip.style.width = 'max-content';
-
-        // Cap at max width
-        if (tooltip.offsetWidth > FDSTooltipIcon.#MAX_WIDTH) { tooltip.style.width = `${FDSTooltipIcon.#MAX_WIDTH}px`; }
-
-        // Further cap if viewport is narrower than max width
-        const viewportMaxWidth = document.documentElement.clientWidth - (FDSTooltipIcon.#MIN_MARGIN * 2);
-        if (tooltip.offsetWidth > viewportMaxWidth) { tooltip.style.width = `${viewportMaxWidth}px`; }
-    }
-
-    #setTooltipLeft() {
-        const tooltip = this.querySelector('.tooltip');
-        const buttonRect = this.querySelector('button').getBoundingClientRect();
-
-        // Center tooltip on button
-        let left = buttonRect.left + (buttonRect.width / 2) - (tooltip.offsetWidth / 2);
-
-        // If tooltip exceeds right edge, shift left
-        if (left + tooltip.offsetWidth > document.documentElement.clientWidth - FDSTooltipIcon.#MIN_MARGIN) {
-            left = document.documentElement.clientWidth - FDSTooltipIcon.#MIN_MARGIN - tooltip.offsetWidth;
-        }
-
-        // If tooltip exceeds left edge (including full-width scenario), clamp to MIN_MARGIN
-        if (left < FDSTooltipIcon.#MIN_MARGIN) { left = FDSTooltipIcon.#MIN_MARGIN; }
-
-        tooltip.style.left = `${Math.round(left)}px`;
-    }
-
-    #setVerticalPlacement() {
-        const tooltip = this.querySelector('.tooltip');
-        const arrow = this.querySelector('.tooltip-arrow');
-        const buttonRect = this.querySelector('button').getBoundingClientRect();
-        const { arrowHeight, arrowDistanceToTarget } = this.#getArrowDimensions();
-
-        // Calculate space available above and below the button
-        const spaceNeeded = tooltip.offsetHeight + arrowHeight + arrowDistanceToTarget;
-        const spaceAbove = buttonRect.top;
-        const spaceBelow = window.innerHeight - buttonRect.bottom;
-
-        // Determine placement based on preferred placement and available space
-        const preferredPlacement = this.placement;
-        let actualPlacement = preferredPlacement;
-
-        if (preferredPlacement === 'above' && spaceAbove < spaceNeeded) {
-            actualPlacement = 'below';
-        } else if (preferredPlacement === 'below' && spaceBelow < spaceNeeded) {
-            actualPlacement = 'above';
-        }
-
-        // Position tooltip bubble and arrow based on actual placement
-        if (actualPlacement === 'above') {
-            tooltip.style.top = `${Math.round(buttonRect.top - tooltip.offsetHeight - arrowHeight - arrowDistanceToTarget + 1)}px`;
-            arrow.style.left = `${Math.round(buttonRect.left + (buttonRect.width / 2))}px`;
-            arrow.style.top = `${Math.round(buttonRect.top - arrowHeight - arrowDistanceToTarget)}px`;
-            arrow.classList.add('place-above');
-            arrow.classList.remove('place-below');
-        } else {
-            tooltip.style.top = `${Math.round(buttonRect.bottom + arrowHeight + arrowDistanceToTarget - 1)}px`;
-            arrow.style.left = `${Math.round(buttonRect.left + (buttonRect.width / 2))}px`;
-            arrow.style.top = `${Math.round(buttonRect.bottom + arrowDistanceToTarget)}px`;
-            arrow.classList.add('place-below');
-            arrow.classList.remove('place-above');
-        }
-    }
-
-    #updatePosition() {
-        // Width must be set before left, as left depends on tooltip width
-        this.#setTooltipWidth();
-        this.#setTooltipLeft();
-        this.#setVerticalPlacement();
-    }
-
     #addEventListeners() {
         this.querySelector('button').addEventListener('click', this.#handleClick, false);
         this.addEventListener('focusout', this.#handleFocusOut, false);
@@ -235,6 +145,13 @@ class FDSTooltipIcon extends HTMLElement {
             this.#intersectionObserver.disconnect();
             this.#intersectionObserver = null;
         }
+    }
+
+    #updatePosition() {
+        // Width must be set before left, as left depends on tooltip width
+        TooltipUtils.setTooltipWidth(this.querySelector('.tooltip'));
+        TooltipUtils.setTooltipLeft(this.querySelector('.tooltip'), this.querySelector('button'));
+        TooltipUtils.setVerticalPlacement(this.querySelector('.tooltip'), this.querySelector('.tooltip-arrow'), this.querySelector('button'), this.placement);
     }
 
     // #endregion

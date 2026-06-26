@@ -13105,12 +13105,20 @@ fds-tooltip .tooltip{
   overflow-wrap:break-word;
   position:fixed;
 }
-fds-tooltip .tooltip::after{
+fds-tooltip .tooltip.place-above::after{
   content:"";
   position:absolute;
   left:0;
   right:0;
   top:100%;
+  height:calc(var(--tooltip-arrow-height) + var(--tooltip-arrow-distance-to-target));
+}
+fds-tooltip .tooltip.place-below::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:100%;
   height:calc(var(--tooltip-arrow-height) + var(--tooltip-arrow-distance-to-target));
 }
 fds-tooltip .tooltip-arrow{
@@ -13122,11 +13130,17 @@ fds-tooltip .tooltip-arrow::before{
   content:"";
   border-right:calc(var(--tooltip-arrow-height) + 1px) solid transparent;
   border-left:calc(var(--tooltip-arrow-height) + 1px) solid transparent;
-  border-top:var(--tooltip-arrow-height) solid #454545;
   display:block;
   position:absolute;
   left:calc(0px - var(--tooltip-arrow-height) - 1px);
   top:0;
+  z-index:11001;
+}
+fds-tooltip .tooltip-arrow.place-above::before{
+  border-top:var(--tooltip-arrow-height) solid #454545;
+}
+fds-tooltip .tooltip-arrow.place-below::before{
+  border-bottom:var(--tooltip-arrow-height) solid #454545;
 }
 
 fds-tooltip-icon,
