@@ -1,14 +1,11 @@
 @use "../variables" as vars;
 @use "../functions" as func;
 @use "../mixins" as mixins;
+@use "../placeholder-selectors";
 
 fds-tooltip-icon,
 .fds-tooltip-icon {
-    position: relative;
-    width: fit-content;
-    height: fit-content;
-    line-height: 1;
-    display: inline-flex; // Display MUST be flex or inline-flex, otherwise screenreaders will read a help button as part of the label for text input
+    display: inline-flex;
     vertical-align: bottom;
 
     .button .icon-svg {
@@ -16,45 +13,10 @@ fds-tooltip-icon,
     }
 
     .tooltip {
-        line-height: 1.5;
-        font-size: func.font-size('xs');
-        font-weight: func.font-weight('normal');
-        color: func.color(vars.$tooltip-color);
-        box-shadow: func.shadow('light');
-        background-color: func.color(vars.$tooltip-background-color);
-        border-radius: func.border-radius('small');
-        padding: func.units(2) func.units(305);
-        z-index: vars.$zindex-tooltip;
-        display: block;
-        overflow-wrap: break-word;
-        position: fixed;
-        bottom: auto;
+        @extend %tooltip;
     }
 
     .tooltip-arrow {
-        pointer-events: none;
-        position: fixed;
-        z-index: vars.$zindex-tooltip;
-
-        &::before {
-            content: '';
-            border-right: calc(var(--tooltip-arrow-height) + 1px) solid transparent;
-            border-left: calc(var(--tooltip-arrow-height) + 1px) solid transparent;
-            display: block;
-            position: absolute;
-            left: calc(0px - var(--tooltip-arrow-height) - 1px);
-            top: 0;
-            z-index: vars.$zindex-tooltip + 1;
-        }
-
-        // Arrow points down when tooltip is above the button
-        &.place-above::before {
-            border-top: var(--tooltip-arrow-height) solid func.color(vars.$tooltip-arrow-color);
-        }
-
-        // Arrow points up when tooltip is below the button
-        &.place-below::before {
-            border-bottom: var(--tooltip-arrow-height) solid func.color(vars.$tooltip-arrow-color);
-        }
+        @extend %tooltip-arrow;
     }
 }
