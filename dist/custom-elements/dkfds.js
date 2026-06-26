@@ -6737,33 +6737,39 @@ function registerMainMenu() {
 /* harmony default export */ const fds_main_menu = (registerMainMenu);
 ;// ./src/js/custom-elements/tooltip/fds-tooltip.js
 
-const fds_tooltip_styles = `
-    :host {
-        display: block;
-    }
-`;
-const fds_tooltip_sheet = new CSSStyleSheet();
-fds_tooltip_sheet.replaceSync(fds_tooltip_styles);
 class FDSTooltip extends HTMLElement {
+  // #region - PRIVATE STATIC FIELDS ----------------------------------------------------------------------
+
+  static #MIN_MARGIN = 8;
+  static #MAX_WIDTH = 330;
+
+  // #endregion
+
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['tooltip-text', 'ready'];
+  static observedAttributes = ['tooltip-text', 'placement', 'purpose'];
 
   // #endregion
 
   // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
-  get attr() {
-    return this.getAttribute('attr');
+  get tooltipText() {
+    return this.getAttribute('tooltip-text');
   }
-  set attr(value) {
-    value == null ? this.removeAttribute('attr') : this.setAttribute('attr', value);
+  set tooltipText(value) {
+    value == null ? this.removeAttribute('tooltip-text') : this.setAttribute('tooltip-text', value);
   }
-  get ready() {
-    return this.getAttribute('ready') !== 'false';
+  get placement() {
+    return this.getAttribute('placement') ?? 'above';
   }
-  set ready(value) {
-    this.setAttribute('ready', value ? 'true' : 'false');
+  set placement(value) {
+    value == null ? this.removeAttribute('placement') : this.setAttribute('placement', value);
+  }
+  get purpose() {
+    return this.getAttribute('purpose') ?? 'hint';
+  }
+  set purpose(value) {
+    value == null ? this.removeAttribute('purpose') : this.setAttribute('purpose', value);
   }
 
   // #endregion
@@ -6771,29 +6777,25 @@ class FDSTooltip extends HTMLElement {
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
-  #mutationObserver = null;
 
   // #endregion
 
   // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
-  #handleClick = event => {
-    console.log('Click event:', event);
+  #handlePointerEnter = event => {
+    if (event.pointerType === 'mouse') {
+      this.firstElementChild.classList.add('js-hover');
+      setTimeout(() => {
+        if (this.firstElementChild.classList.contains('js-hover')) {
+          this.open();
+        }
+      }, 300);
+    }
   };
-  #handleKeyDown = event => {
-    console.log('KeyDown event:', event);
-  };
-  #handleMutations = records => {
-    for (const {
-      attributeName,
-      target,
-      addedNodes,
-      removedNodes
-    } of records) {
-      console.log('attributeName', attributeName);
-      console.log('target', target);
-      console.log('addedNodes', addedNodes);
-      console.log('removedNodes', removedNodes);
+  #handlePointerLeave = event => {
+    if (event.pointerType === 'mouse') {
+      this.firstElementChild.classList.remove('js-hover');
+      this.close();
     }
   };
 
@@ -6802,52 +6804,87 @@ class FDSTooltip extends HTMLElement {
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #setupHTML() {
-    // --- Slot ---
-    if (!this.shadowRoot.querySelector('slot[name="element-slot"]')) {
-      const slot = document.createElement('slot');
-      slot.name = 'element-slot';
-      this.shadowRoot.appendChild(slot);
+    if (!this.hasAttribute('tooltip-text')) return;
+    const uniqueId = generateAndVerifyUniqueId('tooltip-');
+    let tooltip = this.querySelector('.tooltip');
+    if (tooltip === null) {
+      tooltip = document.createElement('span');
+      tooltip.setAttribute('id', uniqueId);
+      tooltip.setAttribute('role', 'tooltip');
+      tooltip.classList.add('tooltip');
+      tooltip.textContent = this.getAttribute('tooltip-text');
+      tooltip.style.display = 'none';
+      this.appendChild(tooltip);
     }
-
-    // --- Button ---
-    let button = this.shadowRoot.querySelector('button');
-    if (!button) {
-      button = document.createElement('button');
-      this.shadowRoot.appendChild(button);
+    let tooltipArrow = this.querySelector('.tooltip-arrow');
+    if (tooltipArrow === null) {
+      tooltipArrow = document.createElement('span');
+      tooltipArrow.classList.add('tooltip-arrow');
+      tooltipArrow.setAttribute('aria-hidden', 'true');
+      tooltipArrow.style.display = 'none';
+      this.appendChild(tooltipArrow);
     }
-    button.textContent = 'Click me';
   }
   #addEventListeners() {
-    this.shadowRoot.querySelector('button').addEventListener('click', this.#handleClick);
-    this.shadowRoot.querySelector('button').addEventListener('keydown', this.#handleKeyDown);
+    this.firstElementChild.addEventListener('pointerenter', this.#handlePointerEnter, false);
+    this.addEventListener('pointerleave', this.#handlePointerLeave, false);
   }
   #removeEventListeners() {
-    this.shadowRoot.querySelector('button').removeEventListener('click', this.#handleClick);
-    this.shadowRoot.querySelector('button').removeEventListener('keydown', this.#handleKeyDown);
+    this.firstElementChild.removeEventListener('pointerenter', this.#handlePointerEnter, false);
+    this.removeEventListener('pointerleave', this.#handlePointerLeave, false);
   }
-  #connectMutationObserver() {
-    let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mutationObserverConfig;
-    if (this.#mutationObserver) return;
-    this.#mutationObserver = new MutationObserver(this.#handleMutations);
-    this.#mutationObserver.observe(this, config);
+  #getArrowDimensions() {
+    const style = getComputedStyle(this);
+    return {
+      arrowHeight: parseInt(style.getPropertyValue('--tooltip-arrow-height')),
+      arrowDistanceToTarget: parseInt(style.getPropertyValue('--tooltip-arrow-distance-to-target'))
+    };
   }
-  #disconnectMutationObserver() {
-    if (this.#mutationObserver) {
-      this.#mutationObserver.disconnect();
-      this.#mutationObserver = null;
+  #setTooltipWidth() {
+    const tooltip = this.querySelector('.tooltip');
+    tooltip.style.width = 'max-content';
+    if (tooltip.offsetWidth > FDSTooltip.#MAX_WIDTH) {
+      tooltip.style.width = `${FDSTooltip.#MAX_WIDTH}px`;
+    }
+    const viewportMaxWidth = document.documentElement.clientWidth - FDSTooltip.#MIN_MARGIN * 2;
+    if (tooltip.offsetWidth > viewportMaxWidth) {
+      tooltip.style.width = `${viewportMaxWidth}px`;
     }
   }
+  #setTooltipLeft() {
+    const tooltip = this.querySelector('.tooltip');
+    const triggerRect = this.firstElementChild.getBoundingClientRect();
 
-  // #endregion
+    // Center tooltip on trigger
+    let left = triggerRect.left + triggerRect.width / 2 - tooltip.offsetWidth / 2;
 
-  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+    // If tooltip exceeds right edge, shift left
+    if (left + tooltip.offsetWidth > document.documentElement.clientWidth - FDSTooltip.#MIN_MARGIN) {
+      left = document.documentElement.clientWidth - FDSTooltip.#MIN_MARGIN - tooltip.offsetWidth;
+    }
 
-  constructor() {
-    super();
-    this.attachShadow({
-      mode: 'open'
-    });
-    this.shadowRoot.adoptedStyleSheets = [fds_tooltip_sheet];
+    // If tooltip exceeds left edge, clamp to MIN_MARGIN
+    if (left < FDSTooltip.#MIN_MARGIN) {
+      left = FDSTooltip.#MIN_MARGIN;
+    }
+    tooltip.style.left = `${Math.round(left)}px`;
+  }
+  #setVerticalPlacement() {
+    const tooltip = this.querySelector('.tooltip');
+    const arrow = this.querySelector('.tooltip-arrow');
+    const triggerRect = this.firstElementChild.getBoundingClientRect();
+    const {
+      arrowHeight,
+      arrowDistanceToTarget
+    } = this.#getArrowDimensions();
+    tooltip.style.top = `${Math.round(triggerRect.top - tooltip.offsetHeight - arrowHeight - arrowDistanceToTarget + 1)}px`;
+    arrow.style.left = `${Math.round(triggerRect.left + triggerRect.width / 2)}px`;
+    arrow.style.top = `${Math.round(triggerRect.top - arrowHeight - arrowDistanceToTarget)}px`;
+  }
+  #updatePosition() {
+    this.#setTooltipWidth();
+    this.#setTooltipLeft();
+    this.#setVerticalPlacement();
   }
 
   // #endregion
@@ -6857,8 +6894,17 @@ class FDSTooltip extends HTMLElement {
   init() {
     this.#setupHTML();
     this.#addEventListeners();
-    this.#connectMutationObserver();
     this.#initialized = true;
+  }
+  open() {
+    this.querySelector('.tooltip').style.display = 'block';
+    this.querySelector('.tooltip-arrow').style.display = 'block';
+    this.querySelector('.tooltip').textContent = this.getAttribute('tooltip-text');
+    this.#updatePosition();
+  }
+  close() {
+    this.querySelector('.tooltip').style.display = 'none';
+    this.querySelector('.tooltip-arrow').style.display = 'none';
   }
 
   // #endregion
@@ -6866,9 +6912,6 @@ class FDSTooltip extends HTMLElement {
   // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
-    // The 'ready' attribute can be used to defer initialization.
-    // Omit the attribute or set it to anything other than 'false' to initialize immediately.
-    if (this.getAttribute('ready') === 'false') return;
     this.init();
   }
 
@@ -6878,7 +6921,6 @@ class FDSTooltip extends HTMLElement {
 
   disconnectedCallback() {
     this.#removeEventListeners();
-    this.#disconnectMutationObserver();
     this.#initialized = false;
   }
 
@@ -6887,12 +6929,6 @@ class FDSTooltip extends HTMLElement {
   // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
-    if (attribute === 'ready') {
-      if (!this.#initialized && this.isConnected && newValue !== 'false') {
-        this.init();
-      }
-      return;
-    }
     if (!this.#initialized) return;
     if (oldValue === newValue) return;
     switch (attribute) {

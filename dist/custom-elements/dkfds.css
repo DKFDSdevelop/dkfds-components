@@ -13084,6 +13084,51 @@ fds-solution-info + fds-main-menu,
   border-top:1px solid #bfbfbf;
 }
 
+fds-tooltip{
+  position:relative;
+  width:fit-content;
+  height:fit-content;
+  display:inline-flex;
+  vertical-align:bottom;
+}
+fds-tooltip .tooltip{
+  line-height:1.5;
+  font-size:1.4rem;
+  font-weight:400;
+  color:white;
+  box-shadow:0 4px 12px 0 rgba(0, 0, 0, 0.2);
+  background-color:#454545;
+  border-radius:4px;
+  padding:4px 8px;
+  z-index:11000;
+  display:block;
+  overflow-wrap:break-word;
+  position:fixed;
+}
+fds-tooltip .tooltip::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:100%;
+  height:calc(var(--tooltip-arrow-height) + var(--tooltip-arrow-distance-to-target));
+}
+fds-tooltip .tooltip-arrow{
+  position:fixed;
+  pointer-events:none;
+  z-index:11000;
+}
+fds-tooltip .tooltip-arrow::before{
+  content:"";
+  border-right:calc(var(--tooltip-arrow-height) + 1px) solid transparent;
+  border-left:calc(var(--tooltip-arrow-height) + 1px) solid transparent;
+  border-top:var(--tooltip-arrow-height) solid #454545;
+  display:block;
+  position:absolute;
+  left:calc(0px - var(--tooltip-arrow-height) - 1px);
+  top:0;
+}
+
 fds-tooltip-icon,
 .fds-tooltip-icon{
   position:relative;
