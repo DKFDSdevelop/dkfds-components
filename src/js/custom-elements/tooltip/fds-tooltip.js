@@ -48,6 +48,17 @@ class FDSTooltip extends HTMLElement {
         }
     };
 
+    #handleFocus = () => {
+        this.open();
+    };
+
+    #handleFocusOut = (event) => {
+        const focusLeftComponent = !this.contains(event.relatedTarget);
+        if (focusLeftComponent) {
+            this.close();
+        }
+    };
+
     // #endregion
 
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
@@ -55,13 +66,17 @@ class FDSTooltip extends HTMLElement {
     #setupHTML() {
         if (!this.hasAttribute('tooltip-text')) return;
 
-        const uniqueId = generateAndVerifyUniqueId('tooltip-');
+        const triggerElements = this.querySelectorAll(':scope > :not(.tooltip):not(.tooltip-arrow)');
+        if (triggerElements.length !== 1) return;
 
         let tooltip = this.querySelector('.tooltip');
+        const uniqueId = tooltip !== null ? tooltip.getAttribute('id') : generateAndVerifyUniqueId('tooltip-');
+
         if (tooltip === null) {
             tooltip = document.createElement('span');
             tooltip.setAttribute('id', uniqueId);
             tooltip.setAttribute('role', 'tooltip');
+            tooltip.setAttribute('tabindex', '-1');
             tooltip.classList.add('tooltip');
             tooltip.textContent = this.getAttribute('tooltip-text');
             tooltip.style.display = 'none';
@@ -76,16 +91,30 @@ class FDSTooltip extends HTMLElement {
             tooltipArrow.style.display = 'none';
             this.appendChild(tooltipArrow);
         }
+
+        const trigger = this.firstElementChild;
+        const ariaAttribute = this.purpose === 'label' ? 'aria-labelledby' : 'aria-describedby';
+        const existingValue = trigger.getAttribute(ariaAttribute);
+        if (existingValue === null) {
+            trigger.setAttribute(ariaAttribute, uniqueId);
+        } 
+        else if (!existingValue.includes(uniqueId)) {
+            trigger.setAttribute(ariaAttribute, `${existingValue} ${uniqueId}`);
+        }
     }
 
     #addEventListeners() {
         this.firstElementChild.addEventListener('pointerenter', this.#handlePointerEnter, false);
         this.addEventListener('pointerleave', this.#handlePointerLeave, false);
+        this.firstElementChild.addEventListener('focus', this.#handleFocus, false);
+        this.addEventListener('focusout', this.#handleFocusOut, false);
     }
 
     #removeEventListeners() {
         this.firstElementChild.removeEventListener('pointerenter', this.#handlePointerEnter, false);
         this.removeEventListener('pointerleave', this.#handlePointerLeave, false);
+        this.firstElementChild.removeEventListener('focus', this.#handleFocus, false);
+        this.removeEventListener('focusout', this.#handleFocusOut, false);
     }
 
     #updatePosition() {
@@ -107,13 +136,16 @@ class FDSTooltip extends HTMLElement {
     open() {
         this.querySelector('.tooltip').style.display = 'block';
         this.querySelector('.tooltip-arrow').style.display = 'block';
-        this.querySelector('.tooltip').textContent = this.getAttribute('tooltip-text');
         this.#updatePosition();
     }
 
     close() {
         this.querySelector('.tooltip').style.display = 'none';
         this.querySelector('.tooltip-arrow').style.display = 'none';
+    }
+
+    toggle() {
+        this.querySelector('.tooltip').style.display === 'none' ? this.open() : this.close();
     }
 
     // #endregion
