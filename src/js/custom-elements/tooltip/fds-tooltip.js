@@ -59,6 +59,16 @@ class FDSTooltip extends HTMLElement {
         }
     };
 
+    #handleKeydown = (event) => {
+        if (event.key === 'Escape') {
+            if (this.querySelector('.tooltip').style.display !== 'none') {
+                this.close();
+                this.firstElementChild.focus();
+                event.stopImmediatePropagation();
+            }
+        }
+    };
+
     // #endregion
 
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
@@ -97,7 +107,7 @@ class FDSTooltip extends HTMLElement {
         const existingValue = trigger.getAttribute(ariaAttribute);
         if (existingValue === null) {
             trigger.setAttribute(ariaAttribute, uniqueId);
-        } 
+        }
         else if (!existingValue.includes(uniqueId)) {
             trigger.setAttribute(ariaAttribute, `${existingValue} ${uniqueId}`);
         }
@@ -108,6 +118,7 @@ class FDSTooltip extends HTMLElement {
         this.addEventListener('pointerleave', this.#handlePointerLeave, false);
         this.firstElementChild.addEventListener('focus', this.#handleFocus, false);
         this.addEventListener('focusout', this.#handleFocusOut, false);
+        this.addEventListener('keydown', this.#handleKeydown, false);
     }
 
     #removeEventListeners() {
@@ -115,6 +126,7 @@ class FDSTooltip extends HTMLElement {
         this.removeEventListener('pointerleave', this.#handlePointerLeave, false);
         this.firstElementChild.removeEventListener('focus', this.#handleFocus, false);
         this.removeEventListener('focusout', this.#handleFocusOut, false);
+        this.removeEventListener('keydown', this.#handleKeydown, false);
     }
 
     #updatePosition() {
@@ -175,7 +187,42 @@ class FDSTooltip extends HTMLElement {
 
         switch (attribute) {
             case 'tooltip-text':
-                console.log('tooltip-text changed to', newValue);
+                this.querySelector('.tooltip').textContent = newValue;
+                if (this.querySelector('.tooltip').style.display !== 'none') {
+                    this.#updatePosition();
+                }
+                break;
+            case 'placement':
+                if (this.querySelector('.tooltip').style.display !== 'none') {
+                    this.#updatePosition();
+                }
+                break;
+            case 'purpose':
+                if (newValue !== 'hint' && newValue !== 'label' && newValue !== null) return;
+
+                const trigger = this.firstElementChild;
+                const tooltipId = this.querySelector('.tooltip').getAttribute('id');
+                const addToAttribute = (newValue === 'label') ? 'aria-labelledby' : 'aria-describedby';
+                const removeFromAttribute = (newValue === 'label') ? 'aria-describedby' : 'aria-labelledby';
+
+                // Remove tooltip ID from old attribute
+                const oldAttributeValue = trigger.getAttribute(removeFromAttribute);
+                if (oldAttributeValue !== null) {
+                    const updatedValue = oldAttributeValue.replace(tooltipId, '').trim();
+                    // If the attribute is now empty, remove it entirely to keep the DOM clean
+                    updatedValue ? trigger.setAttribute(removeFromAttribute, updatedValue) : trigger.removeAttribute(removeFromAttribute);
+                }
+
+                // Add tooltip ID to new attribute
+                const newAttributeValue = trigger.getAttribute(addToAttribute);
+                if (newAttributeValue === null) {
+                    // Attribute doesn't exist yet, set it with just the tooltip ID
+                    trigger.setAttribute(addToAttribute, tooltipId);
+                }
+                else if (!newAttributeValue.includes(tooltipId)) {
+                    // Attribute already exists, append tooltip ID to preserve existing references
+                    trigger.setAttribute(addToAttribute, `${newAttributeValue} ${tooltipId}`);
+                }
                 break;
         }
     }
