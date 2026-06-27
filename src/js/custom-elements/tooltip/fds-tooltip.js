@@ -90,7 +90,6 @@ class FDSTooltip extends HTMLElement {
         if (event.key === 'Escape') {
             if (this.querySelector('.tooltip').style.display !== 'none') {
                 this.close();
-                this.firstElementChild.focus();
                 event.stopImmediatePropagation();
             }
         }
@@ -153,7 +152,6 @@ class FDSTooltip extends HTMLElement {
         this.firstElementChild.addEventListener('pointerup', this.#handlePointerUp, false);
         this.firstElementChild.addEventListener('focus', this.#handleFocus, false);
         this.addEventListener('focusout', this.#handleFocusOut, false);
-        this.addEventListener('keydown', this.#handleKeydown, false);
     }
 
     #removeEventListeners() {
@@ -163,7 +161,6 @@ class FDSTooltip extends HTMLElement {
         this.firstElementChild.removeEventListener('pointerup', this.#handlePointerUp, false);
         this.firstElementChild.removeEventListener('focus', this.#handleFocus, false);
         this.removeEventListener('focusout', this.#handleFocusOut, false);
-        this.removeEventListener('keydown', this.#handleKeydown, false);
     }
 
     #updatePosition() {
@@ -186,6 +183,7 @@ class FDSTooltip extends HTMLElement {
         this.querySelector('.tooltip').style.display = 'block';
         this.querySelector('.tooltip-arrow').style.display = 'block';
         document.addEventListener('click', this.#handleClickOutside, false);
+        document.addEventListener('keydown', this.#handleKeydown, false);
         this.#updatePosition();
     }
 
@@ -196,6 +194,7 @@ class FDSTooltip extends HTMLElement {
         this.firstElementChild.classList.remove('js-pressing');
         this.firstElementChild.classList.remove('js-pressed');
         document.removeEventListener('click', this.#handleClickOutside, false);
+        document.removeEventListener('keydown', this.#handleKeydown, false);
     }
 
     toggle() {
@@ -217,6 +216,7 @@ class FDSTooltip extends HTMLElement {
     disconnectedCallback() {
         this.#removeEventListeners();
         document.removeEventListener('click', this.#handleClickOutside, false);
+        document.removeEventListener('keydown', this.#handleKeydown, false);
         this.#initialized = false;
     }
 

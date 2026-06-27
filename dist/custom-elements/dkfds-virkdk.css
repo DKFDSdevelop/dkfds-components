@@ -13160,6 +13160,10 @@ fds-tooltip > :first-child.js-pressing, fds-tooltip > :first-child.js-pressed,
           user-select:none;
   -webkit-touch-callout:none;
 }
+fds-tooltip[purpose=label],
+.fds-tooltip[purpose=label]{
+  vertical-align:bottom;
+}
 
 fds-tooltip-icon,
 .fds-tooltip-icon{
@@ -13169,4 +13173,18 @@ fds-tooltip-icon,
 fds-tooltip-icon .button .icon-svg,
 .fds-tooltip-icon .button .icon-svg{
   margin:0;
+}
+fds-tooltip-icon.small .button:focus,
+.fds-tooltip-icon.small .button:focus{
+  outline-offset:-2px;
+}
+fds-tooltip-icon.small .button svg,
+.fds-tooltip-icon.small .button svg{
+  padding-top:0.3rem;
+  padding-bottom:0.3rem;
+}
+input[type=checkbox] + label + fds-tooltip-icon{
+  margin-top:4px;
+  margin-bottom:4px;
+  margin-left:2px;
 }

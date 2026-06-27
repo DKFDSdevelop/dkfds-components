@@ -12,6 +12,19 @@ fds-tooltip-icon,
         margin: 0;
     }
 
+    &.small {
+        .button {
+            &:focus {
+                outline-offset: -2px;
+            }
+
+            svg {
+                padding-top: .3rem;
+                padding-bottom: .3rem;
+            }
+        }
+    }
+
     .tooltip {
         @extend %tooltip;
     }
@@ -19,4 +32,10 @@ fds-tooltip-icon,
     .tooltip-arrow {
         @extend %tooltip-arrow;
     }
+}
+
+input[type="checkbox"] + label + fds-tooltip-icon {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    margin-left: 2px;
 }

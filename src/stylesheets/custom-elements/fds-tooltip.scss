@@ -43,4 +43,8 @@ fds-tooltip,
             -webkit-touch-callout: none;
         }
     }
+
+    &[purpose="label"] {
+        vertical-align: bottom;
+    }
 }
