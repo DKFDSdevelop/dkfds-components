@@ -74,6 +74,8 @@ __webpack_require__.d(__webpack_exports__, {
   registerSelect: () => (/* reexport */ fds_select),
   registerSolutionInfo: () => (/* reexport */ fds_solution_info),
   registerTextarea: () => (/* reexport */ fds_textarea),
+  registerTooltip: () => (/* reexport */ fds_tooltip),
+  registerTooltipIcon: () => (/* reexport */ fds_tooltip_icon),
   registerUploadFile: () => (/* reexport */ fds_upload_file)
 });
 
@@ -1943,76 +1945,16 @@ function registerRadioButton() {
 /* harmony default export */ const fds_radio_button = (registerRadioButton);
 ;// ./src/js/custom-elements/radio-button/fds-radio-button-group.js
 
-
-
 class FDSRadioButtonGroup extends HTMLElement {
-  /* Private instance fields */
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
-  #radioButtonGroupObserver = null;
-  #fieldset;
-  #legend;
+  #mutationObserver = null;
 
-  /* Private methods */
+  // #endregion
 
-  #getFieldsetElement() {
-    return this.querySelector('fieldset');
-  }
-  #getLegendElement() {
-    return this.querySelector(':scope > fieldset > legend');
-  }
-  #getGroupHelpTexts() {
-    return this.querySelectorAll(':scope > fieldset > fds-help-text');
-  }
-  #getErrorMessages() {
-    return this.querySelectorAll(':scope > fieldset > fds-error-message');
-  }
-  #setupObserver() {
-    if (this.#radioButtonGroupObserver) return;
-    this.#radioButtonGroupObserver = new MutationObserver(this.#handleMutations);
-    this.#radioButtonGroupObserver.observe(this, mutationObserverConfig);
-  }
-  #handleMutations = records => {
-    for (const {
-      attributeName,
-      target,
-      addedNodes,
-      removedNodes
-    } of records) {
-      const relevantTagNames = ['FIELDSET', 'LEGEND', 'FDS-HELP-TEXT', 'FDS-ERROR-MESSAGE'];
-      const allNodes = [...addedNodes, ...removedNodes];
-      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
-        this.#fieldset = this.#getFieldsetElement();
-        this.#legend = this.#getLegendElement();
-        this.#setClasses();
-        this.#setDisabledClass();
-        this.#updateAccessibilityState();
-        break;
-      }
-      if (attributeName === 'disabled' && target === this.#getFieldsetElement()) {
-        target.classList.toggle('disabled', target.hasAttribute('disabled'));
-      } else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class' && !['LEGEND', 'FIELDSET'].includes(target?.tagName)) {
-        this.#updateAccessibilityState();
-        if (attributeName === 'hidden' && target === this) {
-          notifySummaryOnVisibilityChange(this);
-        }
-      }
-    }
-  };
-  #updateAccessibilityState() {
-    const fieldset = this.#getFieldsetElement();
-    const errorMessages = this.#getErrorMessages();
-    const helpTexts = this.#getGroupHelpTexts();
-    setAriaDescribedBy(fieldset, errorMessages, helpTexts);
-  }
-  #setClasses() {
-    this.#legend?.classList.add('form-label');
-  }
-  #setDisabledClass() {
-    const fieldset = this.#getFieldsetElement();
-    if (!fieldset) return;
-    fieldset.classList.toggle('disabled', fieldset.hasAttribute('disabled'));
-  }
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
   #handleRadioChange = event => {
     const changedRadioButton = event.target.closest('fds-radio-button');
     if (event.detail.checked) {
@@ -2024,26 +1966,71 @@ class FDSRadioButtonGroup extends HTMLElement {
       });
     }
   };
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      const relevantTagNames = ['FIELDSET', 'LEGEND', 'FDS-HELP-TEXT', 'FDS-ERROR-MESSAGE'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        this.#updateAriaDescribedBy();
+        break;
+      }
+      if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class' && !['LEGEND', 'FIELDSET'].includes(target?.tagName)) {
+        this.#updateAriaDescribedBy();
+        if (attributeName === 'hidden' && target === this) {
+          notifySummaryOnVisibilityChange(this);
+        }
+      }
+    }
+  };
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #updateAriaDescribedBy() {
+    const fieldset = this.querySelector('fieldset');
+    const errorMessages = this.querySelectorAll(':scope > fieldset > fds-error-message');
+    const helpTexts = this.querySelectorAll(':scope > fieldset > fds-help-text');
+    setAriaDescribedBy(fieldset, errorMessages, helpTexts);
+  }
+  #addEventListener() {
+    this.addEventListener('radio-changed', this.#handleRadioChange);
+  }
+  #removeEventListener() {
+    this.removeEventListener('radio-changed', this.#handleRadioChange);
+  }
+  #connectMutationObserver() {
+    let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mutationObserverConfig;
+    if (this.#mutationObserver) return;
+    this.#mutationObserver = new MutationObserver(this.#handleMutations);
+    this.#mutationObserver.observe(this, config);
+  }
+  #disconnectMutationObserver() {
+    if (this.#mutationObserver) {
+      this.#mutationObserver.disconnect();
+      this.#mutationObserver = null;
+    }
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
   init() {
-    this.#fieldset = this.#getFieldsetElement();
-    this.#legend = this.#getLegendElement();
-    this.#setClasses();
-    this.#setDisabledClass();
-    this.#updateAccessibilityState();
-    this.removeEventListener('radio-changed', this.#handleRadioChange);
-    this.addEventListener('radio-changed', this.#handleRadioChange);
-    this.#setupObserver();
+    this.#updateAriaDescribedBy();
+    this.#addEventListener();
+    this.#connectMutationObserver();
     this.#initialized = true;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (!this.#initialized) {
@@ -2051,19 +2038,18 @@ class FDSRadioButtonGroup extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     notifySummaryOnDisconnect(this);
-    this.removeEventListener('radio-changed', this.#handleRadioChange);
+    this.#removeEventListener();
+    this.#disconnectMutationObserver();
     this.#initialized = false;
-    if (this.#radioButtonGroupObserver) {
-      this.#radioButtonGroupObserver.disconnect();
-      this.#radioButtonGroupObserver = null;
-    }
   }
+
+  // #endregion
 }
 function registerRadioButtonGroup() {
   if (customElements.get('fds-radio-button-group') === undefined) {
@@ -2410,18 +2396,32 @@ function registerDateInput() {
 ;// ./src/js/custom-elements/select/fds-select.js
 
 class FDSSelect extends HTMLElement {
-  /* Private instance fields */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['show-required-status'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
-  #selectObserver = null;
+  #mutationObserver = null;
 
-  /* Private methods */
+  // #endregion
 
-  #setupObserver() {
-    if (this.#selectObserver) return;
-    this.#selectObserver = new MutationObserver(this.#handleMutations);
-    this.#selectObserver.observe(this, mutationObserverConfig);
-  }
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
   #handleMutations = records => {
     for (const {
       attributeName,
@@ -2433,14 +2433,10 @@ class FDSSelect extends HTMLElement {
       const relevantTagNames = ['LABEL', 'SELECT', 'FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
       const allNodes = [...addedNodes, ...removedNodes];
       if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
-        const label = this.querySelector('label');
-        const select = this.querySelector('select');
-        const errorMessages = this.querySelectorAll('fds-error-message');
-        const helpTexts = this.querySelectorAll('fds-help-text');
-        associateLabelWithElement(label, select, 'sel');
-        setAriaDescribedBy(select, errorMessages, helpTexts);
-        setInvalid(select, errorMessages);
+        this.#setAccessibilityAttributes();
         if (this.hasAttribute('show-required-status')) {
+          const label = this.querySelector('label');
+          const select = this.querySelector('select');
           showRequiredStatus(label, select, this.getAttribute('show-required-status'));
         }
         break;
@@ -2455,21 +2451,19 @@ class FDSSelect extends HTMLElement {
       }
       // Attributes which might affect aria-describedby
       else if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden' || attributeName === 'class') {
-        const label = this.querySelector('label');
-        const select = this.querySelector('select');
-        const errorMessages = this.querySelectorAll('fds-error-message');
-        const helpTexts = this.querySelectorAll('fds-help-text');
-        associateLabelWithElement(label, select, 'sel');
-        setAriaDescribedBy(select, errorMessages, helpTexts);
-        setInvalid(select, errorMessages);
+        this.#setAccessibilityAttributes();
         if (attributeName === 'hidden' && target === this) {
           notifySummaryOnVisibilityChange(this);
         }
       }
     }
   };
-  #init() {
-    this.#setupObserver();
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setAccessibilityAttributes() {
     const label = this.querySelector('label');
     const select = this.querySelector('select');
     const errorMessages = this.querySelectorAll('fds-error-message');
@@ -2477,62 +2471,65 @@ class FDSSelect extends HTMLElement {
     associateLabelWithElement(label, select, 'sel');
     setAriaDescribedBy(select, errorMessages, helpTexts);
     setInvalid(select, errorMessages);
+  }
+  #connectMutationObserver() {
+    let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mutationObserverConfig;
+    if (this.#mutationObserver) return;
+    this.#mutationObserver = new MutationObserver(this.#handleMutations);
+    this.#mutationObserver.observe(this, config);
+  }
+  #disconnectMutationObserver() {
+    if (this.#mutationObserver) {
+      this.#mutationObserver.disconnect();
+      this.#mutationObserver = null;
+    }
+  }
+  #init() {
+    this.#setAccessibilityAttributes();
     if (this.hasAttribute('show-required-status')) {
+      const label = this.querySelector('label');
+      const select = this.querySelector('select');
       showRequiredStatus(label, select, this.getAttribute('show-required-status'));
     }
+    this.#connectMutationObserver();
     this.#initialized = true;
   }
 
-  /* Attributes which can invoke attributeChangedCallback() */
+  // #endregion
 
-  static observedAttributes = ['show-required-status'];
-
-  /* --------------------------------------------------
-  GETTERS AND SETTERS
-  -------------------------------------------------- */
-
-  get showRequiredStatus() {
-    return this.getAttribute('show-required-status');
-  }
-  set showRequiredStatus(value) {
-    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
-    if (!this.#initialized) {
-      this.#init();
-    }
+    this.#init();
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     notifySummaryOnDisconnect(this);
+    this.#disconnectMutationObserver();
     this.#initialized = false;
-    if (this.#selectObserver) {
-      this.#selectObserver.disconnect();
-      this.#selectObserver = null;
-    }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
-    if (attribute === 'show-required-status' && oldValue !== newValue) {
-      const label = this.querySelector('label');
-      const select = this.querySelector('select');
-      showRequiredStatus(label, select, newValue);
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'show-required-status':
+        const label = this.querySelector('label');
+        const select = this.querySelector('select');
+        showRequiredStatus(label, select, newValue);
+        break;
     }
   }
+
+  // #endregion
 }
 function registerSelect() {
   if (customElements.get('fds-select') === undefined) {
@@ -6389,20 +6386,20 @@ class FDSDropdownMenu extends HTMLElement {
   #handleClick = event => {
     this.toggle();
   };
-  #handleFocusOut(event) {
+  #handleFocusOut = event => {
     const focusLeftDropdownMenu = !this.contains(event.relatedTarget);
     if (focusLeftDropdownMenu) {
       this.close();
     }
-  }
-  #handleKeydown(event) {
+  };
+  #handleKeydown = event => {
     switch (event.key) {
       case 'Escape':
         this.close();
         this.querySelector(':scope > .dropdown-button')?.focus();
         break;
     }
-  }
+  };
   #handleMenuItemClick = event => {
     if (event.target.closest('[data-menu-item]')) {
       this.close();
@@ -6738,10 +6735,628 @@ function registerMainMenu() {
   }
 }
 /* harmony default export */ const fds_main_menu = (registerMainMenu);
+;// ./src/js/custom-elements/tooltip/fds-tooltip-utils.js
+const MIN_MARGIN = 8; // Minimum margin to the edge of the viewport in pixels
+const MAX_WIDTH = 330; // Maximum width of the tooltip in pixels
+
+/**
+ * Get arrow dimensions from CSS custom properties.
+ *
+ * @returns {{ arrowHeight: number, arrowDistanceToTarget: number }} Arrow dimensions in pixels
+ */
+function getArrowDimensions() {
+  const style = getComputedStyle(document.documentElement);
+  return {
+    arrowHeight: parseInt(style.getPropertyValue('--tooltip-arrow-height')),
+    arrowDistanceToTarget: parseInt(style.getPropertyValue('--tooltip-arrow-distance-to-target'))
+  };
+}
+
+/**
+ * Set the width of the tooltip bubble, capped at a maximum width and the viewport width.
+ *
+ * @param {HTMLElement} tooltip - The tooltip bubble element
+ */
+function setTooltipWidth(tooltip) {
+  // Start with natural width
+  tooltip.style.width = 'max-content';
+
+  // Cap at max width
+  if (tooltip.offsetWidth > MAX_WIDTH) {
+    tooltip.style.width = `${MAX_WIDTH}px`;
+  }
+
+  // Further cap if viewport is narrower than max width
+  const viewportMaxWidth = document.documentElement.clientWidth - MIN_MARGIN * 2;
+  if (tooltip.offsetWidth > viewportMaxWidth) {
+    tooltip.style.width = `${viewportMaxWidth}px`;
+  }
+}
+
+/**
+ * Set the horizontal position of the tooltip bubble, centered on the trigger element.
+ * Adjusts if the tooltip exceeds the left or right edge of the viewport.
+ *
+ * @param {HTMLElement} tooltip - The tooltip bubble element
+ * @param {HTMLElement} trigger - The trigger element
+ */
+function setTooltipLeft(tooltip, trigger) {
+  const triggerRect = trigger.getBoundingClientRect();
+
+  // Center tooltip on trigger
+  let left = triggerRect.left + triggerRect.width / 2 - tooltip.offsetWidth / 2;
+
+  // If tooltip exceeds right edge, shift left
+  if (left + tooltip.offsetWidth > document.documentElement.clientWidth - MIN_MARGIN) {
+    left = document.documentElement.clientWidth - MIN_MARGIN - tooltip.offsetWidth;
+  }
+
+  // If tooltip exceeds left edge, clamp to MIN_MARGIN
+  if (left < MIN_MARGIN) {
+    left = MIN_MARGIN;
+  }
+  tooltip.style.left = `${Math.round(left)}px`;
+}
+
+/**
+ * Set the vertical placement of the tooltip bubble and arrow, either above or below the trigger element.
+ * Placement is determined by the preferred placement and available space.
+ *
+ * @param {HTMLElement} tooltip - The tooltip bubble element
+ * @param {HTMLElement} arrow - The tooltip arrow element
+ * @param {HTMLElement} trigger - The trigger element
+ * @param {string} preferredPlacement - Preferred placement, either 'above' or 'below'
+ */
+function setVerticalPlacement(tooltip, arrow, trigger, preferredPlacement) {
+  const triggerRect = trigger.getBoundingClientRect();
+  const {
+    arrowHeight,
+    arrowDistanceToTarget
+  } = getArrowDimensions();
+
+  // Calculate space available above and below the trigger
+  const spaceNeeded = tooltip.offsetHeight + arrowHeight + arrowDistanceToTarget;
+  const spaceAbove = triggerRect.top;
+  const spaceBelow = window.innerHeight - triggerRect.bottom;
+
+  // Determine actual placement based on preferred placement and available space
+  let actualPlacement = preferredPlacement;
+  if (preferredPlacement === 'above' && spaceAbove < spaceNeeded) {
+    actualPlacement = 'below';
+  } else if (preferredPlacement === 'below' && spaceBelow < spaceNeeded) {
+    actualPlacement = 'above';
+  }
+
+  // Position tooltip bubble and arrow based on actual placement
+  if (actualPlacement === 'above') {
+    tooltip.style.top = `${Math.round(triggerRect.top - tooltip.offsetHeight - arrowHeight - arrowDistanceToTarget + 1)}px`;
+    arrow.style.top = `${Math.round(triggerRect.top - arrowHeight - arrowDistanceToTarget)}px`;
+    tooltip.classList.add('place-above');
+    tooltip.classList.remove('place-below');
+    arrow.classList.add('place-above');
+    arrow.classList.remove('place-below');
+  } else {
+    tooltip.style.top = `${Math.round(triggerRect.bottom + arrowHeight + arrowDistanceToTarget - 1)}px`;
+    arrow.style.top = `${Math.round(triggerRect.bottom + arrowDistanceToTarget)}px`;
+    tooltip.classList.add('place-below');
+    tooltip.classList.remove('place-above');
+    arrow.classList.add('place-below');
+    arrow.classList.remove('place-above');
+  }
+
+  // Arrow is always centered on the trigger
+  arrow.style.left = `${Math.round(triggerRect.left + triggerRect.width / 2)}px`;
+}
+;// ./src/js/custom-elements/tooltip/fds-tooltip.js
+
+
+class FDSTooltip extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['tooltip-text', 'placement', 'purpose'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get tooltipText() {
+    return this.getAttribute('tooltip-text');
+  }
+  set tooltipText(value) {
+    value == null ? this.removeAttribute('tooltip-text') : this.setAttribute('tooltip-text', value);
+  }
+  get placement() {
+    return this.getAttribute('placement') ?? 'above';
+  }
+  set placement(value) {
+    value == null ? this.removeAttribute('placement') : this.setAttribute('placement', value);
+  }
+  get purpose() {
+    return this.getAttribute('purpose') ?? 'hint';
+  }
+  set purpose(value) {
+    value == null ? this.removeAttribute('purpose') : this.setAttribute('purpose', value);
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handlePointerEnter = event => {
+    if (event.pointerType === 'mouse') {
+      this.firstElementChild.classList.add('js-hover');
+      setTimeout(() => {
+        if (this.firstElementChild.classList.contains('js-hover')) {
+          this.open();
+        }
+      }, 300);
+    }
+  };
+  #handlePointerLeave = event => {
+    if (event.pointerType === 'mouse') {
+      this.firstElementChild.classList.remove('js-hover');
+      this.close();
+    } else if (event.pointerType === 'touch') {
+      this.firstElementChild.classList.remove('js-pressing');
+      this.firstElementChild.classList.remove('js-pressed');
+    }
+  };
+  #handlePointerDown = event => {
+    if (event.pointerType === 'touch') {
+      this.firstElementChild.classList.remove('js-pressed');
+      this.firstElementChild.releasePointerCapture(event.pointerId);
+      this.firstElementChild.classList.add('js-pressing');
+      setTimeout(() => {
+        if (this.firstElementChild.classList.contains('js-pressing')) {
+          this.firstElementChild.classList.add('js-pressed');
+          this.firstElementChild.classList.remove('js-pressing');
+        }
+      }, 600);
+    }
+  };
+  #handlePointerUp = event => {
+    if (event.pointerType === 'touch') {
+      if (this.firstElementChild.classList.contains('js-pressed')) {
+        event.preventDefault();
+        this.open();
+      }
+    }
+  };
+  #handleFocus = () => {
+    this.open();
+  };
+  #handleFocusOut = event => {
+    const focusLeftComponent = !this.contains(event.relatedTarget);
+    if (focusLeftComponent) {
+      this.close();
+    }
+  };
+  #handleKeydown = event => {
+    if (event.key === 'Escape') {
+      if (this.querySelector('.tooltip').style.display !== 'none') {
+        this.close();
+        event.stopImmediatePropagation();
+      }
+    }
+  };
+  #handleClickOutside = event => {
+    if (!this.contains(event.target)) {
+      this.close();
+    }
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    if (!this.hasAttribute('tooltip-text')) return;
+    const triggerElements = this.querySelectorAll(':scope > :not(.tooltip):not(.tooltip-arrow)');
+    if (triggerElements.length !== 1) return;
+    let tooltip = this.querySelector('.tooltip');
+    const uniqueId = tooltip !== null ? tooltip.getAttribute('id') : generateAndVerifyUniqueId('tooltip-');
+    if (tooltip === null) {
+      tooltip = document.createElement('span');
+      tooltip.setAttribute('id', uniqueId);
+      tooltip.setAttribute('role', 'tooltip');
+      tooltip.setAttribute('tabindex', '-1');
+      tooltip.classList.add('tooltip');
+      tooltip.textContent = this.getAttribute('tooltip-text');
+      tooltip.style.display = 'none';
+      this.appendChild(tooltip);
+    }
+    let tooltipArrow = this.querySelector('.tooltip-arrow');
+    if (tooltipArrow === null) {
+      tooltipArrow = document.createElement('span');
+      tooltipArrow.classList.add('tooltip-arrow');
+      tooltipArrow.setAttribute('aria-hidden', 'true');
+      tooltipArrow.style.display = 'none';
+      this.appendChild(tooltipArrow);
+    }
+    const trigger = this.firstElementChild;
+    const ariaAttribute = this.purpose === 'label' ? 'aria-labelledby' : 'aria-describedby';
+    const existingValue = trigger.getAttribute(ariaAttribute);
+    if (existingValue === null) {
+      trigger.setAttribute(ariaAttribute, uniqueId);
+    } else if (!existingValue.includes(uniqueId)) {
+      trigger.setAttribute(ariaAttribute, `${existingValue} ${uniqueId}`);
+    }
+  }
+  #addEventListeners() {
+    this.firstElementChild.addEventListener('pointerenter', this.#handlePointerEnter, false);
+    this.addEventListener('pointerleave', this.#handlePointerLeave, false);
+    this.firstElementChild.addEventListener('pointerdown', this.#handlePointerDown, false);
+    this.firstElementChild.addEventListener('pointerup', this.#handlePointerUp, false);
+    this.firstElementChild.addEventListener('focus', this.#handleFocus, false);
+    this.addEventListener('focusout', this.#handleFocusOut, false);
+  }
+  #removeEventListeners() {
+    this.firstElementChild.removeEventListener('pointerenter', this.#handlePointerEnter, false);
+    this.removeEventListener('pointerleave', this.#handlePointerLeave, false);
+    this.firstElementChild.removeEventListener('pointerdown', this.#handlePointerDown, false);
+    this.firstElementChild.removeEventListener('pointerup', this.#handlePointerUp, false);
+    this.firstElementChild.removeEventListener('focus', this.#handleFocus, false);
+    this.removeEventListener('focusout', this.#handleFocusOut, false);
+  }
+  #updatePosition() {
+    setTooltipWidth(this.querySelector('.tooltip'));
+    setTooltipLeft(this.querySelector('.tooltip'), this.firstElementChild);
+    setVerticalPlacement(this.querySelector('.tooltip'), this.querySelector('.tooltip-arrow'), this.firstElementChild, this.placement);
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  init() {
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+  open() {
+    this.querySelector('.tooltip').style.display = 'block';
+    this.querySelector('.tooltip-arrow').style.display = 'block';
+    document.addEventListener('click', this.#handleClickOutside, false);
+    document.addEventListener('keydown', this.#handleKeydown, false);
+    this.#updatePosition();
+  }
+  close() {
+    this.querySelector('.tooltip').style.display = 'none';
+    this.querySelector('.tooltip-arrow').style.display = 'none';
+    this.firstElementChild.classList.remove('js-hover');
+    this.firstElementChild.classList.remove('js-pressing');
+    this.firstElementChild.classList.remove('js-pressed');
+    document.removeEventListener('click', this.#handleClickOutside, false);
+    document.removeEventListener('keydown', this.#handleKeydown, false);
+  }
+  toggle() {
+    this.querySelector('.tooltip').style.display === 'none' ? this.open() : this.close();
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    this.init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    document.removeEventListener('click', this.#handleClickOutside, false);
+    document.removeEventListener('keydown', this.#handleKeydown, false);
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'tooltip-text':
+        this.querySelector('.tooltip').textContent = newValue;
+        if (this.querySelector('.tooltip').style.display !== 'none') {
+          this.#updatePosition();
+        }
+        break;
+      case 'placement':
+        if (this.querySelector('.tooltip').style.display !== 'none') {
+          this.#updatePosition();
+        }
+        break;
+      case 'purpose':
+        if (newValue !== 'hint' && newValue !== 'label' && newValue !== null) return;
+        const trigger = this.firstElementChild;
+        const tooltipId = this.querySelector('.tooltip').getAttribute('id');
+        const addToAttribute = newValue === 'label' ? 'aria-labelledby' : 'aria-describedby';
+        const removeFromAttribute = newValue === 'label' ? 'aria-describedby' : 'aria-labelledby';
+
+        // Remove tooltip ID from old attribute
+        const oldAttributeValue = trigger.getAttribute(removeFromAttribute);
+        if (oldAttributeValue !== null) {
+          const updatedValue = oldAttributeValue.replace(tooltipId, '').trim();
+          // If the attribute is now empty, remove it entirely to keep the DOM clean
+          updatedValue ? trigger.setAttribute(removeFromAttribute, updatedValue) : trigger.removeAttribute(removeFromAttribute);
+        }
+
+        // Add tooltip ID to new attribute
+        const newAttributeValue = trigger.getAttribute(addToAttribute);
+        if (newAttributeValue === null) {
+          // Attribute doesn't exist yet, set it with just the tooltip ID
+          trigger.setAttribute(addToAttribute, tooltipId);
+        } else if (!newAttributeValue.includes(tooltipId)) {
+          // Attribute already exists, append tooltip ID to preserve existing references
+          trigger.setAttribute(addToAttribute, `${newAttributeValue} ${tooltipId}`);
+        }
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerTooltip() {
+  if (!customElements.get('fds-tooltip')) {
+    customElements.define('fds-tooltip', FDSTooltip);
+  }
+}
+/* harmony default export */ const fds_tooltip = (registerTooltip);
+;// ./src/js/custom-elements/tooltip/fds-tooltip-icon.js
+
+
+
+class FDSTooltipIcon extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['tooltip-text', 'sr-label', 'placement'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get tooltipText() {
+    return this.getAttribute('tooltip-text');
+  }
+  set tooltipText(value) {
+    value == null ? this.removeAttribute('tooltip-text') : this.setAttribute('tooltip-text', value);
+  }
+  get srLabel() {
+    return this.getAttribute('sr-label');
+  }
+  set srLabel(value) {
+    value == null ? this.removeAttribute('sr-label') : this.setAttribute('sr-label', value);
+  }
+  get placement() {
+    return this.getAttribute('placement') ?? 'above';
+  }
+  set placement(value) {
+    value == null ? this.removeAttribute('placement') : this.setAttribute('placement', value);
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+  #intersectionObserver = null;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleClick = event => {
+    this.toggle();
+  };
+  #handleFocusOut = event => {
+    const focusLeftTooltip = !this.contains(event.relatedTarget);
+    if (focusLeftTooltip) {
+      this.close();
+    }
+  };
+  #handleKeydown = event => {
+    switch (event.key) {
+      case 'Escape':
+        if (this.querySelector('button').getAttribute('aria-expanded') !== 'false') {
+          this.close();
+          this.querySelector('button').focus();
+          event.stopImmediatePropagation();
+        }
+        break;
+    }
+  };
+  #handleResize = () => {
+    this.#updatePosition();
+  };
+  #handleScroll = () => {
+    this.#updatePosition();
+  };
+  #handleIntersection = entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) {
+        this.close();
+      }
+    });
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    if (!this.hasAttribute('tooltip-text') || !this.hasAttribute('sr-label')) return;
+    const uniqueId = generateAndVerifyUniqueId('tooltip-');
+    let button = this.querySelector('button');
+    if (button === null) {
+      button = document.createElement('button');
+      button.classList.add('button', 'button-unstyled');
+      button.setAttribute('type', 'button');
+      button.setAttribute('aria-controls', uniqueId);
+      this.appendChild(button);
+      const helpIcon = createSvgIcon('M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm-36-154h74q0-33 7.5-52t42.5-52q26-26 41-49.5t15-56.5q0-56-41-86t-97-30q-57 0-92.5 30T342-618l66 26q5-18 22.5-39t53.5-21q32 0 48 17.5t16 38.5q0 20-12 37.5T506-526q-44 39-54 59t-10 73Zm38 314q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z');
+      button.appendChild(helpIcon);
+    }
+    button.setAttribute('aria-label', this.getAttribute('sr-label'));
+    button.setAttribute('aria-expanded', 'false');
+    let ariaLive = this.querySelector('[aria-live]');
+    if (ariaLive === null) {
+      ariaLive = document.createElement('span');
+      ariaLive.setAttribute('aria-atomic', 'true');
+      ariaLive.setAttribute('aria-live', 'assertive');
+      this.appendChild(ariaLive);
+    }
+    let tooltip = this.querySelector('.tooltip');
+    if (tooltip === null) {
+      tooltip = document.createElement('span');
+      tooltip.setAttribute('id', uniqueId);
+      tooltip.setAttribute('tabindex', '-1');
+      tooltip.classList.add('tooltip');
+      ariaLive.appendChild(tooltip);
+    }
+    tooltip.style.display = 'none';
+    let tooltipArrow = this.querySelector('.tooltip-arrow');
+    if (tooltipArrow === null) {
+      tooltipArrow = document.createElement('span');
+      tooltipArrow.classList.add('tooltip-arrow');
+      this.appendChild(tooltipArrow);
+    }
+    tooltipArrow.setAttribute('aria-hidden', 'true');
+    tooltipArrow.style.display = 'none';
+  }
+  #addEventListeners() {
+    this.querySelector('button').addEventListener('click', this.#handleClick, false);
+    this.addEventListener('focusout', this.#handleFocusOut, false);
+    this.addEventListener('keydown', this.#handleKeydown, false);
+  }
+  #removeEventListeners() {
+    this.querySelector('button').removeEventListener('click', this.#handleClick, false);
+    this.removeEventListener('focusout', this.#handleFocusOut, false);
+    this.removeEventListener('keydown', this.#handleKeydown, false);
+  }
+  #connectIntersectionObserver() {
+    if (this.#intersectionObserver) return;
+    this.#intersectionObserver = new IntersectionObserver(this.#handleIntersection, {
+      threshold: 0
+    });
+    this.#intersectionObserver.observe(this.querySelector('button'));
+  }
+  #disconnectIntersectionObserver() {
+    if (this.#intersectionObserver) {
+      this.#intersectionObserver.disconnect();
+      this.#intersectionObserver = null;
+    }
+  }
+  #updatePosition() {
+    // Width must be set before left, as left depends on tooltip width
+    setTooltipWidth(this.querySelector('.tooltip'));
+    setTooltipLeft(this.querySelector('.tooltip'), this.querySelector('button'));
+    setVerticalPlacement(this.querySelector('.tooltip'), this.querySelector('.tooltip-arrow'), this.querySelector('button'), this.placement);
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  init() {
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+  open() {
+    this.querySelector('button').setAttribute('aria-expanded', 'true');
+    this.querySelector('.tooltip-arrow').style.display = 'block';
+    this.querySelector('.tooltip').style.display = 'block';
+    this.querySelector('.tooltip').textContent = this.getAttribute('tooltip-text');
+    this.#updatePosition();
+    window.addEventListener('resize', this.#handleResize, false);
+    document.addEventListener('scroll', this.#handleScroll, true);
+    this.#connectIntersectionObserver();
+  }
+  close() {
+    this.querySelector('button').setAttribute('aria-expanded', 'false');
+    this.querySelector('.tooltip').style.display = 'none';
+    this.querySelector('.tooltip-arrow').style.display = 'none';
+    this.querySelector('.tooltip').textContent = '';
+    window.removeEventListener('resize', this.#handleResize, false);
+    document.removeEventListener('scroll', this.#handleScroll, true);
+    this.#disconnectIntersectionObserver();
+  }
+  toggle() {
+    this.querySelector('button').getAttribute('aria-expanded') === 'false' ? this.open() : this.close();
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    this.init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+
+    // Remove observer and event listeners that are temporarily added when the tooltip is open
+    this.#disconnectIntersectionObserver();
+    window.removeEventListener('resize', this.#handleResize, false);
+    document.removeEventListener('scroll', this.#handleScroll, true);
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'tooltip-text':
+        if (this.querySelector('button').getAttribute('aria-expanded') === 'true') {
+          this.querySelector('.tooltip').textContent = newValue;
+          this.#updatePosition();
+        }
+        break;
+      case 'sr-label':
+        this.querySelector('button').setAttribute('aria-label', newValue);
+        break;
+      case 'placement':
+        if (this.querySelector('button').getAttribute('aria-expanded') === 'true') {
+          this.#updatePosition();
+        }
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerTooltipIcon() {
+  if (!customElements.get('fds-tooltip-icon')) {
+    customElements.define('fds-tooltip-icon', FDSTooltipIcon);
+  }
+}
+/* harmony default export */ const fds_tooltip_icon = (registerTooltipIcon);
 ;// ./src/js/new-dkfds.js
 
 
 // Custom elements
+
+
 
 
 
@@ -6793,6 +7408,8 @@ const registerCustomElements = () => {
   fds_solution_info();
   fds_dropdown_menu();
   fds_main_menu();
+  fds_tooltip();
+  fds_tooltip_icon();
 };
 registerCustomElements();
 

@@ -1,3 +1,4 @@
+@use "../variables" as vars;
 @use "../functions" as func;
 @use "../mixins" as mixins;
 
@@ -12,7 +13,13 @@
     margin-top: func.units(3);
     text-align: left;
 
-    &:focus, &.focus{
+    &:focus,
+    &.focus {
         @include mixins.focus;
     }
+}
+
+%disabled-label {
+    color: var(--color-gray-500);
+    font-weight: func.font-weight('medium');
 }

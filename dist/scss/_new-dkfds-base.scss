@@ -32,8 +32,6 @@
 @use 'components/footer';
 @use 'components/function-link';
 @use 'components/modal';
-@use 'components/navigation-mobile';
-@use 'components/navigation';
 @use 'components/pagination';
 @use 'components/toast';
 @use 'components/search';
@@ -46,7 +44,6 @@
 @use 'components/overflow-menu';
 @use 'components/table';
 @use 'components/toggleswitch';
-@use 'components/tooltip';
 @use 'components/tabs';
 @use 'components/tags';
 
@@ -75,3 +72,5 @@
 @use 'custom-elements/fds-solution-info';
 @use 'custom-elements/fds-dropdown-menu';
 @use 'custom-elements/fds-main-menu';
+@use 'custom-elements/fds-tooltip';
+@use 'custom-elements/fds-tooltip-icon';

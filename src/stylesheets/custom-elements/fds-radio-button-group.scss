@@ -7,15 +7,10 @@ $button-distance: func.units(3);
 fds-radio-button-group,
 .fds-radio-button-group {
     display: block;
-    margin-top: func.units(5); // 4
+    margin-top: func.units(5);
 
     &:first-child {
         margin-top: 0;
-    }
-
-    // Spacing for direct children inside the group.
-    &> ::slotted(*)+ ::slotted(fds-radio-button) {
-        margin-top: $button-distance;
     }
 
     &:has(fieldset > fds-error-message:not([hidden]), fds-error-message[hidden="false"]) {

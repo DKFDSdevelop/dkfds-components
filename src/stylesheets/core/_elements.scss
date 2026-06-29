@@ -2,6 +2,7 @@
 @use "../variables" as vars;
 @use '../functions' as func;
 @use '../mixins' as mixins;
+@use "../placeholder-selectors";
 
 $-aspect-height: 9;
 $-aspect-width: 16;
@@ -44,6 +45,23 @@ fieldset ul {
 
 fieldset + fieldset {
     margin-top: func.units(5);
+}
+
+fieldset legend,
+.form-label {
+    font-size: 1.6rem;
+    line-height: 2.4rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    text-transform: none;
+    max-width: 66ch;
+    display: inline-block;
+}
+
+fieldset[disabled] legend,
+.form-label.disabled {
+    color: var(--color-gray-500);
+    font-weight: func.font-weight('medium');
 }
 
 legend {

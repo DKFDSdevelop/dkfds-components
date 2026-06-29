@@ -22,12 +22,26 @@ fds-radio-button,
         margin-top: -$expand-hit-area;
     }
 
-    .form-radio+label {
+    .form-radio + label {
         max-width: vars.$typography-text-max-width;
     }
 
+    input[type="radio"] {
+        position: absolute;
+        left: 0;
+        top: 0;
+        box-sizing: border-box;
+        cursor: pointer;
+        z-index: 1;
+        margin: 0;
+        opacity: 0;
+        height: 24px;
+        width: 24px;
+        margin-top: calc(1.2rem - 12px + 4px);
+    }
+
     // Checkbox label/text
-    input[type="radio"]+label {
+    input[type="radio"] + label {
         cursor: pointer;
         font-weight: func.font-weight(vars.$input-checkbox-radio-label-font-weight);
         line-height: func.units(vars.$input-checkbox-radio-size, 'rem');
@@ -39,7 +53,7 @@ fds-radio-button,
         padding-bottom: $expand-hit-area;
     }
 
-    input[type="radio"]+label::before {
+    input[type="radio"] + label::before {
         content: '';
         position: absolute;
         left: 0;
@@ -55,12 +69,12 @@ fds-radio-button,
     }
 
     // Unchecked radio button border radius
-    input[type="radio"]+label::before {
+    input[type="radio"] + label::before {
         border-radius: 100%;
     }
 
     // Checked radio
-    input[type="radio"]:checked+label {
+    input[type="radio"]:checked + label {
 
         // Radio button background
         &::before {
@@ -84,8 +98,8 @@ fds-radio-button,
     }
 
     // Focus
-    input[type="radio"]:focus+label::before,
-    input[type="radio"].focus+label::before {
+    input[type="radio"]:focus + label::before,
+    input[type="radio"].focus + label::before {
         @include mixins.focus;
     }
 
@@ -95,7 +109,7 @@ fds-radio-button,
     }
 
     // Disabled label and button
-    input[type="radio"]:disabled+label {
+    input[type="radio"]:disabled + label {
         cursor: not-allowed;
         color: func.color(vars.$input-checkbox-radio-disabled-label-color);
 
@@ -149,7 +163,7 @@ fds-radio-button,
             .form-radio {
                 margin-top: 0;
 
-                &+label {
+                & + label {
                     padding-left: 0;
 
                     &::before {
