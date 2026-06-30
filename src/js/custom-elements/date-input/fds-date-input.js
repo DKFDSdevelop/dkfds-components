@@ -1,21 +1,21 @@
-//import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 import * as CE from '../custom-element-utils';
 
 class FDSDateInput extends HTMLElement {
 
-    /* Private instance fields */
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['show-required-status', 'input-readonly', 'input-required', 'legend', 'input-id'];
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
-    #dateInputObserver = null;
+    #mutationObserver = null;
 
-    /* Private methods */
+    // #endregion
 
-    #setupObserver() {
-        if (this.#dateInputObserver) return;
-
-        this.#dateInputObserver = new MutationObserver(this.#handleMutations);
-        this.#dateInputObserver.observe(this, CE.mutationObserverConfig);
-    }
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleMutations = (records) => {
         for (const { attributeName, target, addedNodes, removedNodes } of records) {
@@ -97,6 +97,10 @@ class FDSDateInput extends HTMLElement {
             }
         }
     }
+
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #setupHTML() {
         // Fieldset
@@ -197,6 +201,19 @@ class FDSDateInput extends HTMLElement {
         if (!inputYear.hasAttribute('type')) { inputYear.setAttribute('type', 'number'); }
     }
 
+    #connectMutationObserver(config = CE.mutationObserverConfig) {
+        if (this.#mutationObserver) return;
+        this.#mutationObserver = new MutationObserver(this.#handleMutations);
+        this.#mutationObserver.observe(this, config);
+    }
+
+    #disconnectMutationObserver() {
+        if (this.#mutationObserver) {
+            this.#mutationObserver.disconnect();
+            this.#mutationObserver = null;
+        }
+    }
+
     #setInvalidForInput(target, inputElement, errorMessages) {
         const relevantErrors = Array.from(errorMessages).filter(errorMsg => {
             const targets = errorMsg.getAttribute('targets');
@@ -211,7 +228,7 @@ class FDSDateInput extends HTMLElement {
     #init() {
         this.#setupHTML();
 
-        this.#setupObserver();
+        this.#connectMutationObserver();
 
         const legend = this.querySelector('legend');
         const fieldset = this.querySelector('fieldset');
@@ -278,13 +295,9 @@ class FDSDateInput extends HTMLElement {
         });
     }
 
-    /* Attributes which can invoke attributeChangedCallback() */
+    // #endregion
 
-    static observedAttributes = ['show-required-status', 'input-readonly', 'input-required', 'legend', 'input-id'];
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         if (!this.#initialized) { this.#init(); }
@@ -295,50 +308,53 @@ class FDSDateInput extends HTMLElement {
         if (this.hasAttribute('input-id')) { this.#setInputId(); }
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         CE.notifySummaryOnDisconnect(this);
-
+        this.#disconnectMutationObserver();
         this.#initialized = false;
-
-        if (this.#dateInputObserver) {
-            this.#dateInputObserver.disconnect();
-            this.#dateInputObserver = null;
-        }
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#initialized) return;
+        if (oldValue === newValue) return;
 
-        if (attribute === 'show-required-status' && (oldValue !== newValue)) {
-            const legend = this.querySelector('legend');
-            const fieldset = this.querySelector('fieldset');
-            CE.showRequiredStatus(legend, fieldset, newValue);
-        }
+        switch (attribute) {
 
-        if (attribute === 'input-readonly' && (oldValue !== newValue)) {
-            this.#setReadonly();
-        }
+            case 'show-required-status':
+                const legend = this.querySelector('legend');
+                const fieldset = this.querySelector('fieldset');
+                CE.showRequiredStatus(legend, fieldset, newValue);
+                break;
 
-        if (attribute === 'input-required' && (oldValue !== newValue)) {
-            this.#setRequired();
-        }
+            case 'input-readonly':
+                this.#setReadonly();
+                break;
 
-        if (attribute === 'legend' && oldValue !== newValue && newValue !== null) {
-            this.querySelector('legend').textContent = newValue;
-        }
+            case 'input-required':
+                this.#setRequired();
+                break;
 
-        if (attribute === 'input-id' && oldValue !== newValue) {
-            this.#setInputId();
+            case 'legend':
+                if (newValue !== null) {
+                    this.querySelector('legend').textContent = newValue;
+                }
+                break;
+            
+            case 'input-id':
+                this.#setInputId();
+                break;
         }
     }
+
+    // #endregion    
 }
 
 function registerDateInput() {

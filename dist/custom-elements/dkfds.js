@@ -2058,21 +2058,23 @@ function registerRadioButtonGroup() {
 }
 /* harmony default export */ const fds_radio_button_group = (registerRadioButtonGroup);
 ;// ./src/js/custom-elements/date-input/fds-date-input.js
-//import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 class FDSDateInput extends HTMLElement {
-  /* Private instance fields */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['show-required-status', 'input-readonly', 'input-required', 'legend', 'input-id'];
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
-  #dateInputObserver = null;
+  #mutationObserver = null;
 
-  /* Private methods */
+  // #endregion
 
-  #setupObserver() {
-    if (this.#dateInputObserver) return;
-    this.#dateInputObserver = new MutationObserver(this.#handleMutations);
-    this.#dateInputObserver.observe(this, mutationObserverConfig);
-  }
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
   #handleMutations = records => {
     for (const {
       attributeName,
@@ -2140,6 +2142,11 @@ class FDSDateInput extends HTMLElement {
       }
     }
   };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
   #setupHTML() {
     // Fieldset
     let fieldset = this.querySelector('fieldset');
@@ -2258,6 +2265,18 @@ class FDSDateInput extends HTMLElement {
       inputYear.setAttribute('type', 'number');
     }
   }
+  #connectMutationObserver() {
+    let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mutationObserverConfig;
+    if (this.#mutationObserver) return;
+    this.#mutationObserver = new MutationObserver(this.#handleMutations);
+    this.#mutationObserver.observe(this, config);
+  }
+  #disconnectMutationObserver() {
+    if (this.#mutationObserver) {
+      this.#mutationObserver.disconnect();
+      this.#mutationObserver = null;
+    }
+  }
   #setInvalidForInput(target, inputElement, errorMessages) {
     const relevantErrors = Array.from(errorMessages).filter(errorMsg => {
       const targets = errorMsg.getAttribute('targets');
@@ -2269,7 +2288,7 @@ class FDSDateInput extends HTMLElement {
   }
   #init() {
     this.#setupHTML();
-    this.#setupObserver();
+    this.#connectMutationObserver();
     const legend = this.querySelector('legend');
     const fieldset = this.querySelector('fieldset');
     const errorMessages = this.querySelectorAll('fds-error-message');
@@ -2323,13 +2342,9 @@ class FDSDateInput extends HTMLElement {
     });
   }
 
-  /* Attributes which can invoke attributeChangedCallback() */
+  // #endregion
 
-  static observedAttributes = ['show-required-status', 'input-readonly', 'input-required', 'legend', 'input-id'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (!this.#initialized) {
@@ -2349,43 +2364,47 @@ class FDSDateInput extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     notifySummaryOnDisconnect(this);
+    this.#disconnectMutationObserver();
     this.#initialized = false;
-    if (this.#dateInputObserver) {
-      this.#dateInputObserver.disconnect();
-      this.#dateInputObserver = null;
-    }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
-    if (attribute === 'show-required-status' && oldValue !== newValue) {
-      const legend = this.querySelector('legend');
-      const fieldset = this.querySelector('fieldset');
-      showRequiredStatus(legend, fieldset, newValue);
-    }
-    if (attribute === 'input-readonly' && oldValue !== newValue) {
-      this.#setReadonly();
-    }
-    if (attribute === 'input-required' && oldValue !== newValue) {
-      this.#setRequired();
-    }
-    if (attribute === 'legend' && oldValue !== newValue && newValue !== null) {
-      this.querySelector('legend').textContent = newValue;
-    }
-    if (attribute === 'input-id' && oldValue !== newValue) {
-      this.#setInputId();
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'show-required-status':
+        const legend = this.querySelector('legend');
+        const fieldset = this.querySelector('fieldset');
+        showRequiredStatus(legend, fieldset, newValue);
+        break;
+      case 'input-readonly':
+        this.#setReadonly();
+        break;
+      case 'input-required':
+        this.#setRequired();
+        break;
+      case 'legend':
+        if (newValue !== null) {
+          this.querySelector('legend').textContent = newValue;
+        }
+        break;
+      case 'input-id':
+        this.#setInputId();
+        break;
     }
   }
+
+  // #endregion    
 }
 function registerDateInput() {
   if (customElements.get('fds-date-input') === undefined) {
@@ -6853,7 +6872,7 @@ function setVerticalPlacement(tooltip, arrow, trigger, preferredPlacement) {
 class FDSTooltip extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['tooltip-text', 'placement', 'purpose'];
+  static observedAttributes = ['tooltip-text', 'placement', 'purpose', 'tooltip-id'];
 
   // #endregion
 
@@ -6876,6 +6895,12 @@ class FDSTooltip extends HTMLElement {
   }
   set purpose(value) {
     value == null ? this.removeAttribute('purpose') : this.setAttribute('purpose', value);
+  }
+  get tooltipId() {
+    return this.getAttribute('tooltip-id');
+  }
+  set tooltipId(value) {
+    value == null ? this.removeAttribute('tooltip-id') : this.setAttribute('tooltip-id', value);
   }
 
   // #endregion
@@ -6960,7 +6985,10 @@ class FDSTooltip extends HTMLElement {
     const triggerElements = this.querySelectorAll(':scope > :not(.tooltip):not(.tooltip-arrow)');
     if (triggerElements.length !== 1) return;
     let tooltip = this.querySelector('.tooltip');
-    const uniqueId = tooltip !== null ? tooltip.getAttribute('id') : generateAndVerifyUniqueId('tooltip-');
+
+    // Reuse the existing tooltip ID if available, to prevent a duplicate ID being appended to the trigger's aria attribute
+    const fallbackId = tooltip !== null ? tooltip.getAttribute('id') : generateAndVerifyUniqueId('tooltip-');
+    const uniqueId = this.getAttribute('tooltip-id') ?? fallbackId;
     if (tooltip === null) {
       tooltip = document.createElement('span');
       tooltip.setAttribute('id', uniqueId);
@@ -7102,6 +7130,19 @@ class FDSTooltip extends HTMLElement {
           trigger.setAttribute(addToAttribute, `${newAttributeValue} ${tooltipId}`);
         }
         break;
+      case 'tooltip-id':
+        if (newValue !== null) {
+          const tooltip = this.querySelector('.tooltip');
+          const trigger = this.firstElementChild;
+          const ariaAttribute = this.purpose === 'label' ? 'aria-labelledby' : 'aria-describedby';
+          const idToReplace = oldValue ?? tooltip.getAttribute('id');
+          const ariaValue = trigger.getAttribute(ariaAttribute);
+          if (ariaValue !== null) {
+            trigger.setAttribute(ariaAttribute, ariaValue.replace(idToReplace, newValue).trim());
+          }
+          tooltip.setAttribute('id', newValue);
+        }
+        break;
     }
   }
 
@@ -7120,7 +7161,7 @@ function registerTooltip() {
 class FDSTooltipIcon extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['tooltip-text', 'sr-label', 'placement'];
+  static observedAttributes = ['tooltip-text', 'sr-label', 'placement', 'tooltip-id'];
 
   // #endregion
 
@@ -7143,6 +7184,12 @@ class FDSTooltipIcon extends HTMLElement {
   }
   set placement(value) {
     value == null ? this.removeAttribute('placement') : this.setAttribute('placement', value);
+  }
+  get tooltipId() {
+    return this.getAttribute('tooltip-id');
+  }
+  set tooltipId(value) {
+    value == null ? this.removeAttribute('tooltip-id') : this.setAttribute('tooltip-id', value);
   }
 
   // #endregion
@@ -7196,7 +7243,7 @@ class FDSTooltipIcon extends HTMLElement {
 
   #setupHTML() {
     if (!this.hasAttribute('tooltip-text') || !this.hasAttribute('sr-label')) return;
-    const uniqueId = generateAndVerifyUniqueId('tooltip-');
+    const uniqueId = this.getAttribute('tooltip-id') ?? generateAndVerifyUniqueId('tooltip-');
     let button = this.querySelector('button');
     if (button === null) {
       button = document.createElement('button');
@@ -7338,6 +7385,13 @@ class FDSTooltipIcon extends HTMLElement {
       case 'placement':
         if (this.querySelector('button').getAttribute('aria-expanded') === 'true') {
           this.#updatePosition();
+        }
+        break;
+      case 'tooltip-id':
+        if (newValue !== null) {
+          const tooltip = this.querySelector('.tooltip');
+          tooltip.setAttribute('id', newValue);
+          this.querySelector('button').setAttribute('aria-controls', newValue);
         }
         break;
     }

@@ -5,7 +5,7 @@ class FDSTooltip extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-    static observedAttributes = ['tooltip-text', 'placement', 'purpose'];
+    static observedAttributes = ['tooltip-text', 'placement', 'purpose', 'tooltip-id'];
 
     // #endregion
 
@@ -19,6 +19,9 @@ class FDSTooltip extends HTMLElement {
 
     get purpose() { return this.getAttribute('purpose') ?? 'hint'; }
     set purpose(value) { value == null ? this.removeAttribute('purpose') : this.setAttribute('purpose', value); }
+
+    get tooltipId() { return this.getAttribute('tooltip-id'); }
+    set tooltipId(value) { value == null ? this.removeAttribute('tooltip-id') : this.setAttribute('tooltip-id', value); }
 
     // #endregion
 
@@ -45,7 +48,7 @@ class FDSTooltip extends HTMLElement {
         if (event.pointerType === 'mouse') {
             this.firstElementChild.classList.remove('js-hover');
             this.close();
-        } 
+        }
         else if (event.pointerType === 'touch') {
             this.firstElementChild.classList.remove('js-pressing');
             this.firstElementChild.classList.remove('js-pressed');
@@ -112,7 +115,10 @@ class FDSTooltip extends HTMLElement {
         if (triggerElements.length !== 1) return;
 
         let tooltip = this.querySelector('.tooltip');
-        const uniqueId = tooltip !== null ? tooltip.getAttribute('id') : generateAndVerifyUniqueId('tooltip-');
+
+        // Reuse the existing tooltip ID if available, to prevent a duplicate ID being appended to the trigger's aria attribute
+        const fallbackId = tooltip !== null ? tooltip.getAttribute('id') : generateAndVerifyUniqueId('tooltip-');
+        const uniqueId = this.getAttribute('tooltip-id') ?? fallbackId;
 
         if (tooltip === null) {
             tooltip = document.createElement('span');
@@ -265,6 +271,21 @@ class FDSTooltip extends HTMLElement {
                 else if (!newAttributeValue.includes(tooltipId)) {
                     // Attribute already exists, append tooltip ID to preserve existing references
                     trigger.setAttribute(addToAttribute, `${newAttributeValue} ${tooltipId}`);
+                }
+                break;
+            case 'tooltip-id':
+                if (newValue !== null) {
+                    const tooltip = this.querySelector('.tooltip');
+                    const trigger = this.firstElementChild;
+                    const ariaAttribute = this.purpose === 'label' ? 'aria-labelledby' : 'aria-describedby';
+                    const idToReplace = oldValue ?? tooltip.getAttribute('id');
+
+                    const ariaValue = trigger.getAttribute(ariaAttribute);
+                    if (ariaValue !== null) {
+                        trigger.setAttribute(ariaAttribute, ariaValue.replace(idToReplace, newValue).trim());
+                    }
+
+                    tooltip.setAttribute('id', newValue);
                 }
                 break;
         }
