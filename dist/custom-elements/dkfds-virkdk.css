@@ -11439,14 +11439,14 @@ fds-date-input [data-attribute=year],
   margin-right:16px;
   margin-top:0;
 }
-fds-date-input [data-attribute=day],
-fds-date-input [data-attribute=month],
-.fds-date-input [data-attribute=day],
-.fds-date-input [data-attribute=month]{
+fds-date-input [data-attribute=day] input,
+fds-date-input [data-attribute=month] input,
+.fds-date-input [data-attribute=day] input,
+.fds-date-input [data-attribute=month] input{
   width:calc(2px + 16px + 16px + 2ch);
 }
-fds-date-input [data-attribute=year],
-.fds-date-input [data-attribute=year]{
+fds-date-input [data-attribute=year] input,
+.fds-date-input [data-attribute=year] input{
   width:calc(2px + 16px + 16px + 4ch);
 }
 fds-date-input:has(fds-error-message:not([targets]):not([hidden]), fds-error-message:not([targets])[hidden=false]) input,
