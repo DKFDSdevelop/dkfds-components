@@ -6853,7 +6853,7 @@ function setVerticalPlacement(tooltip, arrow, trigger, preferredPlacement) {
 class FDSTooltip extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['tooltip-text', 'placement', 'purpose'];
+  static observedAttributes = ['tooltip-text', 'placement', 'purpose', 'tooltip-id'];
 
   // #endregion
 
@@ -6876,6 +6876,12 @@ class FDSTooltip extends HTMLElement {
   }
   set purpose(value) {
     value == null ? this.removeAttribute('purpose') : this.setAttribute('purpose', value);
+  }
+  get tooltipId() {
+    return this.getAttribute('tooltip-id');
+  }
+  set tooltipId(value) {
+    value == null ? this.removeAttribute('tooltip-id') : this.setAttribute('tooltip-id', value);
   }
 
   // #endregion
@@ -6960,7 +6966,10 @@ class FDSTooltip extends HTMLElement {
     const triggerElements = this.querySelectorAll(':scope > :not(.tooltip):not(.tooltip-arrow)');
     if (triggerElements.length !== 1) return;
     let tooltip = this.querySelector('.tooltip');
-    const uniqueId = tooltip !== null ? tooltip.getAttribute('id') : generateAndVerifyUniqueId('tooltip-');
+
+    // Reuse the existing tooltip ID if available, to prevent a duplicate ID being appended to the trigger's aria attribute
+    const fallbackId = tooltip !== null ? tooltip.getAttribute('id') : generateAndVerifyUniqueId('tooltip-');
+    const uniqueId = this.getAttribute('tooltip-id') ?? fallbackId;
     if (tooltip === null) {
       tooltip = document.createElement('span');
       tooltip.setAttribute('id', uniqueId);
@@ -7102,6 +7111,19 @@ class FDSTooltip extends HTMLElement {
           trigger.setAttribute(addToAttribute, `${newAttributeValue} ${tooltipId}`);
         }
         break;
+      case 'tooltip-id':
+        if (newValue !== null) {
+          const tooltip = this.querySelector('.tooltip');
+          const trigger = this.firstElementChild;
+          const ariaAttribute = this.purpose === 'label' ? 'aria-labelledby' : 'aria-describedby';
+          const idToReplace = oldValue ?? tooltip.getAttribute('id');
+          const ariaValue = trigger.getAttribute(ariaAttribute);
+          if (ariaValue !== null) {
+            trigger.setAttribute(ariaAttribute, ariaValue.replace(idToReplace, newValue).trim());
+          }
+          tooltip.setAttribute('id', newValue);
+        }
+        break;
     }
   }
 
@@ -7120,7 +7142,7 @@ function registerTooltip() {
 class FDSTooltipIcon extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['tooltip-text', 'sr-label', 'placement'];
+  static observedAttributes = ['tooltip-text', 'sr-label', 'placement', 'tooltip-id'];
 
   // #endregion
 
@@ -7143,6 +7165,12 @@ class FDSTooltipIcon extends HTMLElement {
   }
   set placement(value) {
     value == null ? this.removeAttribute('placement') : this.setAttribute('placement', value);
+  }
+  get tooltipId() {
+    return this.getAttribute('tooltip-id');
+  }
+  set tooltipId(value) {
+    value == null ? this.removeAttribute('tooltip-id') : this.setAttribute('tooltip-id', value);
   }
 
   // #endregion
@@ -7196,7 +7224,7 @@ class FDSTooltipIcon extends HTMLElement {
 
   #setupHTML() {
     if (!this.hasAttribute('tooltip-text') || !this.hasAttribute('sr-label')) return;
-    const uniqueId = generateAndVerifyUniqueId('tooltip-');
+    const uniqueId = this.getAttribute('tooltip-id') ?? generateAndVerifyUniqueId('tooltip-');
     let button = this.querySelector('button');
     if (button === null) {
       button = document.createElement('button');
@@ -7338,6 +7366,13 @@ class FDSTooltipIcon extends HTMLElement {
       case 'placement':
         if (this.querySelector('button').getAttribute('aria-expanded') === 'true') {
           this.#updatePosition();
+        }
+        break;
+      case 'tooltip-id':
+        if (newValue !== null) {
+          const tooltip = this.querySelector('.tooltip');
+          tooltip.setAttribute('id', newValue);
+          this.querySelector('button').setAttribute('aria-controls', newValue);
         }
         break;
     }

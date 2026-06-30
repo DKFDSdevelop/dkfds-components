@@ -6,7 +6,7 @@ class FDSTooltipIcon extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-    static observedAttributes = ['tooltip-text', 'sr-label', 'placement'];
+    static observedAttributes = ['tooltip-text', 'sr-label', 'placement', 'tooltip-id'];
 
     // #endregion
 
@@ -20,6 +20,9 @@ class FDSTooltipIcon extends HTMLElement {
 
     get placement() { return this.getAttribute('placement') ?? 'above'; }
     set placement(value) { value == null ? this.removeAttribute('placement') : this.setAttribute('placement', value); }
+
+    get tooltipId() { return this.getAttribute('tooltip-id'); }
+    set tooltipId(value) { value == null ? this.removeAttribute('tooltip-id') : this.setAttribute('tooltip-id', value); }
 
     // #endregion
 
@@ -78,7 +81,7 @@ class FDSTooltipIcon extends HTMLElement {
     #setupHTML() {
         if (!this.hasAttribute('tooltip-text') || !this.hasAttribute('sr-label')) return;
 
-        const uniqueId = generateAndVerifyUniqueId('tooltip-');
+        const uniqueId = this.getAttribute('tooltip-id') ?? generateAndVerifyUniqueId('tooltip-');
 
         let button = this.querySelector('button');
         if (button === null) {
@@ -235,6 +238,13 @@ class FDSTooltipIcon extends HTMLElement {
             case 'placement':
                 if (this.querySelector('button').getAttribute('aria-expanded') === 'true') {
                     this.#updatePosition();
+                }
+                break;
+            case 'tooltip-id':
+                if (newValue !== null) {
+                    const tooltip = this.querySelector('.tooltip');
+                    tooltip.setAttribute('id', newValue);
+                    this.querySelector('button').setAttribute('aria-controls', newValue);
                 }
                 break;
         }
