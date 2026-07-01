@@ -13188,3 +13188,85 @@ input[type=checkbox] + label + fds-tooltip-icon{
   margin-bottom:4px;
   margin-left:2px;
 }
+
+.fds-side-menu ul,
+.fds-side-menu ol{
+  width:100%;
+  max-width:none;
+  margin:0;
+  list-style-type:none;
+  padding-left:0;
+}
+.fds-side-menu ul > li,
+.fds-side-menu ol > li{
+  margin-bottom:0;
+  margin-top:0;
+  padding-left:0;
+}
+.fds-side-menu ul > li::before,
+.fds-side-menu ol > li::before{
+  content:"" !important;
+  padding-right:0 !important;
+}
+.fds-side-menu li{
+  background-color:#ffffff;
+}
+.fds-side-menu li:has(> [aria-current]), .fds-side-menu li:has(> a:hover){
+  background-color:#f5f5f5;
+}
+.fds-side-menu li a{
+  padding:4px 16px 4px 16px;
+  margin-left:-1px;
+  width:calc(100% + 1px);
+  color:#1a1a1a;
+  background-color:rgba(0, 0, 0, 0);
+  text-decoration:none;
+  min-height:40px;
+  cursor:pointer;
+  font-weight:400;
+  line-height:1.5;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  overflow-wrap:break-word;
+}
+.fds-side-menu li a .info{
+  color:#707070;
+  display:block;
+}
+.fds-side-menu li a:hover > .info, .fds-side-menu li a[aria-current] > .info{
+  color:#454545;
+}
+.fds-side-menu li a:focus{
+  outline-offset:0;
+  position:relative;
+  z-index:1;
+}
+.fds-side-menu li a[aria-current],
+.fds-side-menu li a:has(+ ul [aria-current]){
+  font-weight:700;
+}
+.fds-side-menu li a[aria-current] .info,
+.fds-side-menu li a:has(+ ul [aria-current]) .info{
+  font-weight:400;
+}
+.fds-side-menu > ul > li, .fds-side-menu > ol > li{
+  border-left:1px solid #8e8e8e;
+  font-size:1.6rem;
+}
+.fds-side-menu > ul > li:has([aria-current]), .fds-side-menu > ol > li:has([aria-current]){
+  border-left:4px solid var(--color-primary);
+}
+.fds-side-menu > ul > li:has([aria-current]) a, .fds-side-menu > ol > li:has([aria-current]) a{
+  margin-left:-4px;
+  width:calc(100% + 4px);
+}
+.fds-side-menu > ul > li li, .fds-side-menu > ol > li li{
+  font-size:1.4rem;
+}
+.fds-side-menu > ul > li li a, .fds-side-menu > ol > li li a{
+  padding-left:40px;
+}
+.fds-side-menu > ul > li li li a, .fds-side-menu > ol > li li li a{
+  padding-left:64px;
+}
