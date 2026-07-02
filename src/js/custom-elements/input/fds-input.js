@@ -3,19 +3,27 @@ import * as CE from '../custom-element-utils';
 
 class FDSInput extends HTMLElement {
 
-    /* Private instance fields */
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['show-required-status', 'input-maxwidth'];
+
+    // #endregion
+
+    // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+    get showRequiredStatus() { return this.getAttribute('show-required-status'); }
+    set showRequiredStatus(value) { value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
     #inputObserver = null;
 
-    /* Private methods */
+    // #endregion
 
-    #setupObserver() {
-        if (this.#inputObserver) return;
-
-        this.#inputObserver = new MutationObserver(this.#handleMutations);
-        this.#inputObserver.observe(this, CE.mutationObserverConfig);
-    }
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleMutations = (records) => {
         for (const { attributeName, target, addedNodes, removedNodes } of records) {
@@ -71,6 +79,17 @@ class FDSInput extends HTMLElement {
         }
     }
 
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+    #setupObserver() {
+        if (this.#inputObserver) return;
+
+        this.#inputObserver = new MutationObserver(this.#handleMutations);
+        this.#inputObserver.observe(this, CE.mutationObserverConfig);
+    }
+
     #init() {
         this.#setupObserver();
 
@@ -91,8 +110,6 @@ class FDSInput extends HTMLElement {
         this.#initialized = true;
     }
 
-    /* Maxwidth */
-
     #setMaxwidth(value) {
         const input = this.querySelector('input');
 
@@ -111,20 +128,9 @@ class FDSInput extends HTMLElement {
         }
     }
 
-    /* Attributes which can invoke attributeChangedCallback() */
+    // #endregion
 
-    static observedAttributes = ['show-required-status', 'input-maxwidth'];
-
-    /* --------------------------------------------------
-    GETTERS AND SETTERS
-    -------------------------------------------------- */
-
-    get showRequiredStatus() { return this.getAttribute('show-required-status'); }
-    set showRequiredStatus(value) { value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         if (!this.#initialized) { this.#init(); }
@@ -132,9 +138,9 @@ class FDSInput extends HTMLElement {
         if (this.hasAttribute('input-maxwidth')) { this.#setMaxwidth(this.getAttribute('input-maxwidth')); }
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         CE.notifySummaryOnDisconnect(this);
@@ -147,9 +153,9 @@ class FDSInput extends HTMLElement {
         }
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#initialized) return;
@@ -174,6 +180,8 @@ class FDSInput extends HTMLElement {
             }
         }
     }
+
+    // #endregion
 }
 
 function registerInput() {

@@ -1,14 +1,22 @@
-'use strict';
-
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 class FDSErrorMessage extends HTMLElement {
 
-    /* Private instance fields */
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['id', 'icon-text', 'hidden', 'targets', 'message'];
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #rendered;
     #iconText;
     #parentWrapper;
+
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #render() {
         if (this.#rendered) return;
@@ -70,24 +78,9 @@ class FDSErrorMessage extends HTMLElement {
         }));
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT METHODS
-    -------------------------------------------------- */
+    // #endregion
 
-    getTargets() {
-        const targets = this.getAttribute('targets');
-        if (!targets) return [];
-
-        return targets.split(',').map(target => target.trim()).filter(target => target);
-    }
-
-    /* Attributes which can invoke attributeChangedCallback() */
-
-    static observedAttributes = ['id', 'icon-text', 'hidden', 'targets', 'message'];
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-    -------------------------------------------------- */
+    // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
 
     constructor() {
         super();
@@ -96,9 +89,20 @@ class FDSErrorMessage extends HTMLElement {
         this.#parentWrapper = null;
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+    getTargets() {
+        const targets = this.getAttribute('targets');
+        if (!targets) return [];
+
+        return targets.split(',').map(target => target.trim()).filter(target => target);
+    }
+
+    // #endregion
+    
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         if (this.#rendered) return;
@@ -114,9 +118,9 @@ class FDSErrorMessage extends HTMLElement {
         this.#dispatchErrorMessageCallback();
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         this.#parentWrapper?.dispatchEvent(new CustomEvent('error-message-callback',
@@ -133,9 +137,9 @@ class FDSErrorMessage extends HTMLElement {
         this.#rendered = false;
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+    
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#rendered) return;
@@ -156,6 +160,8 @@ class FDSErrorMessage extends HTMLElement {
 
         this.#dispatchErrorMessageCallback();
     }
+
+    // #endregion
 }
 
 function registerErrorMessage() {

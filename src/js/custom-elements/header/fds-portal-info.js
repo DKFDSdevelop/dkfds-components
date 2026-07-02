@@ -9,14 +9,14 @@ class FDSPortalInfo extends HTMLElement {
 
     // #endregion
 
-    // #region - Private instance fields --------------------------------------------------------------------
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
     #sheet = new CSSStyleSheet();
 
     // #endregion
 
-    // #region - Private event handlers ---------------------------------------------------------------------
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleSlotDrawerButtonChange = (event) => {
         event.target.assignedElements().forEach(element => {
@@ -38,7 +38,7 @@ class FDSPortalInfo extends HTMLElement {
 
     // #endregion
 
-    // #region - Private methods ----------------------------------------------------------------------------
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #updateStyles() {
         const breakpoint = this.getAttribute('breakpoint') || '992px';

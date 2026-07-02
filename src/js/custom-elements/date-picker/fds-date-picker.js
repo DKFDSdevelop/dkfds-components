@@ -4,7 +4,13 @@ import * as CE from '../custom-element-utils';
 
 class FDSDatePicker extends HTMLElement {
 
-    /* Private instance fields */
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['show-required-status', 'format', 'text-open', 'text-selecteddate', 'text-months'];
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
     #datePickerObserver = null;
@@ -24,7 +30,38 @@ class FDSDatePicker extends HTMLElement {
     #textOpen = 'Åbn datovælger';
     #textSelectedDate = 'valgt dato er DAY. MONTH YEAR';
 
-    /* Private methods */
+    // #endregion
+
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+    #handleMutations = (records, observer) => {
+        const wrapperHiddenChanged = records.some(record =>
+            record.attributeName === 'hidden' && record.target === this
+        );
+
+        if (wrapperHiddenChanged) {
+            CE.notifySummaryOnVisibilityChange(this);
+        }
+
+        const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
+
+        if (shouldUpdate) {
+            this.#setupInput();
+            this.#setupLabel();
+            if (this.hasAttribute('show-required-status')) {
+                const label = this.querySelector('label');
+                const input = this.querySelector('input');
+                CE.showRequiredStatus(label, input, this.getAttribute('show-required-status'));
+            }
+            if (this.querySelector('.date-button')) {
+                this.querySelector('input')?.hasAttribute('disabled') ? this.querySelector('.date-button').setAttribute('disabled', '') : this.querySelector('.date-button').removeAttribute('disabled');
+            }
+        }
+    }
+
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #setupLabel() {
         const label = this.querySelector('label');
@@ -147,30 +184,7 @@ class FDSDatePicker extends HTMLElement {
         this.#datePickerObserver.observe(this, CE.mutationObserverConfig);
     }
 
-    #handleMutations = (records, observer) => {
-        const wrapperHiddenChanged = records.some(record =>
-            record.attributeName === 'hidden' && record.target === this
-        );
 
-        if (wrapperHiddenChanged) {
-            CE.notifySummaryOnVisibilityChange(this);
-        }
-
-        const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
-
-        if (shouldUpdate) {
-            this.#setupInput();
-            this.#setupLabel();
-            if (this.hasAttribute('show-required-status')) {
-                const label = this.querySelector('label');
-                const input = this.querySelector('input');
-                CE.showRequiredStatus(label, input, this.getAttribute('show-required-status'));
-            }
-            if (this.querySelector('.date-button')) {
-                this.querySelector('input')?.hasAttribute('disabled') ? this.querySelector('.date-button').setAttribute('disabled', '') : this.querySelector('.date-button').removeAttribute('disabled');
-            }
-        }
-    }
 
     #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
         if (
@@ -339,13 +353,9 @@ class FDSDatePicker extends HTMLElement {
         }
     }
 
-    /* Attributes which can invoke attributeChangedCallback() */
+    // #endregion
 
-    static observedAttributes = ['show-required-status', 'format', 'text-open', 'text-selecteddate', 'text-months'];
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-    -------------------------------------------------- */
+    // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
 
     constructor() {
         super();
@@ -362,9 +372,9 @@ class FDSDatePicker extends HTMLElement {
         this.#handleKeydown = (event) => { this.#keyboardNavigation(event); };
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT METHODS
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
     open() {
         if (!this.querySelector('.ce-date-picker')) return;
@@ -386,9 +396,9 @@ class FDSDatePicker extends HTMLElement {
         this.querySelector('fds-date-picker-grid').resizeMonth();
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         if (this.#initialized) return;
@@ -413,9 +423,9 @@ class FDSDatePicker extends HTMLElement {
         window.addEventListener('pageshow', this.#handlePageShow, false);
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         CE.notifySummaryOnDisconnect(this)
@@ -437,9 +447,9 @@ class FDSDatePicker extends HTMLElement {
         window.removeEventListener('pageshow', this.#handlePageShow, false);
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#initialized) return;
@@ -489,6 +499,8 @@ class FDSDatePicker extends HTMLElement {
 
         if (attribute === 'text-months') { this.#updateTextMonths(newValue); }
     }
+
+    // #endregion
 }
 
 function registerDatePicker() {

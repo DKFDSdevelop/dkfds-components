@@ -10,6 +10,21 @@ class FDSUploadFile extends HTMLElement {
      * - DOM is partially cached (#dropzoneEl, #fileListEl) to allow toggling without recreating elements unnecessarily.
      */
 
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'file-list-header', 'file-list-more', 'remove-text', 'heading-level', 'show-required-status'];
+
+    // #endregion
+
+    // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+    get showRequiredStatus() { return this.getAttribute('show-required-status'); }
+    set showRequiredStatus(value) { value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
     #inputEl = null;
     #initialized = false;
     #files = [];
@@ -20,7 +35,53 @@ class FDSUploadFile extends HTMLElement {
     #onClick;
     #onInputChange;
 
-    /* Private methods */
+    // #endregion
+
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+    #handleMutations = (records) => {
+        let shouldUpdateAccessibility = false;
+
+        for (const { attributeName, target, addedNodes, removedNodes } of records) {
+
+            if (attributeName === 'hidden' && target === this) {
+                CE.notifySummaryOnVisibilityChange(this);
+            }
+
+            // The input's disabled attribute changed
+            if (attributeName === 'disabled' && target?.tagName === 'INPUT') {
+                const label = this.querySelector('label');
+                CE.setDisabledClass(label, target);
+            }
+
+            // The input's required attribute changed
+            else if (attributeName === 'required' && target?.tagName === 'INPUT') {
+                if (this.hasAttribute('show-required-status')) {
+                    this.#updateRequiredStatus();
+                }
+            }
+
+            if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
+                shouldUpdateAccessibility = true;
+                continue;
+            }
+
+            const relevantTagNames = ['FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+            const allNodes = [...addedNodes, ...removedNodes];
+
+            if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+                shouldUpdateAccessibility = true;
+            }
+        }
+
+        if (shouldUpdateAccessibility) {
+            this.#setupAccessibility();
+        }
+    }
+
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #getDropzonePrefix() {
         return this.getAttribute('dropzone-prefix') ?? 'Træk dine filer herhen eller';
@@ -224,45 +285,7 @@ class FDSUploadFile extends HTMLElement {
         this.#uploadObserver.observe(this, CE.mutationObserverConfig);
     }
 
-    #handleMutations = (records) => {
-        let shouldUpdateAccessibility = false;
 
-        for (const { attributeName, target, addedNodes, removedNodes } of records) {
-
-            if (attributeName === 'hidden' && target === this) {
-                CE.notifySummaryOnVisibilityChange(this);
-            }
-
-            // The input's disabled attribute changed
-            if (attributeName === 'disabled' && target?.tagName === 'INPUT') {
-                const label = this.querySelector('label');
-                CE.setDisabledClass(label, target);
-            }
-
-            // The input's required attribute changed
-            else if (attributeName === 'required' && target?.tagName === 'INPUT') {
-                if (this.hasAttribute('show-required-status')) {
-                    this.#updateRequiredStatus();
-                }
-            }
-
-            if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
-                shouldUpdateAccessibility = true;
-                continue;
-            }
-
-            const relevantTagNames = ['FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
-            const allNodes = [...addedNodes, ...removedNodes];
-
-            if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
-                shouldUpdateAccessibility = true;
-            }
-        }
-
-        if (shouldUpdateAccessibility) {
-            this.#setupAccessibility();
-        }
-    }
 
     #setupAccessibility() {
         const input = this.#inputEl;
@@ -478,52 +501,9 @@ class FDSUploadFile extends HTMLElement {
         );
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT METHODS
-    -------------------------------------------------- */
+    // #endregion
 
-    getFiles() {
-        return this.#files.map(fileObj => ({
-            id: fileObj.id,
-            file: fileObj.file
-        }));
-    }
-
-    addError(message, fileId = null) {
-        const errorMessage = document.createElement('fds-error-message');
-        errorMessage.textContent = message;
-
-        if (fileId) {
-            errorMessage.setAttribute('targets', fileId);
-        }
-
-        this.appendChild(errorMessage);
-        this.#setupAccessibility();
-        return errorMessage;
-    }
-
-    removeError(errorElement) {
-        if (this.contains(errorElement)) {
-            errorElement.remove();
-            this.#setupAccessibility();
-        }
-    }
-
-
-    /* Attributes which can invoke attributeChangedCallback() */
-
-    static observedAttributes = ['dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'file-list-header', 'file-list-more', 'remove-text', 'heading-level', 'show-required-status'];
-
-    /* --------------------------------------------------
-    GETTERS AND SETTERS
-    -------------------------------------------------- */
-
-    get showRequiredStatus() { return this.getAttribute('show-required-status'); }
-    set showRequiredStatus(value) { value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
-
-    /* --------------------------------------------------
-   CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-   -------------------------------------------------- */
+    // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
 
     constructor() {
         super();
@@ -570,9 +550,40 @@ class FDSUploadFile extends HTMLElement {
         };
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+    getFiles() {
+        return this.#files.map(fileObj => ({
+            id: fileObj.id,
+            file: fileObj.file
+        }));
+    }
+
+    addError(message, fileId = null) {
+        const errorMessage = document.createElement('fds-error-message');
+        errorMessage.textContent = message;
+
+        if (fileId) {
+            errorMessage.setAttribute('targets', fileId);
+        }
+
+        this.appendChild(errorMessage);
+        this.#setupAccessibility();
+        return errorMessage;
+    }
+
+    removeError(errorElement) {
+        if (this.contains(errorElement)) {
+            errorElement.remove();
+            this.#setupAccessibility();
+        }
+    }
+
+    // #endregion
+
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         if (this.#initialized) return;
@@ -602,9 +613,9 @@ class FDSUploadFile extends HTMLElement {
         this.#initialized = true;
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         CE.notifySummaryOnDisconnect(this);
@@ -619,9 +630,9 @@ class FDSUploadFile extends HTMLElement {
         }
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#initialized) return;
@@ -652,6 +663,8 @@ class FDSUploadFile extends HTMLElement {
             this.#updateFileListHeadingLevel();
         }
     }
+
+    // #endregion
 }
 
 function registerUploadFile() {

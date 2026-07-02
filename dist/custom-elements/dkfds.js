@@ -98,16 +98,33 @@ function generateAndVerifyUniqueId(str) {
 }
 ;// ./src/js/custom-elements/accordion/fds-accordion.js
 
-
-
 class FDSAccordion extends HTMLElement {
-  /* Private instance fields */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['heading', 'heading-level', 'expanded', 'content-id', 'variant-text', 'variant-icon', 'ready'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get heading() {
+    return this.getAttribute('heading');
+  }
+  set heading(val) {
+    this.setAttribute('heading', val);
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized;
   #handleAccordionClick;
   #accordionObserver = null;
 
-  /* Private methods */
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #getHeadingElement() {
     return this.querySelector('h1, h2, h3, h4, h5, h6');
@@ -271,22 +288,9 @@ class FDSAccordion extends HTMLElement {
     }
   };
 
-  /* Attributes which can invoke attributeChangedCallback() */
+  // #endregion
 
-  static observedAttributes = ['heading', 'heading-level', 'expanded', 'content-id', 'variant-text', 'variant-icon', 'ready'];
-
-  /* Getters and setters */
-
-  get heading() {
-    return this.getAttribute('heading');
-  }
-  set heading(val) {
-    this.setAttribute('heading', val);
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
 
   constructor() {
     super();
@@ -299,9 +303,9 @@ class FDSAccordion extends HTMLElement {
     };
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
   init() {
     if (this.#initialized) return;
@@ -342,18 +346,18 @@ class FDSAccordion extends HTMLElement {
     return this.hasAttribute('expanded') && this.getAttribute('expanded') !== 'false';
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (this.getAttribute('ready') === 'false') return;
     this.init();
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     const button = this.#getHeadingElement()?.querySelector('button.accordion-button');
@@ -367,9 +371,9 @@ class FDSAccordion extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (attribute === 'ready') {
@@ -408,6 +412,8 @@ class FDSAccordion extends HTMLElement {
       }
     }
   }
+
+  // #endregion
 }
 function registerAccordion() {
   if (customElements.get('fds-accordion') === undefined) {
@@ -416,10 +422,14 @@ function registerAccordion() {
 }
 /* harmony default export */ const fds_accordion = (registerAccordion);
 ;// ./src/js/custom-elements/accordion/fds-accordion-group.js
-
-
 class FDSAccordionGroup extends HTMLElement {
-  /* Private instance fields */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['heading-level', 'has-bulk-button', 'open-all-text', 'close-all-text'];
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #rendered;
   #listenersAttached;
@@ -428,7 +438,9 @@ class FDSAccordionGroup extends HTMLElement {
   #handleAccordionExpanded;
   #handleAccordionCollapsed;
 
-  /* Private methods */
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #getBulkButton() {
     if (this.#bulkButton) return this.#bulkButton;
@@ -493,13 +505,9 @@ class FDSAccordionGroup extends HTMLElement {
     allExpanded ? button.classList.add('close') : button.classList.remove('close');
   }
 
-  /* Attributes which can invoke attributeChangedCallback() */
+  // #endregion
 
-  static observedAttributes = ['heading-level', 'has-bulk-button', 'open-all-text', 'close-all-text'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
 
   constructor() {
     super();
@@ -517,9 +525,9 @@ class FDSAccordionGroup extends HTMLElement {
     };
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
   toggleAllAccordions() {
     const accordions = this.#getAllAccordions();
@@ -529,9 +537,9 @@ class FDSAccordionGroup extends HTMLElement {
     this.#updateBulkButtonText();
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (this.#rendered) return;
@@ -549,9 +557,9 @@ class FDSAccordionGroup extends HTMLElement {
     this.#updateBulkButtonText();
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     this.#rendered = false;
@@ -564,9 +572,9 @@ class FDSAccordionGroup extends HTMLElement {
     this.#listenersAttached = false;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#rendered) return;
@@ -580,6 +588,8 @@ class FDSAccordionGroup extends HTMLElement {
       this.#updateBulkButtonText();
     }
   }
+
+  // #endregion
 }
 function registerAccordionGroup() {
   if (customElements.get('fds-accordion-group') === undefined) {
@@ -789,18 +799,32 @@ function isVisibleAndFocusable(element) {
 
 
 class FDSInput extends HTMLElement {
-  /* Private instance fields */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['show-required-status', 'input-maxwidth'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
   #inputObserver = null;
 
-  /* Private methods */
+  // #endregion
 
-  #setupObserver() {
-    if (this.#inputObserver) return;
-    this.#inputObserver = new MutationObserver(this.#handleMutations);
-    this.#inputObserver.observe(this, mutationObserverConfig);
-  }
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
   #handleMutations = records => {
     for (const {
       attributeName,
@@ -849,6 +873,16 @@ class FDSInput extends HTMLElement {
       }
     }
   };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setupObserver() {
+    if (this.#inputObserver) return;
+    this.#inputObserver = new MutationObserver(this.#handleMutations);
+    this.#inputObserver.observe(this, mutationObserverConfig);
+  }
   #init() {
     this.#setupObserver();
     const label = this.querySelector('label');
@@ -864,9 +898,6 @@ class FDSInput extends HTMLElement {
     }
     this.#initialized = true;
   }
-
-  /* Maxwidth */
-
   #setMaxwidth(value) {
     const input = this.querySelector('input');
     if (!input) return;
@@ -881,24 +912,9 @@ class FDSInput extends HTMLElement {
     }
   }
 
-  /* Attributes which can invoke attributeChangedCallback() */
+  // #endregion
 
-  static observedAttributes = ['show-required-status', 'input-maxwidth'];
-
-  /* --------------------------------------------------
-  GETTERS AND SETTERS
-  -------------------------------------------------- */
-
-  get showRequiredStatus() {
-    return this.getAttribute('show-required-status');
-  }
-  set showRequiredStatus(value) {
-    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (!this.#initialized) {
@@ -909,9 +925,9 @@ class FDSInput extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     notifySummaryOnDisconnect(this);
@@ -922,9 +938,9 @@ class FDSInput extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
@@ -947,6 +963,8 @@ class FDSInput extends HTMLElement {
       }
     }
   }
+
+  // #endregion
 }
 function registerInput() {
   if (customElements.get('fds-input') === undefined) {
@@ -956,15 +974,21 @@ function registerInput() {
 /* harmony default export */ const fds_input = (registerInput);
 ;// ./src/js/custom-elements/help-text/fds-help-text.js
 
-
-
 class FDSHelpText extends HTMLElement {
-  /* Private instance fields */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['id', 'hidden'];
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #rendered;
   #parentWrapper;
 
-  /* Private methods */
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #render() {
     if (this.#rendered) return;
@@ -990,13 +1014,9 @@ class FDSHelpText extends HTMLElement {
     }));
   }
 
-  /* Attributes which can invoke attributeChangedCallback() */
+  // #endregion
 
-  static observedAttributes = ['id', 'hidden'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
 
   constructor() {
     super();
@@ -1004,9 +1024,9 @@ class FDSHelpText extends HTMLElement {
     this.#parentWrapper = null;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (this.#rendered) return;
@@ -1026,9 +1046,9 @@ class FDSHelpText extends HTMLElement {
     this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
@@ -1036,9 +1056,9 @@ class FDSHelpText extends HTMLElement {
     this.#rendered = false;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#rendered) return;
@@ -1052,6 +1072,8 @@ class FDSHelpText extends HTMLElement {
     }
     this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
   }
+
+  // #endregion
 }
 function registerHelpText() {
   if (customElements.get('fds-help-text') === undefined) {
@@ -1061,10 +1083,14 @@ function registerHelpText() {
 /* harmony default export */ const fds_help_text = (registerHelpText);
 ;// ./src/js/custom-elements/character-limit/fds-character-limit.js
 
-
-
 class FDSCharacterLimit extends HTMLElement {
-  /* Private instance fields */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['limit', 'one-character-remaining-text', 'several-characters-remaining-text', 'one-character-too-many-text', 'several-characters-too-many-text', 'max-limit-text', 'limit-id'];
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
   #messages = {
@@ -1083,6 +1109,11 @@ class FDSCharacterLimit extends HTMLElement {
   #lastKeyUpTimestamp = null;
   #oldValue = null;
   #forceSRUpdate = false;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
   #handleKeyUp = event => {
     // Update the visible message immediately
     this.#updateVisibleMessage(this.#charactersLeft());
@@ -1132,7 +1163,9 @@ class FDSCharacterLimit extends HTMLElement {
     this.#updateVisibleMessage(this.#charactersLeft());
   };
 
-  /* Private methods */
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #charactersLeft() {
     if (!this.#field) return;
@@ -1181,13 +1214,9 @@ class FDSCharacterLimit extends HTMLElement {
     }
   }
 
-  /* Attributes which can invoke attributeChangedCallback() */
+  // #endregion
 
-  static observedAttributes = ['limit', 'one-character-remaining-text', 'several-characters-remaining-text', 'one-character-too-many-text', 'several-characters-too-many-text', 'max-limit-text', 'limit-id'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (!this.hasAttribute('limit')) return;
@@ -1255,9 +1284,9 @@ class FDSCharacterLimit extends HTMLElement {
     this.#initialized = true;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     this.#field?.removeEventListener('keyup', this.#handleKeyUp);
@@ -1268,9 +1297,9 @@ class FDSCharacterLimit extends HTMLElement {
     this.#initialized = false;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
@@ -1302,6 +1331,8 @@ class FDSCharacterLimit extends HTMLElement {
     }
     this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
   }
+
+  // #endregion
 }
 function registerCharacterLimit() {
   if (customElements.get('fds-character-limit') === undefined) {
@@ -1311,14 +1342,23 @@ function registerCharacterLimit() {
 /* harmony default export */ const fds_character_limit = (registerCharacterLimit);
 ;// ./src/js/custom-elements/error-message/fds-error-message.js
 
-
-
 class FDSErrorMessage extends HTMLElement {
-  /* Private instance fields */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['id', 'icon-text', 'hidden', 'targets', 'message'];
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #rendered;
   #iconText;
   #parentWrapper;
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
   #render() {
     if (this.#rendered) return;
     const hasElements = this.children.length > 0;
@@ -1368,23 +1408,9 @@ class FDSErrorMessage extends HTMLElement {
     }));
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
+  // #endregion
 
-  getTargets() {
-    const targets = this.getAttribute('targets');
-    if (!targets) return [];
-    return targets.split(',').map(target => target.trim()).filter(target => target);
-  }
-
-  /* Attributes which can invoke attributeChangedCallback() */
-
-  static observedAttributes = ['id', 'icon-text', 'hidden', 'targets', 'message'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
 
   constructor() {
     super();
@@ -1393,9 +1419,19 @@ class FDSErrorMessage extends HTMLElement {
     this.#parentWrapper = null;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  getTargets() {
+    const targets = this.getAttribute('targets');
+    if (!targets) return [];
+    return targets.split(',').map(target => target.trim()).filter(target => target);
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (this.#rendered) return;
@@ -1409,9 +1445,9 @@ class FDSErrorMessage extends HTMLElement {
     this.#dispatchErrorMessageCallback();
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     this.#parentWrapper?.dispatchEvent(new CustomEvent('error-message-callback', {
@@ -1425,9 +1461,9 @@ class FDSErrorMessage extends HTMLElement {
     this.#rendered = false;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#rendered) return;
@@ -1443,6 +1479,8 @@ class FDSErrorMessage extends HTMLElement {
     }
     this.#dispatchErrorMessageCallback();
   }
+
+  // #endregion
 }
 function registerErrorMessage() {
   if (customElements.get('fds-error-message') === undefined) {
@@ -1453,10 +1491,25 @@ function registerErrorMessage() {
 ;// ./src/js/custom-elements/checkbox/fds-checkbox.js
 
 
-
-
 class FDSCheckbox extends HTMLElement {
-  /* Private instance fields */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['show-required-status', 'ready'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
   #checkboxObserver = null;
@@ -1464,25 +1517,10 @@ class FDSCheckbox extends HTMLElement {
   #label;
   #onInputChange;
 
-  /* Private methods */
+  // #endregion
 
-  #getInputElement() {
-    return this.querySelector(':scope > input[type="checkbox"]');
-  }
-  #getLabelElement() {
-    return this.querySelector(':scope > label');
-  }
-  #getHelpTextElements() {
-    return this.querySelectorAll(':scope > fds-help-text');
-  }
-  #getErrorMessages() {
-    return this.querySelectorAll(':scope > fds-error-message');
-  }
-  #setupObserver() {
-    if (this.#checkboxObserver) return;
-    this.#checkboxObserver = new MutationObserver(this.#handleMutations);
-    this.#checkboxObserver.observe(this, mutationObserverConfig);
-  }
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
   #handleMutations = records => {
     for (const {
       attributeName,
@@ -1517,6 +1555,28 @@ class FDSCheckbox extends HTMLElement {
       }
     }
   };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #getInputElement() {
+    return this.querySelector(':scope > input[type="checkbox"]');
+  }
+  #getLabelElement() {
+    return this.querySelector(':scope > label');
+  }
+  #getHelpTextElements() {
+    return this.querySelectorAll(':scope > fds-help-text');
+  }
+  #getErrorMessages() {
+    return this.querySelectorAll(':scope > fds-error-message');
+  }
+  #setupObserver() {
+    if (this.#checkboxObserver) return;
+    this.#checkboxObserver = new MutationObserver(this.#handleMutations);
+    this.#checkboxObserver.observe(this, mutationObserverConfig);
+  }
   #updateAccessibilityState() {
     const label = this.#getLabelElement();
     const input = this.#getInputElement();
@@ -1561,13 +1621,10 @@ class FDSCheckbox extends HTMLElement {
     input.addEventListener('change', this.#onInputChange);
   }
 
-  /* Attributes which can invoke attributeChangedCallback() */
+  // #endregion
 
-  static observedAttributes = ['show-required-status', 'ready'];
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
   init() {
     this.#input = this.#getInputElement();
     this.#label = this.#getLabelElement();
@@ -1582,20 +1639,9 @@ class FDSCheckbox extends HTMLElement {
     this.#initialized = true;
   }
 
-  /* --------------------------------------------------
-  GETTERS AND SETTERS
-  -------------------------------------------------- */
+  // #endregion
 
-  get showRequiredStatus() {
-    return this.getAttribute('show-required-status');
-  }
-  set showRequiredStatus(value) {
-    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (this.getAttribute('ready') === 'false') return;
@@ -1604,9 +1650,9 @@ class FDSCheckbox extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     notifySummaryOnDisconnect(this);
@@ -1620,9 +1666,9 @@ class FDSCheckbox extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (attribute === 'ready') {
@@ -1638,6 +1684,8 @@ class FDSCheckbox extends HTMLElement {
       showRequiredStatus(label, input, newValue);
     }
   }
+
+  // #endregion
 }
 function registerCheckbox() {
   if (customElements.get('fds-checkbox') === undefined) {
@@ -1647,35 +1695,18 @@ function registerCheckbox() {
 /* harmony default export */ const fds_checkbox = (registerCheckbox);
 ;// ./src/js/custom-elements/checkbox/fds-checkbox-group.js
 
-
-
 class FDSCheckboxGroup extends HTMLElement {
-  /* Private instance fields */
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
   #checkboxGroupObserver = null;
   #fieldset;
   #legend;
 
-  /* Private methods */
+  // #endregion
 
-  #getFieldsetElement() {
-    return this.querySelector('fieldset');
-  }
-  #getLegendElement() {
-    return this.querySelector(':scope > fieldset > legend');
-  }
-  #getGroupHelpTexts() {
-    return this.querySelectorAll(':scope > fieldset > fds-help-text');
-  }
-  #getErrorMessages() {
-    return this.querySelectorAll(':scope > fieldset > fds-error-message');
-  }
-  #setupObserver() {
-    if (this.#checkboxGroupObserver) return;
-    this.#checkboxGroupObserver = new MutationObserver(this.#handleMutations);
-    this.#checkboxGroupObserver.observe(this, mutationObserverConfig);
-  }
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
   #handleMutations = records => {
     for (const {
       attributeName,
@@ -1703,6 +1734,28 @@ class FDSCheckboxGroup extends HTMLElement {
       }
     }
   };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #getFieldsetElement() {
+    return this.querySelector('fieldset');
+  }
+  #getLegendElement() {
+    return this.querySelector(':scope > fieldset > legend');
+  }
+  #getGroupHelpTexts() {
+    return this.querySelectorAll(':scope > fieldset > fds-help-text');
+  }
+  #getErrorMessages() {
+    return this.querySelectorAll(':scope > fieldset > fds-error-message');
+  }
+  #setupObserver() {
+    if (this.#checkboxGroupObserver) return;
+    this.#checkboxGroupObserver = new MutationObserver(this.#handleMutations);
+    this.#checkboxGroupObserver.observe(this, mutationObserverConfig);
+  }
   #updateAccessibilityState() {
     const fieldset = this.#getFieldsetElement();
     const errorMessages = this.#getErrorMessages();
@@ -1717,9 +1770,10 @@ class FDSCheckboxGroup extends HTMLElement {
     if (!fieldset) return;
     fieldset.classList.toggle('disabled', fieldset.hasAttribute('disabled'));
   }
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
   init() {
     this.#fieldset = this.#getFieldsetElement();
@@ -1731,9 +1785,9 @@ class FDSCheckboxGroup extends HTMLElement {
     this.#initialized = true;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (!this.#initialized) {
@@ -1741,9 +1795,9 @@ class FDSCheckboxGroup extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     notifySummaryOnDisconnect(this);
@@ -1753,6 +1807,8 @@ class FDSCheckboxGroup extends HTMLElement {
       this.#checkboxGroupObserver = null;
     }
   }
+
+  // #endregion
 }
 function registerCheckboxGroup() {
   if (!customElements.get('fds-checkbox-group')) {
@@ -1763,10 +1819,26 @@ function registerCheckboxGroup() {
 ;// ./src/js/custom-elements/radio-button/fds-radio-button.js
 
 
-
-
 class FDSRadioButton extends HTMLElement {
-  /* Private instance fields */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['ready'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get checked() {
+    return this.#input?.checked ?? false;
+  }
+  set checked(value) {
+    if (!this.#input) return;
+    this.#input.checked = Boolean(value);
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
   #radioButtonObserver = null;
@@ -1775,22 +1847,10 @@ class FDSRadioButton extends HTMLElement {
   #onInputChange;
   #updateExpandableContent;
 
-  /* Private methods */
+  // #endregion
 
-  #getInputElement() {
-    return this.querySelector(':scope > input[type="radio"]');
-  }
-  #getLabelElement() {
-    return this.querySelector(':scope > label');
-  }
-  #getHelpTextElements() {
-    return this.querySelectorAll(':scope > fds-help-text');
-  }
-  #setupObserver() {
-    if (this.#radioButtonObserver) return;
-    this.#radioButtonObserver = new MutationObserver(this.#handleMutations);
-    this.#radioButtonObserver.observe(this, mutationObserverConfig);
-  }
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
   #handleMutations = records => {
     for (const {
       attributeName,
@@ -1815,6 +1875,25 @@ class FDSRadioButton extends HTMLElement {
       }
     }
   };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #getInputElement() {
+    return this.querySelector(':scope > input[type="radio"]');
+  }
+  #getLabelElement() {
+    return this.querySelector(':scope > label');
+  }
+  #getHelpTextElements() {
+    return this.querySelectorAll(':scope > fds-help-text');
+  }
+  #setupObserver() {
+    if (this.#radioButtonObserver) return;
+    this.#radioButtonObserver = new MutationObserver(this.#handleMutations);
+    this.#radioButtonObserver.observe(this, mutationObserverConfig);
+  }
   #updateAccessibilityState() {
     const label = this.#getLabelElement();
     const input = this.#getInputElement();
@@ -1845,6 +1924,11 @@ class FDSRadioButton extends HTMLElement {
     this.#updateExpandableContent = updateState;
     updateState();
   }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
   collapseContent() {
     const content = this.querySelector(':scope > div.radio-content');
     if (content && this.#input) {
@@ -1853,15 +1937,6 @@ class FDSRadioButton extends HTMLElement {
       content.classList.add('collapsed');
     }
   }
-
-  /* Attributes which can invoke attributeChangedCallback() */
-
-  static observedAttributes = ['ready'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
-
   init() {
     this.#input = this.#getInputElement();
     this.#label = this.#getLabelElement();
@@ -1888,19 +1963,9 @@ class FDSRadioButton extends HTMLElement {
     this.#initialized = true;
   }
 
-  /* Getters and setters */
+  // #endregion
 
-  get checked() {
-    return this.#input?.checked ?? false;
-  }
-  set checked(value) {
-    if (!this.#input) return;
-    this.#input.checked = Boolean(value);
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (this.getAttribute('ready') === 'false') return;
@@ -1909,9 +1974,9 @@ class FDSRadioButton extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     if (this.#input) {
@@ -1924,9 +1989,9 @@ class FDSRadioButton extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (attribute === 'ready') {
@@ -1936,6 +2001,8 @@ class FDSRadioButton extends HTMLElement {
       return;
     }
   }
+
+  // #endregion
 }
 function registerRadioButton() {
   if (customElements.get('fds-radio-button') === undefined) {
@@ -2567,6 +2634,25 @@ class FDSUploadFile extends HTMLElement {
    * - DOM is partially cached (#dropzoneEl, #fileListEl) to allow toggling without recreating elements unnecessarily.
    */
 
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'file-list-header', 'file-list-more', 'remove-text', 'heading-level', 'show-required-status'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
   #inputEl = null;
   #initialized = false;
   #files = [];
@@ -2576,7 +2662,52 @@ class FDSUploadFile extends HTMLElement {
   #onClick;
   #onInputChange;
 
-  /* Private methods */
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleMutations = records => {
+    let shouldUpdateAccessibility = false;
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      if (attributeName === 'hidden' && target === this) {
+        notifySummaryOnVisibilityChange(this);
+      }
+
+      // The input's disabled attribute changed
+      if (attributeName === 'disabled' && target?.tagName === 'INPUT') {
+        const label = this.querySelector('label');
+        setDisabledClass(label, target);
+      }
+
+      // The input's required attribute changed
+      else if (attributeName === 'required' && target?.tagName === 'INPUT') {
+        if (this.hasAttribute('show-required-status')) {
+          this.#updateRequiredStatus();
+        }
+      }
+      if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
+        shouldUpdateAccessibility = true;
+        continue;
+      }
+      const relevantTagNames = ['FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
+      const allNodes = [...addedNodes, ...removedNodes];
+      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
+        shouldUpdateAccessibility = true;
+      }
+    }
+    if (shouldUpdateAccessibility) {
+      this.#setupAccessibility();
+    }
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #getDropzonePrefix() {
     return this.getAttribute('dropzone-prefix') ?? 'Træk dine filer herhen eller';
@@ -2731,44 +2862,6 @@ class FDSUploadFile extends HTMLElement {
     this.#uploadObserver = new MutationObserver(this.#handleMutations);
     this.#uploadObserver.observe(this, mutationObserverConfig);
   }
-  #handleMutations = records => {
-    let shouldUpdateAccessibility = false;
-    for (const {
-      attributeName,
-      target,
-      addedNodes,
-      removedNodes
-    } of records) {
-      if (attributeName === 'hidden' && target === this) {
-        notifySummaryOnVisibilityChange(this);
-      }
-
-      // The input's disabled attribute changed
-      if (attributeName === 'disabled' && target?.tagName === 'INPUT') {
-        const label = this.querySelector('label');
-        setDisabledClass(label, target);
-      }
-
-      // The input's required attribute changed
-      else if (attributeName === 'required' && target?.tagName === 'INPUT') {
-        if (this.hasAttribute('show-required-status')) {
-          this.#updateRequiredStatus();
-        }
-      }
-      if (attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
-        shouldUpdateAccessibility = true;
-        continue;
-      }
-      const relevantTagNames = ['FDS-ERROR-MESSAGE', 'FDS-HELP-TEXT'];
-      const allNodes = [...addedNodes, ...removedNodes];
-      if (allNodes.some(node => relevantTagNames.includes(node?.tagName))) {
-        shouldUpdateAccessibility = true;
-      }
-    }
-    if (shouldUpdateAccessibility) {
-      this.#setupAccessibility();
-    }
-  };
   #setupAccessibility() {
     const input = this.#inputEl;
     if (!input) return;
@@ -2945,52 +3038,9 @@ class FDSUploadFile extends HTMLElement {
     showRequiredStatus(label, input, this.getAttribute('show-required-status'));
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
+  // #endregion
 
-  getFiles() {
-    return this.#files.map(fileObj => ({
-      id: fileObj.id,
-      file: fileObj.file
-    }));
-  }
-  addError(message) {
-    let fileId = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-    const errorMessage = document.createElement('fds-error-message');
-    errorMessage.textContent = message;
-    if (fileId) {
-      errorMessage.setAttribute('targets', fileId);
-    }
-    this.appendChild(errorMessage);
-    this.#setupAccessibility();
-    return errorMessage;
-  }
-  removeError(errorElement) {
-    if (this.contains(errorElement)) {
-      errorElement.remove();
-      this.#setupAccessibility();
-    }
-  }
-
-  /* Attributes which can invoke attributeChangedCallback() */
-
-  static observedAttributes = ['dropzone-prefix', 'dropzone-link', 'dropzone-suffix', 'file-list-header', 'file-list-more', 'remove-text', 'heading-level', 'show-required-status'];
-
-  /* --------------------------------------------------
-  GETTERS AND SETTERS
-  -------------------------------------------------- */
-
-  get showRequiredStatus() {
-    return this.getAttribute('show-required-status');
-  }
-  set showRequiredStatus(value) {
-    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
 
   constructor() {
     super();
@@ -3033,9 +3083,37 @@ class FDSUploadFile extends HTMLElement {
     };
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  getFiles() {
+    return this.#files.map(fileObj => ({
+      id: fileObj.id,
+      file: fileObj.file
+    }));
+  }
+  addError(message) {
+    let fileId = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+    const errorMessage = document.createElement('fds-error-message');
+    errorMessage.textContent = message;
+    if (fileId) {
+      errorMessage.setAttribute('targets', fileId);
+    }
+    this.appendChild(errorMessage);
+    this.#setupAccessibility();
+    return errorMessage;
+  }
+  removeError(errorElement) {
+    if (this.contains(errorElement)) {
+      errorElement.remove();
+      this.#setupAccessibility();
+    }
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (this.#initialized) return;
@@ -3057,9 +3135,9 @@ class FDSUploadFile extends HTMLElement {
     this.#initialized = true;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     notifySummaryOnDisconnect(this);
@@ -3072,9 +3150,9 @@ class FDSUploadFile extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
@@ -3099,6 +3177,8 @@ class FDSUploadFile extends HTMLElement {
       this.#updateFileListHeadingLevel();
     }
   }
+
+  // #endregion
 }
 function registerUploadFile() {
   if (customElements.get('fds-upload-file') === undefined) {
@@ -3109,14 +3189,22 @@ function registerUploadFile() {
 ;// ./src/js/custom-elements/upload-file/fds-file-item.js
 
 class FDSFileItem extends HTMLElement {
-  /* Private instance fields */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['remove-text'];
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
   #file = null;
   #fileId = null;
   #observer = null;
 
-  /* Private methods */
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #getFileTypeIcon(file) {
     const mimeType = file.type;
@@ -3226,7 +3314,9 @@ class FDSFileItem extends HTMLElement {
     this.#setupErrorObserver();
   }
 
-  /* Public methods */
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
   setFileData(file, fileId) {
     this.#file = file;
@@ -3236,21 +3326,9 @@ class FDSFileItem extends HTMLElement {
     }
   }
 
-  /* Attributes which can invoke attributeChangedCallback() */
+  // #endregion
 
-  static observedAttributes = ['remove-text'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
-
-  constructor() {
-    super();
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (this.#initialized) return;
@@ -3260,9 +3338,9 @@ class FDSFileItem extends HTMLElement {
     this.#initialized = true;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     this.#initialized = false;
@@ -3272,9 +3350,9 @@ class FDSFileItem extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
@@ -3284,6 +3362,8 @@ class FDSFileItem extends HTMLElement {
       }
     }
   }
+
+  // #endregion
 }
 function registerFileItem() {
   if (customElements.get('fds-file-item') === undefined) {
@@ -3563,7 +3643,13 @@ function datesAreEqual(date1, date2) {
 
 
 class FDSDatePicker extends HTMLElement {
-  /* Private instance fields */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['show-required-status', 'format', 'text-open', 'text-selecteddate', 'text-months'];
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
   #datePickerObserver = null;
@@ -3580,7 +3666,33 @@ class FDSDatePicker extends HTMLElement {
   #textOpen = 'Åbn datovælger';
   #textSelectedDate = 'valgt dato er DAY. MONTH YEAR';
 
-  /* Private methods */
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleMutations = (records, observer) => {
+    const wrapperHiddenChanged = records.some(record => record.attributeName === 'hidden' && record.target === this);
+    if (wrapperHiddenChanged) {
+      notifySummaryOnVisibilityChange(this);
+    }
+    const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
+    if (shouldUpdate) {
+      this.#setupInput();
+      this.#setupLabel();
+      if (this.hasAttribute('show-required-status')) {
+        const label = this.querySelector('label');
+        const input = this.querySelector('input');
+        showRequiredStatus(label, input, this.getAttribute('show-required-status'));
+      }
+      if (this.querySelector('.date-button')) {
+        this.querySelector('input')?.hasAttribute('disabled') ? this.querySelector('.date-button').setAttribute('disabled', '') : this.querySelector('.date-button').removeAttribute('disabled');
+      }
+    }
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #setupLabel() {
     const label = this.querySelector('label');
@@ -3690,25 +3802,6 @@ class FDSDatePicker extends HTMLElement {
     this.#datePickerObserver = new MutationObserver(this.#handleMutations);
     this.#datePickerObserver.observe(this, mutationObserverConfig);
   }
-  #handleMutations = (records, observer) => {
-    const wrapperHiddenChanged = records.some(record => record.attributeName === 'hidden' && record.target === this);
-    if (wrapperHiddenChanged) {
-      notifySummaryOnVisibilityChange(this);
-    }
-    const shouldUpdate = records.some(record => this.#hasRelevantMutationHappened(record.addedNodes, record.removedNodes, record.target, record.attributeName));
-    if (shouldUpdate) {
-      this.#setupInput();
-      this.#setupLabel();
-      if (this.hasAttribute('show-required-status')) {
-        const label = this.querySelector('label');
-        const input = this.querySelector('input');
-        showRequiredStatus(label, input, this.getAttribute('show-required-status'));
-      }
-      if (this.querySelector('.date-button')) {
-        this.querySelector('input')?.hasAttribute('disabled') ? this.querySelector('.date-button').setAttribute('disabled', '') : this.querySelector('.date-button').removeAttribute('disabled');
-      }
-    }
-  };
   #hasRelevantMutationHappened(addedNodes, removedNodes, target, attributeName) {
     if (attributeName === 'disabled' && target?.tagName === 'INPUT' || attributeName === 'required' && target?.tagName === 'INPUT' || attributeName === 'class' && target?.tagName !== 'LABEL' || attributeName === 'id' || attributeName === 'hidden' || attributeName === 'aria-hidden') {
       return true;
@@ -3839,13 +3932,9 @@ class FDSDatePicker extends HTMLElement {
     }
   }
 
-  /* Attributes which can invoke attributeChangedCallback() */
+  // #endregion
 
-  static observedAttributes = ['show-required-status', 'format', 'text-open', 'text-selecteddate', 'text-months'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
 
   constructor() {
     super();
@@ -3878,9 +3967,9 @@ class FDSDatePicker extends HTMLElement {
     };
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
   open() {
     if (!this.querySelector('.ce-date-picker')) return;
@@ -3897,9 +3986,9 @@ class FDSDatePicker extends HTMLElement {
     this.querySelector('fds-date-picker-grid').resizeMonth();
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (this.#initialized) return;
@@ -3923,9 +4012,9 @@ class FDSDatePicker extends HTMLElement {
     window.addEventListener('pageshow', this.#handlePageShow, false);
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     notifySummaryOnDisconnect(this);
@@ -3944,9 +4033,9 @@ class FDSDatePicker extends HTMLElement {
     window.removeEventListener('pageshow', this.#handlePageShow, false);
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
@@ -3990,6 +4079,8 @@ class FDSDatePicker extends HTMLElement {
       this.#updateTextMonths(newValue);
     }
   }
+
+  // #endregion
 }
 function registerDatePicker() {
   if (customElements.get('fds-date-picker') === undefined) {
@@ -4271,7 +4362,13 @@ const CHEVRON_RIGHT_PATH = 'M504-480 320-664l56-56 240 240-240 240-56-56 184-184
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(styles);
 class FDSDatePickerGrid extends HTMLElement {
-  /* Private instance fields */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['min-date', 'max-date', 'selected-date', 'default-date', 'text-months', 'text-days', 'text-prevbutton', 'text-nextbutton', 'text-date-announcement', 'text-mindate', 'text-maxdate'];
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
   #previousMinDate;
@@ -4285,6 +4382,19 @@ class FDSDatePickerGrid extends HTMLElement {
   #CELL_DATE_FORMAT = 'DAY. MONTH YEAR';
   #DEFAULT_MIN_DATE;
   #DEFAULT_MAX_DATE;
+  #handleChangeMonth;
+  #handleChangeYear;
+  #handlePrevMonth;
+  #handleNextMonth;
+  #handleDateClick;
+  #textMinDate;
+  #textMaxDate;
+  #hasDatePickerConnection;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
   #handleKeydown = event => {
     if (event.target.hasAttribute('data-date')) {
       const focusedDay = stringToDate(event.target.getAttribute('data-date'));
@@ -4415,16 +4525,10 @@ class FDSDatePickerGrid extends HTMLElement {
       }
     }
   };
-  #handleChangeMonth;
-  #handleChangeYear;
-  #handlePrevMonth;
-  #handleNextMonth;
-  #handleDateClick;
-  #textMinDate;
-  #textMaxDate;
-  #hasDatePickerConnection;
 
-  /* Private methods */
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #init() {
     if (this.#initialized) return;
@@ -4844,13 +4948,9 @@ class FDSDatePickerGrid extends HTMLElement {
     }
   }
 
-  /* Attributes which can invoke attributeChangedCallback() */
+  // #endregion
 
-  static observedAttributes = ['min-date', 'max-date', 'selected-date', 'default-date', 'text-months', 'text-days', 'text-prevbutton', 'text-nextbutton', 'text-date-announcement', 'text-mindate', 'text-maxdate'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-  -------------------------------------------------- */
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
 
   constructor() {
     super();
@@ -4888,9 +4988,52 @@ class FDSDatePickerGrid extends HTMLElement {
     this.#hasDatePickerConnection = false;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  forceCompleteRedraw(date) {
+    let setFocus = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+    this.#previousMaxDate = 0; // Force update of select element with possible years
+    this.#redraw(date, setFocus);
+  }
+  setHasDatePickerConnection(val) {
+    this.#hasDatePickerConnection = val;
+  }
+  getHasDatePickerConnection() {
+    return this.#hasDatePickerConnection;
+  }
+  focusFocusableDate() {
+    this.shadowRoot.querySelector('td[tabindex="0"]')?.focus();
+  }
+  resizeMonth() {
+    const monthSelect = this.shadowRoot.querySelector('.selected-month');
+    if (!monthSelect) return;
+    const ROOT_FONT_SIZE = 10; // px, result of the 62.5% trick
+    const ARROW_OFFSET_PX = 24; // px, is converted to rem
+    const PADDING_PX = 8; // px, kept as pixels
+
+    const selectedOption = monthSelect.options?.[monthSelect.selectedIndex];
+    if (!selectedOption) return;
+    const tempSpan = document.createElement('span');
+    tempSpan.style.visibility = 'hidden';
+    tempSpan.style.position = 'absolute';
+    tempSpan.style.fontFamily = '"IBM Plex Sans", "system-ui", system, sans-serif';
+    tempSpan.style.fontSize = '16px';
+    tempSpan.style.lineHeight = '1.5';
+    tempSpan.style.fontWeight = '600';
+    tempSpan.textContent = selectedOption.text;
+    this.shadowRoot.appendChild(tempSpan);
+    if (tempSpan.offsetWidth > 0) {
+      const remWidth = tempSpan.offsetWidth / ROOT_FONT_SIZE;
+      monthSelect.style.width = `calc(${remWidth}rem + ${PADDING_PX + ARROW_OFFSET_PX}px)`;
+    }
+    this.shadowRoot.removeChild(tempSpan);
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (this.#initialized) return;
@@ -4964,60 +5107,17 @@ class FDSDatePickerGrid extends HTMLElement {
     window.addEventListener('load', onLoad);
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
+  // #endregion
 
-  forceCompleteRedraw(date) {
-    let setFocus = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-    this.#previousMaxDate = 0; // Force update of select element with possible years
-    this.#redraw(date, setFocus);
-  }
-  setHasDatePickerConnection(val) {
-    this.#hasDatePickerConnection = val;
-  }
-  getHasDatePickerConnection() {
-    return this.#hasDatePickerConnection;
-  }
-  focusFocusableDate() {
-    this.shadowRoot.querySelector('td[tabindex="0"]')?.focus();
-  }
-  resizeMonth() {
-    const monthSelect = this.shadowRoot.querySelector('.selected-month');
-    if (!monthSelect) return;
-    const ROOT_FONT_SIZE = 10; // px, result of the 62.5% trick
-    const ARROW_OFFSET_PX = 24; // px, is converted to rem
-    const PADDING_PX = 8; // px, kept as pixels
-
-    const selectedOption = monthSelect.options?.[monthSelect.selectedIndex];
-    if (!selectedOption) return;
-    const tempSpan = document.createElement('span');
-    tempSpan.style.visibility = 'hidden';
-    tempSpan.style.position = 'absolute';
-    tempSpan.style.fontFamily = '"IBM Plex Sans", "system-ui", system, sans-serif';
-    tempSpan.style.fontSize = '16px';
-    tempSpan.style.lineHeight = '1.5';
-    tempSpan.style.fontWeight = '600';
-    tempSpan.textContent = selectedOption.text;
-    this.shadowRoot.appendChild(tempSpan);
-    if (tempSpan.offsetWidth > 0) {
-      const remWidth = tempSpan.offsetWidth / ROOT_FONT_SIZE;
-      monthSelect.style.width = `calc(${remWidth}rem + ${PADDING_PX + ARROW_OFFSET_PX}px)`;
-    }
-    this.shadowRoot.removeChild(tempSpan);
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     this.#initialized = false;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized && oldValue !== newValue) return;
@@ -5070,6 +5170,8 @@ class FDSDatePickerGrid extends HTMLElement {
       this.#redraw(placeFocusOnDate, true);
     }
   }
+
+  // #endregion
 }
 function registerDatePickerGrid() {
   if (customElements.get('fds-date-picker-grid') === undefined) {
@@ -5081,18 +5183,32 @@ function registerDatePickerGrid() {
 
 
 class FDSTextarea extends HTMLElement {
-  /* Private instance fields */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['show-required-status'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
   #textareaObserver = null;
 
-  /* Private methods */
+  // #endregion
 
-  #setupObserver() {
-    if (this.#textareaObserver) return;
-    this.#textareaObserver = new MutationObserver(this.#handleMutations);
-    this.#textareaObserver.observe(this, mutationObserverConfig);
-  }
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
   #handleMutations = records => {
     for (const {
       attributeName,
@@ -5141,6 +5257,16 @@ class FDSTextarea extends HTMLElement {
       }
     }
   };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setupObserver() {
+    if (this.#textareaObserver) return;
+    this.#textareaObserver = new MutationObserver(this.#handleMutations);
+    this.#textareaObserver.observe(this, mutationObserverConfig);
+  }
   #init() {
     this.#setupObserver();
     const label = this.querySelector('label');
@@ -5157,24 +5283,9 @@ class FDSTextarea extends HTMLElement {
     this.#initialized = true;
   }
 
-  /* Attributes which can invoke attributeChangedCallback() */
+  // #endregion
 
-  static observedAttributes = ['show-required-status'];
-
-  /* --------------------------------------------------
-  GETTERS AND SETTERS
-  -------------------------------------------------- */
-
-  get showRequiredStatus() {
-    return this.getAttribute('show-required-status');
-  }
-  set showRequiredStatus(value) {
-    value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
-  }
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (!this.#initialized) {
@@ -5182,9 +5293,9 @@ class FDSTextarea extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     notifySummaryOnDisconnect(this);
@@ -5195,9 +5306,9 @@ class FDSTextarea extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
@@ -5207,6 +5318,8 @@ class FDSTextarea extends HTMLElement {
       showRequiredStatus(label, textarea, newValue);
     }
   }
+
+  // #endregion
 }
 function registerTextarea() {
   if (customElements.get('fds-textarea') === undefined) {
@@ -5216,18 +5329,24 @@ function registerTextarea() {
 /* harmony default export */ const fds_textarea = (registerTextarea);
 ;// ./src/js/custom-elements/error-summary/fds-error-summary.js
 
-
-
 const ERROR_WRAPPER_SELECTORS = ['fds-input', 'fds-checkbox', 'fds-checkbox-group', 'fds-radio-button-group', 'fds-date-input', 'fds-textarea', 'fds-select', 'fds-upload-file', 'fds-date-picker'];
 const ERROR_WRAPPER_SELECTOR = ERROR_WRAPPER_SELECTORS.join(', ');
 const ERROR_MESSAGE_SELECTOR = ERROR_WRAPPER_SELECTORS.map(selector => `${selector} fds-error-message`).join(', ');
 class FDSErrorSummary extends HTMLElement {
-  /* Private instance fields */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['heading', 'heading-level', 'heading-id', 'auto'];
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized;
   #handleErrorMessageEvents;
 
-  /* Private methods */
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #getSummaryElements() {
     const navElement = this.querySelector(':scope > nav');
@@ -5475,16 +5594,20 @@ class FDSErrorSummary extends HTMLElement {
     document.addEventListener('error-message-visibility-changed', this.#handleErrorMessageEvents);
     document.addEventListener('error-message-callback', this.#handleErrorMessageEvents);
   }
-  static observedAttributes = ['heading', 'heading-level', 'heading-id', 'auto'];
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
   constructor() {
     super();
     this.#initialized = false;
     this.#handleErrorMessageEvents = null;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
   init() {
     if (this.#initialized) return;
@@ -5497,26 +5620,26 @@ class FDSErrorSummary extends HTMLElement {
     this.#initialized = true;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     this.init();
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     this.#cleanupAutoMode();
     this.#initialized = false;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (attribute === 'auto') {
@@ -5538,6 +5661,8 @@ class FDSErrorSummary extends HTMLElement {
       this.#updateHeadingLevel(newValue);
     }
   }
+
+  // #endregion
 }
 function registerErrorSummary() {
   if (customElements.get('fds-error-summary') === undefined) {
@@ -5547,14 +5672,20 @@ function registerErrorSummary() {
 /* harmony default export */ const fds_error_summary = (registerErrorSummary);
 ;// ./src/js/custom-elements/input-affix/input-affix.js
 
-
-
 class FDSInputAffix extends HTMLElement {
-  /* Private instance fields */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['input-prefix', 'input-suffix'];
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
 
-  /* Private methods */
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #init() {
     const input = this.querySelector('input');
@@ -5592,13 +5723,9 @@ class FDSInputAffix extends HTMLElement {
     }
   }
 
-  /* Attributes which can invoke attributeChangedCallback() */
+  // #endregion
 
-  static observedAttributes = ['input-prefix', 'input-suffix'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (!this.#initialized) {
@@ -5606,17 +5733,17 @@ class FDSInputAffix extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     this.#initialized = false;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
@@ -5627,6 +5754,8 @@ class FDSInputAffix extends HTMLElement {
       this.#setAffix(newValue, 'suffix');
     }
   }
+
+  // #endregion
 }
 function registerInputAffix() {
   if (customElements.get('fds-input-affix') === undefined) {
@@ -5638,12 +5767,21 @@ function registerInputAffix() {
 
 
 class FDSDrawer extends HTMLElement {
-  /* --------------------------------------------------
-  Private instance fields
-  -------------------------------------------------- */
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['open', 'ready', 'heading', 'close-button-text'];
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
   #resizeObserver = null;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
   #handleCloseClick = () => {
     this.close();
   };
@@ -5690,9 +5828,9 @@ class FDSDrawer extends HTMLElement {
     }
   };
 
-  /* --------------------------------------------------
-  Private methods
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #setupHTML() {
     let overlay = this.querySelector('.overlay');
@@ -5757,15 +5895,9 @@ class FDSDrawer extends HTMLElement {
     this.#resizeObserver.observe(this);
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ATTRIBUTES (can invoke attributeChangedCallback())
-  -------------------------------------------------- */
+  // #endregion
 
-  static observedAttributes = ['open', 'ready', 'heading', 'close-button-text'];
-
-  /* --------------------------------------------------
-  CUSTOM ELEMENT METHODS
-  -------------------------------------------------- */
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
   init() {
     this.#setupHTML();
@@ -5803,18 +5935,18 @@ class FDSDrawer extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     if (this.getAttribute('ready') === 'false') return;
     this.init();
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     this.#initialized = false;
@@ -5829,9 +5961,9 @@ class FDSDrawer extends HTMLElement {
     }
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (attribute === 'ready') {
@@ -5870,6 +6002,8 @@ class FDSDrawer extends HTMLElement {
         break;
     }
   }
+
+  // #endregion
 }
 function registerDrawer() {
   if (customElements.get('fds-drawer') === undefined) {
@@ -5886,14 +6020,21 @@ class FDSDrawerButton extends HTMLElement {
 
   // #endregion
 
-  /* Private instance fields */
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
   #handleClick = () => {
     document.getElementById(this.getAttribute('drawer'))?.open();
   };
 
-  /* Private methods */
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #setupHTML() {
     let button = this.querySelector('button');
@@ -5916,26 +6057,26 @@ class FDSDrawerButton extends HTMLElement {
     this.#initialized = true;
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT ADDED TO DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
     this.#init();
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT REMOVED FROM DOCUMENT
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
     this.#initialized = false;
     this.querySelector('button')?.removeEventListener('click', this.#handleClick, false);
   }
 
-  /* --------------------------------------------------
-  CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-  -------------------------------------------------- */
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
@@ -5947,6 +6088,8 @@ class FDSDrawerButton extends HTMLElement {
       }
     }
   }
+
+  // #endregion
 }
 function registerDrawerButton() {
   if (customElements.get('fds-drawer-button') === undefined) {
@@ -6013,14 +6156,14 @@ class FDSPortalInfo extends HTMLElement {
 
   // #endregion
 
-  // #region - Private instance fields --------------------------------------------------------------------
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
   #sheet = (() => new CSSStyleSheet())();
 
   // #endregion
 
-  // #region - Private event handlers ---------------------------------------------------------------------
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
   #handleSlotDrawerButtonChange = event => {
     event.target.assignedElements().forEach(element => {
@@ -6040,7 +6183,7 @@ class FDSPortalInfo extends HTMLElement {
 
   // #endregion
 
-  // #region - Private methods ----------------------------------------------------------------------------
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #updateStyles() {
     const breakpoint = this.getAttribute('breakpoint') || '992px';
@@ -6230,17 +6373,17 @@ fds_solution_info_sheet.replaceSync(fds_solution_info_styling_styles);
 class FDSSolutionInfo extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['attr', 'ready'];
+  static observedAttributes = ['ready'];
 
   // #endregion
 
-  // #region - Private instance fields --------------------------------------------------------------------
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
 
   // #endregion
 
-  // #region - Private event handlers ---------------------------------------------------------------------
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
   #handleSlotDrawerButtonChange = event => {
     event.target.assignedElements().forEach(element => {
@@ -6250,7 +6393,7 @@ class FDSSolutionInfo extends HTMLElement {
 
   // #endregion
 
-  // #region - Private methods ----------------------------------------------------------------------------
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #setupHTML() {
     if (this.closest('fds-drawer')) {
@@ -6363,13 +6506,6 @@ class FDSSolutionInfo extends HTMLElement {
       }
       return;
     }
-    if (!this.#initialized) return;
-    if (oldValue === newValue) return;
-    switch (attribute) {
-      case 'attr':
-        console.log('attr changed to', newValue);
-        break;
-    }
   }
 
   // #endregion
@@ -6389,7 +6525,7 @@ class FDSDropdownMenu extends HTMLElement {
 
   // #endregion
 
-  // #region - Private instance fields --------------------------------------------------------------------
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
   #plusIcon = 'M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z';
@@ -6400,7 +6536,7 @@ class FDSDropdownMenu extends HTMLElement {
 
   // #endregion
 
-  // #region - Private event handlers ---------------------------------------------------------------------
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
   #handleClick = event => {
     this.toggle();
@@ -6427,7 +6563,7 @@ class FDSDropdownMenu extends HTMLElement {
 
   // #endregion
 
-  // #region - Private methods ----------------------------------------------------------------------------
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #setupHTML() {
     // Dropdown button
@@ -6574,14 +6710,14 @@ function registerDropdownMenu() {
 /* harmony default export */ const fds_dropdown_menu = (registerDropdownMenu);
 ;// ./src/js/custom-elements/header/fds-main-menu.js
 class FDSMainMenu extends HTMLElement {
-  // #region - Private instance fields --------------------------------------------------------------------
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
   #resizeObserver = null;
 
   // #endregion
 
-  // #region - Private event handlers ---------------------------------------------------------------------
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
   #handleRebuildMoreMenu = () => {
     this.rebuildMoreMenu();
@@ -6589,7 +6725,7 @@ class FDSMainMenu extends HTMLElement {
 
   // #endregion
 
-  // #region - Private methods ----------------------------------------------------------------------------
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #setupHTML() {
     const listItems = this.querySelectorAll('li > fds-dropdown-menu > button, li > a');
@@ -6637,7 +6773,7 @@ class FDSMainMenu extends HTMLElement {
     }
   }
 
-  /* More menu helper functions */
+  /* 'More menu' helper functions */
 
   // The main menu may contain other elements than <nav> such as search - get the space available to show main menu items
   #getAvailableSpace() {

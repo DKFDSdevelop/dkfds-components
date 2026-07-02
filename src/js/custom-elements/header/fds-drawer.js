@@ -3,12 +3,20 @@ import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 class FDSDrawer extends HTMLElement {
 
-    /* --------------------------------------------------
-    Private instance fields
-    -------------------------------------------------- */
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['open', 'ready', 'heading', 'close-button-text'];
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
     #resizeObserver = null;
+
+    // #endregion
+
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleCloseClick = () => {
         this.close();
@@ -61,9 +69,9 @@ class FDSDrawer extends HTMLElement {
         }
     }
 
-    /* --------------------------------------------------
-    Private methods
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #setupHTML() {
         let overlay = this.querySelector('.overlay');
@@ -132,15 +140,9 @@ class FDSDrawer extends HTMLElement {
         this.#resizeObserver.observe(this);
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ATTRIBUTES (can invoke attributeChangedCallback())
-    -------------------------------------------------- */
+    // #endregion
 
-    static observedAttributes = ['open', 'ready', 'heading', 'close-button-text'];
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT METHODS
-    -------------------------------------------------- */
+    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
     init() {
         this.#setupHTML();
@@ -189,9 +191,9 @@ class FDSDrawer extends HTMLElement {
         }
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         if (this.getAttribute('ready') === 'false') return;
@@ -199,9 +201,9 @@ class FDSDrawer extends HTMLElement {
         this.init();
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         this.#initialized = false;
@@ -219,9 +221,9 @@ class FDSDrawer extends HTMLElement {
 
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (attribute === 'ready') {
@@ -267,6 +269,8 @@ class FDSDrawer extends HTMLElement {
 
         }
     }
+
+    // #endregion
 }
 
 function registerDrawer() {

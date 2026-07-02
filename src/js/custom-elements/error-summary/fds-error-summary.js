@@ -1,5 +1,3 @@
-'use strict';
-
 import { generateAndVerifyUniqueId } from "../../utils/generate-unique-id";
 
 const ERROR_WRAPPER_SELECTORS = [
@@ -21,12 +19,20 @@ const ERROR_MESSAGE_SELECTOR = ERROR_WRAPPER_SELECTORS
 
 class FDSErrorSummary extends HTMLElement {
 
-    /* Private instance fields */
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['heading', 'heading-level', 'heading-id', 'auto'];
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized;
     #handleErrorMessageEvents;
 
-    /* Private methods */
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #getSummaryElements() {
         const navElement = this.querySelector(':scope > nav');
@@ -338,7 +344,9 @@ class FDSErrorSummary extends HTMLElement {
         document.addEventListener('error-message-callback', this.#handleErrorMessageEvents);
     }
 
-    static observedAttributes = ['heading', 'heading-level', 'heading-id', 'auto'];
+    // #endregion
+
+    // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
 
     constructor() {
         super();
@@ -347,9 +355,9 @@ class FDSErrorSummary extends HTMLElement {
         this.#handleErrorMessageEvents = null;
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT METHODS
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
     init() {
         if (this.#initialized) return;
@@ -366,26 +374,26 @@ class FDSErrorSummary extends HTMLElement {
         this.#initialized = true;
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         this.init();
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         this.#cleanupAutoMode();
         this.#initialized = false;
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (attribute === 'auto') {
@@ -411,6 +419,8 @@ class FDSErrorSummary extends HTMLElement {
             this.#updateHeadingLevel(newValue);
         }
     }
+
+    // #endregion
 }
 
 function registerErrorSummary() {

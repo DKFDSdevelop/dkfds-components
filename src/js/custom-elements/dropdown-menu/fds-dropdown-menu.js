@@ -8,7 +8,7 @@ class FDSDropdownMenu extends HTMLElement {
 
     // #endregion
 
-    // #region - Private instance fields --------------------------------------------------------------------
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
     #plusIcon = 'M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z';
@@ -19,7 +19,7 @@ class FDSDropdownMenu extends HTMLElement {
 
     // #endregion
 
-    // #region - Private event handlers ---------------------------------------------------------------------
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleClick = (event) => {
         this.toggle();
@@ -49,7 +49,7 @@ class FDSDropdownMenu extends HTMLElement {
 
     // #endregion
 
-    // #region - Private methods ----------------------------------------------------------------------------
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #setupHTML() {
         // Dropdown button

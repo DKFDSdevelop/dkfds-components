@@ -1,14 +1,20 @@
-'use strict';
-
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 class FDSInputAffix extends HTMLElement {
 
-    /* Private instance fields */
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['input-prefix', 'input-suffix'];
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
 
-    /* Private methods */
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #init() {
         const input = this.querySelector('input');
@@ -48,29 +54,25 @@ class FDSInputAffix extends HTMLElement {
         }
     }
 
-    /* Attributes which can invoke attributeChangedCallback() */
+    // #endregion
 
-    static observedAttributes = ['input-prefix', 'input-suffix'];
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         if (!this.#initialized) { this.#init(); }
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         this.#initialized = false;
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#initialized) return;
@@ -83,6 +85,8 @@ class FDSInputAffix extends HTMLElement {
             this.#setAffix(newValue, 'suffix');
         }
     }
+
+    // #endregion
 }
 
 function registerInputAffix() {
