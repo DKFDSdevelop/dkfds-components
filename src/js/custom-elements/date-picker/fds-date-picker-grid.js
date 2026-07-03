@@ -11,7 +11,13 @@ sheet.replaceSync(styles);
 
 class FDSDatePickerGrid extends HTMLElement {
 
-    /* Private instance fields */
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['min-date', 'max-date', 'selected-date', 'default-date', 'text-months', 'text-days', 'text-prevbutton', 'text-nextbutton', 'text-date-announcement', 'text-mindate', 'text-maxdate'];
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
 
@@ -28,6 +34,21 @@ class FDSDatePickerGrid extends HTMLElement {
 
     #DEFAULT_MIN_DATE;
     #DEFAULT_MAX_DATE;
+
+    #handleChangeMonth;
+    #handleChangeYear;
+    #handlePrevMonth;
+    #handleNextMonth;
+    #handleDateClick;
+
+    #textMinDate;
+    #textMaxDate;
+
+    #hasDatePickerConnection;
+
+    // #endregion
+
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleKeydown = (event) => {
         if (event.target.hasAttribute('data-date')) {
@@ -139,18 +160,10 @@ class FDSDatePickerGrid extends HTMLElement {
             }
         }
     };
-    #handleChangeMonth;
-    #handleChangeYear;
-    #handlePrevMonth;
-    #handleNextMonth;
-    #handleDateClick;
 
-    #textMinDate;
-    #textMaxDate;
+    // #endregion
 
-    #hasDatePickerConnection;
-
-    /* Private methods */
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #init() {
         if (this.#initialized) return;
@@ -623,13 +636,9 @@ class FDSDatePickerGrid extends HTMLElement {
         }
     }
 
-    /* Attributes which can invoke attributeChangedCallback() */
+    // #endregion
 
-    static observedAttributes = ['min-date', 'max-date', 'selected-date', 'default-date', 'text-months', 'text-days', 'text-prevbutton', 'text-nextbutton', 'text-date-announcement', 'text-mindate', 'text-maxdate'];
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-    -------------------------------------------------- */
+    // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
 
     constructor() {
         super();
@@ -660,9 +669,58 @@ class FDSDatePickerGrid extends HTMLElement {
         this.#hasDatePickerConnection = false;
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+    forceCompleteRedraw(date, setFocus = false) {
+        this.#previousMaxDate = 0; // Force update of select element with possible years
+        this.#redraw(date, setFocus);
+    }
+
+    setHasDatePickerConnection(val) {
+        this.#hasDatePickerConnection = val;
+    }
+
+    getHasDatePickerConnection() {
+        return this.#hasDatePickerConnection;
+    }
+
+    focusFocusableDate() {
+        this.shadowRoot.querySelector('td[tabindex="0"]')?.focus();
+    }
+
+    resizeMonth() {
+        const monthSelect = this.shadowRoot.querySelector('.selected-month');
+        if (!monthSelect) return;
+
+        const ROOT_FONT_SIZE = 10;    // px, result of the 62.5% trick
+        const ARROW_OFFSET_PX = 24;  // px, is converted to rem
+        const PADDING_PX = 8;    // px, kept as pixels
+
+        const selectedOption = monthSelect.options?.[monthSelect.selectedIndex];
+        if (!selectedOption) return;
+
+        const tempSpan = document.createElement('span');
+        tempSpan.style.visibility = 'hidden';
+        tempSpan.style.position = 'absolute';
+        tempSpan.style.fontFamily = '"IBM Plex Sans", "system-ui", system, sans-serif';
+        tempSpan.style.fontSize = '16px';
+        tempSpan.style.lineHeight = '1.5';
+        tempSpan.style.fontWeight = '600';
+        tempSpan.textContent = selectedOption.text;
+
+        this.shadowRoot.appendChild(tempSpan);
+        if (tempSpan.offsetWidth > 0) {
+            const remWidth = tempSpan.offsetWidth / ROOT_FONT_SIZE;
+            monthSelect.style.width = `calc(${remWidth}rem + ${PADDING_PX + ARROW_OFFSET_PX}px)`;
+        }
+        this.shadowRoot.removeChild(tempSpan);
+    }
+
+    // #endregion
+
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         if (this.#initialized) return;
@@ -736,66 +794,17 @@ class FDSDatePickerGrid extends HTMLElement {
         window.addEventListener('load', onLoad);
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT METHODS
-    -------------------------------------------------- */
+    // #endregion
 
-    forceCompleteRedraw(date, setFocus = false) {
-        this.#previousMaxDate = 0; // Force update of select element with possible years
-        this.#redraw(date, setFocus);
-    }
-
-    setHasDatePickerConnection(val) {
-        this.#hasDatePickerConnection = val;
-    }
-
-    getHasDatePickerConnection() {
-        return this.#hasDatePickerConnection;
-    }
-
-    focusFocusableDate() {
-        this.shadowRoot.querySelector('td[tabindex="0"]')?.focus();
-    }
-
-    resizeMonth() {
-        const monthSelect = this.shadowRoot.querySelector('.selected-month');
-        if (!monthSelect) return;
-
-        const ROOT_FONT_SIZE = 10;    // px, result of the 62.5% trick
-        const ARROW_OFFSET_PX = 24;  // px, is converted to rem
-        const PADDING_PX = 8;    // px, kept as pixels
-
-        const selectedOption = monthSelect.options?.[monthSelect.selectedIndex];
-        if (!selectedOption) return;
-
-        const tempSpan = document.createElement('span');
-        tempSpan.style.visibility = 'hidden';
-        tempSpan.style.position = 'absolute';
-        tempSpan.style.fontFamily = '"IBM Plex Sans", "system-ui", system, sans-serif';
-        tempSpan.style.fontSize = '16px';
-        tempSpan.style.lineHeight = '1.5';
-        tempSpan.style.fontWeight = '600';
-        tempSpan.textContent = selectedOption.text;
-
-        this.shadowRoot.appendChild(tempSpan);
-        if (tempSpan.offsetWidth > 0) {
-            const remWidth = tempSpan.offsetWidth / ROOT_FONT_SIZE;
-            monthSelect.style.width = `calc(${remWidth}rem + ${PADDING_PX + ARROW_OFFSET_PX}px)`;
-        }
-        this.shadowRoot.removeChild(tempSpan);
-    }
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         this.#initialized = false;
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#initialized && oldValue !== newValue) return;
@@ -850,6 +859,8 @@ class FDSDatePickerGrid extends HTMLElement {
             this.#redraw(placeFocusOnDate, true);
         }
     }
+
+    // #endregion
 }
 
 function registerDatePickerGrid() {

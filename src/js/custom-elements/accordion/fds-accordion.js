@@ -1,16 +1,29 @@
-'use strict';
-
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 class FDSAccordion extends HTMLElement {
 
-    /* Private instance fields */
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['heading', 'heading-level', 'expanded', 'content-id', 'variant-text', 'variant-icon', 'ready'];
+
+    // #endregion
+
+    // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+    get heading() { return this.getAttribute('heading'); }
+    set heading(val) { this.setAttribute('heading', val); }
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized;
     #handleAccordionClick;
     #accordionObserver = null;
 
-    /* Private methods */
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #getHeadingElement() {
         return this.querySelector('h1, h2, h3, h4, h5, h6');
@@ -224,18 +237,9 @@ class FDSAccordion extends HTMLElement {
         }
     }
 
-    /* Attributes which can invoke attributeChangedCallback() */
+    // #endregion
 
-    static observedAttributes = ['heading', 'heading-level', 'expanded', 'content-id', 'variant-text', 'variant-icon', 'ready'];
-
-    /* Getters and setters */
-
-    get heading() { return this.getAttribute('heading'); }
-    set heading(val) { this.setAttribute('heading', val); }
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-    -------------------------------------------------- */
+    // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
 
     constructor() {
         super();
@@ -247,9 +251,9 @@ class FDSAccordion extends HTMLElement {
         this.#handleAccordionClick = () => { this.toggleAccordion(); };
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT METHODS
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
     init() {
         if (this.#initialized) return;
@@ -295,9 +299,9 @@ class FDSAccordion extends HTMLElement {
         return this.hasAttribute('expanded') && this.getAttribute('expanded') !== 'false';
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         if (this.getAttribute('ready') === 'false') return;
@@ -305,9 +309,9 @@ class FDSAccordion extends HTMLElement {
         this.init();
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         const button = this.#getHeadingElement()?.querySelector('button.accordion-button');
@@ -323,9 +327,9 @@ class FDSAccordion extends HTMLElement {
         }
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (attribute === 'ready') {
@@ -371,6 +375,8 @@ class FDSAccordion extends HTMLElement {
             }
         }
     }
+
+    // #endregion
 }
 
 function registerAccordion() {

@@ -7,17 +7,17 @@ class FDSSolutionInfo extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-    static observedAttributes = ['attr', 'ready'];
+    static observedAttributes = ['ready'];
 
     // #endregion
 
-    // #region - Private instance fields --------------------------------------------------------------------
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
 
     // #endregion
 
-    // #region - Private event handlers ---------------------------------------------------------------------
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleSlotDrawerButtonChange = (event) => {
         event.target.assignedElements().forEach(element => {
@@ -27,7 +27,7 @@ class FDSSolutionInfo extends HTMLElement {
 
     // #endregion
 
-    // #region - Private methods ----------------------------------------------------------------------------
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #setupHTML() {
         if (this.closest('fds-drawer')) {
@@ -141,15 +141,6 @@ class FDSSolutionInfo extends HTMLElement {
                 this.init();
             }
             return;
-        }
-
-        if (!this.#initialized) return;
-        if (oldValue === newValue) return;
-
-        switch (attribute) {
-            case 'attr':
-                console.log('attr changed to', newValue);
-                break;
         }
     }
 

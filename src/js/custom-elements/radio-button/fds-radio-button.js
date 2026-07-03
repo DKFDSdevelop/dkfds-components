@@ -1,11 +1,28 @@
-'use strict';
-
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 import * as CE from '../custom-element-utils';
 
 class FDSRadioButton extends HTMLElement {
 
-    /* Private instance fields */
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['ready'];
+
+    // #endregion
+
+    // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+    get checked() {
+        return this.#input?.checked ?? false;
+    }
+
+    set checked(value) {
+        if (!this.#input) return;
+        this.#input.checked = Boolean(value);
+    }
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
     #radioButtonObserver = null;
@@ -15,26 +32,9 @@ class FDSRadioButton extends HTMLElement {
     #onInputChange;
     #updateExpandableContent;
 
-    /* Private methods */
+    // #endregion
 
-    #getInputElement() {
-        return this.querySelector(':scope > input[type="radio"]');
-    }
-
-    #getLabelElement() {
-        return this.querySelector(':scope > label');
-    }
-
-    #getHelpTextElements() {
-        return this.querySelectorAll(':scope > fds-help-text');
-    }
-
-    #setupObserver() {
-        if (this.#radioButtonObserver) return;
-
-        this.#radioButtonObserver = new MutationObserver(this.#handleMutations);
-        this.#radioButtonObserver.observe(this, CE.mutationObserverConfig);
-    }
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleMutations = (records) => {
         for (const { attributeName, target, addedNodes, removedNodes } of records) {
@@ -65,6 +65,29 @@ class FDSRadioButton extends HTMLElement {
                 this.#updateAccessibilityState();
             }
         }
+    }
+
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+    #getInputElement() {
+        return this.querySelector(':scope > input[type="radio"]');
+    }
+
+    #getLabelElement() {
+        return this.querySelector(':scope > label');
+    }
+
+    #getHelpTextElements() {
+        return this.querySelectorAll(':scope > fds-help-text');
+    }
+
+    #setupObserver() {
+        if (this.#radioButtonObserver) return;
+
+        this.#radioButtonObserver = new MutationObserver(this.#handleMutations);
+        this.#radioButtonObserver.observe(this, CE.mutationObserverConfig);
     }
 
     #updateAccessibilityState() {
@@ -109,6 +132,10 @@ class FDSRadioButton extends HTMLElement {
         updateState();
     }
 
+    // #endregion
+
+    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
     collapseContent() {
         const content = this.querySelector(':scope > div.radio-content');
         if (content && this.#input) {
@@ -117,14 +144,6 @@ class FDSRadioButton extends HTMLElement {
             content.classList.add('collapsed');
         }
     }
-
-    /* Attributes which can invoke attributeChangedCallback() */
-
-    static observedAttributes = ['ready'];
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT METHODS
-    -------------------------------------------------- */
 
     init() {
         this.#input = this.#getInputElement();
@@ -158,20 +177,9 @@ class FDSRadioButton extends HTMLElement {
         this.#initialized = true;
     }
 
-    /* Getters and setters */
+    // #endregion
 
-    get checked() {
-        return this.#input?.checked ?? false;
-    }
-
-    set checked(value) {
-        if (!this.#input) return;
-        this.#input.checked = Boolean(value);
-    }
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         if (this.getAttribute('ready') === 'false') return;
@@ -179,9 +187,9 @@ class FDSRadioButton extends HTMLElement {
         if (!this.#initialized) { this.init(); }
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         if (this.#input) {
@@ -196,9 +204,9 @@ class FDSRadioButton extends HTMLElement {
         }
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (attribute === 'ready') {
@@ -208,6 +216,8 @@ class FDSRadioButton extends HTMLElement {
             return;
         }
     }
+
+    // #endregion
 }
 
 function registerRadioButton() {

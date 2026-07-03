@@ -3,19 +3,27 @@ import * as CE from '../custom-element-utils';
 
 class FDSTextarea extends HTMLElement {
 
-    /* Private instance fields */
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['show-required-status'];
+
+    // #endregion
+
+    // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+    get showRequiredStatus() { return this.getAttribute('show-required-status'); }
+    set showRequiredStatus(value) { value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
     #textareaObserver = null;
 
-    /* Private methods */
+    // #endregion
 
-    #setupObserver() {
-        if (this.#textareaObserver) return;
-
-        this.#textareaObserver = new MutationObserver(this.#handleMutations);
-        this.#textareaObserver.observe(this, CE.mutationObserverConfig);
-    }
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleMutations = (records) => {
         for (const { attributeName, target, addedNodes, removedNodes } of records) {
@@ -71,6 +79,17 @@ class FDSTextarea extends HTMLElement {
         }
     }
 
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+    #setupObserver() {
+        if (this.#textareaObserver) return;
+
+        this.#textareaObserver = new MutationObserver(this.#handleMutations);
+        this.#textareaObserver.observe(this, CE.mutationObserverConfig);
+    }
+
     #init() {
         this.#setupObserver();
 
@@ -91,28 +110,17 @@ class FDSTextarea extends HTMLElement {
         this.#initialized = true;
     }
 
-    /* Attributes which can invoke attributeChangedCallback() */
+    // #endregion
 
-    static observedAttributes = ['show-required-status'];
-
-    /* --------------------------------------------------
-    GETTERS AND SETTERS
-    -------------------------------------------------- */
-
-    get showRequiredStatus() { return this.getAttribute('show-required-status'); }
-    set showRequiredStatus(value) { value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         if (!this.#initialized) { this.#init(); }
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         CE.notifySummaryOnDisconnect(this);
@@ -125,9 +133,9 @@ class FDSTextarea extends HTMLElement {
         }
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#initialized) return;
@@ -138,6 +146,8 @@ class FDSTextarea extends HTMLElement {
             CE.showRequiredStatus(label, textarea, newValue);
         }
     }
+
+    // #endregion
 }
 
 function registerTextarea() {

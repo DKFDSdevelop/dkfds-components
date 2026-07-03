@@ -1,40 +1,17 @@
-'use strict';
-
 import * as CE from '../custom-element-utils';
 
 class FDSCheckboxGroup extends HTMLElement {
 
-    /* Private instance fields */
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
     #checkboxGroupObserver = null;
     #fieldset;
     #legend;
 
-    /* Private methods */
+    // #endregion
 
-    #getFieldsetElement() {
-        return this.querySelector('fieldset');
-    }
-
-    #getLegendElement() {
-        return this.querySelector(':scope > fieldset > legend');
-    }
-
-    #getGroupHelpTexts() {
-        return this.querySelectorAll(':scope > fieldset > fds-help-text');
-    }
-
-    #getErrorMessages() {
-        return this.querySelectorAll(':scope > fieldset > fds-error-message');
-    }
-
-    #setupObserver() {
-        if (this.#checkboxGroupObserver) return;
-
-        this.#checkboxGroupObserver = new MutationObserver(this.#handleMutations);
-        this.#checkboxGroupObserver.observe(this, CE.mutationObserverConfig);
-    }
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleMutations = (records) => {
         for (const { attributeName, target, addedNodes, removedNodes } of records) {
@@ -80,6 +57,33 @@ class FDSCheckboxGroup extends HTMLElement {
         }
     }
 
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+    #getFieldsetElement() {
+        return this.querySelector('fieldset');
+    }
+
+    #getLegendElement() {
+        return this.querySelector(':scope > fieldset > legend');
+    }
+
+    #getGroupHelpTexts() {
+        return this.querySelectorAll(':scope > fieldset > fds-help-text');
+    }
+
+    #getErrorMessages() {
+        return this.querySelectorAll(':scope > fieldset > fds-error-message');
+    }
+
+    #setupObserver() {
+        if (this.#checkboxGroupObserver) return;
+
+        this.#checkboxGroupObserver = new MutationObserver(this.#handleMutations);
+        this.#checkboxGroupObserver.observe(this, CE.mutationObserverConfig);
+    }
+
     #updateAccessibilityState() {
         const fieldset = this.#getFieldsetElement();
         const errorMessages = this.#getErrorMessages();
@@ -98,9 +102,10 @@ class FDSCheckboxGroup extends HTMLElement {
 
         fieldset.classList.toggle('disabled', fieldset.hasAttribute('disabled'));
     }
-    /* --------------------------------------------------
-    CUSTOM ELEMENT METHODS
-    -------------------------------------------------- */
+
+    // #endregion
+
+    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
     init() {
         this.#fieldset = this.#getFieldsetElement();
@@ -115,17 +120,17 @@ class FDSCheckboxGroup extends HTMLElement {
         this.#initialized = true;
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         if (!this.#initialized) { this.init(); }
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         CE.notifySummaryOnDisconnect(this);
@@ -137,6 +142,8 @@ class FDSCheckboxGroup extends HTMLElement {
             this.#checkboxGroupObserver = null;
         }
     }
+
+    // #endregion
 }
 
 function registerCheckboxGroup() {

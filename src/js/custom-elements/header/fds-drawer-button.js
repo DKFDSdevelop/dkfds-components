@@ -8,15 +8,21 @@ class FDSDrawerButton extends HTMLElement {
 
     // #endregion
 
-    /* Private instance fields */
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
+
+    // #endregion
+
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleClick = () => {
         document.getElementById(this.getAttribute('drawer'))?.open();
     }
 
-    /* Private methods */
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #setupHTML() {
         let button = this.querySelector('button');
@@ -45,17 +51,17 @@ class FDSDrawerButton extends HTMLElement {
         this.#initialized = true;
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         this.#init();
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         this.#initialized = false;
@@ -63,9 +69,9 @@ class FDSDrawerButton extends HTMLElement {
         this.querySelector('button')?.removeEventListener('click', this.#handleClick, false);
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#initialized) return;
@@ -76,6 +82,8 @@ class FDSDrawerButton extends HTMLElement {
             if (text) { text.textContent = newValue || ''; }
         }
     }
+
+    // #endregion
 }
 
 function registerDrawerButton() {

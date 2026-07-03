@@ -1,15 +1,21 @@
-'use strict';
-
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 class FDSHelpText extends HTMLElement {
 
-    /* Private instance fields */
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['id', 'hidden'];
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #rendered;
     #parentWrapper;
 
-    /* Private methods */
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #render() {
         if (this.#rendered) return;
@@ -41,13 +47,9 @@ class FDSHelpText extends HTMLElement {
         }));
     }
 
-    /* Attributes which can invoke attributeChangedCallback() */
+    // #endregion
 
-    static observedAttributes = ['id', 'hidden'];
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-    -------------------------------------------------- */
+    // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
 
     constructor() {
         super();
@@ -55,9 +57,9 @@ class FDSHelpText extends HTMLElement {
         this.#parentWrapper = null;
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         if (this.#rendered) return;
@@ -79,9 +81,9 @@ class FDSHelpText extends HTMLElement {
         this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
@@ -90,9 +92,9 @@ class FDSHelpText extends HTMLElement {
         this.#rendered = false;
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#rendered) return;
@@ -108,6 +110,8 @@ class FDSHelpText extends HTMLElement {
 
         this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
     }
+
+    // #endregion
 }
 
 function registerHelpText() {

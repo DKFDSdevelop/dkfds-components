@@ -1,21 +1,25 @@
 class FDSMainMenu extends HTMLElement {
 
-    // #region - Private instance fields --------------------------------------------------------------------
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
     #resizeObserver = null;
 
     // #endregion
 
-    // #region - Private event handlers ---------------------------------------------------------------------
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
-    #handleRebuildMoreMenu = () => {
+    #handleLoad = () => {
+        this.rebuildMoreMenu();
+    }
+
+    #handleResize = () => {
         this.rebuildMoreMenu();
     }
 
     // #endregion
 
-    // #region - Private methods ----------------------------------------------------------------------------
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #setupHTML() {
         const listItems = this.querySelectorAll('li > fds-dropdown-menu > button, li > a');
@@ -58,10 +62,10 @@ class FDSMainMenu extends HTMLElement {
 
         if (!isDesktopMainMenu) return;
 
-        window.addEventListener('load', this.#handleRebuildMoreMenu, { once: true });
+        window.addEventListener('load', this.#handleLoad, { once: true });
 
         if (this.#resizeObserver) return;
-        this.#resizeObserver = new ResizeObserver(this.#handleRebuildMoreMenu);
+        this.#resizeObserver = new ResizeObserver(this.#handleResize);
         this.#resizeObserver.observe(this);
     }
 
@@ -72,7 +76,7 @@ class FDSMainMenu extends HTMLElement {
         }
     }
 
-    /* More menu helper functions */
+    /* 'More menu' helper functions */
 
     // The main menu may contain other elements than <nav> such as search - get the space available to show main menu items
     #getAvailableSpace() {

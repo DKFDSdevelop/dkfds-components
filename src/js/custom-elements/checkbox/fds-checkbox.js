@@ -1,11 +1,22 @@
-'use strict';
-
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 import * as CE from '../custom-element-utils';
 
 class FDSCheckbox extends HTMLElement {
 
-    /* Private instance fields */
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['show-required-status', 'ready'];
+
+    // #endregion
+
+    // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+    get showRequiredStatus() { return this.getAttribute('show-required-status'); }
+    set showRequiredStatus(value) { value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
     #checkboxObserver = null;
@@ -14,30 +25,9 @@ class FDSCheckbox extends HTMLElement {
 
     #onInputChange;
 
-    /* Private methods */
+    // #endregion
 
-    #getInputElement() {
-        return this.querySelector(':scope > input[type="checkbox"]');
-    }
-
-    #getLabelElement() {
-        return this.querySelector(':scope > label');
-    }
-
-    #getHelpTextElements() {
-        return this.querySelectorAll(':scope > fds-help-text');
-    }
-
-    #getErrorMessages() {
-        return this.querySelectorAll(':scope > fds-error-message');
-    }
-
-    #setupObserver() {
-        if (this.#checkboxObserver) return;
-
-        this.#checkboxObserver = new MutationObserver(this.#handleMutations);
-        this.#checkboxObserver.observe(this, CE.mutationObserverConfig);
-    }
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleMutations = (records) => {
         for (const { attributeName, target, addedNodes, removedNodes } of records) {
@@ -89,6 +79,33 @@ class FDSCheckbox extends HTMLElement {
                 }
             }
         }
+    }
+
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+    #getInputElement() {
+        return this.querySelector(':scope > input[type="checkbox"]');
+    }
+
+    #getLabelElement() {
+        return this.querySelector(':scope > label');
+    }
+
+    #getHelpTextElements() {
+        return this.querySelectorAll(':scope > fds-help-text');
+    }
+
+    #getErrorMessages() {
+        return this.querySelectorAll(':scope > fds-error-message');
+    }
+
+    #setupObserver() {
+        if (this.#checkboxObserver) return;
+
+        this.#checkboxObserver = new MutationObserver(this.#handleMutations);
+        this.#checkboxObserver.observe(this, CE.mutationObserverConfig);
     }
 
     #updateAccessibilityState() {
@@ -145,13 +162,10 @@ class FDSCheckbox extends HTMLElement {
         input.addEventListener('change', this.#onInputChange);
     }
 
-    /* Attributes which can invoke attributeChangedCallback() */
+    // #endregion
 
-    static observedAttributes = ['show-required-status', 'ready'];
+    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT METHODS
-    -------------------------------------------------- */
     init() {
         this.#input = this.#getInputElement();
         this.#label = this.#getLabelElement();
@@ -171,16 +185,9 @@ class FDSCheckbox extends HTMLElement {
         this.#initialized = true;
     }
 
-    /* --------------------------------------------------
-    GETTERS AND SETTERS
-    -------------------------------------------------- */
+    // #endregion
 
-    get showRequiredStatus() { return this.getAttribute('show-required-status'); }
-    set showRequiredStatus(value) { value === null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         if (this.getAttribute('ready') === 'false') return;
@@ -188,9 +195,9 @@ class FDSCheckbox extends HTMLElement {
         if (!this.#initialized) { this.init(); }
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         CE.notifySummaryOnDisconnect(this);
@@ -207,9 +214,9 @@ class FDSCheckbox extends HTMLElement {
         }
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (attribute === 'ready') {
@@ -227,6 +234,8 @@ class FDSCheckbox extends HTMLElement {
             CE.showRequiredStatus(label, input, newValue);
         }
     }
+
+    // #endregion
 }
 
 function registerCheckbox() {

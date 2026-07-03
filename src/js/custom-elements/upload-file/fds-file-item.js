@@ -2,14 +2,22 @@ import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 class FDSFileItem extends HTMLElement {
 
-    /* Private instance fields */
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['remove-text'];
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
     #file = null;
     #fileId = null;
     #observer = null;
 
-    /* Private methods */
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #getFileTypeIcon(file) {
         const mimeType = file.type;
@@ -159,7 +167,9 @@ class FDSFileItem extends HTMLElement {
         this.#setupErrorObserver();
     }
 
-    /* Public methods */
+    // #endregion
+
+    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
     setFileData(file, fileId) {
         this.#file = file;
@@ -170,21 +180,9 @@ class FDSFileItem extends HTMLElement {
         }
     }
 
-    /* Attributes which can invoke attributeChangedCallback() */
+    // #endregion
 
-    static observedAttributes = ['remove-text'];
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-    -------------------------------------------------- */
-
-    constructor() {
-        super();
-    }
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         if (this.#initialized) return;
@@ -196,9 +194,9 @@ class FDSFileItem extends HTMLElement {
         this.#initialized = true;
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         this.#initialized = false;
@@ -209,9 +207,9 @@ class FDSFileItem extends HTMLElement {
         }
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+    
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#initialized) return;
@@ -222,6 +220,8 @@ class FDSFileItem extends HTMLElement {
             }
         }
     }
+
+    // #endregion
 }
 
 function registerFileItem() {

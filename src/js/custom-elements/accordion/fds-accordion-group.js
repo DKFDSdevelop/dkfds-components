@@ -1,8 +1,12 @@
-'use strict';
-
 class FDSAccordionGroup extends HTMLElement {
 
-    /* Private instance fields */
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['heading-level', 'has-bulk-button', 'open-all-text', 'close-all-text'];
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #rendered;
     #listenersAttached;
@@ -12,7 +16,9 @@ class FDSAccordionGroup extends HTMLElement {
     #handleAccordionExpanded;
     #handleAccordionCollapsed;
 
-    /* Private methods */
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #getBulkButton() {
         if (this.#bulkButton) return this.#bulkButton;
@@ -92,13 +98,9 @@ class FDSAccordionGroup extends HTMLElement {
         allExpanded ? button.classList.add('close') : button.classList.remove('close');
     }
 
-    /* Attributes which can invoke attributeChangedCallback() */
+    // #endregion
 
-    static observedAttributes = ['heading-level', 'has-bulk-button', 'open-all-text', 'close-all-text'];
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT CONSTRUCTOR (do not access or add attributes in the constructor)
-    -------------------------------------------------- */
+    // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
 
     constructor() {
         super();
@@ -117,9 +119,9 @@ class FDSAccordionGroup extends HTMLElement {
         };
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT METHODS
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
     toggleAllAccordions() {
         const accordions = this.#getAllAccordions();
@@ -131,9 +133,9 @@ class FDSAccordionGroup extends HTMLElement {
         this.#updateBulkButtonText();
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         if (this.#rendered) return;
@@ -157,9 +159,9 @@ class FDSAccordionGroup extends HTMLElement {
         this.#updateBulkButtonText();
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         this.#rendered = false;
@@ -176,9 +178,9 @@ class FDSAccordionGroup extends HTMLElement {
         this.#listenersAttached = false;
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#rendered) return;
@@ -195,6 +197,8 @@ class FDSAccordionGroup extends HTMLElement {
             this.#updateBulkButtonText();
         }
     }
+
+    // #endregion
 }
 
 function registerAccordionGroup() {

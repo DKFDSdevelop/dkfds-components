@@ -74,19 +74,31 @@ fds-main-menu,
                         }
                     }
 
-                    &[aria-current="page"] {
+                    &[aria-current] {
                         @extend %current-main-menu-item;
                     }
                 }
 
-                ul li [data-menu-item][aria-current="page"] span {
+                ul li [data-menu-item][aria-current] span {
                     border-bottom: 0; // Don't add the colored "current page" bottom border to submenus in the main menu
                 }
             }
         }
 
-        .search {
+        .search,
+        .search-form {
             flex: 0 0 auto;
+        }
+
+        .search {
+            @include mixins.media-breakpoint-down(md) {
+                padding-top: 16px;
+                padding-bottom: 16px;
+
+                input {
+                    max-width: 100%;
+                }
+            }
         }
     }
 }
@@ -142,6 +154,10 @@ fds-drawer fds-main-menu,
 
                 &:hover {
                     background-color: #f5f5f5;
+
+                    .helptext {
+                        color: #454545;
+                    }
                 }
 
                 .helptext {
@@ -159,25 +175,24 @@ fds-drawer fds-main-menu,
                 padding-left: 72px;
             }
 
-            &:has(> [data-menu-item][aria-current="page"]) {
+            &:has(> [data-menu-item][aria-current]) {
                 background-color: #f5f5f5;
+
+                .helptext {
+                    color: #454545;
+                }
             }
         }
 
         & > li {
             border-top: 1px solid #dcdcdc;
 
-            &:has([aria-current="page"]) {
+            &:has([aria-current]) {
                 border-left: $-drawer-border-width solid var(--color-primary);
 
                 [data-menu-item] {
                     margin-left: -$-drawer-border-width;
                     width: calc(100% + $-drawer-border-width);
-
-                    .helptext {
-                        color: #454545;
-                        font-weight: 400;
-                    }
 
                     &:hover {
                         border-left: $-drawer-border-width solid var(--color-primary); // Ensure the hover background color doesn't override the border
@@ -193,8 +208,8 @@ fds-drawer fds-main-menu,
                     padding-left: calc(72px - $-drawer-border-width);
                 }
 
-                button[data-menu-item],
-                [aria-current="page"] {
+                button[data-menu-item]:has(+ .dropdown-menu [aria-current]),
+                [aria-current] {
                     font-weight: 700;
                 }
             }

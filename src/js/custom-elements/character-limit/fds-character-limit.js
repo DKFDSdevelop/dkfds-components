@@ -1,10 +1,22 @@
-'use strict';
-
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 class FDSCharacterLimit extends HTMLElement {
 
-    /* Private instance fields */
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = [
+        'limit',
+        'one-character-remaining-text',
+        'several-characters-remaining-text',
+        'one-character-too-many-text',
+        'several-characters-too-many-text',
+        'max-limit-text',
+        'limit-id'
+    ];
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
 
@@ -27,6 +39,10 @@ class FDSCharacterLimit extends HTMLElement {
     #lastKeyUpTimestamp = null;
     #oldValue = null;
     #forceSRUpdate = false;
+
+    // #endregion
+
+    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleKeyUp = (event) => {
         // Update the visible message immediately
@@ -85,7 +101,9 @@ class FDSCharacterLimit extends HTMLElement {
         this.#updateVisibleMessage(this.#charactersLeft());
     }
 
-    /* Private methods */
+    // #endregion
+
+    // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #charactersLeft() {
         if (!this.#field) return;
@@ -149,21 +167,9 @@ class FDSCharacterLimit extends HTMLElement {
         }
     }
 
-    /* Attributes which can invoke attributeChangedCallback() */
+    // #endregion
 
-    static observedAttributes = [
-        'limit',
-        'one-character-remaining-text',
-        'several-characters-remaining-text',
-        'one-character-too-many-text',
-        'several-characters-too-many-text',
-        'max-limit-text',
-        'limit-id'
-    ];
-
-    /* --------------------------------------------------
-    CUSTOM ELEMENT ADDED TO DOCUMENT
-    -------------------------------------------------- */
+    // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         if (!this.hasAttribute('limit')) return;
@@ -227,9 +233,9 @@ class FDSCharacterLimit extends HTMLElement {
         this.#initialized = true;
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT REMOVED FROM DOCUMENT
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
         this.#field?.removeEventListener('keyup', this.#handleKeyUp);
@@ -241,9 +247,9 @@ class FDSCharacterLimit extends HTMLElement {
         this.#initialized = false;
     }
 
-    /* --------------------------------------------------
-    CUSTOM ELEMENT'S ATTRIBUTE(S) CHANGED
-    -------------------------------------------------- */
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#initialized) return;
@@ -283,6 +289,8 @@ class FDSCharacterLimit extends HTMLElement {
 
         this.#parentWrapper?.dispatchEvent(new Event('character-limit-callback'));
     }
+
+    // #endregion
 }
 
 function registerCharacterLimit() {
