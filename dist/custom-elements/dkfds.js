@@ -5976,7 +5976,7 @@ class FDSDrawer extends HTMLElement {
     if (oldValue === newValue) return;
     switch (attribute) {
       case 'open':
-        const closeDrawer = newValue === null || newValue === false;
+        const closeDrawer = newValue === null || newValue === 'false';
         if (closeDrawer) {
           this.querySelector('.overlay')?.classList.remove('is-visible');
           this.querySelector('.mobile-drawer')?.classList.remove('is-visible');
