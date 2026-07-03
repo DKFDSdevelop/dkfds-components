@@ -6719,7 +6719,10 @@ class FDSMainMenu extends HTMLElement {
 
   // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
-  #handleRebuildMoreMenu = () => {
+  #handleLoad = () => {
+    this.rebuildMoreMenu();
+  };
+  #handleResize = () => {
     this.rebuildMoreMenu();
   };
 
@@ -6759,11 +6762,11 @@ class FDSMainMenu extends HTMLElement {
   #addEventListeners() {
     const isDesktopMainMenu = this.querySelector('.main-menu-inner');
     if (!isDesktopMainMenu) return;
-    window.addEventListener('load', this.#handleRebuildMoreMenu, {
+    window.addEventListener('load', this.#handleLoad, {
       once: true
     });
     if (this.#resizeObserver) return;
-    this.#resizeObserver = new ResizeObserver(this.#handleRebuildMoreMenu);
+    this.#resizeObserver = new ResizeObserver(this.#handleResize);
     this.#resizeObserver.observe(this);
   }
   #removeEventListeners() {

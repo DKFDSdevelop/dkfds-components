@@ -7,7 +7,7 @@ fds-solution-info,
     display: block;
     background-color: #FFFFFF;
     width: 100%;
-        
+
     [slot="solution-heading"],
     .solution-heading {
         font-size: 2rem;
@@ -21,6 +21,12 @@ fds-solution-info,
         @media (min-width: 768px) {
             font-size: 2.8rem;
             line-height: 3.2rem;
+        }
+
+        a {
+            font-weight: 600;
+            color: #1a1a1a;
+            text-decoration: none;
         }
     }
 
