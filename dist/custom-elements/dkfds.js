@@ -5774,7 +5774,7 @@ function registerInputAffix() {
 class FDSDrawer extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['open', 'ready', 'heading', 'close-button-text'];
+  static observedAttributes = ['open', 'ready', 'heading', 'close-button-text', 'heading-id'];
 
   // #endregion
 
@@ -5873,13 +5873,11 @@ class FDSDrawer extends HTMLElement {
       heading.classList.add('menu-heading');
       menuTop.appendChild(heading);
     }
-    let headingId = heading.id;
-    if (!headingId) {
-      headingId = generateAndVerifyUniqueId('hea');
-      heading.id = headingId;
+    if (!heading.id) {
+      heading.id = this.getAttribute('heading-id') ?? generateAndVerifyUniqueId('hea-');
     }
     heading.textContent = this.getAttribute('heading') || 'Menu';
-    drawer.setAttribute('aria-labelledby', headingId);
+    drawer.setAttribute('aria-labelledby', heading.id);
 
     // Close button inside the drawer
     if (!closeButton) {
@@ -6003,6 +6001,14 @@ class FDSDrawer extends HTMLElement {
         const closeButtonText = this.querySelector('.button-menu-close span');
         if (closeButtonText) {
           closeButtonText.textContent = newValue;
+        }
+        break;
+      case 'heading-id':
+        if (newValue !== null) {
+          const heading = this.querySelector('.menu-heading');
+          const drawer = this.querySelector('.mobile-drawer');
+          heading.id = newValue;
+          drawer.setAttribute('aria-labelledby', newValue);
         }
         break;
     }
