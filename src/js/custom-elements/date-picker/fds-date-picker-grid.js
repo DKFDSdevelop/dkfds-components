@@ -203,6 +203,7 @@ class FDSDatePickerGrid extends HTMLElement {
         // Previous button
         const prevButton = document.createElement('button');
         prevButton.classList.add('previous-month');
+        prevButton.setAttribute('type', 'button');
         const svgPrev = CE.createSvgIcon(CHEVRON_LEFT_PATH);
         const prevButtonSR = document.createElement('span');
         prevButtonSR.textContent = 'Forrige';
@@ -255,6 +256,7 @@ class FDSDatePickerGrid extends HTMLElement {
         // Next button
         const nextButton = document.createElement('button');
         nextButton.classList.add('next-month');
+        nextButton.setAttribute('type', 'button');
         const svgNext = CE.createSvgIcon(CHEVRON_RIGHT_PATH);
         const nextButtonSR = document.createElement('span');
         nextButtonSR.textContent = 'Næste';
