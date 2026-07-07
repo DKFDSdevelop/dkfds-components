@@ -7557,13 +7557,6 @@ function registerTooltipIcon() {
 /* harmony default export */ const fds_tooltip_icon = (registerTooltipIcon);
 ;// ./src/js/custom-elements/toggle-switch/fds-toggle-switch.js
 
-const fds_toggle_switch_styles = `
-    :host {
-        display: block;
-    }
-`;
-const fds_toggle_switch_sheet = new CSSStyleSheet();
-fds_toggle_switch_sheet.replaceSync(fds_toggle_switch_styles);
 class FDSToggleSwitch extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -7622,28 +7615,21 @@ class FDSToggleSwitch extends HTMLElement {
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #setupHTML() {
-    // --- Slot ---
-    if (!this.shadowRoot.querySelector('slot[name="element-slot"]')) {
-      const slot = document.createElement('slot');
-      slot.name = 'element-slot';
-      this.shadowRoot.appendChild(slot);
-    }
-
     // --- Button ---
-    let button = this.shadowRoot.querySelector('button');
+    let button = this.querySelector('button');
     if (!button) {
       button = document.createElement('button');
-      this.shadowRoot.appendChild(button);
+      this.appendChild(button);
     }
     button.textContent = 'Click me';
   }
   #addEventListeners() {
-    this.shadowRoot.querySelector('button').addEventListener('click', this.#handleClick);
-    this.shadowRoot.querySelector('button').addEventListener('keydown', this.#handleKeyDown);
+    this.querySelector('button').addEventListener('click', this.#handleClick);
+    this.querySelector('button').addEventListener('keydown', this.#handleKeyDown);
   }
   #removeEventListeners() {
-    this.shadowRoot.querySelector('button').removeEventListener('click', this.#handleClick);
-    this.shadowRoot.querySelector('button').removeEventListener('keydown', this.#handleKeyDown);
+    this.querySelector('button').removeEventListener('click', this.#handleClick);
+    this.querySelector('button').removeEventListener('keydown', this.#handleKeyDown);
   }
   #connectMutationObserver() {
     let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mutationObserverConfig;
@@ -7656,18 +7642,6 @@ class FDSToggleSwitch extends HTMLElement {
       this.#mutationObserver.disconnect();
       this.#mutationObserver = null;
     }
-  }
-
-  // #endregion
-
-  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
-
-  constructor() {
-    super();
-    this.attachShadow({
-      mode: 'open'
-    });
-    this.shadowRoot.adoptedStyleSheets = [fds_toggle_switch_sheet];
   }
 
   // #endregion
