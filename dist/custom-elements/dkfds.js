@@ -7556,7 +7556,6 @@ function registerTooltipIcon() {
 }
 /* harmony default export */ const fds_tooltip_icon = (registerTooltipIcon);
 ;// ./src/js/custom-elements/toggle-switch/fds-toggle-switch.js
-
 class FDSToggleSwitch extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -7567,8 +7566,8 @@ class FDSToggleSwitch extends HTMLElement {
   // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
   get state() {
-    return this.getAttribute('state');
-  }
+    return this.getAttribute('state') ?? 'off';
+  } // Default state is 'off'
   set state(value) {
     value == null ? this.removeAttribute('state') : this.setAttribute('state', value);
   }
@@ -7595,7 +7594,7 @@ class FDSToggleSwitch extends HTMLElement {
 
   // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
-  #handleClick = event => {
+  #handleClick = () => {
     this.toggle();
   };
 
@@ -7604,29 +7603,21 @@ class FDSToggleSwitch extends HTMLElement {
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #setupHTML() {
-    let button = this.querySelector('button');
-    if (!button) {
-      button = document.createElement('button');
-    }
-    let buttonText = this.querySelector('button span');
-    if (!buttonText) {
-      buttonText = document.createElement('span');
-    }
+    const button = this.querySelector('button') ?? document.createElement('button');
+    const buttonText = this.querySelector('button span') ?? document.createElement('span');
 
-    // Ensure label attribute is used as label when present
-    if (this.getAttribute('label')) {
-      buttonText.textContent = this.getAttribute('label');
-    }
+    // Ensure label attribute is used as label when attribute is present
+    buttonText.textContent = this.getAttribute('label') ?? buttonText.textContent;
 
     // Add the button text if not already present
-    if (!this.querySelector('button span')) {
+    if (!buttonText.isConnected) {
       button.appendChild(buttonText);
     }
 
     // Add the button if not already present
     button.setAttribute('type', 'button');
     button.setAttribute('role', 'switch');
-    if (!this.querySelector('button')) {
+    if (!button.isConnected) {
       this.appendChild(button);
     }
 
@@ -7666,7 +7657,7 @@ class FDSToggleSwitch extends HTMLElement {
     this.setAttribute('state', 'off');
   }
   toggle() {
-    !this.hasAttribute('state') || this.getAttribute('state') === 'off' ? this.on() : this.off();
+    this.state === 'off' ? this.on() : this.off();
   }
 
   // #endregion
