@@ -7560,7 +7560,7 @@ function registerTooltipIcon() {
 class FDSToggleSwitch extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['state', 'label'];
+  static observedAttributes = ['state', 'label', 'disabled-switch'];
 
   // #endregion
 
@@ -7572,11 +7572,17 @@ class FDSToggleSwitch extends HTMLElement {
   set state(value) {
     value == null ? this.removeAttribute('state') : this.setAttribute('state', value);
   }
-  get state() {
+  get label() {
     return this.getAttribute('label');
   }
-  set state(value) {
-    value == null ? this.removeAttribute('state') : this.setAttribute('label', value);
+  set label(value) {
+    value == null ? this.removeAttribute('label') : this.setAttribute('label', value);
+  }
+  get disabledSwitch() {
+    return this.getAttribute('disabled-switch');
+  }
+  set disabledSwitch(value) {
+    value == null ? this.removeAttribute('disabled-switch') : this.setAttribute('disabled-switch', value);
   }
 
   // #endregion
@@ -7624,12 +7630,14 @@ class FDSToggleSwitch extends HTMLElement {
       this.appendChild(button);
     }
 
-    // Set the state of the button
+    // Set on-off state of the button
     this.#stateChange(this.getAttribute('state'), false);
+
+    // Set disabled state of the button
+    !this.hasAttribute('disabled-switch') || this.getAttribute('disabled-switch') === 'false' ? button.removeAttribute('disabled') : button.setAttribute('disabled', '');
   }
   #stateChange(newState, dispatchEvent) {
     const button = this.querySelector('button');
-    if (!button || button.disabled) return;
     let eventName = 'toggle-off';
     if (newState === 'off' || !newState) {
       button.setAttribute('aria-checked', 'false');
@@ -7637,7 +7645,7 @@ class FDSToggleSwitch extends HTMLElement {
       button.setAttribute('aria-checked', 'true');
       eventName = 'toggle-on';
     }
-    if (dispatchEvent) {
+    if (dispatchEvent && !button.disabled) {
       this.dispatchEvent(new Event(eventName));
     }
   }
@@ -7674,7 +7682,7 @@ class FDSToggleSwitch extends HTMLElement {
   // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
-    this.querySelector('button').removeEventListener('click', this.#handleClick);
+    this.querySelector('button')?.removeEventListener('click', this.#handleClick);
     this.#initialized = false;
   }
 
@@ -7693,6 +7701,10 @@ class FDSToggleSwitch extends HTMLElement {
         if (newValue) {
           this.querySelector('button span').textContent = newValue;
         }
+        break;
+      case 'disabled-switch':
+        const button = this.querySelector('button');
+        newValue === null || newValue === 'false' ? button.removeAttribute('disabled') : button.setAttribute('disabled', '');
         break;
     }
   }
