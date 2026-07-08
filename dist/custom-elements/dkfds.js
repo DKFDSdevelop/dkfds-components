@@ -7590,7 +7590,7 @@ class FDSToggleSwitch extends HTMLElement {
   // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
   #handleClick = event => {
-    console.log('Click event:', event);
+    this.toggle();
   };
 
   // #endregion
@@ -7617,18 +7617,28 @@ class FDSToggleSwitch extends HTMLElement {
       button.appendChild(buttonText);
     }
 
-    // Set the right state of the button
-    let ariaChecked = 'false';
-    if (this.hasAttribute('state')) {
-      ariaChecked = this.getAttribute('state') === 'off' ? 'false' : 'true';
-    }
-    button.setAttribute('aria-checked', ariaChecked);
-
     // Add the button if not already present
     button.setAttribute('type', 'button');
     button.setAttribute('role', 'switch');
     if (!this.querySelector('button')) {
       this.appendChild(button);
+    }
+
+    // Set the state of the button
+    this.#stateChange(this.getAttribute('state'), false);
+  }
+  #stateChange(newState, dispatchEvent) {
+    const button = this.querySelector('button');
+    if (!button || button.disabled) return;
+    let eventName = 'toggle-off';
+    if (newState === 'off' || !newState) {
+      button.setAttribute('aria-checked', 'false');
+    } else {
+      button.setAttribute('aria-checked', 'true');
+      eventName = 'toggle-on';
+    }
+    if (dispatchEvent) {
+      this.dispatchEvent(new Event(eventName));
     }
   }
 
@@ -7640,6 +7650,15 @@ class FDSToggleSwitch extends HTMLElement {
     this.#setupHTML();
     this.querySelector('button')?.addEventListener('click', this.#handleClick);
     this.#initialized = true;
+  }
+  on() {
+    this.setAttribute('state', 'on');
+  }
+  off() {
+    this.setAttribute('state', 'off');
+  }
+  toggle() {
+    !this.hasAttribute('state') || this.getAttribute('state') === 'off' ? this.on() : this.off();
   }
 
   // #endregion
@@ -7668,8 +7687,7 @@ class FDSToggleSwitch extends HTMLElement {
     if (oldValue === newValue) return;
     switch (attribute) {
       case 'state':
-        let ariaChecked = newValue === 'off' ? 'false' : 'true';
-        this.querySelector('button').setAttribute('aria-checked', ariaChecked);
+        this.#stateChange(newValue, true);
         break;
       case 'label':
         if (newValue) {
