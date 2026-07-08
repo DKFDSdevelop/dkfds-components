@@ -7560,23 +7560,23 @@ function registerTooltipIcon() {
 class FDSToggleSwitch extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['attr', 'ready'];
+  static observedAttributes = ['state', 'label'];
 
   // #endregion
 
   // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
-  get attr() {
-    return this.getAttribute('attr');
+  get state() {
+    return this.getAttribute('state');
   }
-  set attr(value) {
-    value == null ? this.removeAttribute('attr') : this.setAttribute('attr', value);
+  set state(value) {
+    value == null ? this.removeAttribute('state') : this.setAttribute('state', value);
   }
-  get ready() {
-    return this.getAttribute('ready') !== 'false';
+  get state() {
+    return this.getAttribute('label');
   }
-  set ready(value) {
-    this.setAttribute('ready', value ? 'true' : 'false');
+  set state(value) {
+    value == null ? this.removeAttribute('state') : this.setAttribute('label', value);
   }
 
   // #endregion
@@ -7584,7 +7584,6 @@ class FDSToggleSwitch extends HTMLElement {
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
-  #mutationObserver = null;
 
   // #endregion
 
@@ -7593,54 +7592,43 @@ class FDSToggleSwitch extends HTMLElement {
   #handleClick = event => {
     console.log('Click event:', event);
   };
-  #handleKeyDown = event => {
-    console.log('KeyDown event:', event);
-  };
-  #handleMutations = records => {
-    for (const {
-      attributeName,
-      target,
-      addedNodes,
-      removedNodes
-    } of records) {
-      console.log('attributeName', attributeName);
-      console.log('target', target);
-      console.log('addedNodes', addedNodes);
-      console.log('removedNodes', removedNodes);
-    }
-  };
 
   // #endregion
 
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #setupHTML() {
-    // --- Button ---
     let button = this.querySelector('button');
     if (!button) {
       button = document.createElement('button');
-      this.appendChild(button);
     }
-    button.textContent = 'Click me';
-  }
-  #addEventListeners() {
-    this.querySelector('button').addEventListener('click', this.#handleClick);
-    this.querySelector('button').addEventListener('keydown', this.#handleKeyDown);
-  }
-  #removeEventListeners() {
-    this.querySelector('button').removeEventListener('click', this.#handleClick);
-    this.querySelector('button').removeEventListener('keydown', this.#handleKeyDown);
-  }
-  #connectMutationObserver() {
-    let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mutationObserverConfig;
-    if (this.#mutationObserver) return;
-    this.#mutationObserver = new MutationObserver(this.#handleMutations);
-    this.#mutationObserver.observe(this, config);
-  }
-  #disconnectMutationObserver() {
-    if (this.#mutationObserver) {
-      this.#mutationObserver.disconnect();
-      this.#mutationObserver = null;
+    let buttonText = this.querySelector('button span');
+    if (!buttonText) {
+      buttonText = document.createElement('span');
+    }
+
+    // Ensure label attribute is used as label when present
+    if (this.getAttribute('label')) {
+      buttonText.textContent = this.getAttribute('label');
+    }
+
+    // Add the button text if not already present
+    if (!this.querySelector('button span')) {
+      button.appendChild(buttonText);
+    }
+
+    // Set the right state of the button
+    let ariaChecked = 'false';
+    if (this.hasAttribute('state')) {
+      ariaChecked = this.getAttribute('state') === 'off' ? 'false' : 'true';
+    }
+    button.setAttribute('aria-checked', ariaChecked);
+
+    // Add the button if not already present
+    button.setAttribute('type', 'button');
+    button.setAttribute('role', 'switch');
+    if (!this.querySelector('button')) {
+      this.appendChild(button);
     }
   }
 
@@ -7650,8 +7638,7 @@ class FDSToggleSwitch extends HTMLElement {
 
   init() {
     this.#setupHTML();
-    this.#addEventListeners();
-    this.#connectMutationObserver();
+    this.querySelector('button')?.addEventListener('click', this.#handleClick);
     this.#initialized = true;
   }
 
@@ -7660,9 +7647,6 @@ class FDSToggleSwitch extends HTMLElement {
   // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
-    // The 'ready' attribute can be used to defer initialization.
-    // Omit the attribute or set it to anything other than 'false' to initialize immediately.
-    if (this.getAttribute('ready') === 'false') return;
     this.init();
   }
 
@@ -7671,8 +7655,7 @@ class FDSToggleSwitch extends HTMLElement {
   // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
-    this.#removeEventListeners();
-    this.#disconnectMutationObserver();
+    this.querySelector('button').removeEventListener('click', this.#handleClick);
     this.#initialized = false;
   }
 
@@ -7681,17 +7664,17 @@ class FDSToggleSwitch extends HTMLElement {
   // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
-    if (attribute === 'ready') {
-      if (!this.#initialized && this.isConnected && newValue !== 'false') {
-        this.init();
-      }
-      return;
-    }
     if (!this.#initialized) return;
     if (oldValue === newValue) return;
     switch (attribute) {
-      case 'attr':
-        console.log('attr changed to', newValue);
+      case 'state':
+        let ariaChecked = newValue === 'off' ? 'false' : 'true';
+        this.querySelector('button').setAttribute('aria-checked', ariaChecked);
+        break;
+      case 'label':
+        if (newValue) {
+          this.querySelector('button span').textContent = newValue;
+        }
         break;
     }
   }

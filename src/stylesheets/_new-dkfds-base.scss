@@ -43,7 +43,6 @@
 @use 'components/cards';
 @use 'components/overflow-menu';
 @use 'components/table';
-@use 'components/toggleswitch';
 @use 'components/tabs';
 @use 'components/tags';
 
@@ -74,5 +73,6 @@
 @use 'custom-elements/fds-main-menu';
 @use 'custom-elements/fds-tooltip';
 @use 'custom-elements/fds-tooltip-icon';
+@use 'custom-elements/fds-toggle-switch';
 
 @use 'custom-elements/fds-side-menu';
