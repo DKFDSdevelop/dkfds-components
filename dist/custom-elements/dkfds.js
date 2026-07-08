@@ -7629,27 +7629,27 @@ class FDSToggleSwitch extends HTMLElement {
   }
   #stateChange(newState, dispatchEvent) {
     const button = this.querySelector('button');
-    let eventName = 'toggle-off';
+    let eventName = 'fds-toggle-off';
     if (newState === 'off' || !newState) {
       button.setAttribute('aria-checked', 'false');
     } else {
       button.setAttribute('aria-checked', 'true');
-      eventName = 'toggle-on';
+      eventName = 'fds-toggle-on';
     }
     if (dispatchEvent && !button.disabled) {
       this.dispatchEvent(new Event(eventName));
     }
+  }
+  #init() {
+    this.#setupHTML();
+    this.querySelector('button')?.addEventListener('click', this.#handleClick);
+    this.#initialized = true;
   }
 
   // #endregion
 
   // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
-  init() {
-    this.#setupHTML();
-    this.querySelector('button')?.addEventListener('click', this.#handleClick);
-    this.#initialized = true;
-  }
   on() {
     this.setAttribute('state', 'on');
   }
@@ -7665,7 +7665,7 @@ class FDSToggleSwitch extends HTMLElement {
   // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
-    this.init();
+    this.#init();
   }
 
   // #endregion
@@ -7689,8 +7689,9 @@ class FDSToggleSwitch extends HTMLElement {
         this.#stateChange(newValue, true);
         break;
       case 'label':
-        if (newValue) {
-          this.querySelector('button span').textContent = newValue;
+        const span = this.querySelector('button span');
+        if (span) {
+          span.textContent = newValue ?? '';
         }
         break;
       case 'disabled-switch':
