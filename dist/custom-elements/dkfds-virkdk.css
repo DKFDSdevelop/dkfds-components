@@ -10293,99 +10293,6 @@ a.card.long .card-content{
   outline-offset:1px;
 }
 
-.toggle-switch{
-  position:relative;
-  display:flex;
-  align-items:center;
-  padding:0;
-  padding-right:56px;
-  margin-bottom:24px;
-  background-color:transparent;
-  border-radius:16px;
-  cursor:pointer;
-}
-.toggle-switch span{
-  padding-right:16px;
-  text-align:left;
-  overflow-wrap:break-word;
-  max-width:100%;
-  color:#1a1a1a;
-}
-.toggle-switch::before{
-  content:"";
-  position:absolute;
-  right:26px;
-  border-radius:50%;
-  border:1px solid #8E8E8E;
-  background-image:none;
-  background-color:white;
-  background-position:center;
-  background-repeat:no-repeat;
-  background-size:16px;
-  min-width:28px;
-  min-height:28px;
-  transition:all 0.15s ease-out;
-  z-index:2;
-}
-.toggle-switch[aria-checked=true]::before{
-  right:2px;
-  border-color:#0059B3;
-  background-image:url("../img/svg-icons/check.svg");
-}
-.toggle-switch::after{
-  content:"";
-  position:absolute;
-  right:0;
-  min-width:56px;
-  min-height:32px;
-  border-radius:16px;
-  background-color:#F5F5F5;
-  border:1px solid #8E8E8E;
-  transition:all 0.15s ease-out;
-  margin-left:auto;
-}
-.toggle-switch[aria-checked=true]::after{
-  background-color:#0059B3;
-  border-color:#0059B3;
-}
-.toggle-switch:focus{
-  outline:transparent;
-  outline-offset:0;
-}
-.toggle-switch:focus::after{
-  outline:3px solid #454545;
-  outline-offset:1px;
-}
-.toggle-switch:hover::after{
-  background-color:#DCDCDC;
-}
-.toggle-switch:hover[aria-checked=true]::after{
-  background-color:#004993;
-  border-color:#004993;
-}
-.toggle-switch:hover[aria-checked=true]::before{
-  border-color:#004993;
-}
-.toggle-switch:disabled{
-  opacity:0.5;
-  cursor:default;
-}
-.toggle-switch:disabled:hover::after{
-  background-color:#F5F5F5;
-  cursor:not-allowed;
-}
-.toggle-switch:disabled:hover[aria-checked=true]::after{
-  background-color:#0059B3;
-  border-color:#0059B3;
-  cursor:not-allowed;
-}
-.toggle-switch:disabled:hover::before{
-  cursor:not-allowed;
-}
-.toggle-switch:disabled span{
-  color:#1a1a1a;
-}
-
 .tab-container{
   width:100%;
 }
@@ -13213,6 +13120,121 @@ input[type=checkbox] + label + fds-tooltip-icon{
   margin-top:4px;
   margin-bottom:4px;
   margin-left:2px;
+}
+
+fds-toggle-switch,
+.fds-toggle-switch{
+  display:flex;
+  min-height:28px;
+}
+fds-toggle-switch button[role=switch],
+.fds-toggle-switch button[role=switch]{
+  position:relative;
+  display:flex;
+  align-items:center;
+  padding:0;
+  padding-right:56px;
+  margin-bottom:24px;
+  background-color:transparent;
+  border-radius:16px;
+  cursor:pointer;
+  width:100%;
+}
+fds-toggle-switch button[role=switch] span,
+.fds-toggle-switch button[role=switch] span{
+  padding-right:16px;
+  text-align:left;
+  overflow-wrap:break-word;
+  max-width:100%;
+  color:#1a1a1a;
+}
+fds-toggle-switch button[role=switch]::before,
+.fds-toggle-switch button[role=switch]::before{
+  content:"";
+  position:absolute;
+  right:26px;
+  border-radius:50%;
+  border:1px solid #8E8E8E;
+  background-image:none;
+  background-color:white;
+  background-position:center;
+  background-repeat:no-repeat;
+  background-size:16px;
+  min-width:28px;
+  min-height:28px;
+  transition:all 0.15s ease-out;
+  z-index:2;
+}
+fds-toggle-switch button[role=switch][aria-checked=true]::before,
+.fds-toggle-switch button[role=switch][aria-checked=true]::before{
+  right:2px;
+  border-color:#0059B3;
+  background-image:url("../img/svg-icons/check.svg");
+}
+fds-toggle-switch button[role=switch]::after,
+.fds-toggle-switch button[role=switch]::after{
+  content:"";
+  position:absolute;
+  right:0;
+  min-width:56px;
+  min-height:32px;
+  border-radius:16px;
+  background-color:#F5F5F5;
+  border:1px solid #8E8E8E;
+  transition:all 0.15s ease-out;
+  margin-left:auto;
+}
+fds-toggle-switch button[role=switch][aria-checked=true]::after,
+.fds-toggle-switch button[role=switch][aria-checked=true]::after{
+  background-color:#0059B3;
+  border-color:#0059B3;
+}
+fds-toggle-switch button[role=switch]:focus,
+.fds-toggle-switch button[role=switch]:focus{
+  outline:transparent;
+  outline-offset:0;
+}
+fds-toggle-switch button[role=switch]:focus::after,
+.fds-toggle-switch button[role=switch]:focus::after{
+  outline:3px solid #454545;
+  outline-offset:1px;
+}
+fds-toggle-switch button[role=switch]:hover::after,
+.fds-toggle-switch button[role=switch]:hover::after{
+  background-color:#DCDCDC;
+}
+fds-toggle-switch button[role=switch]:hover[aria-checked=true]::after,
+.fds-toggle-switch button[role=switch]:hover[aria-checked=true]::after{
+  background-color:#004993;
+  border-color:#004993;
+}
+fds-toggle-switch button[role=switch]:hover[aria-checked=true]::before,
+.fds-toggle-switch button[role=switch]:hover[aria-checked=true]::before{
+  border-color:#004993;
+}
+fds-toggle-switch button[role=switch]:disabled,
+.fds-toggle-switch button[role=switch]:disabled{
+  opacity:0.5;
+  cursor:default;
+}
+fds-toggle-switch button[role=switch]:disabled:hover::after,
+.fds-toggle-switch button[role=switch]:disabled:hover::after{
+  background-color:#F5F5F5;
+  cursor:not-allowed;
+}
+fds-toggle-switch button[role=switch]:disabled:hover[aria-checked=true]::after,
+.fds-toggle-switch button[role=switch]:disabled:hover[aria-checked=true]::after{
+  background-color:#0059B3;
+  border-color:#0059B3;
+  cursor:not-allowed;
+}
+fds-toggle-switch button[role=switch]:disabled:hover::before,
+.fds-toggle-switch button[role=switch]:disabled:hover::before{
+  cursor:not-allowed;
+}
+fds-toggle-switch button[role=switch]:disabled span,
+.fds-toggle-switch button[role=switch]:disabled span{
+  color:#1a1a1a;
 }
 
 .fds-side-menu ul,

@@ -47,6 +47,12 @@ class FDSDropdownMenu extends HTMLElement {
         }
     }
 
+    #handleOutsideClick = (event) => {
+        if (!this.contains(event.target)) {
+            this.close();
+        }
+    };
+
     // #endregion
 
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
@@ -102,11 +108,17 @@ class FDSDropdownMenu extends HTMLElement {
             dropdownButton?.setAttribute('aria-expanded', 'false');
             menu?.classList.add('collapsed');
             menu.removeAttribute('style');
+            if (this.closest('fds-main-menu .main-menu-inner')) {
+                document.removeEventListener('mousedown', this.#handleOutsideClick, false);
+            }
             this.dispatchEvent(new Event('fds-dropdown-menu-closed'));
         }
         else {
             dropdownButton?.setAttribute('aria-expanded', 'true');
             menu?.classList.remove('collapsed');
+            if (this.closest('fds-main-menu .main-menu-inner')) {
+                document.addEventListener('mousedown', this.#handleOutsideClick, false);
+            }
 
             /* Check if the dropdown is within the screen borders */
 
@@ -115,10 +127,10 @@ class FDSDropdownMenu extends HTMLElement {
 
             if (menu.offsetWidth > viewportWidth) {
                 menu.style.maxWidth = `${viewportWidth}px`;
-            } 
+            }
             else if (rect.left < 0) {
                 menu.style.left = '0px';
-            } 
+            }
             else if (rect.left + menu.offsetWidth > viewportWidth) {
                 menu.style.right = '0px';
             }
@@ -179,6 +191,9 @@ class FDSDropdownMenu extends HTMLElement {
 
     disconnectedCallback() {
         this.#removeEventListeners();
+        if (this.closest('fds-main-menu .main-menu-inner')) {
+            document.removeEventListener('mousedown', this.#handleOutsideClick, false);
+        }
         this.#initialized = false;
     }
 

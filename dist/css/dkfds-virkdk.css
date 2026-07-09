@@ -11780,7 +11780,7 @@ textarea.no-resize{
   resize:none;
 }
 
-.toggle-switch{
+.toggle-switch[role=switch]{
   position:relative;
   display:flex;
   align-items:center;
@@ -11791,14 +11791,14 @@ textarea.no-resize{
   border-radius:16px;
   cursor:pointer;
 }
-.toggle-switch span{
+.toggle-switch[role=switch] span{
   padding-right:16px;
   text-align:left;
   overflow-wrap:break-word;
   max-width:100%;
   color:#1a1a1a;
 }
-.toggle-switch::before{
+.toggle-switch[role=switch]::before{
   content:"";
   position:absolute;
   right:26px;
@@ -11814,12 +11814,12 @@ textarea.no-resize{
   transition:all 0.15s ease-out;
   z-index:2;
 }
-.toggle-switch[aria-checked=true]::before{
+.toggle-switch[role=switch][aria-checked=true]::before{
   right:2px;
   border-color:#0059B3;
   background-image:url("../img/svg-icons/check.svg");
 }
-.toggle-switch::after{
+.toggle-switch[role=switch]::after{
   content:"";
   position:absolute;
   right:0;
@@ -11831,45 +11831,45 @@ textarea.no-resize{
   transition:all 0.15s ease-out;
   margin-left:auto;
 }
-.toggle-switch[aria-checked=true]::after{
+.toggle-switch[role=switch][aria-checked=true]::after{
   background-color:#0059B3;
   border-color:#0059B3;
 }
-.toggle-switch:focus{
+.toggle-switch[role=switch]:focus{
   outline:transparent;
   outline-offset:0;
 }
-.toggle-switch:focus::after{
+.toggle-switch[role=switch]:focus::after{
   outline:3px solid #454545;
   outline-offset:1px;
 }
-.toggle-switch:hover::after{
+.toggle-switch[role=switch]:hover::after{
   background-color:#DCDCDC;
 }
-.toggle-switch:hover[aria-checked=true]::after{
+.toggle-switch[role=switch]:hover[aria-checked=true]::after{
   background-color:#004993;
   border-color:#004993;
 }
-.toggle-switch:hover[aria-checked=true]::before{
+.toggle-switch[role=switch]:hover[aria-checked=true]::before{
   border-color:#004993;
 }
-.toggle-switch:disabled{
+.toggle-switch[role=switch]:disabled{
   opacity:0.5;
   cursor:default;
 }
-.toggle-switch:disabled:hover::after{
+.toggle-switch[role=switch]:disabled:hover::after{
   background-color:#F5F5F5;
   cursor:not-allowed;
 }
-.toggle-switch:disabled:hover[aria-checked=true]::after{
+.toggle-switch[role=switch]:disabled:hover[aria-checked=true]::after{
   background-color:#0059B3;
   border-color:#0059B3;
   cursor:not-allowed;
 }
-.toggle-switch:disabled:hover::before{
+.toggle-switch[role=switch]:disabled:hover::before{
   cursor:not-allowed;
 }
-.toggle-switch:disabled span{
+.toggle-switch[role=switch]:disabled span{
   color:#1a1a1a;
 }
 

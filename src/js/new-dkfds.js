@@ -28,6 +28,7 @@ import registerDropdownMenu from './custom-elements/dropdown-menu/fds-dropdown-m
 import registerMainMenu from './custom-elements/header/fds-main-menu';
 import registerTooltip from './custom-elements/tooltip/fds-tooltip';
 import registerTooltipIcon from './custom-elements/tooltip/fds-tooltip-icon';
+import registerToggleSwitch from './custom-elements/toggle-switch/fds-toggle-switch';
 
 const registerCustomElements = () => {
     registerAccordion();
@@ -57,8 +58,9 @@ const registerCustomElements = () => {
     registerMainMenu();
     registerTooltip();
     registerTooltipIcon();
+    registerToggleSwitch();
 };
 
 registerCustomElements();
 
-export { registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerDrawer, registerDrawerButton, registerPortalInfo, registerSolutionInfo, registerDropdownMenu, registerMainMenu, registerTooltip, registerTooltipIcon };
+export { registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerDrawer, registerDrawerButton, registerPortalInfo, registerSolutionInfo, registerDropdownMenu, registerMainMenu, registerTooltip, registerTooltipIcon, registerToggleSwitch };

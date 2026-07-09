@@ -74,6 +74,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerSelect: () => (/* reexport */ fds_select),
   registerSolutionInfo: () => (/* reexport */ fds_solution_info),
   registerTextarea: () => (/* reexport */ fds_textarea),
+  registerToggleSwitch: () => (/* reexport */ fds_toggle_switch),
   registerTooltip: () => (/* reexport */ fds_tooltip),
   registerTooltipIcon: () => (/* reexport */ fds_tooltip_icon),
   registerUploadFile: () => (/* reexport */ fds_upload_file)
@@ -3767,6 +3768,7 @@ class FDSDatePicker extends HTMLElement {
       dateButton.setAttribute('aria-haspopup', 'dialog');
       dateButton.classList.add('button', 'button-icon-only', 'date-button');
       dateButton.setAttribute('aria-label', this.#textOpen);
+      dateButton.setAttribute('type', 'button');
       const svg = createSvgIcon("M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z");
       dateButton.appendChild(svg);
     }
@@ -3779,6 +3781,7 @@ class FDSDatePicker extends HTMLElement {
     closeButtonContainer.setAttribute('tabindex', '-1');
     const closeButton = this.querySelector('.close-button') || document.createElement('button');
     closeButton.textContent = 'Luk';
+    closeButton.setAttribute('type', 'button');
     closeButton.classList.add('close-button', 'function-link');
     if (!closeButton.querySelector('svg')) {
       const svgClose = createSvgIcon('m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z');
@@ -4564,6 +4567,7 @@ class FDSDatePickerGrid extends HTMLElement {
     // Previous button
     const prevButton = document.createElement('button');
     prevButton.classList.add('previous-month');
+    prevButton.setAttribute('type', 'button');
     const svgPrev = createSvgIcon(CHEVRON_LEFT_PATH);
     const prevButtonSR = document.createElement('span');
     prevButtonSR.textContent = 'Forrige';
@@ -4609,6 +4613,7 @@ class FDSDatePickerGrid extends HTMLElement {
     // Next button
     const nextButton = document.createElement('button');
     nextButton.classList.add('next-month');
+    nextButton.setAttribute('type', 'button');
     const svgNext = createSvgIcon(CHEVRON_RIGHT_PATH);
     const nextButtonSR = document.createElement('span');
     nextButtonSR.textContent = 'Næste';
@@ -5769,7 +5774,7 @@ function registerInputAffix() {
 class FDSDrawer extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['open', 'ready', 'heading', 'close-button-text'];
+  static observedAttributes = ['open', 'ready', 'heading', 'close-button-text', 'heading-id'];
 
   // #endregion
 
@@ -5868,13 +5873,11 @@ class FDSDrawer extends HTMLElement {
       heading.classList.add('menu-heading');
       menuTop.appendChild(heading);
     }
-    let headingId = heading.id;
-    if (!headingId) {
-      headingId = generateAndVerifyUniqueId('hea');
-      heading.id = headingId;
+    if (!heading.id) {
+      heading.id = this.getAttribute('heading-id') ?? generateAndVerifyUniqueId('hea-');
     }
     heading.textContent = this.getAttribute('heading') || 'Menu';
-    drawer.setAttribute('aria-labelledby', headingId);
+    drawer.setAttribute('aria-labelledby', heading.id);
 
     // Close button inside the drawer
     if (!closeButton) {
@@ -5998,6 +6001,14 @@ class FDSDrawer extends HTMLElement {
         const closeButtonText = this.querySelector('.button-menu-close span');
         if (closeButtonText) {
           closeButtonText.textContent = newValue;
+        }
+        break;
+      case 'heading-id':
+        if (newValue !== null) {
+          const heading = this.querySelector('.menu-heading');
+          const drawer = this.querySelector('.mobile-drawer');
+          heading.id = newValue;
+          drawer.setAttribute('aria-labelledby', newValue);
         }
         break;
     }
@@ -6560,6 +6571,11 @@ class FDSDropdownMenu extends HTMLElement {
       this.close();
     }
   };
+  #handleOutsideClick = event => {
+    if (!this.contains(event.target)) {
+      this.close();
+    }
+  };
 
   // #endregion
 
@@ -6614,10 +6630,16 @@ class FDSDropdownMenu extends HTMLElement {
       dropdownButton?.setAttribute('aria-expanded', 'false');
       menu?.classList.add('collapsed');
       menu.removeAttribute('style');
+      if (this.closest('fds-main-menu .main-menu-inner')) {
+        document.removeEventListener('mousedown', this.#handleOutsideClick, false);
+      }
       this.dispatchEvent(new Event('fds-dropdown-menu-closed'));
     } else {
       dropdownButton?.setAttribute('aria-expanded', 'true');
       menu?.classList.remove('collapsed');
+      if (this.closest('fds-main-menu .main-menu-inner')) {
+        document.addEventListener('mousedown', this.#handleOutsideClick, false);
+      }
 
       /* Check if the dropdown is within the screen borders */
 
@@ -6683,6 +6705,9 @@ class FDSDropdownMenu extends HTMLElement {
 
   disconnectedCallback() {
     this.#removeEventListeners();
+    if (this.closest('fds-main-menu .main-menu-inner')) {
+      document.removeEventListener('mousedown', this.#handleOutsideClick, false);
+    }
     this.#initialized = false;
   }
 
@@ -7375,6 +7400,11 @@ class FDSTooltipIcon extends HTMLElement {
       }
     });
   };
+  #handleOutsideClick = event => {
+    if (!this.contains(event.target)) {
+      this.close();
+    }
+  };
 
   // #endregion
 
@@ -7466,6 +7496,7 @@ class FDSTooltipIcon extends HTMLElement {
     this.querySelector('.tooltip').textContent = this.getAttribute('tooltip-text');
     this.#updatePosition();
     window.addEventListener('resize', this.#handleResize, false);
+    document.addEventListener('mousedown', this.#handleOutsideClick, false);
     document.addEventListener('scroll', this.#handleScroll, true);
     this.#connectIntersectionObserver();
   }
@@ -7475,6 +7506,7 @@ class FDSTooltipIcon extends HTMLElement {
     this.querySelector('.tooltip-arrow').style.display = 'none';
     this.querySelector('.tooltip').textContent = '';
     window.removeEventListener('resize', this.#handleResize, false);
+    document.removeEventListener('mousedown', this.#handleOutsideClick, false);
     document.removeEventListener('scroll', this.#handleScroll, true);
     this.#disconnectIntersectionObserver();
   }
@@ -7498,9 +7530,10 @@ class FDSTooltipIcon extends HTMLElement {
     this.#removeEventListeners();
 
     // Remove observer and event listeners that are temporarily added when the tooltip is open
-    this.#disconnectIntersectionObserver();
     window.removeEventListener('resize', this.#handleResize, false);
+    document.removeEventListener('mousedown', this.#handleOutsideClick, false);
     document.removeEventListener('scroll', this.#handleScroll, true);
+    this.#disconnectIntersectionObserver();
     this.#initialized = false;
   }
 
@@ -7544,10 +7577,165 @@ function registerTooltipIcon() {
   }
 }
 /* harmony default export */ const fds_tooltip_icon = (registerTooltipIcon);
+;// ./src/js/custom-elements/toggle-switch/fds-toggle-switch.js
+class FDSToggleSwitch extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['state', 'label', 'disabled-switch'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get state() {
+    return this.getAttribute('state') ?? 'off';
+  } // Default state is 'off'
+  set state(value) {
+    value == null ? this.removeAttribute('state') : this.setAttribute('state', value);
+  }
+  get label() {
+    return this.getAttribute('label');
+  }
+  set label(value) {
+    value == null ? this.removeAttribute('label') : this.setAttribute('label', value);
+  }
+  get disabledSwitch() {
+    return this.getAttribute('disabled-switch');
+  }
+  set disabledSwitch(value) {
+    value == null ? this.removeAttribute('disabled-switch') : this.setAttribute('disabled-switch', value);
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleClick = () => {
+    this.toggle();
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    const button = this.querySelector('button') ?? document.createElement('button');
+    const buttonText = this.querySelector('button span') ?? document.createElement('span');
+
+    // Ensure label attribute is used as label when attribute is present
+    buttonText.textContent = this.getAttribute('label') ?? buttonText.textContent;
+
+    // Add the button text if not already present
+    if (!buttonText.isConnected) {
+      button.appendChild(buttonText);
+    }
+
+    // Add the button if not already present
+    button.setAttribute('type', 'button');
+    button.setAttribute('role', 'switch');
+    if (!button.isConnected) {
+      this.appendChild(button);
+    }
+
+    // Set on-off state of the button
+    this.#stateChange(this.getAttribute('state'), false);
+
+    // Set disabled state of the button
+    !this.hasAttribute('disabled-switch') || this.getAttribute('disabled-switch') === 'false' ? button.removeAttribute('disabled') : button.setAttribute('disabled', '');
+  }
+  #stateChange(newState, dispatchEvent) {
+    const button = this.querySelector('button');
+    let eventName = 'fds-toggle-off';
+    if (newState === 'off' || !newState) {
+      button.setAttribute('aria-checked', 'false');
+    } else {
+      button.setAttribute('aria-checked', 'true');
+      eventName = 'fds-toggle-on';
+    }
+    if (dispatchEvent && !button.disabled) {
+      this.dispatchEvent(new Event(eventName));
+    }
+  }
+  #init() {
+    this.#setupHTML();
+    this.querySelector('button')?.addEventListener('click', this.#handleClick);
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  on() {
+    this.setAttribute('state', 'on');
+  }
+  off() {
+    this.setAttribute('state', 'off');
+  }
+  toggle() {
+    this.state === 'off' ? this.on() : this.off();
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    this.#init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.querySelector('button')?.removeEventListener('click', this.#handleClick);
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'state':
+        this.#stateChange(newValue, true);
+        break;
+      case 'label':
+        const span = this.querySelector('button span');
+        if (span) {
+          span.textContent = newValue ?? '';
+        }
+        break;
+      case 'disabled-switch':
+        const button = this.querySelector('button');
+        newValue === null || newValue === 'false' ? button.removeAttribute('disabled') : button.setAttribute('disabled', '');
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerToggleSwitch() {
+  if (!customElements.get('fds-toggle-switch')) {
+    customElements.define('fds-toggle-switch', FDSToggleSwitch);
+  }
+}
+/* harmony default export */ const fds_toggle_switch = (registerToggleSwitch);
 ;// ./src/js/new-dkfds.js
 
 
 // Custom elements
+
 
 
 
@@ -7603,6 +7791,7 @@ const registerCustomElements = () => {
   fds_main_menu();
   fds_tooltip();
   fds_tooltip_icon();
+  fds_toggle_switch();
 };
 registerCustomElements();
 
