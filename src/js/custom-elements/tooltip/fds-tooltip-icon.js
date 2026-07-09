@@ -74,6 +74,12 @@ class FDSTooltipIcon extends HTMLElement {
         });
     };
 
+    #handleOutsideClick = (event) => {
+        if (!this.contains(event.target)) {
+            this.close();
+        }
+    };
+
     // #endregion
 
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
@@ -175,6 +181,7 @@ class FDSTooltipIcon extends HTMLElement {
         this.#updatePosition();
 
         window.addEventListener('resize', this.#handleResize, false);
+        document.addEventListener('mousedown', this.#handleOutsideClick, false);
         document.addEventListener('scroll', this.#handleScroll, true);
         this.#connectIntersectionObserver();
     }
@@ -186,6 +193,7 @@ class FDSTooltipIcon extends HTMLElement {
         this.querySelector('.tooltip').textContent = '';
 
         window.removeEventListener('resize', this.#handleResize, false);
+        document.removeEventListener('mousedown', this.#handleOutsideClick, false);
         document.removeEventListener('scroll', this.#handleScroll, true);
         this.#disconnectIntersectionObserver();
     }
@@ -210,9 +218,10 @@ class FDSTooltipIcon extends HTMLElement {
         this.#removeEventListeners();
 
         // Remove observer and event listeners that are temporarily added when the tooltip is open
-        this.#disconnectIntersectionObserver();
         window.removeEventListener('resize', this.#handleResize, false);
+        document.removeEventListener('mousedown', this.#handleOutsideClick, false);
         document.removeEventListener('scroll', this.#handleScroll, true);
+        this.#disconnectIntersectionObserver();
 
         this.#initialized = false;
     }

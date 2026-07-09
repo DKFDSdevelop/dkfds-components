@@ -6571,6 +6571,11 @@ class FDSDropdownMenu extends HTMLElement {
       this.close();
     }
   };
+  #handleOutsideClick = event => {
+    if (!this.contains(event.target)) {
+      this.close();
+    }
+  };
 
   // #endregion
 
@@ -6625,10 +6630,16 @@ class FDSDropdownMenu extends HTMLElement {
       dropdownButton?.setAttribute('aria-expanded', 'false');
       menu?.classList.add('collapsed');
       menu.removeAttribute('style');
+      if (this.closest('fds-main-menu .main-menu-inner')) {
+        document.removeEventListener('mousedown', this.#handleOutsideClick, false);
+      }
       this.dispatchEvent(new Event('fds-dropdown-menu-closed'));
     } else {
       dropdownButton?.setAttribute('aria-expanded', 'true');
       menu?.classList.remove('collapsed');
+      if (this.closest('fds-main-menu .main-menu-inner')) {
+        document.addEventListener('mousedown', this.#handleOutsideClick, false);
+      }
 
       /* Check if the dropdown is within the screen borders */
 
@@ -6694,6 +6705,9 @@ class FDSDropdownMenu extends HTMLElement {
 
   disconnectedCallback() {
     this.#removeEventListeners();
+    if (this.closest('fds-main-menu .main-menu-inner')) {
+      document.removeEventListener('mousedown', this.#handleOutsideClick, false);
+    }
     this.#initialized = false;
   }
 
@@ -7386,6 +7400,11 @@ class FDSTooltipIcon extends HTMLElement {
       }
     });
   };
+  #handleOutsideClick = event => {
+    if (!this.contains(event.target)) {
+      this.close();
+    }
+  };
 
   // #endregion
 
@@ -7477,6 +7496,7 @@ class FDSTooltipIcon extends HTMLElement {
     this.querySelector('.tooltip').textContent = this.getAttribute('tooltip-text');
     this.#updatePosition();
     window.addEventListener('resize', this.#handleResize, false);
+    document.addEventListener('mousedown', this.#handleOutsideClick, false);
     document.addEventListener('scroll', this.#handleScroll, true);
     this.#connectIntersectionObserver();
   }
@@ -7486,6 +7506,7 @@ class FDSTooltipIcon extends HTMLElement {
     this.querySelector('.tooltip-arrow').style.display = 'none';
     this.querySelector('.tooltip').textContent = '';
     window.removeEventListener('resize', this.#handleResize, false);
+    document.removeEventListener('mousedown', this.#handleOutsideClick, false);
     document.removeEventListener('scroll', this.#handleScroll, true);
     this.#disconnectIntersectionObserver();
   }
@@ -7509,9 +7530,10 @@ class FDSTooltipIcon extends HTMLElement {
     this.#removeEventListeners();
 
     // Remove observer and event listeners that are temporarily added when the tooltip is open
-    this.#disconnectIntersectionObserver();
     window.removeEventListener('resize', this.#handleResize, false);
+    document.removeEventListener('mousedown', this.#handleOutsideClick, false);
     document.removeEventListener('scroll', this.#handleScroll, true);
+    this.#disconnectIntersectionObserver();
     this.#initialized = false;
   }
 
