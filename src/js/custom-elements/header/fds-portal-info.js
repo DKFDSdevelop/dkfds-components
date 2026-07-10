@@ -18,7 +18,7 @@ class FDSPortalInfo extends HTMLElement {
 
     // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
-    #handleSlotDrawerButtonChange = (event) => {
+    #handleSlotDrawerOpenerChange = (event) => {
         event.target.assignedElements().forEach(element => {
             element.classList.add('ml-auto');
         });
@@ -88,12 +88,12 @@ class FDSPortalInfo extends HTMLElement {
                 divWrapper.appendChild(portalLogo);
             }
 
-            // --- Drawer button ---
-            let drawerButtonSlot = divWrapper.querySelector('slot[name="drawer-button"]');
-            if (!drawerButtonSlot) {
-                drawerButtonSlot = document.createElement('slot');
-                drawerButtonSlot.name = 'drawer-button';
-                divWrapper.appendChild(drawerButtonSlot);
+            // --- Drawer opener ---
+            let drawerOpenerSlot = divWrapper.querySelector('slot[name="drawer-opener"]');
+            if (!drawerOpenerSlot) {
+                drawerOpenerSlot = document.createElement('slot');
+                drawerOpenerSlot.name = 'drawer-opener';
+                divWrapper.appendChild(drawerOpenerSlot);
             }
 
             // --- User wrapper ---
@@ -123,13 +123,13 @@ class FDSPortalInfo extends HTMLElement {
     }
 
     #addEventListeners() {
-        this.shadowRoot.querySelector('slot[name="drawer-button"]')?.addEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+        this.shadowRoot.querySelector('slot[name="drawer-opener"]')?.addEventListener('slotchange', this.#handleSlotDrawerOpenerChange);
         this.shadowRoot.querySelector('slot[name="user"]')?.addEventListener('slotchange', this.#handleSlotUserChange);
         this.shadowRoot.querySelector('slot[name="log-off-button"]')?.addEventListener('slotchange', this.#handleSlotLogOffButtonChange);
     }
 
     #removeEventListeners() {
-        this.shadowRoot.querySelector('slot[name="drawer-button"]')?.removeEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+        this.shadowRoot.querySelector('slot[name="drawer-opener"]')?.removeEventListener('slotchange', this.#handleSlotDrawerOpenerChange);
         this.shadowRoot.querySelector('slot[name="user"]')?.removeEventListener('slotchange', this.#handleSlotUserChange);
         this.shadowRoot.querySelector('slot[name="log-off-button"]')?.removeEventListener('slotchange', this.#handleSlotLogOffButtonChange);
     }

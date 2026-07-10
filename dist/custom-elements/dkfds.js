@@ -59,7 +59,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerDatePicker: () => (/* reexport */ fds_date_picker),
   registerDatePickerGrid: () => (/* reexport */ fds_date_picker_grid),
   registerDrawer: () => (/* reexport */ fds_drawer),
-  registerDrawerButton: () => (/* reexport */ fds_drawer_button),
+  registerDrawerOpener: () => (/* reexport */ fds_drawer_opener),
   registerDropdownMenu: () => (/* reexport */ fds_dropdown_menu),
   registerErrorMessage: () => (/* reexport */ fds_error_message),
   registerErrorSummary: () => (/* reexport */ fds_error_summary),
@@ -5930,10 +5930,10 @@ class FDSDrawer extends HTMLElement {
       this.removeAttribute('open');
       document.removeEventListener('fds.modal.shown', this.#handleCloseClick, false);
       document.removeEventListener('keydown', this.#handleKeydown, false);
-      const drawerButton = document.querySelector(`fds-drawer-button[drawer=${this.id}] button`);
-      const visibleDrawerButton = isVisibleAndFocusable(drawerButton);
-      if (visibleDrawerButton) {
-        drawerButton.focus();
+      const drawerOpener = document.querySelector(`fds-drawer-opener[drawer=${this.id}] button`);
+      const visibleDrawerOpener = isVisibleAndFocusable(drawerOpener);
+      if (visibleDrawerOpener) {
+        drawerOpener.focus();
       }
     }
   }
@@ -6022,9 +6022,9 @@ function registerDrawer() {
   }
 }
 /* harmony default export */ const fds_drawer = (registerDrawer);
-;// ./src/js/custom-elements/header/fds-drawer-button.js
+;// ./src/js/custom-elements/header/fds-drawer-opener.js
 
-class FDSDrawerButton extends HTMLElement {
+class FDSDrawerOpener extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
   static observedAttributes = ['drawer', 'button-text'];
@@ -6102,12 +6102,12 @@ class FDSDrawerButton extends HTMLElement {
 
   // #endregion
 }
-function registerDrawerButton() {
-  if (customElements.get('fds-drawer-button') === undefined) {
-    window.customElements.define('fds-drawer-button', FDSDrawerButton);
+function registerDrawerOpener() {
+  if (customElements.get('fds-drawer-opener') === undefined) {
+    window.customElements.define('fds-drawer-opener', FDSDrawerOpener);
   }
 }
-/* harmony default export */ const fds_drawer_button = (registerDrawerButton);
+/* harmony default export */ const fds_drawer_opener = (registerDrawerOpener);
 ;// ./src/js/custom-elements/header/fds-portal-info-styling.js
 /**
  * Breakpoint is passed as a parameter rather than read from a CSS custom property
@@ -6176,7 +6176,7 @@ class FDSPortalInfo extends HTMLElement {
 
   // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
-  #handleSlotDrawerButtonChange = event => {
+  #handleSlotDrawerOpenerChange = event => {
     event.target.assignedElements().forEach(element => {
       element.classList.add('ml-auto');
     });
@@ -6242,12 +6242,12 @@ class FDSPortalInfo extends HTMLElement {
         divWrapper.appendChild(portalLogo);
       }
 
-      // --- Drawer button ---
-      let drawerButtonSlot = divWrapper.querySelector('slot[name="drawer-button"]');
-      if (!drawerButtonSlot) {
-        drawerButtonSlot = document.createElement('slot');
-        drawerButtonSlot.name = 'drawer-button';
-        divWrapper.appendChild(drawerButtonSlot);
+      // --- Drawer opener ---
+      let drawerOpenerSlot = divWrapper.querySelector('slot[name="drawer-opener"]');
+      if (!drawerOpenerSlot) {
+        drawerOpenerSlot = document.createElement('slot');
+        drawerOpenerSlot.name = 'drawer-opener';
+        divWrapper.appendChild(drawerOpenerSlot);
       }
 
       // --- User wrapper ---
@@ -6276,12 +6276,12 @@ class FDSPortalInfo extends HTMLElement {
     }
   }
   #addEventListeners() {
-    this.shadowRoot.querySelector('slot[name="drawer-button"]')?.addEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+    this.shadowRoot.querySelector('slot[name="drawer-opener"]')?.addEventListener('slotchange', this.#handleSlotDrawerOpenerChange);
     this.shadowRoot.querySelector('slot[name="user"]')?.addEventListener('slotchange', this.#handleSlotUserChange);
     this.shadowRoot.querySelector('slot[name="log-off-button"]')?.addEventListener('slotchange', this.#handleSlotLogOffButtonChange);
   }
   #removeEventListeners() {
-    this.shadowRoot.querySelector('slot[name="drawer-button"]')?.removeEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+    this.shadowRoot.querySelector('slot[name="drawer-opener"]')?.removeEventListener('slotchange', this.#handleSlotDrawerOpenerChange);
     this.shadowRoot.querySelector('slot[name="user"]')?.removeEventListener('slotchange', this.#handleSlotUserChange);
     this.shadowRoot.querySelector('slot[name="log-off-button"]')?.removeEventListener('slotchange', this.#handleSlotLogOffButtonChange);
   }
@@ -6396,7 +6396,7 @@ class FDSSolutionInfo extends HTMLElement {
 
   // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
-  #handleSlotDrawerButtonChange = event => {
+  #handleSlotDrawerOpenerChange = event => {
     event.target.assignedElements().forEach(element => {
       element.classList.add('ml-auto');
     });
@@ -6448,20 +6448,20 @@ class FDSSolutionInfo extends HTMLElement {
         divWrapper.appendChild(additionalInfo);
       }
 
-      // --- Drawer button ---
-      let drawerButtonSlot = divWrapper.querySelector('slot[name="drawer-button"]');
-      if (!drawerButtonSlot) {
-        drawerButtonSlot = document.createElement('slot');
-        drawerButtonSlot.name = 'drawer-button';
-        divWrapper.appendChild(drawerButtonSlot);
+      // --- Drawer opener ---
+      let drawerOpenerSlot = divWrapper.querySelector('slot[name="drawer-opener"]');
+      if (!drawerOpenerSlot) {
+        drawerOpenerSlot = document.createElement('slot');
+        drawerOpenerSlot.name = 'drawer-opener';
+        divWrapper.appendChild(drawerOpenerSlot);
       }
     }
   }
   #addEventListeners() {
-    this.shadowRoot.querySelector('slot[name="drawer-button"]')?.addEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+    this.shadowRoot.querySelector('slot[name="drawer-opener"]')?.addEventListener('slotchange', this.#handleSlotDrawerOpenerChange);
   }
   #removeEventListeners() {
-    this.shadowRoot.querySelector('slot[name="drawer-button"]')?.removeEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+    this.shadowRoot.querySelector('slot[name="drawer-opener"]')?.removeEventListener('slotchange', this.#handleSlotDrawerOpenerChange);
   }
 
   // #endregion
@@ -7784,7 +7784,7 @@ const registerCustomElements = () => {
   fds_error_summary();
   input_affix();
   fds_drawer();
-  fds_drawer_button();
+  fds_drawer_opener();
   fds_portal_info();
   fds_solution_info();
   fds_dropdown_menu();

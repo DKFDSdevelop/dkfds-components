@@ -1,6 +1,6 @@
 import * as CE from '../custom-element-utils';
 
-class FDSDrawerButton extends HTMLElement {
+class FDSDrawerOpener extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -86,10 +86,10 @@ class FDSDrawerButton extends HTMLElement {
     // #endregion
 }
 
-function registerDrawerButton() {
-    if (customElements.get('fds-drawer-button') === undefined) {
-        window.customElements.define('fds-drawer-button', FDSDrawerButton);
+function registerDrawerOpener() {
+    if (customElements.get('fds-drawer-opener') === undefined) {
+        window.customElements.define('fds-drawer-opener', FDSDrawerOpener);
     }
 }
 
-export default registerDrawerButton;
+export default registerDrawerOpener;

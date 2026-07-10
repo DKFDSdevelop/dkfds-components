@@ -12193,12 +12193,12 @@ fds-drawer .mobile-drawer .menu-top .button-menu-close,
   visibility:visible;
 }
 
-fds-drawer-button,
-.fds-drawer-button{
+fds-drawer-opener,
+.fds-drawer-opener{
   display:inline-block;
 }
-fds-drawer-button button,
-.fds-drawer-button button{
+fds-drawer-opener button,
+.fds-drawer-opener button{
   width:auto;
   white-space:nowrap;
   background:none;
@@ -12216,21 +12216,21 @@ fds-drawer-button button,
   overflow-wrap:break-word;
   max-width:100%;
 }
-fds-drawer-button button:hover, fds-drawer-button button:visited, fds-drawer-button button:focus,
-.fds-drawer-button button:hover,
-.fds-drawer-button button:visited,
-.fds-drawer-button button:focus{
+fds-drawer-opener button:hover, fds-drawer-opener button:visited, fds-drawer-opener button:focus,
+.fds-drawer-opener button:hover,
+.fds-drawer-opener button:visited,
+.fds-drawer-opener button:focus{
   color:#1a1a1a;
 }
-fds-drawer-button button .icon-svg,
-.fds-drawer-button button .icon-svg{
+fds-drawer-opener button .icon-svg,
+.fds-drawer-opener button .icon-svg{
   margin-right:4px;
   fill:currentColor;
   vertical-align:top;
   margin-top:0.1rem;
 }
-fds-drawer-button button span,
-.fds-drawer-button button span{
+fds-drawer-opener button span,
+.fds-drawer-opener button span{
   text-decoration:underline;
 }
 

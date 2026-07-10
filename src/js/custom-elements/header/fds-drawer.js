@@ -181,10 +181,10 @@ class FDSDrawer extends HTMLElement {
             document.removeEventListener('fds.modal.shown', this.#handleCloseClick, false);
             document.removeEventListener('keydown', this.#handleKeydown, false);
 
-            const drawerButton = document.querySelector(`fds-drawer-button[drawer=${this.id}] button`);
-            const visibleDrawerButton = CE.isVisibleAndFocusable(drawerButton);
-            if (visibleDrawerButton) {
-                drawerButton.focus();
+            const drawerOpener = document.querySelector(`fds-drawer-opener[drawer=${this.id}] button`);
+            const visibleDrawerOpener = CE.isVisibleAndFocusable(drawerOpener);
+            if (visibleDrawerOpener) {
+                drawerOpener.focus();
             }
         }
     }
