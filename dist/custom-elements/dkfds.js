@@ -7501,6 +7501,7 @@ class FDSTooltipIcon extends HTMLElement {
     window.addEventListener('resize', this.#handleResize, false);
     document.addEventListener('mousedown', this.#handleOutsideClick, false);
     document.addEventListener('scroll', this.#handleScroll, true);
+    document.addEventListener('keydown', this.#handleKeydown, false);
     this.#connectIntersectionObserver();
   }
   close() {
@@ -7511,6 +7512,7 @@ class FDSTooltipIcon extends HTMLElement {
     window.removeEventListener('resize', this.#handleResize, false);
     document.removeEventListener('mousedown', this.#handleOutsideClick, false);
     document.removeEventListener('scroll', this.#handleScroll, true);
+    document.removeEventListener('keydown', this.#handleKeydown, false);
     this.#disconnectIntersectionObserver();
   }
   toggle() {
@@ -7985,6 +7987,7 @@ class FDSModal extends HTMLElement {
     }));
   };
   #handleBackdropClick = event => {
+    if (event.target !== this.dialog) return;
     const rect = this.dialog.getBoundingClientRect();
     const clickedOutside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
     if (clickedOutside) {

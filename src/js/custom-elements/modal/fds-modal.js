@@ -33,6 +33,8 @@ class FDSModal extends HTMLElement {
     };
 
     #handleBackdropClick = (event) => {
+        if (event.target !== this.dialog) return;
+
         const rect = this.dialog.getBoundingClientRect();
         const clickedOutside = (
             event.clientX < rect.left || event.clientX > rect.right ||
