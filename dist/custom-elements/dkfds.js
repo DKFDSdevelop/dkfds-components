@@ -68,6 +68,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerInput: () => (/* reexport */ fds_input),
   registerInputAffix: () => (/* reexport */ input_affix),
   registerMainMenu: () => (/* reexport */ fds_main_menu),
+  registerModal: () => (/* reexport */ fds_modal),
   registerModalCloser: () => (/* reexport */ fds_modal_closer),
   registerModalOpener: () => (/* reexport */ fds_modal_opener),
   registerPortalInfo: () => (/* reexport */ fds_portal_info),
@@ -7944,10 +7945,119 @@ function registerModalCloser() {
   }
 }
 /* harmony default export */ const fds_modal_closer = (registerModalCloser);
+;// ./src/js/custom-elements/modal/fds-modal.js
+
+class FDSModal extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['ready'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get ready() {
+    return this.getAttribute('ready') !== 'false';
+  }
+  set ready(value) {
+    this.setAttribute('ready', value ? 'true' : 'false');
+  }
+  get dialog() {
+    return this.querySelector('dialog');
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleClose = () => {
+    this.dispatchEvent(new CustomEvent('fds-modal-close', {
+      bubbles: true,
+      detail: {
+        returnValue: this.dialog.returnValue
+      }
+    }));
+  };
+  #handleBackdropClick = event => {
+    const rect = this.dialog.getBoundingClientRect();
+    const clickedOutside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
+    if (clickedOutside) {
+      this.dialog.close();
+    }
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #addEventListeners() {
+    this.dialog?.addEventListener('close', this.#handleClose);
+    this.dialog?.addEventListener('click', this.#handleBackdropClick);
+  }
+  #removeEventListeners() {
+    this.dialog?.removeEventListener('close', this.#handleClose);
+    this.dialog?.removeEventListener('click', this.#handleBackdropClick);
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  init() {
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+  }
+
+  // #endregion
+}
+function registerModal() {
+  if (!customElements.get('fds-modal')) {
+    customElements.define('fds-modal', FDSModal);
+  }
+}
+/* harmony default export */ const fds_modal = (registerModal);
 ;// ./src/js/new-dkfds.js
 
 
 // Custom elements
+
 
 
 
@@ -8009,6 +8119,7 @@ const registerCustomElements = () => {
   fds_toggle_switch();
   fds_modal_opener();
   fds_modal_closer();
+  fds_modal();
 };
 registerCustomElements();
 
