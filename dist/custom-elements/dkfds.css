@@ -7681,12 +7681,12 @@ body{
   display:flex;
   flex-wrap:wrap;
 }
-.button-group .button, .button-group .button-wrapper{
+.button-group > .button, .button-group > .button-wrapper{
   margin-right:16px;
   margin-top:8px;
   margin-bottom:8px;
 }
-.button-group .button:last-child, .button-group .button-wrapper:last-child{
+.button-group > .button:last-child, .button-group > .button-wrapper:last-child{
   margin-right:0;
 }
 
@@ -13235,6 +13235,74 @@ fds-toggle-switch button[role=switch]:disabled:hover::before,
 fds-toggle-switch button[role=switch]:disabled span,
 .fds-toggle-switch button[role=switch]:disabled span{
   color:#1a1a1a;
+}
+
+fds-modal{
+  display:block;
+}
+fds-modal dialog{
+  max-width:800px;
+  width:calc(100% - 32px);
+  padding:0;
+  border:0;
+  border-radius:8px;
+  box-shadow:0 8px 24px 0 rgba(0, 0, 0, 0.2);
+  align-self:center;
+  justify-self:center;
+  margin:16px;
+}
+fds-modal dialog .modal-header{
+  padding:16px 24px 0;
+}
+@media (min-width: 768px){
+  fds-modal dialog .modal-header{
+    padding:40px 40px 8px;
+  }
+}
+fds-modal dialog .modal-header .modal-title{
+  margin:24px 48px 8px 0;
+}
+@media (min-width: 768px){
+  fds-modal dialog .modal-header .modal-title{
+    margin:0 48px 0 0;
+  }
+}
+fds-modal dialog .modal-header .modal-close{
+  position:absolute;
+  top:8px;
+  right:8px;
+}
+@media (min-width: 768px){
+  fds-modal dialog .modal-header .modal-close{
+    top:24px;
+    right:32px;
+  }
+}
+fds-modal dialog .modal-body{
+  padding:0 24px 8px 24px;
+}
+@media (min-width: 768px){
+  fds-modal dialog .modal-body{
+    padding:8px 40px 16px 40px;
+  }
+}
+fds-modal dialog .modal-body > *:first-child{
+  margin-top:0;
+}
+fds-modal dialog .modal-footer{
+  padding:0 24px 24px;
+}
+@media (min-width: 768px){
+  fds-modal dialog .modal-footer{
+    padding:8px 40px 40px;
+  }
+}
+fds-modal dialog::backdrop{
+  background-color:rgba(0, 0, 0, 0.4);
+}
+
+html:has(dialog:modal){
+  overflow:hidden;
 }
 
 .fds-side-menu ul,

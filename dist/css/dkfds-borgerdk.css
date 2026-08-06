@@ -7996,12 +7996,12 @@ button.accordion-bulk-button[data-accordion-bulk-expand=false]{
   display:flex;
   flex-wrap:wrap;
 }
-.button-group .button, .button-group .button-wrapper{
+.button-group > .button, .button-group > .button-wrapper{
   margin-right:16px;
   margin-top:8px;
   margin-bottom:8px;
 }
-.button-group .button:last-child, .button-group .button-wrapper:last-child{
+.button-group > .button:last-child, .button-group > .button-wrapper:last-child{
   margin-right:0;
 }
 
