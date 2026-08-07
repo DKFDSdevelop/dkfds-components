@@ -12248,10 +12248,20 @@ textarea.no-resize{
     display:none;
   }
   .fds-modal{
-    position:static;
+    position:static !important;
   }
   .modal-backdrop{
-    display:none;
+    display:none !important;
+  }
+  fds-modal dialog[open]{
+    position:static;
+    overflow:visible;
+    max-height:none;
+    height:auto;
+  }
+  fds-modal dialog::backdrop{
+    opacity:1 !important;
+    background-color:#ffffff !important;
   }
 }
 @media print and (max-width: 767px){
@@ -12387,7 +12397,8 @@ textarea.no-resize{
   .toggle-element .toggle-button[aria-checked=true]::after{
     border-color:#1a1a1a;
   }
-  .tooltip-wrapper .tooltip, .tooltip-wrapper .tooltip-arrow{
+  .tooltip-wrapper .tooltip,
+  .tooltip-wrapper .tooltip-arrow{
     display:none;
   }
 }
