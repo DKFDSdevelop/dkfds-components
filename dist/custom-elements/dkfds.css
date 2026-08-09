@@ -13311,6 +13311,9 @@ fds-modal dialog .modal-footer{
 fds-modal dialog::backdrop{
   background-color:rgba(0, 0, 0, 0.4);
 }
+fds-modal dialog:focus{
+  outline:0;
+}
 
 html:has(dialog:modal){
   overflow:hidden;

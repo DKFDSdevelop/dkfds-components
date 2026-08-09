@@ -66,6 +66,10 @@ fds-modal {
         &::backdrop {
             background-color: func.color(vars.$modal-overlay-background-color);
         }
+
+        &:focus {
+            outline: 0;
+        }
     }
 }
 

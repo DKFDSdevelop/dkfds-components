@@ -7964,7 +7964,7 @@ function registerModalCloser() {
 class FDSModal extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['ready'];
+  static observedAttributes = ['ready', 'dismissible'];
 
   // #endregion
 
@@ -7975,6 +7975,12 @@ class FDSModal extends HTMLElement {
   }
   set ready(value) {
     this.setAttribute('ready', value ? 'true' : 'false');
+  }
+  get dismissible() {
+    return this.getAttribute('dismissible') !== 'false';
+  }
+  set dismissible(value) {
+    this.setAttribute('dismissible', value ? 'true' : 'false');
   }
   get dialog() {
     return this.querySelector('dialog');
@@ -7998,7 +8004,15 @@ class FDSModal extends HTMLElement {
       }
     }));
   };
+
+  // Blocks Escape/back button/requestClose() when not dismissible (Safari)
+  #handleCancel = event => {
+    if (!this.dismissible) {
+      event.preventDefault();
+    }
+  };
   #handleBackdropClick = event => {
+    if (!this.dismissible) return;
     if (event.target !== this.dialog) return;
     const rect = this.dialog.getBoundingClientRect();
     const clickedOutside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
@@ -8011,12 +8025,23 @@ class FDSModal extends HTMLElement {
 
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
+  // Sets closedby="none" when not dismissible (Chrome/Firefox). Not supported in Safari.
+  #updateClosedBy() {
+    if (!this.dialog) return;
+    if (this.dismissible) {
+      this.dialog.removeAttribute('closedby');
+    } else {
+      this.dialog.setAttribute('closedby', 'none');
+    }
+  }
   #addEventListeners() {
     this.dialog?.addEventListener('close', this.#handleClose);
+    this.dialog?.addEventListener('cancel', this.#handleCancel);
     this.dialog?.addEventListener('click', this.#handleBackdropClick);
   }
   #removeEventListeners() {
     this.dialog?.removeEventListener('close', this.#handleClose);
+    this.dialog?.removeEventListener('cancel', this.#handleCancel);
     this.dialog?.removeEventListener('click', this.#handleBackdropClick);
   }
 
@@ -8025,6 +8050,7 @@ class FDSModal extends HTMLElement {
   // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
   init() {
+    this.#updateClosedBy();
     this.#addEventListeners();
     this.#initialized = true;
   }
@@ -8055,6 +8081,12 @@ class FDSModal extends HTMLElement {
     if (attribute === 'ready') {
       if (!this.#initialized && this.isConnected && newValue !== 'false') {
         this.init();
+      }
+      return;
+    }
+    if (attribute === 'dismissible') {
+      if (this.#initialized) {
+        this.#updateClosedBy();
       }
       return;
     }
