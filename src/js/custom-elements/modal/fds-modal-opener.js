@@ -31,7 +31,17 @@ class FDSModalOpener extends HTMLElement {
         if (!dialog) return;
 
         dialog.showModal();
-        this.dispatchEvent(new CustomEvent('fds-modal-open', {
+
+        const modal = dialog.closest('fds-modal');
+        if (modal?.hasAttribute('bottom-sheet')) {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    dialog.classList.add('bottom-sheet-open');
+                });
+            });
+        }
+
+        this.dispatchEvent(new CustomEvent('fds-modal-opener-click', {
             bubbles: true,
             detail: { dialogId: this.dialogId },
         }));

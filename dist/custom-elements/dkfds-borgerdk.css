@@ -13314,6 +13314,43 @@ fds-modal dialog::backdrop{
 fds-modal dialog:focus{
   outline:0;
 }
+fds-modal[bottom-sheet] dialog{
+  margin:0;
+  margin-top:auto;
+  align-self:stretch;
+  justify-self:stretch;
+  width:100%;
+  max-width:none;
+  border-radius:8px 8px 0 0;
+  translate:0 100%;
+  transition:translate 0.25s ease-out;
+}
+fds-modal[bottom-sheet] dialog.bottom-sheet-open{
+  translate:0 0;
+}
+fds-modal[bottom-sheet] dialog::backdrop{
+  background-color:transparent;
+  transition:background-color 0.25s ease-out;
+}
+fds-modal[bottom-sheet] dialog.bottom-sheet-open::backdrop{
+  background-color:rgba(0, 0, 0, 0.4);
+}
+fds-modal[bottom-sheet] dialog .modal-header{
+  border-bottom:1px solid #1a1a1a;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:16px 24px;
+}
+fds-modal[bottom-sheet] dialog .modal-header .modal-title{
+  margin:0;
+}
+fds-modal[bottom-sheet] dialog .modal-header .modal-close{
+  position:static;
+}
+fds-modal[bottom-sheet] dialog .modal-body{
+  padding:32px 24px 16px;
+}
 
 html:has(dialog:modal){
   overflow:hidden;

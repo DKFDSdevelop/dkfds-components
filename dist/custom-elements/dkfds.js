@@ -7786,7 +7786,15 @@ class FDSModalOpener extends HTMLElement {
     const dialog = document.getElementById(this.dialogId);
     if (!dialog) return;
     dialog.showModal();
-    this.dispatchEvent(new CustomEvent('fds-modal-open', {
+    const modal = dialog.closest('fds-modal');
+    if (modal?.hasAttribute('bottom-sheet')) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          dialog.classList.add('bottom-sheet-open');
+        });
+      });
+    }
+    this.dispatchEvent(new CustomEvent('fds-modal-opener-click', {
       bubbles: true,
       detail: {
         dialogId: this.dialogId
@@ -7897,7 +7905,21 @@ class FDSModalCloser extends HTMLElement {
   #handleClick = () => {
     const dialog = this.closest('dialog');
     if (!dialog) return;
-    dialog.close(this.returnValue ?? undefined);
+    const returnValue = this.returnValue ?? undefined;
+    const event = new CustomEvent('fds-modal-closer-click', {
+      bubbles: true,
+      cancelable: true,
+      detail: {
+        returnValue
+      }
+    });
+
+    // dispatchEvent() returns false if preventDefault() was called from an event handler.
+    // This may happen for bottom sheets where closing the modal requires animation.
+    const notPrevented = this.dispatchEvent(event);
+    if (notPrevented) {
+      dialog.close(returnValue);
+    }
   };
 
   // #endregion
@@ -7964,7 +7986,7 @@ function registerModalCloser() {
 class FDSModal extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['ready', 'dismissible'];
+  static observedAttributes = ['ready', 'dismissible', 'bottom-sheet'];
 
   // #endregion
 
@@ -7982,6 +8004,12 @@ class FDSModal extends HTMLElement {
   set dismissible(value) {
     this.setAttribute('dismissible', value ? 'true' : 'false');
   }
+  get bottomSheet() {
+    return this.hasAttribute('bottom-sheet');
+  }
+  set bottomSheet(value) {
+    value ? this.setAttribute('bottom-sheet', '') : this.removeAttribute('bottom-sheet');
+  }
   get dialog() {
     return this.querySelector('dialog');
   }
@@ -7991,12 +8019,21 @@ class FDSModal extends HTMLElement {
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
+  #savedTransitionHandler = null;
 
   // #endregion
 
   // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
   #handleClose = () => {
+    this.dialog.classList.remove('bottom-sheet-open');
+
+    // Clean up in case the dialog closed some other way before the exit
+    // transition finished (e.g. Escape interrupting a bottom sheet's animation)
+    if (this.#savedTransitionHandler) {
+      this.dialog.removeEventListener('transitionend', this.#savedTransitionHandler);
+      this.#savedTransitionHandler = null;
+    }
     this.dispatchEvent(new CustomEvent('fds-modal-close', {
       bubbles: true,
       detail: {
@@ -8013,12 +8050,21 @@ class FDSModal extends HTMLElement {
   };
   #handleBackdropClick = event => {
     if (!this.dismissible) return;
-    if (event.target !== this.dialog) return;
+    if (event.target !== this.dialog) return; // Ignore clicks on elements inside the dialog
+
     const rect = this.dialog.getBoundingClientRect();
-    const clickedOutside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
-    if (clickedOutside) {
+    const clickedBackdrop = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
+    if (!clickedBackdrop) return;
+    if (this.bottomSheet) {
+      this.#animateClose();
+    } else {
       this.dialog.close();
     }
+  };
+  #handleCloserClick = event => {
+    if (!this.bottomSheet) return;
+    event.preventDefault();
+    this.#animateClose(event.detail?.returnValue);
   };
 
   // #endregion
@@ -8034,15 +8080,30 @@ class FDSModal extends HTMLElement {
       this.dialog.setAttribute('closedby', 'none');
     }
   }
+  #animateClose(returnValue) {
+    if (this.#savedTransitionHandler) return; // Already closing, ignore duplicate requests
+
+    this.dialog.classList.remove('bottom-sheet-open');
+    const handleTransitionEnd = event => {
+      if (event.propertyName !== 'translate' || event.target !== this.dialog) return;
+      this.dialog.removeEventListener('transitionend', handleTransitionEnd);
+      this.#savedTransitionHandler = null;
+      this.dialog.close(returnValue);
+    };
+    this.#savedTransitionHandler = handleTransitionEnd;
+    this.dialog.addEventListener('transitionend', handleTransitionEnd);
+  }
   #addEventListeners() {
     this.dialog?.addEventListener('close', this.#handleClose);
     this.dialog?.addEventListener('cancel', this.#handleCancel);
     this.dialog?.addEventListener('click', this.#handleBackdropClick);
+    this.addEventListener('fds-modal-closer-click', this.#handleCloserClick);
   }
   #removeEventListeners() {
     this.dialog?.removeEventListener('close', this.#handleClose);
     this.dialog?.removeEventListener('cancel', this.#handleCancel);
     this.dialog?.removeEventListener('click', this.#handleBackdropClick);
+    this.removeEventListener('fds-modal-closer-click', this.#handleCloserClick);
   }
 
   // #endregion
@@ -8087,6 +8148,12 @@ class FDSModal extends HTMLElement {
     if (attribute === 'dismissible') {
       if (this.#initialized) {
         this.#updateClosedBy();
+      }
+      return;
+    }
+    if (attribute === 'bottom-sheet') {
+      if (this.#initialized && this.dialog?.open) {
+        this.dialog.classList.add('bottom-sheet-open');
       }
       return;
     }

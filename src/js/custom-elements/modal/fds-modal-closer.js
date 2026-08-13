@@ -30,7 +30,21 @@ class FDSModalCloser extends HTMLElement {
         const dialog = this.closest('dialog');
         if (!dialog) return;
 
-        dialog.close(this.returnValue ?? undefined);
+        const returnValue = this.returnValue ?? undefined;
+
+        const event = new CustomEvent('fds-modal-closer-click', {
+            bubbles: true,
+            cancelable: true,
+            detail: { returnValue },
+        });
+
+        // dispatchEvent() returns false if preventDefault() was called from an event handler.
+        // This may happen for bottom sheets where closing the modal requires animation.
+        const notPrevented = this.dispatchEvent(event);
+
+        if (notPrevented) {
+            dialog.close(returnValue);
+        }
     };
 
     // #endregion
