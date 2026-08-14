@@ -1,5 +1,3 @@
-import * as CE from '../custom-element-utils';
-
 class FDSModal extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
@@ -26,7 +24,8 @@ class FDSModal extends HTMLElement {
     // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
-    #savedTransitionHandler = null;
+    #closing = false;
+    #storedReturnValue = undefined;
 
     // #endregion
 
@@ -37,9 +36,10 @@ class FDSModal extends HTMLElement {
 
         // Clean up in case the dialog closed some other way before the exit
         // transition finished (e.g. Escape interrupting a bottom sheet's animation)
-        if (this.#savedTransitionHandler) {
-            this.dialog.removeEventListener('transitionend', this.#savedTransitionHandler);
-            this.#savedTransitionHandler = null;
+        if (this.#closing) {
+            this.dialog.removeEventListener('transitionend', this.#handleTransitionEnd);
+            this.#closing = false;
+            this.#storedReturnValue = undefined;
         }
 
         this.dispatchEvent(new CustomEvent('fds-modal-close', {
@@ -85,6 +85,15 @@ class FDSModal extends HTMLElement {
         this.#animateClose(event.detail?.returnValue);
     };
 
+    #handleTransitionEnd = (event) => {
+        if (event.propertyName !== 'translate' || event.target !== this.dialog) return;
+
+        this.dialog.removeEventListener('transitionend', this.#handleTransitionEnd);
+        this.#closing = false;
+        this.dialog.close(this.#storedReturnValue);
+        this.#storedReturnValue = undefined;
+    };
+
     // #endregion
 
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
@@ -102,20 +111,12 @@ class FDSModal extends HTMLElement {
     }
 
     #animateClose(returnValue) {
-        if (this.#savedTransitionHandler) return; // Already closing, ignore duplicate requests
+        if (this.#closing) return; // Already closing, ignore duplicate requests
 
         this.dialog.classList.remove('bottom-sheet-open');
-
-        const handleTransitionEnd = (event) => {
-            if (event.propertyName !== 'translate' || event.target !== this.dialog) return;
-
-            this.dialog.removeEventListener('transitionend', handleTransitionEnd);
-            this.#savedTransitionHandler = null;
-            this.dialog.close(returnValue);
-        };
-
-        this.#savedTransitionHandler = handleTransitionEnd;
-        this.dialog.addEventListener('transitionend', handleTransitionEnd);
+        this.#closing = true;
+        this.#storedReturnValue = returnValue;
+        this.dialog.addEventListener('transitionend', this.#handleTransitionEnd);
     }
 
     #addEventListeners() {
@@ -157,6 +158,13 @@ class FDSModal extends HTMLElement {
 
     disconnectedCallback() {
         this.#removeEventListeners();
+
+        if (this.#closing) {
+            this.dialog?.removeEventListener('transitionend', this.#handleTransitionEnd);
+            this.#closing = false;
+            this.#storedReturnValue = undefined;
+        }
+
         this.#initialized = false;
     }
 
@@ -172,18 +180,19 @@ class FDSModal extends HTMLElement {
             return;
         }
 
-        if (attribute === 'dismissible') {
-            if (this.#initialized) {
-                this.#updateClosedBy();
-            }
-            return;
-        }
+        if (!this.#initialized) return;
+        if (oldValue === newValue) return;
 
-        if (attribute === 'bottom-sheet') {
-            if (this.#initialized && this.dialog?.open) {
-                this.dialog.classList.add('bottom-sheet-open');
-            }
-            return;
+        switch (attribute) {
+            case 'dismissible':
+                this.#updateClosedBy();
+                break;
+
+            case 'bottom-sheet':
+                if (this.dialog?.open) {
+                    this.dialog.classList.add('bottom-sheet-open');
+                }
+                break;
         }
     }
 

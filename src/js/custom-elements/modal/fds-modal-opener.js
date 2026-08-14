@@ -1,5 +1,3 @@
-import * as CE from '../custom-element-utils';
-
 class FDSModalOpener extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
