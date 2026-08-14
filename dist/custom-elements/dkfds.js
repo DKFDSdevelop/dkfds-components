@@ -8050,15 +8050,17 @@ class FDSModal extends HTMLElement {
   };
   #handleBackdropClick = event => {
     if (!this.dismissible) return;
-    if (event.target !== this.dialog) return; // Ignore clicks on elements inside the dialog
 
+    // Using the keyboard to interact with modal content can register as clicks outside the dialog.
+    // Ignore these events by ensuring the event target is the dialog.
+    if (event.target !== this.dialog) return;
     const rect = this.dialog.getBoundingClientRect();
     const clickedBackdrop = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
     if (!clickedBackdrop) return;
     if (this.bottomSheet) {
-      this.#animateClose();
+      this.#animateClose('');
     } else {
-      this.dialog.close();
+      this.dialog.close('');
     }
   };
   #handleCloserClick = event => {

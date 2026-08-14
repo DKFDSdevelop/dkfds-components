@@ -13258,9 +13258,8 @@ fds-modal dialog{
   border:0;
   border-radius:8px;
   box-shadow:0 8px 24px 0 rgba(0, 0, 0, 0.2);
-  align-self:center;
-  justify-self:center;
-  margin:16px;
+  margin-left:auto;
+  margin-right:auto;
 }
 fds-modal dialog .modal-header{
   padding:16px 24px 0;
