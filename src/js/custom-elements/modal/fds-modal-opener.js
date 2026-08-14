@@ -32,6 +32,7 @@ class FDSModalOpener extends HTMLElement {
 
         const modal = dialog.closest('fds-modal');
         if (modal?.hasAttribute('bottom-sheet')) {
+            // Ensures the closed state is painted first, otherwise the slide-up transition may be skipped
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     dialog.classList.add('bottom-sheet-open');
