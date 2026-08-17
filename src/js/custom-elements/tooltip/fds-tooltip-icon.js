@@ -49,7 +49,10 @@ class FDSTooltipIcon extends HTMLElement {
     #handleKeydown = (event) => {
         switch (event.key) {
             case 'Escape':
-                if (this.querySelector('button').getAttribute('aria-expanded') !== 'false') {
+                // #handleDialogCancel handles presses on Escape so #handleKeydown should be ignored inside dialogs
+                const notInsideDialog = !this.closest('dialog');
+
+                if (this.querySelector('button').getAttribute('aria-expanded') !== 'false' && notInsideDialog) {
                     this.close();
                     this.querySelector('button').focus();
                     event.stopImmediatePropagation();
@@ -78,6 +81,12 @@ class FDSTooltipIcon extends HTMLElement {
         if (!this.contains(event.target)) {
             this.close();
         }
+    };
+
+    // Closes the tooltip instead of the dialog when Escape is pressed inside a dialog
+    #handleDialogCancel = (event) => {
+        event.preventDefault();
+        this.close();
     };
 
     // #endregion
@@ -183,7 +192,11 @@ class FDSTooltipIcon extends HTMLElement {
         window.addEventListener('resize', this.#handleResize, false);
         document.addEventListener('mousedown', this.#handleOutsideClick, false);
         document.addEventListener('scroll', this.#handleScroll, true);
+        document.addEventListener('keydown', this.#handleKeydown, false);
         this.#connectIntersectionObserver();
+
+        // Let the tooltip consume Escape key press before an ancestor dialog does
+        this.closest('dialog')?.addEventListener('cancel', this.#handleDialogCancel);
     }
 
     close() {
@@ -195,7 +208,10 @@ class FDSTooltipIcon extends HTMLElement {
         window.removeEventListener('resize', this.#handleResize, false);
         document.removeEventListener('mousedown', this.#handleOutsideClick, false);
         document.removeEventListener('scroll', this.#handleScroll, true);
+        document.removeEventListener('keydown', this.#handleKeydown, false);
         this.#disconnectIntersectionObserver();
+
+        this.closest('dialog')?.removeEventListener('cancel', this.#handleDialogCancel);
     }
 
     toggle() {

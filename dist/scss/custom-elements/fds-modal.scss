@@ -1,0 +1,127 @@
+@use "../variables" as vars;
+@use "../functions" as func;
+@use "../mixins" as mixins;
+
+$-transition-speed: 0.25s;
+
+fds-modal {
+    display: block;
+
+    dialog {
+        max-width: 800px;
+        width: calc(100% - 32px);
+        padding: 0;
+        border: 0;
+        border-radius: 8px;
+        box-shadow: func.shadow('heavy');
+        margin-left: auto;
+        margin-right: auto;
+
+        .modal-header {
+            padding: 16px 24px 0;
+
+            @include mixins.media-breakpoint-up(md) {
+                padding: 40px 40px 8px;
+            }
+
+            .modal-title {
+                margin: func.units(5) func.units(8) func.units(3) 0;
+
+                @include mixins.media-breakpoint-up(md) {
+                    margin: 0 func.units(8) 0 0;
+                }
+            }
+
+            .modal-close {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+
+                @include mixins.media-breakpoint-up(md) {
+                    top: func.units(5);
+                    right: func.units(6);
+                }
+            }
+        }
+
+        .modal-body {
+            padding: 0 24px 8px 24px;
+
+            @include mixins.media-breakpoint-up(md) {
+                padding: 8px 40px 16px 40px;
+            }
+
+            & > *:first-child {
+                margin-top: 0;
+            }
+        }
+
+        .modal-footer {
+            padding: 0 24px 24px;
+
+            @include mixins.media-breakpoint-up(md) {
+                padding: 8px 40px 40px;
+            }
+        }
+
+        &::backdrop {
+            background-color: func.color(vars.$modal-overlay-background-color);
+        }
+
+        &:focus {
+            outline: 0;
+        }
+    }
+
+    &[bottom-sheet] {
+        dialog {
+            margin: 0;
+            margin-top: auto;
+            align-self: stretch;
+            justify-self: stretch;
+            width: 100%;
+            max-width: none;
+            border-radius: 8px 8px 0 0;
+
+            translate: 0 100%;
+            transition: translate $-transition-speed ease-out;
+
+            &.bottom-sheet-open {
+                translate: 0 0;
+            }
+
+            &::backdrop {
+                background-color: transparent;
+                transition: background-color $-transition-speed ease-out;
+            }
+
+            &.bottom-sheet-open::backdrop {
+                background-color: func.color(vars.$modal-overlay-background-color);
+            }
+
+            .modal-header {
+                border-bottom: 1px solid #1a1a1a;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 16px 24px;
+
+                .modal-title {
+                    margin: 0;
+                }
+
+                .modal-close {
+                    position: static;
+                }
+            }
+
+            .modal-body {
+                padding: 32px 24px 16px;
+            }
+        }
+    }
+}
+
+html:has(dialog:modal) {
+    overflow: hidden;
+}

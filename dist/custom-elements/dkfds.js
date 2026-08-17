@@ -59,7 +59,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerDatePicker: () => (/* reexport */ fds_date_picker),
   registerDatePickerGrid: () => (/* reexport */ fds_date_picker_grid),
   registerDrawer: () => (/* reexport */ fds_drawer),
-  registerDrawerButton: () => (/* reexport */ fds_drawer_button),
+  registerDrawerOpener: () => (/* reexport */ fds_drawer_opener),
   registerDropdownMenu: () => (/* reexport */ fds_dropdown_menu),
   registerErrorMessage: () => (/* reexport */ fds_error_message),
   registerErrorSummary: () => (/* reexport */ fds_error_summary),
@@ -68,6 +68,9 @@ __webpack_require__.d(__webpack_exports__, {
   registerInput: () => (/* reexport */ fds_input),
   registerInputAffix: () => (/* reexport */ input_affix),
   registerMainMenu: () => (/* reexport */ fds_main_menu),
+  registerModal: () => (/* reexport */ fds_modal),
+  registerModalCloser: () => (/* reexport */ fds_modal_closer),
+  registerModalOpener: () => (/* reexport */ fds_modal_opener),
   registerPortalInfo: () => (/* reexport */ fds_portal_info),
   registerRadioButton: () => (/* reexport */ fds_radio_button),
   registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
@@ -5930,10 +5933,10 @@ class FDSDrawer extends HTMLElement {
       this.removeAttribute('open');
       document.removeEventListener('fds.modal.shown', this.#handleCloseClick, false);
       document.removeEventListener('keydown', this.#handleKeydown, false);
-      const drawerButton = document.querySelector(`fds-drawer-button[drawer=${this.id}] button`);
-      const visibleDrawerButton = isVisibleAndFocusable(drawerButton);
-      if (visibleDrawerButton) {
-        drawerButton.focus();
+      const drawerOpener = document.querySelector(`fds-drawer-opener[drawer=${this.id}] button`);
+      const visibleDrawerOpener = isVisibleAndFocusable(drawerOpener);
+      if (visibleDrawerOpener) {
+        drawerOpener.focus();
       }
     }
   }
@@ -6022,9 +6025,9 @@ function registerDrawer() {
   }
 }
 /* harmony default export */ const fds_drawer = (registerDrawer);
-;// ./src/js/custom-elements/header/fds-drawer-button.js
+;// ./src/js/custom-elements/header/fds-drawer-opener.js
 
-class FDSDrawerButton extends HTMLElement {
+class FDSDrawerOpener extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
   static observedAttributes = ['drawer', 'button-text'];
@@ -6102,12 +6105,12 @@ class FDSDrawerButton extends HTMLElement {
 
   // #endregion
 }
-function registerDrawerButton() {
-  if (customElements.get('fds-drawer-button') === undefined) {
-    window.customElements.define('fds-drawer-button', FDSDrawerButton);
+function registerDrawerOpener() {
+  if (customElements.get('fds-drawer-opener') === undefined) {
+    window.customElements.define('fds-drawer-opener', FDSDrawerOpener);
   }
 }
-/* harmony default export */ const fds_drawer_button = (registerDrawerButton);
+/* harmony default export */ const fds_drawer_opener = (registerDrawerOpener);
 ;// ./src/js/custom-elements/header/fds-portal-info-styling.js
 /**
  * Breakpoint is passed as a parameter rather than read from a CSS custom property
@@ -6176,7 +6179,7 @@ class FDSPortalInfo extends HTMLElement {
 
   // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
-  #handleSlotDrawerButtonChange = event => {
+  #handleSlotDrawerOpenerChange = event => {
     event.target.assignedElements().forEach(element => {
       element.classList.add('ml-auto');
     });
@@ -6242,12 +6245,12 @@ class FDSPortalInfo extends HTMLElement {
         divWrapper.appendChild(portalLogo);
       }
 
-      // --- Drawer button ---
-      let drawerButtonSlot = divWrapper.querySelector('slot[name="drawer-button"]');
-      if (!drawerButtonSlot) {
-        drawerButtonSlot = document.createElement('slot');
-        drawerButtonSlot.name = 'drawer-button';
-        divWrapper.appendChild(drawerButtonSlot);
+      // --- Drawer opener ---
+      let drawerOpenerSlot = divWrapper.querySelector('slot[name="drawer-opener"]');
+      if (!drawerOpenerSlot) {
+        drawerOpenerSlot = document.createElement('slot');
+        drawerOpenerSlot.name = 'drawer-opener';
+        divWrapper.appendChild(drawerOpenerSlot);
       }
 
       // --- User wrapper ---
@@ -6276,12 +6279,12 @@ class FDSPortalInfo extends HTMLElement {
     }
   }
   #addEventListeners() {
-    this.shadowRoot.querySelector('slot[name="drawer-button"]')?.addEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+    this.shadowRoot.querySelector('slot[name="drawer-opener"]')?.addEventListener('slotchange', this.#handleSlotDrawerOpenerChange);
     this.shadowRoot.querySelector('slot[name="user"]')?.addEventListener('slotchange', this.#handleSlotUserChange);
     this.shadowRoot.querySelector('slot[name="log-off-button"]')?.addEventListener('slotchange', this.#handleSlotLogOffButtonChange);
   }
   #removeEventListeners() {
-    this.shadowRoot.querySelector('slot[name="drawer-button"]')?.removeEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+    this.shadowRoot.querySelector('slot[name="drawer-opener"]')?.removeEventListener('slotchange', this.#handleSlotDrawerOpenerChange);
     this.shadowRoot.querySelector('slot[name="user"]')?.removeEventListener('slotchange', this.#handleSlotUserChange);
     this.shadowRoot.querySelector('slot[name="log-off-button"]')?.removeEventListener('slotchange', this.#handleSlotLogOffButtonChange);
   }
@@ -6396,7 +6399,7 @@ class FDSSolutionInfo extends HTMLElement {
 
   // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
-  #handleSlotDrawerButtonChange = event => {
+  #handleSlotDrawerOpenerChange = event => {
     event.target.assignedElements().forEach(element => {
       element.classList.add('ml-auto');
     });
@@ -6448,20 +6451,20 @@ class FDSSolutionInfo extends HTMLElement {
         divWrapper.appendChild(additionalInfo);
       }
 
-      // --- Drawer button ---
-      let drawerButtonSlot = divWrapper.querySelector('slot[name="drawer-button"]');
-      if (!drawerButtonSlot) {
-        drawerButtonSlot = document.createElement('slot');
-        drawerButtonSlot.name = 'drawer-button';
-        divWrapper.appendChild(drawerButtonSlot);
+      // --- Drawer opener ---
+      let drawerOpenerSlot = divWrapper.querySelector('slot[name="drawer-opener"]');
+      if (!drawerOpenerSlot) {
+        drawerOpenerSlot = document.createElement('slot');
+        drawerOpenerSlot.name = 'drawer-opener';
+        divWrapper.appendChild(drawerOpenerSlot);
       }
     }
   }
   #addEventListeners() {
-    this.shadowRoot.querySelector('slot[name="drawer-button"]')?.addEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+    this.shadowRoot.querySelector('slot[name="drawer-opener"]')?.addEventListener('slotchange', this.#handleSlotDrawerOpenerChange);
   }
   #removeEventListeners() {
-    this.shadowRoot.querySelector('slot[name="drawer-button"]')?.removeEventListener('slotchange', this.#handleSlotDrawerButtonChange);
+    this.shadowRoot.querySelector('slot[name="drawer-opener"]')?.removeEventListener('slotchange', this.#handleSlotDrawerOpenerChange);
   }
 
   // #endregion
@@ -7379,7 +7382,9 @@ class FDSTooltipIcon extends HTMLElement {
   #handleKeydown = event => {
     switch (event.key) {
       case 'Escape':
-        if (this.querySelector('button').getAttribute('aria-expanded') !== 'false') {
+        // #handleDialogCancel handles presses on Escape so #handleKeydown should be ignored inside dialogs
+        const notInsideDialog = !this.closest('dialog');
+        if (this.querySelector('button').getAttribute('aria-expanded') !== 'false' && notInsideDialog) {
           this.close();
           this.querySelector('button').focus();
           event.stopImmediatePropagation();
@@ -7404,6 +7409,12 @@ class FDSTooltipIcon extends HTMLElement {
     if (!this.contains(event.target)) {
       this.close();
     }
+  };
+
+  // Closes the tooltip instead of the dialog when Escape is pressed inside a dialog
+  #handleDialogCancel = event => {
+    event.preventDefault();
+    this.close();
   };
 
   // #endregion
@@ -7498,7 +7509,11 @@ class FDSTooltipIcon extends HTMLElement {
     window.addEventListener('resize', this.#handleResize, false);
     document.addEventListener('mousedown', this.#handleOutsideClick, false);
     document.addEventListener('scroll', this.#handleScroll, true);
+    document.addEventListener('keydown', this.#handleKeydown, false);
     this.#connectIntersectionObserver();
+
+    // Let the tooltip consume Escape key press before an ancestor dialog does
+    this.closest('dialog')?.addEventListener('cancel', this.#handleDialogCancel);
   }
   close() {
     this.querySelector('button').setAttribute('aria-expanded', 'false');
@@ -7508,7 +7523,9 @@ class FDSTooltipIcon extends HTMLElement {
     window.removeEventListener('resize', this.#handleResize, false);
     document.removeEventListener('mousedown', this.#handleOutsideClick, false);
     document.removeEventListener('scroll', this.#handleScroll, true);
+    document.removeEventListener('keydown', this.#handleKeydown, false);
     this.#disconnectIntersectionObserver();
+    this.closest('dialog')?.removeEventListener('cancel', this.#handleDialogCancel);
   }
   toggle() {
     this.querySelector('button').getAttribute('aria-expanded') === 'false' ? this.open() : this.close();
@@ -7731,10 +7748,441 @@ function registerToggleSwitch() {
   }
 }
 /* harmony default export */ const fds_toggle_switch = (registerToggleSwitch);
+;// ./src/js/custom-elements/modal/fds-modal-opener.js
+class FDSModalOpener extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['dialog-id', 'ready'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get dialogId() {
+    return this.getAttribute('dialog-id');
+  }
+  set dialogId(value) {
+    value == null ? this.removeAttribute('dialog-id') : this.setAttribute('dialog-id', value);
+  }
+  get ready() {
+    return this.getAttribute('ready') !== 'false';
+  }
+  set ready(value) {
+    this.setAttribute('ready', value ? 'true' : 'false');
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleClick = () => {
+    const dialog = document.getElementById(this.dialogId);
+    if (!dialog) return;
+    dialog.showModal();
+    const modal = dialog.closest('fds-modal');
+    if (modal?.hasAttribute('bottom-sheet')) {
+      // Ensures the closed state is painted first, otherwise the slide-up transition may be skipped
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          dialog.classList.add('bottom-sheet-open');
+        });
+      });
+    }
+    this.dispatchEvent(new CustomEvent('fds-modal-opener-click', {
+      bubbles: true,
+      detail: {
+        dialogId: this.dialogId
+      }
+    }));
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    const opener = this.firstElementChild;
+    if (opener?.tagName === 'BUTTON' || opener?.tagName === 'INPUT' && opener.type === 'button') {
+      opener.setAttribute('aria-haspopup', 'dialog');
+    }
+  }
+  #addEventListeners() {
+    this.firstElementChild?.addEventListener('click', this.#handleClick);
+  }
+  #removeEventListeners() {
+    this.firstElementChild?.removeEventListener('click', this.#handleClick);
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  init() {
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+  }
+
+  // #endregion
+}
+function registerModalOpener() {
+  if (!customElements.get('fds-modal-opener')) {
+    customElements.define('fds-modal-opener', FDSModalOpener);
+  }
+}
+/* harmony default export */ const fds_modal_opener = (registerModalOpener);
+;// ./src/js/custom-elements/modal/fds-modal-closer.js
+class FDSModalCloser extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['return-value', 'ready'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get returnValue() {
+    return this.getAttribute('return-value');
+  }
+  set returnValue(value) {
+    value == null ? this.removeAttribute('return-value') : this.setAttribute('return-value', value);
+  }
+  get ready() {
+    return this.getAttribute('ready') !== 'false';
+  }
+  set ready(value) {
+    this.setAttribute('ready', value ? 'true' : 'false');
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleClick = () => {
+    const dialog = this.closest('dialog');
+    if (!dialog) return;
+    const returnValue = this.returnValue ?? undefined;
+    const event = new CustomEvent('fds-modal-closer-click', {
+      bubbles: true,
+      cancelable: true,
+      detail: {
+        returnValue
+      }
+    });
+
+    // dispatchEvent() returns false if preventDefault() was called from an event handler.
+    // This may happen for bottom sheets where closing the modal requires animation.
+    const notPrevented = this.dispatchEvent(event);
+    if (notPrevented) {
+      dialog.close(returnValue);
+    }
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #addEventListeners() {
+    this.firstElementChild?.addEventListener('click', this.#handleClick);
+  }
+  #removeEventListeners() {
+    this.firstElementChild?.removeEventListener('click', this.#handleClick);
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  init() {
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+  }
+
+  // #endregion
+}
+function registerModalCloser() {
+  if (!customElements.get('fds-modal-closer')) {
+    customElements.define('fds-modal-closer', FDSModalCloser);
+  }
+}
+/* harmony default export */ const fds_modal_closer = (registerModalCloser);
+;// ./src/js/custom-elements/modal/fds-modal.js
+class FDSModal extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['ready', 'dismissible', 'bottom-sheet'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get ready() {
+    return this.getAttribute('ready') !== 'false';
+  }
+  set ready(value) {
+    this.setAttribute('ready', value ? 'true' : 'false');
+  }
+  get dismissible() {
+    return this.getAttribute('dismissible') !== 'false';
+  }
+  set dismissible(value) {
+    this.setAttribute('dismissible', value ? 'true' : 'false');
+  }
+  get bottomSheet() {
+    return this.hasAttribute('bottom-sheet');
+  }
+  set bottomSheet(value) {
+    value ? this.setAttribute('bottom-sheet', '') : this.removeAttribute('bottom-sheet');
+  }
+  get dialog() {
+    return this.querySelector('dialog');
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+  #closing = false;
+  #storedReturnValue = (() => undefined)();
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleClose = () => {
+    this.dialog.classList.remove('bottom-sheet-open');
+
+    // Clean up in case the dialog closed some other way before the exit
+    // transition finished (e.g. Escape interrupting a bottom sheet's animation)
+    if (this.#closing) {
+      this.dialog.removeEventListener('transitionend', this.#handleTransitionEnd);
+      this.#closing = false;
+      this.#storedReturnValue = undefined;
+    }
+    this.dispatchEvent(new CustomEvent('fds-modal-close', {
+      bubbles: true,
+      detail: {
+        returnValue: this.dialog.returnValue
+      }
+    }));
+  };
+
+  // Blocks Escape/back button/requestClose() when not dismissible (Safari)
+  #handleCancel = event => {
+    if (!this.dismissible) {
+      event.preventDefault();
+    }
+  };
+  #handleBackdropClick = event => {
+    if (!this.dismissible) return;
+
+    // Using the keyboard to interact with modal content can register as clicks outside the dialog.
+    // Ignore these events by ensuring the event target is the dialog.
+    if (event.target !== this.dialog) return;
+    const rect = this.dialog.getBoundingClientRect();
+    const clickedBackdrop = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
+    if (!clickedBackdrop) return;
+    if (this.bottomSheet) {
+      this.#animateClose('');
+    } else {
+      this.dialog.close('');
+    }
+  };
+  #handleCloserClick = event => {
+    if (!this.bottomSheet) return;
+    event.preventDefault();
+    this.#animateClose(event.detail?.returnValue);
+  };
+  #handleTransitionEnd = event => {
+    if (event.propertyName !== 'translate' || event.target !== this.dialog) return;
+    this.dialog.removeEventListener('transitionend', this.#handleTransitionEnd);
+    this.#closing = false;
+    this.dialog.close(this.#storedReturnValue);
+    this.#storedReturnValue = undefined;
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  // Sets closedby="none" when not dismissible (Chrome/Firefox). Not supported in Safari.
+  #updateClosedBy() {
+    if (!this.dialog) return;
+    if (this.dismissible) {
+      this.dialog.removeAttribute('closedby');
+    } else {
+      this.dialog.setAttribute('closedby', 'none');
+    }
+  }
+  #animateClose(returnValue) {
+    if (this.#closing) return; // Already closing, ignore duplicate requests
+
+    this.dialog.classList.remove('bottom-sheet-open');
+    this.#closing = true;
+    this.#storedReturnValue = returnValue;
+    this.dialog.addEventListener('transitionend', this.#handleTransitionEnd);
+  }
+  #addEventListeners() {
+    this.dialog?.addEventListener('close', this.#handleClose);
+    this.dialog?.addEventListener('cancel', this.#handleCancel);
+    this.dialog?.addEventListener('click', this.#handleBackdropClick);
+    this.addEventListener('fds-modal-closer-click', this.#handleCloserClick);
+  }
+  #removeEventListeners() {
+    this.dialog?.removeEventListener('close', this.#handleClose);
+    this.dialog?.removeEventListener('cancel', this.#handleCancel);
+    this.dialog?.removeEventListener('click', this.#handleBackdropClick);
+    this.removeEventListener('fds-modal-closer-click', this.#handleCloserClick);
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  init() {
+    this.#updateClosedBy();
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    if (this.#closing) {
+      this.dialog?.removeEventListener('transitionend', this.#handleTransitionEnd);
+      this.#closing = false;
+      this.#storedReturnValue = undefined;
+    }
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'dismissible':
+        this.#updateClosedBy();
+        break;
+      case 'bottom-sheet':
+        if (this.dialog?.open) {
+          this.dialog.classList.add('bottom-sheet-open');
+        }
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerModal() {
+  if (!customElements.get('fds-modal')) {
+    customElements.define('fds-modal', FDSModal);
+  }
+}
+/* harmony default export */ const fds_modal = (registerModal);
 ;// ./src/js/new-dkfds.js
 
 
 // Custom elements
+
+
+
 
 
 
@@ -7784,7 +8232,7 @@ const registerCustomElements = () => {
   fds_error_summary();
   input_affix();
   fds_drawer();
-  fds_drawer_button();
+  fds_drawer_opener();
   fds_portal_info();
   fds_solution_info();
   fds_dropdown_menu();
@@ -7792,6 +8240,9 @@ const registerCustomElements = () => {
   fds_tooltip();
   fds_tooltip_icon();
   fds_toggle_switch();
+  fds_modal_opener();
+  fds_modal_closer();
+  fds_modal();
 };
 registerCustomElements();
 

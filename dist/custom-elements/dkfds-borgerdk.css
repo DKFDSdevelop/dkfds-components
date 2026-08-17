@@ -7071,10 +7071,20 @@ body{
     display:none;
   }
   .fds-modal{
-    position:static;
+    position:static !important;
   }
   .modal-backdrop{
-    display:none;
+    display:none !important;
+  }
+  fds-modal dialog[open]{
+    position:static;
+    overflow:visible;
+    max-height:none;
+    height:auto;
+  }
+  fds-modal dialog::backdrop{
+    opacity:1 !important;
+    background-color:#ffffff !important;
   }
 }
 @media print and (max-width: 767px){
@@ -7210,7 +7220,8 @@ body{
   .toggle-element .toggle-button[aria-checked=true]::after{
     border-color:#1a1a1a;
   }
-  .tooltip-wrapper .tooltip, .tooltip-wrapper .tooltip-arrow{
+  .tooltip-wrapper .tooltip,
+  .tooltip-wrapper .tooltip-arrow{
     display:none;
   }
 }
@@ -7681,12 +7692,12 @@ body{
   display:flex;
   flex-wrap:wrap;
 }
-.button-group .button, .button-group .button-wrapper{
+.button-group > .button, .button-group > .button-wrapper{
   margin-right:16px;
   margin-top:8px;
   margin-bottom:8px;
 }
-.button-group .button:last-child, .button-group .button-wrapper:last-child{
+.button-group > .button:last-child, .button-group > .button-wrapper:last-child{
   margin-right:0;
 }
 
@@ -12193,12 +12204,12 @@ fds-drawer .mobile-drawer .menu-top .button-menu-close,
   visibility:visible;
 }
 
-fds-drawer-button,
-.fds-drawer-button{
+fds-drawer-opener,
+.fds-drawer-opener{
   display:inline-block;
 }
-fds-drawer-button button,
-.fds-drawer-button button{
+fds-drawer-opener button,
+.fds-drawer-opener button{
   width:auto;
   white-space:nowrap;
   background:none;
@@ -12216,21 +12227,21 @@ fds-drawer-button button,
   overflow-wrap:break-word;
   max-width:100%;
 }
-fds-drawer-button button:hover, fds-drawer-button button:visited, fds-drawer-button button:focus,
-.fds-drawer-button button:hover,
-.fds-drawer-button button:visited,
-.fds-drawer-button button:focus{
+fds-drawer-opener button:hover, fds-drawer-opener button:visited, fds-drawer-opener button:focus,
+.fds-drawer-opener button:hover,
+.fds-drawer-opener button:visited,
+.fds-drawer-opener button:focus{
   color:#1a1a1a;
 }
-fds-drawer-button button .icon-svg,
-.fds-drawer-button button .icon-svg{
+fds-drawer-opener button .icon-svg,
+.fds-drawer-opener button .icon-svg{
   margin-right:4px;
   fill:currentColor;
   vertical-align:top;
   margin-top:0.1rem;
 }
-fds-drawer-button button span,
-.fds-drawer-button button span{
+fds-drawer-opener button span,
+.fds-drawer-opener button span{
   text-decoration:underline;
 }
 
@@ -13235,6 +13246,113 @@ fds-toggle-switch button[role=switch]:disabled:hover::before,
 fds-toggle-switch button[role=switch]:disabled span,
 .fds-toggle-switch button[role=switch]:disabled span{
   color:#1a1a1a;
+}
+
+fds-modal{
+  display:block;
+}
+fds-modal dialog{
+  max-width:800px;
+  width:calc(100% - 32px);
+  padding:0;
+  border:0;
+  border-radius:8px;
+  box-shadow:0 8px 24px 0 rgba(0, 0, 0, 0.2);
+  margin-left:auto;
+  margin-right:auto;
+}
+fds-modal dialog .modal-header{
+  padding:16px 24px 0;
+}
+@media (min-width: 768px){
+  fds-modal dialog .modal-header{
+    padding:40px 40px 8px;
+  }
+}
+fds-modal dialog .modal-header .modal-title{
+  margin:24px 48px 8px 0;
+}
+@media (min-width: 768px){
+  fds-modal dialog .modal-header .modal-title{
+    margin:0 48px 0 0;
+  }
+}
+fds-modal dialog .modal-header .modal-close{
+  position:absolute;
+  top:8px;
+  right:8px;
+}
+@media (min-width: 768px){
+  fds-modal dialog .modal-header .modal-close{
+    top:24px;
+    right:32px;
+  }
+}
+fds-modal dialog .modal-body{
+  padding:0 24px 8px 24px;
+}
+@media (min-width: 768px){
+  fds-modal dialog .modal-body{
+    padding:8px 40px 16px 40px;
+  }
+}
+fds-modal dialog .modal-body > *:first-child{
+  margin-top:0;
+}
+fds-modal dialog .modal-footer{
+  padding:0 24px 24px;
+}
+@media (min-width: 768px){
+  fds-modal dialog .modal-footer{
+    padding:8px 40px 40px;
+  }
+}
+fds-modal dialog::backdrop{
+  background-color:rgba(0, 0, 0, 0.4);
+}
+fds-modal dialog:focus{
+  outline:0;
+}
+fds-modal[bottom-sheet] dialog{
+  margin:0;
+  margin-top:auto;
+  align-self:stretch;
+  justify-self:stretch;
+  width:100%;
+  max-width:none;
+  border-radius:8px 8px 0 0;
+  translate:0 100%;
+  transition:translate 0.25s ease-out;
+}
+fds-modal[bottom-sheet] dialog.bottom-sheet-open{
+  translate:0 0;
+}
+fds-modal[bottom-sheet] dialog::backdrop{
+  background-color:transparent;
+  transition:background-color 0.25s ease-out;
+}
+fds-modal[bottom-sheet] dialog.bottom-sheet-open::backdrop{
+  background-color:rgba(0, 0, 0, 0.4);
+}
+fds-modal[bottom-sheet] dialog .modal-header{
+  border-bottom:1px solid #1a1a1a;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:16px 24px;
+}
+fds-modal[bottom-sheet] dialog .modal-header .modal-title{
+  margin:0;
+}
+fds-modal[bottom-sheet] dialog .modal-header .modal-close{
+  position:static;
+}
+fds-modal[bottom-sheet] dialog .modal-body{
+  padding:32px 24px 16px;
+}
+
+html:has(dialog:modal){
+  overflow:hidden;
 }
 
 .fds-side-menu ul,
