@@ -13335,7 +13335,7 @@ fds-modal[bottom-sheet] dialog.bottom-sheet-open::backdrop{
   background-color:rgba(0, 0, 0, 0.4);
 }
 fds-modal[bottom-sheet] dialog .modal-header{
-  border-bottom:1px solid #1a1a1a;
+  border-bottom:1px solid #8E8E8E;
   display:flex;
   justify-content:space-between;
   align-items:center;
