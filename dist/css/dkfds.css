@@ -8041,13 +8041,18 @@ button.accordion-bulk-button[data-accordion-bulk-expand=false]{
   }
 }
 @media (min-width: 1200px){
-  .cookie-container .cookie-message .cookie-text, .cookie-container .cookie-message .cookie-actions{
+  .cookie-container .cookie-message .cookie-text,
+  .cookie-container .cookie-message .cookie-actions{
     padding-left:40px;
     padding-right:40px;
   }
 }
 .cookie-container .cookie-message .cookie-actions{
   margin-top:16px;
+}
+
+.cookie-logo{
+  margin-bottom:16px;
 }
 
 .details{
@@ -10598,7 +10603,7 @@ a.skipnav:focus{
   overflow:hidden;
 }
 .fds-modal.modal-step-indicator .modal-content .modal-header{
-  border-bottom:1px solid #1a1a1a;
+  border-bottom:1px solid #8E8E8E;
   padding:16px 24px;
 }
 .fds-modal.modal-step-indicator .modal-content .modal-header .modal-title{
