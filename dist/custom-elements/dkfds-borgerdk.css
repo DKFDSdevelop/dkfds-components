@@ -7082,6 +7082,9 @@ body{
     max-height:none;
     height:auto;
   }
+  fds-modal dialog[open] .scrollable-area{
+    overflow:visible;
+  }
   fds-modal dialog::backdrop{
     opacity:1 !important;
     background-color:#ffffff !important;
@@ -7745,10 +7748,6 @@ body{
 }
 .cookie-container .cookie-message .cookie-actions{
   margin-top:16px;
-}
-
-.cookie-logo{
-  margin-bottom:16px;
 }
 
 .details{
@@ -13258,59 +13257,23 @@ fds-modal{
 }
 fds-modal dialog{
   max-width:800px;
+  max-height:calc(100% - 32px);
   width:calc(100% - 32px);
   padding:0;
   border:0;
   border-radius:8px;
   box-shadow:0 8px 24px 0 rgba(0, 0, 0, 0.2);
-  margin-left:auto;
-  margin-right:auto;
+  margin:auto;
+  overflow-y:hidden;
 }
-fds-modal dialog .modal-header{
-  padding:16px 24px 0;
+fds-modal dialog[open]{
+  display:flex;
+  flex-direction:column;
 }
-@media (min-width: 768px){
-  fds-modal dialog .modal-header{
-    padding:40px 40px 8px;
-  }
-}
-fds-modal dialog .modal-header .modal-title{
-  margin:24px 48px 8px 0;
-}
-@media (min-width: 768px){
-  fds-modal dialog .modal-header .modal-title{
-    margin:0 48px 0 0;
-  }
-}
-fds-modal dialog .modal-header .modal-close{
-  position:absolute;
-  top:8px;
-  right:8px;
-}
-@media (min-width: 768px){
-  fds-modal dialog .modal-header .modal-close{
-    top:24px;
-    right:32px;
-  }
-}
-fds-modal dialog .modal-body{
-  padding:0 24px 8px 24px;
-}
-@media (min-width: 768px){
-  fds-modal dialog .modal-body{
-    padding:8px 40px 16px 40px;
-  }
-}
-fds-modal dialog .modal-body > *:first-child{
-  margin-top:0;
-}
-fds-modal dialog .modal-footer{
-  padding:0 24px 24px;
-}
-@media (min-width: 768px){
-  fds-modal dialog .modal-footer{
-    padding:8px 40px 40px;
-  }
+fds-modal dialog > form{
+  display:flex;
+  flex-direction:column;
+  overflow-y:hidden;
 }
 fds-modal dialog::backdrop{
   background-color:rgba(0, 0, 0, 0.4);
@@ -13318,14 +13281,76 @@ fds-modal dialog::backdrop{
 fds-modal dialog:focus{
   outline:0;
 }
+fds-modal dialog .scrollable-area,
+fds-modal dialog .fixed-area{
+  padding:24px;
+  position:relative;
+  overflow-wrap:break-word;
+}
+@media (min-width: 768px){
+  fds-modal dialog .scrollable-area,
+  fds-modal dialog .fixed-area{
+    padding:40px;
+  }
+}
+fds-modal dialog .scrollable-area{
+  overflow-y:auto;
+  flex:1 1 auto;
+  position:relative;
+}
+fds-modal dialog .scrollable-area > fds-modal-closer:last-child, fds-modal dialog .scrollable-area > .button-group:last-child{
+  margin-top:16px;
+}
+@media (min-width: 768px){
+  fds-modal dialog .scrollable-area > fds-modal-closer:last-child, fds-modal dialog .scrollable-area > .button-group:last-child{
+    margin-top:32px;
+  }
+}
+fds-modal dialog .fixed-area{
+  overflow-y:hidden;
+  flex-shrink:0;
+}
+fds-modal dialog .modal-title{
+  margin-top:1.6rem;
+  margin-bottom:0.8rem;
+  overflow:hidden;
+}
+@media (min-width: 768px){
+  fds-modal dialog .modal-title{
+    margin-top:0;
+    margin-bottom:1.6rem;
+  }
+}
+fds-modal dialog .modal-close{
+  position:absolute;
+  top:8px;
+  right:8px;
+}
+@media (min-width: 768px){
+  fds-modal dialog .modal-close{
+    top:24px;
+    right:32px;
+  }
+}
+fds-modal dialog .cookie-logo{
+  margin-bottom:0;
+}
+@media (min-width: 768px){
+  fds-modal dialog .cookie-logo{
+    margin-bottom:16px;
+  }
+}
+fds-modal dialog:has(.fixed-area) .scrollable-area{
+  scrollbar-gutter:stable;
+}
 fds-modal[bottom-sheet] dialog{
   margin:0;
   margin-top:auto;
-  align-self:stretch;
-  justify-self:stretch;
   width:100%;
   max-width:none;
   border-radius:8px 8px 0 0;
+  max-height:90vh;
+  min-height:40vh;
   translate:0 100%;
   transition:translate 0.25s ease-out;
 }
@@ -13339,25 +13364,30 @@ fds-modal[bottom-sheet] dialog::backdrop{
 fds-modal[bottom-sheet] dialog.bottom-sheet-open::backdrop{
   background-color:rgba(0, 0, 0, 0.4);
 }
-fds-modal[bottom-sheet] dialog .modal-header{
+fds-modal[bottom-sheet] dialog .fixed-area{
   border-bottom:1px solid #8E8E8E;
   display:flex;
   justify-content:space-between;
   align-items:center;
   padding:16px 24px;
 }
-fds-modal[bottom-sheet] dialog .modal-header .modal-title{
+fds-modal[bottom-sheet] dialog .fixed-area .modal-title{
   margin:0;
 }
-fds-modal[bottom-sheet] dialog .modal-header .modal-close{
+fds-modal[bottom-sheet] dialog .fixed-area .modal-close{
   position:static;
 }
-fds-modal[bottom-sheet] dialog .modal-body{
+fds-modal[bottom-sheet] dialog .scrollable-area{
   padding:32px 24px 16px;
 }
 
 html:has(dialog:modal){
   overflow:hidden;
+}
+
+fds-modal-closer,
+fds-modal-opener{
+  display:block;
 }
 
 .fds-side-menu ul,

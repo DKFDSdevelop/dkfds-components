@@ -8051,10 +8051,6 @@ button.accordion-bulk-button[data-accordion-bulk-expand=false]{
   margin-top:16px;
 }
 
-.cookie-logo{
-  margin-bottom:16px;
-}
-
 .details{
   display:block;
   margin-bottom:32px;
@@ -12263,6 +12259,9 @@ textarea.no-resize{
     overflow:visible;
     max-height:none;
     height:auto;
+  }
+  fds-modal dialog[open] .scrollable-area{
+    overflow:visible;
   }
   fds-modal dialog::backdrop{
     opacity:1 !important;
