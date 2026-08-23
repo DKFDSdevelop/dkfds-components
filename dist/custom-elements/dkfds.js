@@ -8022,6 +8022,7 @@ class FDSModal extends HTMLElement {
   #initialized = false;
   #closing = false;
   #storedReturnValue = (() => undefined)();
+  #resizeObserver = null;
 
   // #endregion
 
@@ -8078,6 +8079,14 @@ class FDSModal extends HTMLElement {
     this.dialog.close(this.#storedReturnValue);
     this.#storedReturnValue = undefined;
   };
+  #handleBottomFade = () => {
+    const scrollableArea = this.dialog?.querySelector('.scrollable-area.has-fade');
+    if (!scrollableArea) return;
+    const distanceFromBottom = scrollableArea.scrollHeight - scrollableArea.scrollTop - scrollableArea.clientHeight;
+    const atBottom = distanceFromBottom <= 1; // 1 used instead of 0 for a small tolerance margin
+
+    atBottom ? scrollableArea.setAttribute('data-at-bottom', '') : scrollableArea.removeAttribute('data-at-bottom');
+  };
 
   // #endregion
 
@@ -8104,13 +8113,28 @@ class FDSModal extends HTMLElement {
     this.dialog?.addEventListener('close', this.#handleClose);
     this.dialog?.addEventListener('cancel', this.#handleCancel);
     this.dialog?.addEventListener('click', this.#handleBackdropClick);
+    this.dialog?.querySelector('.scrollable-area.has-fade')?.addEventListener('scroll', this.#handleBottomFade);
     this.addEventListener('fds-modal-closer-click', this.#handleCloserClick);
   }
   #removeEventListeners() {
     this.dialog?.removeEventListener('close', this.#handleClose);
     this.dialog?.removeEventListener('cancel', this.#handleCancel);
     this.dialog?.removeEventListener('click', this.#handleBackdropClick);
+    this.dialog?.querySelector('.scrollable-area.has-fade')?.removeEventListener('scroll', this.#handleBottomFade);
     this.removeEventListener('fds-modal-closer-click', this.#handleCloserClick);
+  }
+  #connectResizeObserver() {
+    if (this.#resizeObserver) return;
+    const scrollableArea = this.dialog?.querySelector('.scrollable-area.has-fade');
+    if (!scrollableArea) return;
+    this.#resizeObserver = new ResizeObserver(this.#handleBottomFade);
+    this.#resizeObserver.observe(scrollableArea);
+  }
+  #disconnectResizeObserver() {
+    if (this.#resizeObserver) {
+      this.#resizeObserver.disconnect();
+      this.#resizeObserver = null;
+    }
   }
 
   // #endregion
@@ -8120,6 +8144,7 @@ class FDSModal extends HTMLElement {
   init() {
     this.#updateClosedBy();
     this.#addEventListeners();
+    this.#connectResizeObserver();
     this.#initialized = true;
   }
 
@@ -8138,6 +8163,7 @@ class FDSModal extends HTMLElement {
 
   disconnectedCallback() {
     this.#removeEventListeners();
+    this.#disconnectResizeObserver();
     if (this.#closing) {
       this.dialog?.removeEventListener('transitionend', this.#handleTransitionEnd);
       this.#closing = false;
