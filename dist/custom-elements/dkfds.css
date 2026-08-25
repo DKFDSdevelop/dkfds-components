@@ -13276,7 +13276,7 @@ fds-modal dialog > form{
   overflow-y:hidden;
 }
 fds-modal dialog::backdrop{
-  background-color:rgba(0, 0, 0, 0.4);
+  background-color:rgba(26, 26, 26, 0.6);
 }
 fds-modal dialog:focus{
   outline:0;
@@ -13351,7 +13351,7 @@ fds-modal dialog .cookie-logo{
 fds-modal dialog:has(.fixed-area) .scrollable-area{
   scrollbar-gutter:stable;
 }
-fds-modal[bottom-sheet] dialog{
+fds-modal[variant=bottom-sheet] dialog{
   margin:0;
   margin-top:auto;
   width:100%;
@@ -13362,31 +13362,73 @@ fds-modal[bottom-sheet] dialog{
   translate:0 100%;
   transition:translate 0.25s ease-out;
 }
-fds-modal[bottom-sheet] dialog.bottom-sheet-open{
+fds-modal[variant=bottom-sheet] dialog.bottom-sheet-open{
   translate:0 0;
 }
-fds-modal[bottom-sheet] dialog::backdrop{
+fds-modal[variant=bottom-sheet] dialog::backdrop{
   background-color:transparent;
   transition:background-color 0.25s ease-out;
 }
-fds-modal[bottom-sheet] dialog.bottom-sheet-open::backdrop{
-  background-color:rgba(0, 0, 0, 0.4);
+fds-modal[variant=bottom-sheet] dialog.bottom-sheet-open::backdrop{
+  background-color:rgba(26, 26, 26, 0.6);
 }
-fds-modal[bottom-sheet] dialog .fixed-area{
+fds-modal[variant=bottom-sheet] dialog .fixed-area{
   border-bottom:1px solid #8E8E8E;
   display:flex;
   justify-content:space-between;
   align-items:center;
   padding:16px 24px;
 }
-fds-modal[bottom-sheet] dialog .fixed-area .modal-title{
+fds-modal[variant=bottom-sheet] dialog .fixed-area .modal-title{
   margin:0;
 }
-fds-modal[bottom-sheet] dialog .fixed-area .modal-close{
+fds-modal[variant=bottom-sheet] dialog .fixed-area .modal-close{
   position:static;
 }
-fds-modal[bottom-sheet] dialog .scrollable-area{
+fds-modal[variant=bottom-sheet] dialog .scrollable-area{
   padding:32px 24px 16px;
+}
+fds-modal[variant=drawer] dialog{
+  margin:0;
+  margin-left:auto;
+  width:85%;
+  max-width:40rem;
+  height:100%;
+  max-height:100%;
+  border-radius:0;
+  translate:100% 0;
+  transition:translate 0.3s ease-in-out;
+}
+fds-modal[variant=drawer] dialog.drawer-open{
+  translate:0 0;
+}
+fds-modal[variant=drawer] dialog::backdrop{
+  background-color:transparent;
+  transition:background-color 0.3s ease-in-out;
+}
+fds-modal[variant=drawer] dialog.drawer-open::backdrop{
+  background-color:rgba(26, 26, 26, 0.6);
+}
+fds-modal[variant=drawer] dialog .drawer-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 24px;
+  min-height:48px;
+}
+fds-modal[variant=drawer] dialog .drawer-top .modal-title{
+  font-size:2rem;
+  margin:0;
+}
+fds-modal[variant=drawer] dialog .drawer-top .modal-close{
+  position:static;
+}
+fds-modal[variant=drawer] dialog .drawer-content{
+  padding-left:24px;
+  padding-right:24px;
+}
+fds-modal[variant=drawer] dialog .scrollable-area{
+  padding:0;
 }
 
 html:has(dialog:modal){

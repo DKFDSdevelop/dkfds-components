@@ -2,7 +2,9 @@
 @use "../functions" as func;
 @use "../mixins" as mixins;
 
-$-transition-speed: 0.25s;
+$-transition-speed-bottom-sheet: 0.25s;
+$-transition-speed-drawer: 0.3s;
+$-backdrop-color: rgba(26, 26, 26, 0.6);
 
 fds-modal {
     display: block;
@@ -30,7 +32,7 @@ fds-modal {
         }
 
         &::backdrop {
-            background-color: func.color(vars.$modal-overlay-background-color);
+            background-color: $-backdrop-color;
         }
 
         &:focus {
@@ -119,7 +121,7 @@ fds-modal {
         }
     }
 
-    &[bottom-sheet] {
+    &[variant="bottom-sheet"] {
         dialog {
             margin: 0;
             margin-top: auto;
@@ -130,7 +132,7 @@ fds-modal {
             min-height: 40vh;
 
             translate: 0 100%;
-            transition: translate $-transition-speed ease-out;
+            transition: translate $-transition-speed-bottom-sheet ease-out;
 
             &.bottom-sheet-open {
                 translate: 0 0;
@@ -138,11 +140,11 @@ fds-modal {
 
             &::backdrop {
                 background-color: transparent;
-                transition: background-color $-transition-speed ease-out;
+                transition: background-color $-transition-speed-bottom-sheet ease-out;
             }
 
             &.bottom-sheet-open::backdrop {
-                background-color: func.color(vars.$modal-overlay-background-color);
+                background-color: $-backdrop-color;
             }
 
             .fixed-area {
@@ -163,6 +165,60 @@ fds-modal {
 
             .scrollable-area {
                 padding: 32px 24px 16px;
+            }
+        }
+    }
+
+    &[variant="drawer"] {
+        dialog {
+            margin: 0;
+            margin-left: auto;
+            width: 85%;
+            max-width: 40rem;
+            height: 100%;
+            max-height: 100%;
+            border-radius: 0;
+
+            translate: 100% 0;
+            transition: translate $-transition-speed-drawer ease-in-out;
+
+            &.drawer-open {
+                translate: 0 0;
+            }
+
+            &::backdrop {
+                background-color: transparent;
+                transition: background-color $-transition-speed-drawer ease-in-out;
+            }
+
+            &.drawer-open::backdrop {
+                background-color: $-backdrop-color;
+            }
+
+            .drawer-top {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 8px 24px;
+                min-height: 48px;
+
+                .modal-title {
+                    font-size: 2rem;
+                    margin: 0;
+                }
+
+                .modal-close {
+                    position: static;
+                }
+            }
+
+            .drawer-content {
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+
+            .scrollable-area {
+                padding: 0;
             }
         }
     }
