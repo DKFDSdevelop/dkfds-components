@@ -2,14 +2,14 @@ class FDSModalOpener extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-    static observedAttributes = ['dialog-id', 'ready'];
+    static observedAttributes = ['modal-id', 'ready'];
 
     // #endregion
 
     // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
-    get dialogId() { return this.getAttribute('dialog-id'); }
-    set dialogId(value) { value == null ? this.removeAttribute('dialog-id') : this.setAttribute('dialog-id', value); }
+    get modalId() { return this.getAttribute('modal-id'); }
+    set modalId(value) { value == null ? this.removeAttribute('modal-id') : this.setAttribute('modal-id', value); }
 
     get ready() { return this.getAttribute('ready') !== 'false'; }
     set ready(value) { this.setAttribute('ready', value ? 'true' : 'false'); }
@@ -25,24 +25,14 @@ class FDSModalOpener extends HTMLElement {
     // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleClick = () => {
-        const dialog = document.getElementById(this.dialogId);
-        if (!dialog) return;
+        const modal = document.getElementById(this.modalId);
+        if (!modal) return;
 
-        dialog.showModal();
-
-        const modal = dialog.closest('fds-modal');
-        if (modal?.variant === 'bottom-sheet' || modal?.variant === 'drawer') {
-            // Ensures the closed state is painted first, otherwise the slide transition may be skipped
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    dialog.classList.add(`${modal.variant}-open`);
-                });
-            });
-        }
+        modal.open();
 
         this.dispatchEvent(new CustomEvent('fds-modal-opener-click', {
             bubbles: true,
-            detail: { dialogId: this.dialogId },
+            detail: { modalId: this.modalId },
         }));
     };
 

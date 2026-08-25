@@ -119,13 +119,9 @@ class FDSModal extends HTMLElement {
 
     #handleResize = (entries) => {
         for (const entry of entries) {
-            // Close the modal if a resize caused it to get hidden
-            if (entry.target === this) {
-                const style = window.getComputedStyle(entry.target);
-                const isVisible = style.display !== 'none';
-                if (!isVisible) {
-                    this.#forceClose();
-                }
+            // Close the modal if a resize caused it to become hidden
+            if (entry.target === this && !this.checkVisibility()) {
+                this.#forceClose();
             }
             // Scrollable areas with a fade effect might need an attribute update on resize
             else {
@@ -226,6 +222,42 @@ class FDSModal extends HTMLElement {
         this.#addEventListeners();
         this.#connectResizeObserver();
         this.#initialized = true;
+    }
+
+    open() {
+        if (!this.#initialized || !this.dialog) return;
+        if (this.dialog.open) return; // Already open, silently ignore
+
+        if (!this.checkVisibility()) {
+            console.warn('fds-modal is hidden and cannot open', this);
+            return;
+        }
+
+        this.dialog.showModal();
+
+        if (this.#isAnimatedVariant()) {
+            // Ensures the closed state is painted first, otherwise the slide-in transition may be skipped
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    this.dialog.classList.add(`${this.variant}-open`);
+                });
+            });
+        }
+
+        this.dispatchEvent(new CustomEvent('fds-modal-open', {
+            bubbles: true,
+        }));
+    }
+
+    close(returnValue) {
+        if (!this.#initialized || !this.dialog?.open) return;
+
+        if (this.#isAnimatedVariant()) {
+            this.#animateClose(returnValue);
+        }
+        else {
+            this.dialog.close(returnValue);
+        }
     }
 
     // #endregion
