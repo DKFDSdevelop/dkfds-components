@@ -1,8 +1,11 @@
+import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
+import * as CE from '../custom-element-utils';
+
 class FDSModal extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-    static observedAttributes = ['ready', 'dismissible', 'variant'];
+    static observedAttributes = ['ready', 'heading', 'heading-id', 'dismissible', 'variant', 'close-text'];
 
     // #endregion
 
@@ -11,11 +14,20 @@ class FDSModal extends HTMLElement {
     get ready() { return this.getAttribute('ready') !== 'false'; }
     set ready(value) { this.setAttribute('ready', value ? 'true' : 'false'); }
 
+    get heading() { return this.getAttribute('heading'); }
+    set heading(value) { value == null ? this.removeAttribute('heading') : this.setAttribute('heading', value); }
+
+    get headingId() { return this.getAttribute('heading-id'); }
+    set headingId(value) { value == null ? this.removeAttribute('heading-id') : this.setAttribute('heading-id', value); }
+
     get dismissible() { return this.getAttribute('dismissible') !== 'false'; }
     set dismissible(value) { this.setAttribute('dismissible', value ? 'true' : 'false'); }
 
     get variant() { return this.getAttribute('variant') ?? 'default'; }
     set variant(value) { value == null ? this.removeAttribute('variant') : this.setAttribute('variant', value); }
+
+    get closeText() { return this.getAttribute('close-text'); }
+    set closeText(value) { value == null ? this.removeAttribute('close-text') : this.setAttribute('close-text', value); }
 
     get dialog() { return this.querySelector('dialog'); }
 
@@ -134,6 +146,82 @@ class FDSModal extends HTMLElement {
 
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
+    #setupHTML() {
+        let modalTop = this.querySelector('.modal-top');
+
+        if (!modalTop || !this.dialog) return;
+
+        let topHeading = modalTop.querySelector('.top-heading');
+        if (!topHeading && this.heading) {
+            topHeading = document.createElement('h2');
+            topHeading.classList.add('top-heading');
+            topHeading.setAttribute('tabindex', '-1');
+            topHeading.setAttribute('autofocus', '');
+            topHeading.textContent = this.heading;
+            const headingId = this.headingId ?? generateAndVerifyUniqueId('top-heading-');
+            topHeading.id = headingId;
+            this.dialog.setAttribute('aria-labelledby', headingId);
+            modalTop.prepend(topHeading);
+        }
+
+        let closeButton = modalTop.querySelector('.modal-close');
+        if (!closeButton && this.dismissible) {
+            closeButton = document.createElement('fds-modal-closer');
+            closeButton.classList.add('modal-close');
+
+            const innerButton = document.createElement('button');
+            innerButton.classList.add('function-link');
+            innerButton.setAttribute('type', 'button');
+            closeButton.appendChild(innerButton);
+
+            const innerButtonIcon = CE.createSvgIcon('m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z');
+            innerButton.appendChild(innerButtonIcon);
+
+            const innerButtonText = document.createElement('span');
+            innerButtonText.textContent = this.closeText || 'Luk';
+            innerButton.appendChild(innerButtonText);
+
+            modalTop.appendChild(closeButton);
+        }
+    }
+
+    #addEventListeners() {
+        this.dialog?.addEventListener('close', this.#handleClose);
+        this.dialog?.addEventListener('cancel', this.#handleCancel);
+        this.dialog?.addEventListener('click', this.#handleBackdropClick);
+        this.dialog?.querySelector('.scrollable-area.has-fade')?.addEventListener('scroll', this.#handleBottomFade);
+        this.addEventListener('fds-modal-closer-click', this.#handleCloserClick);
+        this.addEventListener('fds-modal-opener-click', this.#handleNestedOpenerClick);
+    }
+
+    #removeEventListeners() {
+        this.dialog?.removeEventListener('close', this.#handleClose);
+        this.dialog?.removeEventListener('cancel', this.#handleCancel);
+        this.dialog?.removeEventListener('click', this.#handleBackdropClick);
+        this.dialog?.querySelector('.scrollable-area.has-fade')?.removeEventListener('scroll', this.#handleBottomFade);
+        this.removeEventListener('fds-modal-closer-click', this.#handleCloserClick);
+        this.removeEventListener('fds-modal-opener-click', this.#handleNestedOpenerClick);
+    }
+
+    #connectResizeObserver() {
+        if (this.#resizeObserver) return;
+
+        this.#resizeObserver = new ResizeObserver(this.#handleResize);
+        this.#resizeObserver.observe(this);
+
+        const scrollableArea = this.dialog?.querySelector('.scrollable-area.has-fade');
+        if (scrollableArea) {
+            this.#resizeObserver.observe(scrollableArea);
+        }
+    }
+
+    #disconnectResizeObserver() {
+        if (this.#resizeObserver) {
+            this.#resizeObserver.disconnect();
+            this.#resizeObserver = null;
+        }
+    }
+
     // Sets closedby="none" when not dismissible (Chrome/Firefox). Not supported in Safari.
     #updateClosedBy() {
         if (!this.dialog) return;
@@ -176,48 +264,12 @@ class FDSModal extends HTMLElement {
         this.dialog.close();
     }
 
-    #addEventListeners() {
-        this.dialog?.addEventListener('close', this.#handleClose);
-        this.dialog?.addEventListener('cancel', this.#handleCancel);
-        this.dialog?.addEventListener('click', this.#handleBackdropClick);
-        this.dialog?.querySelector('.scrollable-area.has-fade')?.addEventListener('scroll', this.#handleBottomFade);
-        this.addEventListener('fds-modal-closer-click', this.#handleCloserClick);
-        this.addEventListener('fds-modal-opener-click', this.#handleNestedOpenerClick);
-    }
-
-    #removeEventListeners() {
-        this.dialog?.removeEventListener('close', this.#handleClose);
-        this.dialog?.removeEventListener('cancel', this.#handleCancel);
-        this.dialog?.removeEventListener('click', this.#handleBackdropClick);
-        this.dialog?.querySelector('.scrollable-area.has-fade')?.removeEventListener('scroll', this.#handleBottomFade);
-        this.removeEventListener('fds-modal-closer-click', this.#handleCloserClick);
-        this.removeEventListener('fds-modal-opener-click', this.#handleNestedOpenerClick);
-    }
-
-    #connectResizeObserver() {
-        if (this.#resizeObserver) return;
-
-        this.#resizeObserver = new ResizeObserver(this.#handleResize);
-        this.#resizeObserver.observe(this);
-
-        const scrollableArea = this.dialog?.querySelector('.scrollable-area.has-fade');
-        if (scrollableArea) {
-            this.#resizeObserver.observe(scrollableArea);
-        }
-    }
-
-    #disconnectResizeObserver() {
-        if (this.#resizeObserver) {
-            this.#resizeObserver.disconnect();
-            this.#resizeObserver = null;
-        }
-    }
-
     // #endregion
 
     // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
     init() {
+        this.#setupHTML();
         this.#updateClosedBy();
         this.#addEventListeners();
         this.#connectResizeObserver();
@@ -226,7 +278,7 @@ class FDSModal extends HTMLElement {
 
     open() {
         if (!this.#initialized || !this.dialog) return;
-        if (this.dialog.open) return; // Already open, silently ignore
+        if (this.dialog.open) return;
 
         if (!this.checkVisibility()) {
             console.warn('fds-modal is hidden and cannot open', this);

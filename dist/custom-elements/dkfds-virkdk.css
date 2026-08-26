@@ -13318,13 +13318,13 @@ fds-modal dialog .fixed-area{
   overflow-y:hidden;
   flex-shrink:0;
 }
-fds-modal dialog .modal-title{
+fds-modal dialog .top-heading{
   margin-top:1.6rem;
   margin-bottom:0.8rem;
   overflow:hidden;
 }
 @media (min-width: 768px){
-  fds-modal dialog .modal-title{
+  fds-modal dialog .top-heading{
     margin-top:0;
     margin-bottom:1.6rem;
   }
@@ -13372,18 +13372,21 @@ fds-modal[variant=bottom-sheet] dialog::backdrop{
 fds-modal[variant=bottom-sheet] dialog.bottom-sheet-open::backdrop{
   background-color:rgba(26, 26, 26, 0.6);
 }
-fds-modal[variant=bottom-sheet] dialog .fixed-area{
+fds-modal[variant=bottom-sheet] dialog .modal-top{
   border-bottom:1px solid #8E8E8E;
   display:flex;
   justify-content:space-between;
   align-items:center;
   padding:16px 24px;
 }
-fds-modal[variant=bottom-sheet] dialog .fixed-area .modal-title{
+fds-modal[variant=bottom-sheet] dialog .modal-top .top-heading{
   margin:0;
 }
-fds-modal[variant=bottom-sheet] dialog .fixed-area .modal-close{
+fds-modal[variant=bottom-sheet] dialog .modal-top .modal-close{
   position:static;
+}
+fds-modal[variant=bottom-sheet] dialog .fixed-area{
+  padding:0;
 }
 fds-modal[variant=bottom-sheet] dialog .scrollable-area{
   padding:32px 24px 16px;
@@ -13409,18 +13412,18 @@ fds-modal[variant=drawer] dialog::backdrop{
 fds-modal[variant=drawer] dialog.drawer-open::backdrop{
   background-color:rgba(26, 26, 26, 0.6);
 }
-fds-modal[variant=drawer] dialog .drawer-top{
+fds-modal[variant=drawer] dialog .modal-top{
   display:flex;
   justify-content:space-between;
   align-items:center;
   padding:8px 24px;
   min-height:48px;
 }
-fds-modal[variant=drawer] dialog .drawer-top .modal-title{
+fds-modal[variant=drawer] dialog .modal-top .top-heading{
   font-size:2rem;
   margin:0;
 }
-fds-modal[variant=drawer] dialog .drawer-top .modal-close{
+fds-modal[variant=drawer] dialog .modal-top .modal-close{
   position:static;
 }
 fds-modal[variant=drawer] dialog .drawer-content{
