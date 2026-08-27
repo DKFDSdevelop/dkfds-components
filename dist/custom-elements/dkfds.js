@@ -8127,20 +8127,9 @@ class FDSModal extends HTMLElement {
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #setupHTML() {
-    let modalTop = this.querySelector('.modal-top');
+    const modalTop = this.querySelector('.modal-top');
     if (!modalTop || !this.dialog) return;
-    let topHeading = modalTop.querySelector('.top-heading');
-    if (!topHeading && this.heading) {
-      topHeading = document.createElement('h2');
-      topHeading.classList.add('top-heading');
-      topHeading.setAttribute('tabindex', '-1');
-      topHeading.setAttribute('autofocus', '');
-      topHeading.textContent = this.heading;
-      const headingId = this.headingId ?? generateAndVerifyUniqueId('top-heading-');
-      topHeading.id = headingId;
-      this.dialog.setAttribute('aria-labelledby', headingId);
-      modalTop.prepend(topHeading);
-    }
+    this.#updateHeading();
     let closeButton = modalTop.querySelector('.modal-close');
     if (!closeButton && this.dismissible) {
       closeButton = document.createElement('fds-modal-closer');
@@ -8152,10 +8141,10 @@ class FDSModal extends HTMLElement {
       const innerButtonIcon = createSvgIcon('m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z');
       innerButton.appendChild(innerButtonIcon);
       const innerButtonText = document.createElement('span');
-      innerButtonText.textContent = this.closeText || 'Luk';
       innerButton.appendChild(innerButtonText);
       modalTop.appendChild(closeButton);
     }
+    this.#updateCloseText();
   }
   #addEventListeners() {
     this.dialog?.addEventListener('close', this.#handleClose);
@@ -8222,6 +8211,36 @@ class FDSModal extends HTMLElement {
       this.dialog.classList.remove(`${this.variant}-open`);
     }
     this.dialog.close();
+  }
+  #updateHeading() {
+    if (!this.heading) return;
+    const modalTop = this.querySelector('.modal-top');
+    if (!modalTop || !this.dialog) return;
+    let topHeading = modalTop.querySelector('.top-heading');
+    if (!topHeading) {
+      topHeading = document.createElement('h2');
+      topHeading.classList.add('top-heading');
+      topHeading.setAttribute('tabindex', '-1');
+      topHeading.setAttribute('autofocus', '');
+      modalTop.prepend(topHeading);
+      this.#updateHeadingId();
+    }
+    topHeading.textContent = this.heading;
+  }
+  #updateHeadingId() {
+    const topHeading = this.querySelector('.top-heading');
+    if (!topHeading || !this.dialog) return;
+    const headingId = this.headingId && this.headingId.trim() !== '' ? this.headingId : generateAndVerifyUniqueId('top-heading-');
+    topHeading.id = headingId;
+    this.dialog.setAttribute('aria-labelledby', headingId);
+  }
+  #updateCloseText() {
+    const closeButton = this.querySelector('.modal-close');
+    if (!closeButton) return;
+    const textSpan = closeButton.querySelector('span');
+    if (textSpan) {
+      textSpan.textContent = this.closeText || 'Luk';
+    }
   }
 
   // #endregion
@@ -8310,6 +8329,15 @@ class FDSModal extends HTMLElement {
         if (this.dialog?.open && this.#isAnimatedVariant()) {
           this.dialog.classList.add(`${this.variant}-open`);
         }
+        break;
+      case 'heading':
+        this.#updateHeading();
+        break;
+      case 'heading-id':
+        this.#updateHeadingId();
+        break;
+      case 'close-text':
+        this.#updateCloseText();
         break;
     }
   }
