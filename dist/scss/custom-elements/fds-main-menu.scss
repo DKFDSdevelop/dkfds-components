@@ -103,10 +103,10 @@ fds-main-menu,
     }
 }
 
-fds-drawer .fds-main-menu,
-.fds-drawer .fds-main-menu,
-fds-drawer fds-main-menu,
-.fds-drawer fds-main-menu {
+fds-modal .fds-main-menu,
+.fds-modal .fds-main-menu,
+fds-modal fds-main-menu,
+.fds-modal fds-main-menu {
     & > nav > ul {
         display: flex;
         flex-flow: column nowrap;

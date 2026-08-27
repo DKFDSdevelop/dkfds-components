@@ -46,7 +46,7 @@ class FDSPortalInfo extends HTMLElement {
     }
 
     #setupHTML() {
-        if (this.closest('fds-drawer')) {
+        if (this.closest('fds-modal')) {
             // --- Section ---
             let section = this.shadowRoot.querySelector('.portal-info-mobile');
             if (!section) {

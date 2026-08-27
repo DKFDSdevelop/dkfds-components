@@ -5,6 +5,7 @@
 $-transition-speed-bottom-sheet: 0.25s;
 $-transition-speed-drawer: 0.3s;
 $-backdrop-color: rgba(26, 26, 26, 0.6);
+$-modal-background-color: #FFFFFF;
 
 fds-modal {
     display: block;
@@ -44,6 +45,7 @@ fds-modal {
             padding: 24px;
             position: relative;
             overflow-wrap: break-word;
+            background-color: $-modal-background-color;
 
             @include mixins.media-breakpoint-up(md) {
                 padding: 40px;
@@ -200,6 +202,7 @@ fds-modal {
             }
 
             .modal-top {
+                background-color: $-modal-background-color;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
@@ -235,4 +238,43 @@ html:has(dialog:modal) {
 fds-modal-closer,
 fds-modal-opener {
     display: block;
+}
+
+fds-modal-opener.mobile-menu-opener {
+    display: inline-block;
+
+    button {
+        width: auto;
+        white-space: nowrap;
+        background: none;
+        padding: 0;
+        text-align: left;
+        border: none;
+        @include mixins.body-copy-text;
+        cursor: pointer;
+        display: inline-block;
+        overflow-wrap: break-word;
+        max-width: 100%;
+
+        &:hover,
+        &:visited,
+        &:focus {
+            color: func.color('ink');
+        }
+
+        .icon-svg {
+            margin-right: func.units(2);
+            fill: currentColor;
+            vertical-align: top;
+            margin-top: calc(func.units(1, 'rem') / 2); // Align icon with text
+        }
+
+        span {
+            text-decoration: underline;
+        }
+    }
+}
+
+header fds-modal[variant="drawer"] .scrollable-area {
+    background-color: func.color(vars.$header-portal-background-color);
 }

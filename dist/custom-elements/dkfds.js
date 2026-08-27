@@ -6207,7 +6207,7 @@ class FDSPortalInfo extends HTMLElement {
     this.#sheet.replaceSync(fds_portal_info_styling_styles(breakpoint));
   }
   #setupHTML() {
-    if (this.closest('fds-drawer')) {
+    if (this.closest('fds-modal')) {
       // --- Section ---
       let section = this.shadowRoot.querySelector('.portal-info-mobile');
       if (!section) {
@@ -6413,7 +6413,7 @@ class FDSSolutionInfo extends HTMLElement {
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #setupHTML() {
-    if (this.closest('fds-drawer')) {
+    if (this.closest('fds-modal')) {
       // --- Section ---
       let section = this.shadowRoot.querySelector('.solution-info-mobile');
       if (!section) {
@@ -6597,7 +6597,7 @@ class FDSDropdownMenu extends HTMLElement {
     if (!this.querySelector(':scope > .dropdown-button span svg')) {
       let collapsedIcon = this.#moreVertIcon;
       let expandedIcon = this.#moreVertIcon;
-      if (this.closest('fds-drawer fds-main-menu')) {
+      if (this.closest('fds-modal fds-main-menu')) {
         collapsedIcon = this.#plusIcon;
         expandedIcon = this.#minusIcon;
       } else if (this.closest('fds-main-menu .main-menu-inner li:not(.more-button)')) {
