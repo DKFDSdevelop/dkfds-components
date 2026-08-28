@@ -266,7 +266,6 @@ class FDSModal extends HTMLElement {
             topHeading = document.createElement('h2');
             topHeading.classList.add('top-heading');
             topHeading.setAttribute('tabindex', '-1');
-            topHeading.setAttribute('autofocus', '');
             modalTop.prepend(topHeading);
             
             this.#updateHeadingId();

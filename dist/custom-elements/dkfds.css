@@ -10576,7 +10576,7 @@ fds-accordion h1 .accordion-button .icon_text, fds-accordion h2 .accordion-butto
   font-size:1.6rem;
   margin-right:8px;
   overflow-wrap:break-word;
-  max-width:calc(100% - 8px - 24px);
+  min-width:calc(100% - 8px - 24px);
 }
 fds-accordion h1 .accordion-button .accordion-title, fds-accordion h2 .accordion-button .accordion-title, fds-accordion h3 .accordion-button .accordion-title, fds-accordion h4 .accordion-button .accordion-title, fds-accordion h5 .accordion-button .accordion-title, fds-accordion h6 .accordion-button .accordion-title,
 .fds-accordion h1 .accordion-button .accordion-title,

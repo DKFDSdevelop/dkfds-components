@@ -7404,7 +7404,7 @@ button.function-link, button.accordion-bulk-button{
   font-size:1.6rem;
   margin-right:8px;
   overflow-wrap:break-word;
-  max-width:calc(100% - 8px - 24px);
+  min-width:calc(100% - 8px - 24px);
 }
 .accordion-button .accordion-title{
   max-width:100%;

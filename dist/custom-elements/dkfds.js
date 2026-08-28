@@ -8221,7 +8221,6 @@ class FDSModal extends HTMLElement {
       topHeading = document.createElement('h2');
       topHeading.classList.add('top-heading');
       topHeading.setAttribute('tabindex', '-1');
-      topHeading.setAttribute('autofocus', '');
       modalTop.prepend(topHeading);
       this.#updateHeadingId();
     }
@@ -8418,7 +8417,11 @@ const registerCustomElements = () => {
   fds_modal_closer();
   fds_modal();
 };
-registerCustomElements();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', registerCustomElements);
+} else {
+  registerCustomElements();
+}
 
 /******/ 	return __webpack_exports__;
 /******/ })()
