@@ -10837,6 +10837,7 @@ a.skipnav:focus{
 .card .card-content p{
   margin-top:0;
   margin-bottom:16px;
+  max-width:66ch;
 }
 .card .card-content p:last-of-type{
   margin-bottom:0;
