@@ -10898,6 +10898,20 @@ fds-checkbox,
   margin-top:8px;
   position:relative;
 }
+fds-checkbox .form-checkbox,
+.fds-checkbox .form-checkbox{
+  position:absolute;
+  left:0;
+  top:0;
+  box-sizing:border-box;
+  cursor:pointer;
+  z-index:1;
+  margin:0;
+  opacity:0;
+  height:24px;
+  width:24px;
+  margin-top:calc(1.2rem - 12px + 4px);
+}
 fds-checkbox:has(> fds-error-message:not([hidden]), > fds-error-message[hidden=false]) > input[type=checkbox] + label::before, fds-checkbox:has(> .fds-error-message:not([hidden]), > .fds-error-message[hidden=false]) > input[type=checkbox] + label::before,
 .fds-checkbox:has(> fds-error-message:not([hidden]), > fds-error-message[hidden=false]) > input[type=checkbox] + label::before,
 .fds-checkbox:has(> .fds-error-message:not([hidden]), > .fds-error-message[hidden=false]) > input[type=checkbox] + label::before{
@@ -10942,9 +10956,7 @@ fds-checkbox > input[type=checkbox] + label::before,
   margin-top:calc(1.2rem - 12px + 4px);
   border-radius:4px;
 }
-fds-checkbox > input[type=checkbox]:checked + label::before,
-fds-checkbox > input[type=checkbox][aria-checked=mixed] + label::before,
-fds-checkbox > input[type=checkbox].mixed + label::before,
+fds-checkbox > input[type=checkbox]:checked + label::before, fds-checkbox > input[type=checkbox][aria-checked=mixed] + label::before, fds-checkbox > input[type=checkbox].mixed + label::before,
 .fds-checkbox > input[type=checkbox]:checked + label::before,
 .fds-checkbox > input[type=checkbox][aria-checked=mixed] + label::before,
 .fds-checkbox > input[type=checkbox].mixed + label::before{
@@ -10958,14 +10970,12 @@ fds-checkbox > input[type=checkbox]:checked + label::before,
 .fds-checkbox > input[type=checkbox]:checked + label::before{
   background-image:url("../img/svg-icons/check-white.svg");
 }
-fds-checkbox > input[type=checkbox][aria-checked=mixed] + label::before,
-fds-checkbox > input[type=checkbox].mixed + label::before,
+fds-checkbox > input[type=checkbox][aria-checked=mixed] + label::before, fds-checkbox > input[type=checkbox].mixed + label::before,
 .fds-checkbox > input[type=checkbox][aria-checked=mixed] + label::before,
 .fds-checkbox > input[type=checkbox].mixed + label::before{
   background-image:url("../img/svg-icons/minus-white.svg");
 }
-fds-checkbox > input[type=checkbox]:focus + label::before,
-fds-checkbox > input[type=checkbox].focus + label::before,
+fds-checkbox > input[type=checkbox]:focus + label::before, fds-checkbox > input[type=checkbox].focus + label::before,
 .fds-checkbox > input[type=checkbox]:focus + label::before,
 .fds-checkbox > input[type=checkbox].focus + label::before{
   outline:3px solid #454545;
@@ -11005,6 +11015,34 @@ fds-checkbox:has(> .checkbox-content):has(> .checkbox-content[aria-hidden=false]
 .fds-checkbox:has(> .checkbox-content):has(> .checkbox-content[aria-hidden=false]):has(> .fds-error-message:not([hidden]))::before,
 .fds-checkbox:has(> .checkbox-content):has(> .checkbox-content[aria-hidden=false]):has(> .fds-error-message[hidden=false])::before{
   bottom:28px;
+}
+fds-checkbox .form-checkbox:disabled,
+.fds-checkbox .form-checkbox:disabled{
+  cursor:not-allowed;
+}
+fds-checkbox .form-checkbox:disabled + label,
+.fds-checkbox .form-checkbox:disabled + label{
+  cursor:not-allowed;
+  color:#707070;
+  font-weight:400;
+}
+fds-checkbox .form-checkbox:disabled + label::before,
+.fds-checkbox .form-checkbox:disabled + label::before{
+  background-color:#F5F5F5;
+  border:2px solid #BFBFBF;
+}
+fds-checkbox > input[type=checkbox]:disabled:checked + label::before, fds-checkbox > input[type=checkbox]:disabled[aria-checked=mixed] + label::before, fds-checkbox > input[type=checkbox].mixed:disabled + label::before,
+.fds-checkbox > input[type=checkbox]:disabled:checked + label::before,
+.fds-checkbox > input[type=checkbox]:disabled[aria-checked=mixed] + label::before,
+.fds-checkbox > input[type=checkbox].mixed:disabled + label::before{
+  background-color:#BFBFBF;
+  border:2px solid #BFBFBF;
+}
+fds-checkbox > input[type=checkbox]:disabled:checked + label::after, fds-checkbox > input[type=checkbox]:disabled[aria-checked=mixed] + label::after, fds-checkbox > input[type=checkbox].mixed:disabled + label::after,
+.fds-checkbox > input[type=checkbox]:disabled:checked + label::after,
+.fds-checkbox > input[type=checkbox]:disabled[aria-checked=mixed] + label::after,
+.fds-checkbox > input[type=checkbox].mixed:disabled + label::after{
+  background-color:#F5F5F5;
 }
 fds-checkbox .table--selectable th:first-child fds-checkbox,
 fds-checkbox .table--selectable td:first-child fds-checkbox,
