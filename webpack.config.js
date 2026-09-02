@@ -112,6 +112,11 @@ const copyFilesAndCreateJavaScript = {
     name: 'copyFilesAndCreateJavaScript',
     mode: 'production',
     module: JS_BABEL,
+    /* Increased from the default 250000 for the non-minified stylesheets */
+    performance: {
+        maxAssetSize: 450000,
+        maxEntrypointSize: 450000
+    },
     optimization: {
         minimize: false
     },
@@ -138,6 +143,31 @@ const copyFilesAndCreateJavaScript = {
         path: JS_OUTPUT_PATH,
         clean: true, // Clean the entire dist directory before emit.
         filename: 'js/[name].js',
+        globalObject: 'this',
+        library: JS_OUTPUT_LIBRARY,
+    },
+    stats: 'minimal',
+};
+
+const copyFilesAndCreateCustomElementJS = {
+    name: 'copyFilesAndCreateCustomElementJS',
+    dependencies: ['copyFilesAndCreateJavaScript'],
+    mode: 'production',
+    module: JS_BABEL,
+    /* Increased from the default 250000 for the non-minified stylesheets */
+    performance: {
+        maxAssetSize: 450000,
+        maxEntrypointSize: 450000
+    },
+    optimization: {
+        minimize: false
+    },
+    entry: {
+        "dkfds": './src/js/new-dkfds.js',
+    },
+    output: {
+        path: JS_OUTPUT_PATH,
+        filename: 'custom-elements/[name].js',
         globalObject: 'this',
         library: JS_OUTPUT_LIBRARY,
     },
@@ -206,10 +236,10 @@ const createCSS = {
             },
         ],
     },
-    /* Increased from the default 250000 for the non-minified stylesheets */
+    /* Increased from the default 250000 */
     performance: {
-        maxAssetSize: 260000,
-        maxEntrypointSize: 260000
+        maxAssetSize: 350000,
+        maxEntrypointSize: 350000
     },
     optimization: {
         /* File is not minified - this step just remove comments. List of options: https://cssnano.co/docs/what-are-optimisations/ */
@@ -290,6 +320,11 @@ const createMinifiedCSS = {
             },
         ],
     },
+    /* Increased from the default 250000 */
+    performance: {
+        maxAssetSize: 350000,
+        maxEntrypointSize: 350000
+    },
     optimization: {
         minimize: true,
         minimizer: [
@@ -303,8 +338,103 @@ const createMinifiedCSS = {
     stats: 'minimal',
 };
 
+const createCustomElementCSS = {
+    name: 'createCustomElementCSS',
+    dependencies: ['copyFilesAndCreateJavaScript'],
+    mode: 'production',
+    entry: {
+        "dkfds-borgerdk": './src/stylesheets/new-dkfds-borgerdk.scss',
+        "dkfds-virkdk": './src/stylesheets/new-dkfds-virkdk.scss',
+        "dkfds": './src/stylesheets/new-dkfds.scss',
+    },
+    plugins: [
+        CSS_REMOVE_EMPTY_SCRIPTS,
+        /* Create stylesheets */
+        new MiniCssExtractPlugin({
+            filename: 'custom-elements/[name].css'
+        }),
+    ],
+    module: {
+        rules: [
+            {
+                test: /\.s[ac]ss$/i,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    CSS_LOADER,
+                    CSS_POSTCSS_LOADER,
+                    {
+                        loader: "sass-loader",
+                        options: {
+                            sassOptions: {
+                                style: "expanded",
+                            },
+                        },
+                    },
+                ],
+            },
+        ],
+    },
+    /* Increased from the default 250000 */
+    performance: {
+        maxAssetSize: 350000,
+        maxEntrypointSize: 350000
+    },
+    optimization: {
+        /* File is not minified - this step just remove comments. List of options: https://cssnano.co/docs/what-are-optimisations/ */
+        minimize: true,
+        minimizer: [
+            new CssMinimizerPlugin({
+                minimizerOptions: {
+                    preset: [
+                        "default",
+                        {
+                            autoprefixer: false,
+                            cssDeclarationSorter: false,
+                            calc: false,
+                            colormin: false,
+                            convertValues: false,
+                            discardComments: true, // Remove comments from CSS files
+                            discardDuplicates: false,
+                            discardEmpty: false,
+                            discardOverridden: false,
+                            discardUnused: false,
+                            mergeIdents: false,
+                            mergeLonghand: false,
+                            mergeRules: false,
+                            minifyFontValues: false,
+                            minifyGradients: false,
+                            minifyParams: false,
+                            minifySelectors: false,
+                            normalizeCharset: false,
+                            normalizeDisplayValues: false,
+                            normalizePositions: false,
+                            normalizeRepeatStyle: false,
+                            normalizeString: false,
+                            normalizeTimingFunctions: false,
+                            normalizeUnicode: false,
+                            normalizeUrl: false,
+                            normalizeWhitespace: false,
+                            orderedValues: false,
+                            reduceIdents: false,
+                            reduceInitial: false,
+                            reduceTransforms: false,
+                            svgo: false,
+                            uniqueSelectors: false,
+                            zindex: false
+                        },
+                    ],
+                },
+            }),
+        ],
+    },
+    output: {
+        path: CSS_OUTPUT_PATH
+    },
+    stats: 'minimal',
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 // module.exports
 ////////////////////////////////////////////////////////////////////////////////
 
-module.exports = [copyFilesAndCreateJavaScript, createMinifiedJavaScript, createCSS, createMinifiedCSS];
+module.exports = [copyFilesAndCreateJavaScript, copyFilesAndCreateCustomElementJS, createMinifiedJavaScript, createCSS, createMinifiedCSS, createCustomElementCSS];

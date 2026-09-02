@@ -4241,7 +4241,9 @@ Modal.prototype.hide = function () {
   let modalElement = this.$modal;
   if (modalElement !== null) {
     modalElement.setAttribute('aria-hidden', 'true');
-    let eventClose = new Event('fds.modal.hidden');
+    let eventClose = new Event('fds.modal.hidden', {
+      bubbles: true
+    });
     modalElement.dispatchEvent(eventClose);
     let $backdrop = document.querySelector('#modal-backdrop');
     if ($backdrop) {
@@ -4252,7 +4254,7 @@ Modal.prototype.hide = function () {
     window.removeEventListener('resize', this.hideOnResize, false);
     modalElement.addEventListener('transitionend', this.focusAfterTransition, false);
     if (!hasForcedAction(modalElement)) {
-      document.removeEventListener('keyup', handleEscape);
+      document.removeEventListener('keydown', handleEscape);
     }
 
     /* Release the focus from the modal */
@@ -4302,7 +4304,9 @@ Modal.prototype.show = function () {
       new Modal(activeModals[i]).hide();
     }
     modalElement.setAttribute('aria-hidden', 'false');
-    let eventOpen = new Event('fds.modal.shown');
+    let eventOpen = new Event('fds.modal.shown', {
+      bubbles: true
+    });
     modalElement.dispatchEvent(eventOpen);
     if (document.getElementById('modal-backdrop')) {
       document.getElementById('modal-backdrop').remove();
@@ -4334,7 +4338,7 @@ Modal.prototype.show = function () {
       modalElement.focus();
     }
     if (!hasForcedAction(modalElement)) {
-      document.addEventListener('keyup', handleEscape);
+      document.addEventListener('keydown', handleEscape);
       $backdrop.addEventListener('click', () => {
         this.hide();
       }, false);
@@ -5727,6 +5731,7 @@ function closeOnKey(e) {
 
 
 const datePicker = (__webpack_require__(486)/* ["default"] */ .A);
+
 /**
  * The 'polyfills' define key ECMAScript 5 methods that may be missing from
  * older browsers, so must be loaded first.

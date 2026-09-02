@@ -1,0 +1,79 @@
+// Core -------------- //
+@use 'core/custom-properties';
+@use 'core/fonts';
+@use 'core/base';
+@use 'core/focus';
+@use 'core/grid';
+@use 'core/typography';
+@use 'core/elements';
+
+// Utilities --------- //
+@use 'core/utilities/background';
+@use 'core/utilities/width';
+@use 'core/utilities/textalign';
+@use 'core/utilities/flex';
+@use 'core/utilities/spacing';
+@use 'core/utilities/position';
+@use 'core/utilities/display';
+
+// Print ------------- //
+@use 'core/print';
+
+// Old components ---- //
+@use 'components/alerts';
+@use 'components/anchorlinks';
+@use 'components/back-link';
+@use 'components/back-to-top';
+@use 'components/badge';
+@use 'components/breadcrumbs';
+@use 'components/buttons';
+@use 'components/cookie-message';
+@use 'components/details';
+@use 'components/footer';
+@use 'components/function-link';
+@use 'components/modal';
+@use 'components/pagination';
+@use 'components/toast';
+@use 'components/search';
+@use 'components/sidemenu';
+@use 'components/language-switcher';
+@use 'components/skipnav';
+@use 'components/spinner';
+@use 'components/step-indicator';
+@use 'components/cards';
+@use 'components/overflow-menu';
+@use 'components/table';
+@use 'components/tabs';
+@use 'components/tags';
+
+// Custom elements --- //
+@use 'custom-elements/fds-accordion';
+@use 'custom-elements/fds-accordion-group';
+@use 'custom-elements/fds-input';
+@use 'custom-elements/fds-help-text';
+@use 'custom-elements/fds-error-message';
+@use 'custom-elements/fds-character-limit';
+@use 'custom-elements/fds-checkbox';
+@use 'custom-elements/fds-checkbox-group';
+@use 'custom-elements/fds-radio-button';
+@use 'custom-elements/fds-radio-button-group';
+@use 'custom-elements/fds-date-input';
+@use 'custom-elements/fds-select';
+@use 'custom-elements/fds-upload-file';
+@use 'custom-elements/fds-date-picker';
+@use 'custom-elements/fds-date-picker-grid';
+@use 'custom-elements/fds-textarea';
+@use 'custom-elements/fds-error-summary';
+@use 'custom-elements/fds-input-affix';
+@use 'custom-elements/fds-drawer';
+@use 'custom-elements/fds-drawer-opener';
+@use 'custom-elements/fds-portal-info';
+@use 'custom-elements/fds-solution-info';
+@use 'custom-elements/fds-dropdown-menu';
+@use 'custom-elements/fds-main-menu';
+@use 'custom-elements/fds-tooltip';
+@use 'custom-elements/fds-tooltip-icon';
+@use 'custom-elements/fds-toggle-switch';
+@use 'custom-elements/fds-modal';
+
+@use 'custom-elements/fds-side-menu';
