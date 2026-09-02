@@ -155,6 +155,10 @@
         overflow: visible;
         max-height: none;
         height: auto;
+
+        .scrollable-area {
+            overflow: visible;
+        }
     }
 
     fds-modal dialog::backdrop {

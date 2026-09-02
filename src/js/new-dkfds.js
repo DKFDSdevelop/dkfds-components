@@ -67,6 +67,11 @@ const registerCustomElements = () => {
     registerModal();
 };
 
-registerCustomElements();
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', registerCustomElements);
+} 
+else {
+    registerCustomElements();
+}
 
 export { registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerDrawer, registerDrawerOpener, registerPortalInfo, registerSolutionInfo, registerDropdownMenu, registerMainMenu, registerTooltip, registerTooltipIcon, registerToggleSwitch, registerModalOpener, registerModalCloser, registerModal };

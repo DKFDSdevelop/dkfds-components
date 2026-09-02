@@ -30,7 +30,7 @@ class FDSSolutionInfo extends HTMLElement {
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #setupHTML() {
-        if (this.closest('fds-drawer')) {
+        if (this.closest('fds-modal')) {
             // --- Section ---
             let section = this.shadowRoot.querySelector('.solution-info-mobile');
             if (!section) {

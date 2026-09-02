@@ -167,6 +167,7 @@ class FDSDrawer extends HTMLElement {
         if (!this.hasAttribute('open') || this.getAttribute('open') === 'false') {
             this.setAttribute('open', '');
             document.addEventListener('fds.modal.shown', this.#handleCloseClick, false);
+            document.addEventListener('fds-modal-opener-click', this.#handleCloseClick, false);
             document.addEventListener('keydown', this.#handleKeydown, false);
 
             this.querySelector('.button-menu-close')?.focus();
@@ -179,6 +180,7 @@ class FDSDrawer extends HTMLElement {
         if (this.hasAttribute('open')) {
             this.removeAttribute('open');
             document.removeEventListener('fds.modal.shown', this.#handleCloseClick, false);
+            document.removeEventListener('fds-modal-opener-click', this.#handleCloseClick, false);
             document.removeEventListener('keydown', this.#handleKeydown, false);
 
             const drawerOpener = document.querySelector(`fds-drawer-opener[drawer=${this.id}] button`);
@@ -210,6 +212,7 @@ class FDSDrawer extends HTMLElement {
         this.querySelector('.overlay')?.removeEventListener('click', this.#handleCloseClick, false);
         this.querySelector('.mobile-drawer').removeEventListener('click', this.#handleDrawerLinkClick, false);
         document.removeEventListener('fds.modal.shown', this.#handleCloseClick, false);
+        document.removeEventListener('fds-modal-opener-click', this.#handleCloseClick, false);
         document.removeEventListener('keydown', this.#handleKeydown, false);
 
         if (this.#resizeObserver) {

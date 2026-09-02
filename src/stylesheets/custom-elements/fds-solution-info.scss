@@ -74,11 +74,11 @@ fds-portal-info + fds-solution-info,
     border-top: 1px solid #bfbfbf;
 }
 
-fds-drawer,
-.fds-drawer {
+fds-modal,
+.fds-modal {
 
-    .menu-top + fds-solution-info,
-    .menu-top + .fds-solution-info {
+    .modal-top + fds-solution-info,
+    .modal-top + .fds-solution-info {
         border-top: func.border(vars.$header-border);
     }
 

@@ -201,10 +201,10 @@ fds-main-menu,
     }
 }
 
-fds-drawer .fds-main-menu fds-dropdown-menu,
-fds-drawer .fds-main-menu .fds-dropdown-menu,
-fds-drawer fds-main-menu fds-dropdown-menu,
-fds-drawer fds-main-menu .fds-dropdown-menu {
+fds-modal .fds-main-menu fds-dropdown-menu,
+fds-modal .fds-main-menu .fds-dropdown-menu,
+fds-modal fds-main-menu fds-dropdown-menu,
+fds-modal fds-main-menu .fds-dropdown-menu {
     & > .dropdown-button {
 
         & > span {

@@ -67,7 +67,7 @@ class FDSDropdownMenu extends HTMLElement {
         if (!this.querySelector(':scope > .dropdown-button span svg')) {
             let collapsedIcon = this.#moreVertIcon;
             let expandedIcon = this.#moreVertIcon;
-            if (this.closest('fds-drawer fds-main-menu')) {
+            if (this.closest('fds-modal fds-main-menu')) {
                 collapsedIcon = this.#plusIcon;
                 expandedIcon = this.#minusIcon;
             }

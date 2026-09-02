@@ -7404,7 +7404,7 @@ button.function-link, button.accordion-bulk-button{
   font-size:1.6rem;
   margin-right:8px;
   overflow-wrap:break-word;
-  max-width:calc(100% - 8px - 24px);
+  min-width:calc(100% - 8px - 24px);
 }
 .accordion-button .accordion-title{
   max-width:100%;
@@ -8041,7 +8041,8 @@ button.accordion-bulk-button[data-accordion-bulk-expand=false]{
   }
 }
 @media (min-width: 1200px){
-  .cookie-container .cookie-message .cookie-text, .cookie-container .cookie-message .cookie-actions{
+  .cookie-container .cookie-message .cookie-text,
+  .cookie-container .cookie-message .cookie-actions{
     padding-left:40px;
     padding-right:40px;
   }
@@ -10598,7 +10599,7 @@ a.skipnav:focus{
   overflow:hidden;
 }
 .fds-modal.modal-step-indicator .modal-content .modal-header{
-  border-bottom:1px solid #1a1a1a;
+  border-bottom:1px solid #8E8E8E;
   padding:16px 24px;
 }
 .fds-modal.modal-step-indicator .modal-content .modal-header .modal-title{
@@ -10836,6 +10837,7 @@ a.skipnav:focus{
 .card .card-content p{
   margin-top:0;
   margin-bottom:16px;
+  max-width:66ch;
 }
 .card .card-content p:last-of-type{
   margin-bottom:0;
@@ -12258,6 +12260,9 @@ textarea.no-resize{
     overflow:visible;
     max-height:none;
     height:auto;
+  }
+  fds-modal dialog[open] .scrollable-area{
+    overflow:visible;
   }
   fds-modal dialog::backdrop{
     opacity:1 !important;
