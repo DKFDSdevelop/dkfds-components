@@ -45,6 +45,13 @@ class FDSTabPanel extends HTMLElement {
         this.id = generateAndVerifyUniqueId(`tab-panel-${this.tabKey}-`);
     }
 
+    #init() {
+        this.#setupHTML();
+        this.#setupId();
+        this.setAttribute('role', 'tabpanel');
+        this.#initialized = true;
+    }
+
     // #endregion
 
     // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
@@ -57,21 +64,10 @@ class FDSTabPanel extends HTMLElement {
 
     // #endregion
 
-    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
-
-    init() {
-        this.#setupHTML();
-        this.#setupId();
-        this.setAttribute('role', 'tabpanel');
-        this.#initialized = true;
-    }
-
-    // #endregion
-
     // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
-        this.init();
+        this.#init();
     }
 
     // #endregion

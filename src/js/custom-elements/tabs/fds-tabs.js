@@ -70,16 +70,6 @@ class FDSTabs extends HTMLElement {
         this.shadowRoot.appendChild(panelSlot);
     }
 
-    // If selected-tab is missing or doesn't match any tab-key, default to the first tab.
-    #applyFallbackSelection() {
-        const hasValidSelection = this.querySelector(`:scope > fds-tab[tab-key="${this.selectedTab}"]`);
-        const firstTab = this.querySelector(':scope > fds-tab[tab-key]');
-        
-        if (!hasValidSelection && firstTab) {
-            this.selectedTab = firstTab.tabKey;
-        }
-    }
-
     // Returns a Map of (tab-key, element) for all direct children matching the given tag name.
     #createTabKeyMap(tagName) {
         const elementsByTabKey = new Map();
@@ -123,8 +113,8 @@ class FDSTabs extends HTMLElement {
         const assignedTabs = this.shadowRoot.querySelector('#tab-slot').assignedElements();
         const assignedPanels = this.shadowRoot.querySelector('#panel-slot').assignedElements();
 
-        const nextTab = assignedTabs.find((tab) => tab.tabKey === tabKey);
-        if (!nextTab) return;
+        const newTab = assignedTabs.find((tab) => tab.tabKey === tabKey);
+        if (!newTab) return;
 
         for (const panel of assignedPanels) {
             panel.hidden = panel.tabKey !== tabKey;
@@ -137,7 +127,7 @@ class FDSTabs extends HTMLElement {
         this.dispatchEvent(new CustomEvent('fds-tab-changed', {
             bubbles: true,
             detail: {
-                selectedTab: nextTab,
+                selectedTab: newTab,
                 selectedTabKey: tabKey,
                 previousTab: previousTab ?? null,
                 previousTabKey: previousTabKey ?? null,
@@ -158,6 +148,25 @@ class FDSTabs extends HTMLElement {
         }
     }
 
+    // If selected-tab is missing or doesn't match any tab-key, default to the first tab.
+    #applyFallbackSelection() {
+        const hasValidSelection = this.querySelector(`:scope > fds-tab[tab-key="${this.selectedTab}"]`);
+        const firstTab = this.querySelector(':scope > fds-tab[tab-key]');
+        if (!hasValidSelection && firstTab) {
+            this.selectedTab = firstTab.tabKey;
+        }
+    }
+
+    #init() {
+        this.#setupHTML();
+        this.#applyFallbackSelection();
+        this.#updateSlotAssignments();
+        this.addEventListener('fds-tab-activate', this.#handleTabActivate);
+        this.#connectMutationObserver();
+
+        this.#initialized = true;
+    }
+
     // #endregion
 
     // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
@@ -170,24 +179,10 @@ class FDSTabs extends HTMLElement {
 
     // #endregion
 
-    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
-
-    init() {
-        this.#setupHTML();
-        this.#applyFallbackSelection();
-        this.#updateSlotAssignments();
-        this.addEventListener('fds-tab-activate', this.#handleTabActivate);
-        this.#connectMutationObserver();
-
-        this.#initialized = true;
-    }
-
-    // #endregion
-
     // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
-        this.init();
+        this.#init();
     }
 
     // #endregion

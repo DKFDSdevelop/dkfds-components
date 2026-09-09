@@ -56,6 +56,14 @@ class FDSTab extends HTMLElement {
         this.id = generateAndVerifyUniqueId(`tab-${this.tabKey}-`);
     }
 
+    #init() {
+        this.#setupHTML();
+        this.#setupId();
+        this.setAttribute('role', 'tab');
+        this.addEventListener('click', this.#handleClick);
+        this.#initialized = true;
+    }
+
     // #endregion
 
     // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
@@ -68,22 +76,10 @@ class FDSTab extends HTMLElement {
 
     // #endregion
 
-    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
-
-    init() {
-        this.#setupHTML();
-        this.#setupId();
-        this.setAttribute('role', 'tab');
-        this.addEventListener('click', this.#handleClick);
-        this.#initialized = true;
-    }
-
-    // #endregion
-
     // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
-        this.init();
+        this.#init();
     }
 
     // #endregion
