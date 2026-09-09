@@ -32,6 +32,9 @@ import registerToggleSwitch from './custom-elements/toggle-switch/fds-toggle-swi
 import registerModalOpener from './custom-elements/modal/fds-modal-opener';
 import registerModalCloser from './custom-elements/modal/fds-modal-closer';
 import registerModal from './custom-elements/modal/fds-modal';
+import registerTab from './custom-elements/tabs/fds-tab';
+import registerTabPanel from './custom-elements/tabs/fds-tab-panel';
+import registerTabs from './custom-elements/tabs/fds-tabs';
 
 const registerCustomElements = () => {
     registerAccordion();
@@ -65,6 +68,9 @@ const registerCustomElements = () => {
     registerModalOpener();
     registerModalCloser();
     registerModal();
+    registerTab();
+    registerTabPanel();
+    registerTabs();
 };
 
 if (document.readyState === 'loading') {
