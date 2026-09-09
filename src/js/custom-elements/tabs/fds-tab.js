@@ -1,3 +1,5 @@
+import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
+
 const styles = `
     :host {
         display: block;
@@ -9,10 +11,22 @@ sheet.replaceSync(styles);
 
 class FDSTab extends HTMLElement {
 
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['tab-key'];
+
+    // #endregion
+
     // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
     get tabKey() { return this.getAttribute('tab-key'); }
     set tabKey(value) { value == null ? this.removeAttribute('tab-key') : this.setAttribute('tab-key', value); }
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+    #initialized = false;
 
     // #endregion
 
@@ -36,6 +50,12 @@ class FDSTab extends HTMLElement {
         }
     }
 
+    #setupId() {
+        if (this.id || !this.tabKey) return;
+
+        this.id = generateAndVerifyUniqueId(`tab-${this.tabKey}-`);
+    }
+
     // #endregion
 
     // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
@@ -48,11 +68,22 @@ class FDSTab extends HTMLElement {
 
     // #endregion
 
+    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+    init() {
+        this.#setupHTML();
+        this.#setupId();
+        this.setAttribute('role', 'tab');
+        this.addEventListener('click', this.#handleClick);
+        this.#initialized = true;
+    }
+
+    // #endregion
+
     // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
-        this.#setupHTML();
-        this.addEventListener('click', this.#handleClick);
+        this.init();
     }
 
     // #endregion
@@ -61,6 +92,20 @@ class FDSTab extends HTMLElement {
 
     disconnectedCallback() {
         this.removeEventListener('click', this.#handleClick);
+        this.#initialized = false;
+    }
+
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+    attributeChangedCallback(attribute, oldValue, newValue) {
+        if (!this.#initialized) return;
+        if (oldValue === newValue) return;
+
+        if (attribute === 'tab-key') {
+            this.#setupId();
+        }
     }
 
     // #endregion

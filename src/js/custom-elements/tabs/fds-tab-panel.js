@@ -1,3 +1,5 @@
+import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
+
 const styles = `
     :host {
         display: block;
@@ -9,10 +11,22 @@ sheet.replaceSync(styles);
 
 class FDSTabPanel extends HTMLElement {
 
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['tab-key'];
+
+    // #endregion
+
     // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
     get tabKey() { return this.getAttribute('tab-key'); }
     set tabKey(value) { value == null ? this.removeAttribute('tab-key') : this.setAttribute('tab-key', value); }
+
+    // #endregion
+
+    // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+    #initialized = false;
 
     // #endregion
 
@@ -23,6 +37,12 @@ class FDSTabPanel extends HTMLElement {
             const slot = document.createElement('slot');
             this.shadowRoot.appendChild(slot);
         }
+    }
+
+    #setupId() {
+        if (this.id || !this.tabKey) return;
+
+        this.id = generateAndVerifyUniqueId(`tab-panel-${this.tabKey}-`);
     }
 
     // #endregion
@@ -37,10 +57,42 @@ class FDSTabPanel extends HTMLElement {
 
     // #endregion
 
+    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+    init() {
+        this.#setupHTML();
+        this.#setupId();
+        this.setAttribute('role', 'tabpanel');
+        this.#initialized = true;
+    }
+
+    // #endregion
+
     // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
-        this.#setupHTML();
+        this.init();
+    }
+
+    // #endregion
+
+    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+    disconnectedCallback() {
+        this.#initialized = false;
+    }
+
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+    attributeChangedCallback(attribute, oldValue, newValue) {
+        if (!this.#initialized) return;
+        if (oldValue === newValue) return;
+
+        if (attribute === 'tab-key') {
+            this.#setupId();
+        }
     }
 
     // #endregion
