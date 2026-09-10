@@ -98,7 +98,17 @@ class FDSTabs extends HTMLElement {
             if (panel) {
                 tab.setAttribute('aria-controls', panel.id);
                 panel.setAttribute('aria-labelledby', tab.id);
-                panel.hidden = tabKey !== this.selectedTab;
+
+                if (tabKey === this.selectedTab) {
+                    tab.setAttribute('aria-selected', 'true');
+                    tab.tabIndex = 0;
+                    panel.hidden = false;
+                }
+                else {
+                    tab.setAttribute('aria-selected', 'false');
+                    tab.tabIndex = -1;
+                    panel.hidden = true;
+                }
 
                 pairedTabs.push(tab);
                 pairedPanels.push(panel);
@@ -115,6 +125,15 @@ class FDSTabs extends HTMLElement {
 
         const newTab = assignedTabs.find((tab) => tab.tabKey === tabKey);
         if (!newTab) return;
+
+        const previouslySelectedTabs = this.querySelectorAll(':scope > fds-tab[aria-selected="true"]');
+        for (const tab of previouslySelectedTabs) {
+            tab.setAttribute('aria-selected', 'false');
+            tab.tabIndex = -1;
+        }
+
+        newTab.setAttribute('aria-selected', 'true');
+        newTab.tabIndex = 0;
 
         for (const panel of assignedPanels) {
             panel.hidden = panel.tabKey !== tabKey;
