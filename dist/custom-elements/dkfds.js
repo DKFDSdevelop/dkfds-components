@@ -8716,14 +8716,18 @@ class FDSTabs extends HTMLElement {
 
   // Returns a Map of (tab-key, element) for all direct children matching the given tag name.
   #createTabKeyMap(tagName) {
-    const elementsByTabKey = new Map();
+    const validTabKeyElements = new Map();
     for (const child of this.children) {
-      const shouldAddEntry = child.tagName === tagName && child.tabKey && !elementsByTabKey.has(child.tabKey);
-      if (shouldAddEntry) {
-        elementsByTabKey.set(child.tabKey, child);
+      const isValidTabKeyElement = child.tagName === tagName && child.tabKey;
+      if (isValidTabKeyElement) {
+        if (validTabKeyElements.has(child.tabKey)) {
+          console.warn(`fds-tabs: duplicate tab-key "${child.tabKey}" on ${tagName.toLowerCase()}.`, child);
+        } else {
+          validTabKeyElements.set(child.tabKey, child);
+        }
       }
     }
-    return elementsByTabKey;
+    return validTabKeyElements;
   }
 
   // Assign valid tab and tab-panel pairs to slots
