@@ -23,17 +23,6 @@ class FDSTab extends HTMLElement {
 
     // #endregion
 
-    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
-
-    #handleClick = () => {
-        this.dispatchEvent(new CustomEvent('fds-tab-activate', {
-            bubbles: true,
-            composed: true,
-        }));
-    };
-
-    // #endregion
-
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #setupHTML() {
@@ -53,7 +42,6 @@ class FDSTab extends HTMLElement {
         this.#setupHTML();
         this.#setupId();
         this.setAttribute('role', 'tab');
-        this.addEventListener('click', this.#handleClick);
         this.#initialized = true;
     }
 
@@ -81,7 +69,6 @@ class FDSTab extends HTMLElement {
     // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
-        this.removeEventListener('click', this.#handleClick);
         this.#initialized = false;
     }
 

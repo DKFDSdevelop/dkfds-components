@@ -8426,17 +8426,6 @@ class FDSTab extends HTMLElement {
 
   // #endregion
 
-  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
-
-  #handleClick = () => {
-    this.dispatchEvent(new CustomEvent('fds-tab-activate', {
-      bubbles: true,
-      composed: true
-    }));
-  };
-
-  // #endregion
-
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #setupHTML() {
@@ -8453,7 +8442,6 @@ class FDSTab extends HTMLElement {
     this.#setupHTML();
     this.#setupId();
     this.setAttribute('role', 'tab');
-    this.addEventListener('click', this.#handleClick);
     this.#initialized = true;
   }
 
@@ -8483,7 +8471,6 @@ class FDSTab extends HTMLElement {
   // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
-    this.removeEventListener('click', this.#handleClick);
     this.#initialized = false;
   }
 
@@ -8688,10 +8675,45 @@ class FDSTabs extends HTMLElement {
 
   // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
-  #handleTabActivate = event => {
+  #handleClick = event => {
     const tabElement = event.composedPath().find(node => node.nodeName === 'FDS-TAB');
     if (!tabElement || !tabElement.tabKey) return;
     this.selectedTab = tabElement.tabKey;
+  };
+  #handleKeyDown = event => {
+    const tabElement = event.composedPath().find(node => node.nodeName === 'FDS-TAB');
+    if (!tabElement) return;
+    const assignedTabs = this.shadowRoot.querySelector('#tab-slot').assignedElements();
+    const currentIndex = assignedTabs.indexOf(tabElement);
+    if (currentIndex === -1) return;
+    let newIndex;
+    switch (event.key) {
+      case 'ArrowLeft':
+        newIndex = currentIndex - 1;
+        if (newIndex < 0) {
+          newIndex = assignedTabs.length - 1;
+        }
+        break;
+      case 'ArrowRight':
+        newIndex = currentIndex + 1;
+        if (newIndex >= assignedTabs.length) {
+          newIndex = 0;
+        }
+        break;
+      case 'Home':
+        newIndex = 0;
+        break;
+      case 'End':
+        newIndex = assignedTabs.length - 1;
+        break;
+      default:
+        return;
+    }
+    event.preventDefault(); // Prevent default ArrowLeft, ArrowRight, Home, and End
+
+    const newTab = assignedTabs[newIndex];
+    newTab.focus();
+    this.selectedTab = newTab.tabKey;
   };
   #handleMutations = () => {
     this.#updateSlotAssignments();
@@ -8803,11 +8825,19 @@ class FDSTabs extends HTMLElement {
       this.selectedTab = firstTab.tabKey;
     }
   }
+  #addEventListeners() {
+    this.addEventListener('click', this.#handleClick);
+    this.addEventListener('keydown', this.#handleKeyDown);
+  }
+  #removeEventListeners() {
+    this.removeEventListener('click', this.#handleClick);
+    this.removeEventListener('keydown', this.#handleKeyDown);
+  }
   #init() {
     this.#setupHTML();
     this.#applyFallbackSelection();
     this.#updateSlotAssignments();
-    this.addEventListener('fds-tab-activate', this.#handleTabActivate);
+    this.#addEventListeners();
     this.#connectMutationObserver();
     this.#initialized = true;
   }
@@ -8839,7 +8869,7 @@ class FDSTabs extends HTMLElement {
   // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
-    this.removeEventListener('fds-tab-activate', this.#handleTabActivate);
+    this.#removeEventListeners();
     this.#disconnectMutationObserver();
     this.#initialized = false;
   }
