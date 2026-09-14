@@ -17,8 +17,4 @@ export const styles = `
         outline: 3px solid #454545;
         outline-offset: 1px;
     }
-
-    :host > :first-child {
-        margin-top: 0;
-    }
 `;

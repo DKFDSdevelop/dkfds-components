@@ -1,8 +1,5 @@
 import { styles } from './fds-tabs-styling';
 
-const sheet = new CSSStyleSheet();
-sheet.replaceSync(styles);
-
 const mutationObserverConfig = {
     subtree: true,
     childList: true,

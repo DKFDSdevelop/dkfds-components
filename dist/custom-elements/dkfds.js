@@ -8527,10 +8527,6 @@ const fds_tab_panel_styling_styles = `
         outline: 3px solid #454545;
         outline-offset: 1px;
     }
-
-    :host > :first-child {
-        margin-top: 0;
-    }
 `;
 ;// ./src/js/custom-elements/tabs/fds-tab-panel.js
 
@@ -8658,8 +8654,6 @@ const fds_tabs_styling_styles = breakpoint => `
 `;
 ;// ./src/js/custom-elements/tabs/fds-tabs.js
 
-const fds_tabs_sheet = new CSSStyleSheet();
-fds_tabs_sheet.replaceSync(fds_tabs_styling_styles);
 const fds_tabs_mutationObserverConfig = {
   subtree: true,
   childList: true,

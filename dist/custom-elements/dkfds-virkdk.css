@@ -13522,6 +13522,13 @@ header fds-modal[variant=drawer] .scrollable-area{
   background-color:white;
 }
 
+fds-tabs fds-tab-panel > :first-child{
+  margin-top:0;
+}
+fds-tabs fds-tab-panel > :last-child{
+  margin-bottom:0;
+}
+
 .fds-side-menu ul,
 .fds-side-menu ol{
   width:100%;
