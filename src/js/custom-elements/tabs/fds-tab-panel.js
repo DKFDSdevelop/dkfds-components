@@ -1,10 +1,5 @@
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
-
-const styles = `
-    :host {
-        display: block;
-    }
-`;
+import { styles } from './fds-tab-panel-styling';
 
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(styles);

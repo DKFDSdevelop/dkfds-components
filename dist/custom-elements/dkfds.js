@@ -8349,15 +8349,58 @@ function registerModal() {
   }
 }
 /* harmony default export */ const fds_modal = (registerModal);
-;// ./src/js/custom-elements/tabs/fds-tab.js
+;// ./src/js/custom-elements/tabs/fds-tab-styling.js
+const fds_tab_styling_styles = breakpoint => `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
 
-const fds_tab_styles = `
     :host {
-        display: block;
+        display: inline-flex;
+        color: #1a1a1a;
+        background-color: #F5F5F5;
+        max-width: 100%;
+        align-items: center;
+        text-align: center;
+        border: 0;
+        text-decoration: underline;
+        overflow-wrap: break-word;
+        cursor: pointer;
+
+        border-radius: 20px;
+        min-height: 40px;
+        padding: 1px 16px;
+    }
+
+    :host(:focus) {
+        outline: 3px solid #454545;
+        outline-offset: 1px;
+    }
+
+    :host([aria-selected=true]) {
+        color: white;
+        font-weight: 700;
+        text-decoration: none;
+        background-color: #454545;
+    }
+
+    :host(:not([aria-selected=true]):hover) {
+        background-color: #DCDCDC;
+    }
+
+    @media (min-width: ${breakpoint}) {
+        :host {
+            border-radius: 24px;
+            min-height: 48px;
+            padding: 1px 24px;
+        }
     }
 `;
-const fds_tab_sheet = new CSSStyleSheet();
-fds_tab_sheet.replaceSync(fds_tab_styles);
+;// ./src/js/custom-elements/tabs/fds-tab.js
+
+
 class FDSTab extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -8379,6 +8422,7 @@ class FDSTab extends HTMLElement {
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
+  #sheet = (() => new CSSStyleSheet())();
 
   // #endregion
 
@@ -8422,7 +8466,8 @@ class FDSTab extends HTMLElement {
     this.attachShadow({
       mode: 'open'
     });
-    this.shadowRoot.adoptedStyleSheets = [fds_tab_sheet];
+    this.shadowRoot.adoptedStyleSheets = [this.#sheet];
+    this.#sheet.replaceSync(fds_tab_styling_styles('768px'));
   }
 
   // #endregion
@@ -8462,15 +8507,36 @@ function registerTab() {
   }
 }
 /* harmony default export */ const fds_tab = (registerTab);
-;// ./src/js/custom-elements/tabs/fds-tab-panel.js
+;// ./src/js/custom-elements/tabs/fds-tab-panel-styling.js
+const fds_tab_panel_styling_styles = `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
 
-const fds_tab_panel_styles = `
     :host {
         display: block;
+        border: 1px solid #8E8E8E;
+        width: 100%;
+        padding: 24px;
+        overflow: auto hidden;
+    }
+
+    :host(:focus) {
+        outline: 3px solid #454545;
+        outline-offset: 1px;
+    }
+
+    :host > :first-child {
+        margin-top: 0;
     }
 `;
+;// ./src/js/custom-elements/tabs/fds-tab-panel.js
+
+
 const fds_tab_panel_sheet = new CSSStyleSheet();
-fds_tab_panel_sheet.replaceSync(fds_tab_panel_styles);
+fds_tab_panel_sheet.replaceSync(fds_tab_panel_styling_styles);
 class FDSTabPanel extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -8562,14 +8628,38 @@ function registerTabPanel() {
   }
 }
 /* harmony default export */ const fds_tab_panel = (registerTabPanel);
-;// ./src/js/custom-elements/tabs/fds-tabs.js
-const fds_tabs_styles = `
+;// ./src/js/custom-elements/tabs/fds-tabs-styling.js
+const fds_tabs_styling_styles = breakpoint => `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
     :host {
         display: block;
     }
+
+    div[role="tablist"] {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        width: 100%;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    @media (min-width: ${breakpoint}) {
+        div[role="tablist"] {
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+    }
 `;
+;// ./src/js/custom-elements/tabs/fds-tabs.js
+
 const fds_tabs_sheet = new CSSStyleSheet();
-fds_tabs_sheet.replaceSync(fds_tabs_styles);
+fds_tabs_sheet.replaceSync(fds_tabs_styling_styles);
 const fds_tabs_mutationObserverConfig = {
   subtree: true,
   childList: true,
@@ -8598,6 +8688,7 @@ class FDSTabs extends HTMLElement {
 
   #initialized = false;
   #mutationObserver = null;
+  #sheet = (() => new CSSStyleSheet())();
 
   // #endregion
 
@@ -8733,7 +8824,8 @@ class FDSTabs extends HTMLElement {
       mode: 'open',
       slotAssignment: 'manual'
     });
-    this.shadowRoot.adoptedStyleSheets = [fds_tabs_sheet];
+    this.shadowRoot.adoptedStyleSheets = [this.#sheet];
+    this.#sheet.replaceSync(fds_tabs_styling_styles('768px'));
   }
 
   // #endregion

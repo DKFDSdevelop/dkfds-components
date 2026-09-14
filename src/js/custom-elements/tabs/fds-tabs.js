@@ -1,8 +1,4 @@
-const styles = `
-    :host {
-        display: block;
-    }
-`;
+import { styles } from './fds-tabs-styling';
 
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(styles);
@@ -33,6 +29,7 @@ class FDSTabs extends HTMLElement {
 
     #initialized = false;
     #mutationObserver = null;
+    #sheet = new CSSStyleSheet();
 
     // #endregion
 
@@ -193,7 +190,8 @@ class FDSTabs extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open', slotAssignment: 'manual' });
-        this.shadowRoot.adoptedStyleSheets = [sheet];
+        this.shadowRoot.adoptedStyleSheets = [this.#sheet];
+        this.#sheet.replaceSync(styles('768px'));
     }
 
     // #endregion

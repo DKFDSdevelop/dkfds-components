@@ -1,13 +1,5 @@
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
-
-const styles = `
-    :host {
-        display: block;
-    }
-`;
-
-const sheet = new CSSStyleSheet();
-sheet.replaceSync(styles);
+import { styles } from './fds-tab-styling';
 
 class FDSTab extends HTMLElement {
 
@@ -27,6 +19,7 @@ class FDSTab extends HTMLElement {
     // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
+    #sheet = new CSSStyleSheet();
 
     // #endregion
 
@@ -71,7 +64,8 @@ class FDSTab extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-        this.shadowRoot.adoptedStyleSheets = [sheet];
+        this.shadowRoot.adoptedStyleSheets = [this.#sheet];
+        this.#sheet.replaceSync(styles('768px'));
     }
 
     // #endregion
