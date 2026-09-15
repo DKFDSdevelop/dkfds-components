@@ -1,11 +1,12 @@
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
+import breakpoints from '../../utils/breakpoints';
 import { styles } from './fds-tab-styling';
 
 class FDSTab extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-    static observedAttributes = ['tab-key'];
+    static observedAttributes = ['tab-key', 'breakpoint'];
 
     // #endregion
 
@@ -13,6 +14,13 @@ class FDSTab extends HTMLElement {
 
     get tabKey() { return this.getAttribute('tab-key'); }
     set tabKey(value) { value == null ? this.removeAttribute('tab-key') : this.setAttribute('tab-key', value); }
+
+    // Only accepts a known breakpoint key (xs, sm, md, lg, xl) - anything else defaults to 'md'.
+    get breakpoint() {
+        const value = this.getAttribute('breakpoint');
+        return value in breakpoints ? value : 'md';
+    }
+    set breakpoint(value) { value == null ? this.removeAttribute('breakpoint') : this.setAttribute('breakpoint', value); }
 
     // #endregion
 
@@ -38,10 +46,15 @@ class FDSTab extends HTMLElement {
         this.id = generateAndVerifyUniqueId(`tab-${this.tabKey}-`);
     }
 
+    #applyStyles() {
+        this.#sheet.replaceSync(styles(`${breakpoints[this.breakpoint]}px`));
+    }
+
     #init() {
         this.#setupHTML();
         this.#setupId();
         this.setAttribute('role', 'tab');
+        this.#applyStyles();
         this.#initialized = true;
     }
 
@@ -53,7 +66,6 @@ class FDSTab extends HTMLElement {
         super();
         this.attachShadow({ mode: 'open' });
         this.shadowRoot.adoptedStyleSheets = [this.#sheet];
-        this.#sheet.replaceSync(styles('768px'));
     }
 
     // #endregion
@@ -82,6 +94,9 @@ class FDSTab extends HTMLElement {
 
         if (attribute === 'tab-key') {
             this.#setupId();
+        }
+        else if (attribute === 'breakpoint') {
+            this.#applyStyles();
         }
     }
 

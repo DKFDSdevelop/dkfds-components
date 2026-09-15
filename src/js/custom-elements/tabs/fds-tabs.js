@@ -1,4 +1,5 @@
 import { styles } from './fds-tabs-styling';
+import breakpoints from '../../utils/breakpoints';
 
 const mutationObserverConfig = {
     subtree: true,
@@ -9,10 +10,23 @@ const mutationObserverConfig = {
 
 class FDSTabs extends HTMLElement {
 
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['breakpoint'];
+
+    // #endregion
+
     // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
     get defaultTab() { return this.getAttribute('default-tab'); }
     set defaultTab(value) { value == null ? this.removeAttribute('default-tab') : this.setAttribute('default-tab', value); }
+
+    get breakpoint() {
+        const value = this.getAttribute('breakpoint');
+        return (value in breakpoints) ? value : 'md';
+    }
+    set breakpoint(value) { value == null ? this.removeAttribute('breakpoint') : this.setAttribute('breakpoint', value); }
+
 
     // #endregion
 
@@ -108,7 +122,11 @@ class FDSTabs extends HTMLElement {
         }
     }
 
-    // Returns a Map of (tab-key, element) for all direct children matching the given tag name (fds-tab or fds-tab-panel).
+    #applyStyles() {
+        this.#sheet.replaceSync(styles(`${breakpoints[this.breakpoint]}px`));
+    }
+
+    // Returns a Map of (tab-key, element) for all direct children matching the given tag name.
     #createTabKeyMap(tagName) {
         const validTabKeyElements = new Map();
 
@@ -141,6 +159,7 @@ class FDSTabs extends HTMLElement {
             if (panel) {
                 tab.setAttribute('aria-controls', panel.id);
                 panel.setAttribute('aria-labelledby', tab.id);
+                tab.breakpoint = this.breakpoint;
 
                 if (tabKey === this.#getSelectedTab()) {
                     tab.setAttribute('aria-selected', 'true');
@@ -213,6 +232,7 @@ class FDSTabs extends HTMLElement {
     }
 
     #init() {
+        this.#applyStyles();
         this.#setupHTML();
         this.#updateSlotAssignments();
         this.#selectInitialTab();
@@ -229,7 +249,6 @@ class FDSTabs extends HTMLElement {
         super();
         this.attachShadow({ mode: 'open', slotAssignment: 'manual' });
         this.shadowRoot.adoptedStyleSheets = [this.#sheet];
-        this.#sheet.replaceSync(styles('768px'));
     }
 
     // #endregion
@@ -289,6 +308,20 @@ class FDSTabs extends HTMLElement {
         this.#removeEventListeners();
         this.#disconnectMutationObserver();
         this.#initialized = false;
+    }
+
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+    attributeChangedCallback(attribute, oldValue, newValue) {
+        if (!this.#initialized) return;
+        if (oldValue === newValue) return;
+
+        if (attribute === 'breakpoint') {
+            this.#applyStyles();
+            this.#updateSlotAssignments();
+        }
     }
 
     // #endregion

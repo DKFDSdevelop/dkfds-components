@@ -8349,6 +8349,17 @@ function registerModal() {
   }
 }
 /* harmony default export */ const fds_modal = (registerModal);
+;// ./src/js/utils/breakpoints.js
+
+
+let breakpoints = {
+  'xs': 0,
+  'sm': 576,
+  'md': 768,
+  'lg': 992,
+  'xl': 1200
+};
+/* harmony default export */ const utils_breakpoints = (breakpoints);
 ;// ./src/js/custom-elements/tabs/fds-tab-styling.js
 const fds_tab_styling_styles = breakpoint => `
     *,
@@ -8401,10 +8412,11 @@ const fds_tab_styling_styles = breakpoint => `
 ;// ./src/js/custom-elements/tabs/fds-tab.js
 
 
+
 class FDSTab extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['tab-key'];
+  static observedAttributes = ['tab-key', 'breakpoint'];
 
   // #endregion
 
@@ -8415,6 +8427,15 @@ class FDSTab extends HTMLElement {
   }
   set tabKey(value) {
     value == null ? this.removeAttribute('tab-key') : this.setAttribute('tab-key', value);
+  }
+
+  // Only accepts a known breakpoint key (xs, sm, md, lg, xl) - anything else defaults to 'md'.
+  get breakpoint() {
+    const value = this.getAttribute('breakpoint');
+    return value in utils_breakpoints ? value : 'md';
+  }
+  set breakpoint(value) {
+    value == null ? this.removeAttribute('breakpoint') : this.setAttribute('breakpoint', value);
   }
 
   // #endregion
@@ -8438,10 +8459,14 @@ class FDSTab extends HTMLElement {
     if (this.id || !this.tabKey) return;
     this.id = generateAndVerifyUniqueId(`tab-${this.tabKey}-`);
   }
+  #applyStyles() {
+    this.#sheet.replaceSync(fds_tab_styling_styles(`${utils_breakpoints[this.breakpoint]}px`));
+  }
   #init() {
     this.#setupHTML();
     this.#setupId();
     this.setAttribute('role', 'tab');
+    this.#applyStyles();
     this.#initialized = true;
   }
 
@@ -8455,7 +8480,6 @@ class FDSTab extends HTMLElement {
       mode: 'open'
     });
     this.shadowRoot.adoptedStyleSheets = [this.#sheet];
-    this.#sheet.replaceSync(fds_tab_styling_styles('768px'));
   }
 
   // #endregion
@@ -8483,6 +8507,8 @@ class FDSTab extends HTMLElement {
     if (oldValue === newValue) return;
     if (attribute === 'tab-key') {
       this.#setupId();
+    } else if (attribute === 'breakpoint') {
+      this.#applyStyles();
     }
   }
 
@@ -8641,6 +8667,7 @@ const fds_tabs_styling_styles = breakpoint => `
 `;
 ;// ./src/js/custom-elements/tabs/fds-tabs.js
 
+
 const fds_tabs_mutationObserverConfig = {
   subtree: true,
   childList: true,
@@ -8648,6 +8675,12 @@ const fds_tabs_mutationObserverConfig = {
   attributeFilter: ['tab-key']
 };
 class FDSTabs extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['breakpoint'];
+
+  // #endregion
+
   // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
   get defaultTab() {
@@ -8655,6 +8688,13 @@ class FDSTabs extends HTMLElement {
   }
   set defaultTab(value) {
     value == null ? this.removeAttribute('default-tab') : this.setAttribute('default-tab', value);
+  }
+  get breakpoint() {
+    const value = this.getAttribute('breakpoint');
+    return value in utils_breakpoints ? value : 'md';
+  }
+  set breakpoint(value) {
+    value == null ? this.removeAttribute('breakpoint') : this.setAttribute('breakpoint', value);
   }
 
   // #endregion
@@ -8740,8 +8780,11 @@ class FDSTabs extends HTMLElement {
       this.dataset.selectedTab = tabKey;
     }
   }
+  #applyStyles() {
+    this.#sheet.replaceSync(fds_tabs_styling_styles(`${utils_breakpoints[this.breakpoint]}px`));
+  }
 
-  // Returns a Map of (tab-key, element) for all direct children matching the given tag name (fds-tab or fds-tab-panel).
+  // Returns a Map of (tab-key, element) for all direct children matching the given tag name.
   #createTabKeyMap(tagName) {
     const validTabKeyElements = new Map();
     for (const child of this.children) {
@@ -8768,6 +8811,7 @@ class FDSTabs extends HTMLElement {
       if (panel) {
         tab.setAttribute('aria-controls', panel.id);
         panel.setAttribute('aria-labelledby', tab.id);
+        tab.breakpoint = this.breakpoint;
         if (tabKey === this.#getSelectedTab()) {
           tab.setAttribute('aria-selected', 'true');
           tab.tabIndex = 0;
@@ -8826,6 +8870,7 @@ class FDSTabs extends HTMLElement {
     this.removeEventListener('keydown', this.#handleKeyDown);
   }
   #init() {
+    this.#applyStyles();
     this.#setupHTML();
     this.#updateSlotAssignments();
     this.#selectInitialTab();
@@ -8845,7 +8890,6 @@ class FDSTabs extends HTMLElement {
       slotAssignment: 'manual'
     });
     this.shadowRoot.adoptedStyleSheets = [this.#sheet];
-    this.#sheet.replaceSync(fds_tabs_styling_styles('768px'));
   }
 
   // #endregion
@@ -8899,6 +8943,19 @@ class FDSTabs extends HTMLElement {
     this.#removeEventListeners();
     this.#disconnectMutationObserver();
     this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    if (attribute === 'breakpoint') {
+      this.#applyStyles();
+      this.#updateSlotAssignments();
+    }
   }
 
   // #endregion
