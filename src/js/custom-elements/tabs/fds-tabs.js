@@ -9,16 +9,10 @@ const mutationObserverConfig = {
 
 class FDSTabs extends HTMLElement {
 
-    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
-
-    static observedAttributes = ['selected-tab'];
-
-    // #endregion
-
     // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
-    get selectedTab() { return this.getAttribute('selected-tab'); }
-    set selectedTab(value) { value == null ? this.removeAttribute('selected-tab') : this.setAttribute('selected-tab', value); }
+    get defaultTab() { return this.getAttribute('default-tab'); }
+    set defaultTab(value) { value == null ? this.removeAttribute('default-tab') : this.setAttribute('default-tab', value); }
 
     // #endregion
 
@@ -36,7 +30,7 @@ class FDSTabs extends HTMLElement {
         const tabElement = event.composedPath().find((node) => node.nodeName === 'FDS-TAB');
         if (!tabElement || !tabElement.tabKey) return;
 
-        this.selectedTab = tabElement.tabKey;
+        this.selectTab(tabElement.tabKey);
     };
 
     #handleKeyDown = (event) => {
@@ -72,11 +66,12 @@ class FDSTabs extends HTMLElement {
 
         const newTab = assignedTabs[newIndex];
         newTab.focus();
-        this.selectedTab = newTab.tabKey;
+        this.selectTab(newTab.tabKey);
     };
 
     #handleMutations = () => {
         this.#updateSlotAssignments();
+        this.#ensureValidSelection();
     };
 
     // #endregion
@@ -100,7 +95,20 @@ class FDSTabs extends HTMLElement {
         this.shadowRoot.appendChild(panelSlot);
     }
 
-    // Returns a Map of (tab-key, element) for all direct children matching the given tag name.
+    #getSelectedTab() {
+        return this.dataset.selectedTab ?? null;
+    }
+
+    #setSelectedTab(tabKey) {
+        if (tabKey == null) {
+            delete this.dataset.selectedTab;
+        }
+        else {
+            this.dataset.selectedTab = tabKey;
+        }
+    }
+
+    // Returns a Map of (tab-key, element) for all direct children matching the given tag name (fds-tab or fds-tab-panel).
     #createTabKeyMap(tagName) {
         const validTabKeyElements = new Map();
 
@@ -134,7 +142,7 @@ class FDSTabs extends HTMLElement {
                 tab.setAttribute('aria-controls', panel.id);
                 panel.setAttribute('aria-labelledby', tab.id);
 
-                if (tabKey === this.selectedTab) {
+                if (tabKey === this.#getSelectedTab()) {
                     tab.setAttribute('aria-selected', 'true');
                     tab.tabIndex = 0;
                     panel.hidden = false;
@@ -154,39 +162,31 @@ class FDSTabs extends HTMLElement {
         this.shadowRoot.querySelector('#panel-slot').assign(...pairedPanels);
     }
 
-    #updateSelectedTab(tabKey, previousTabKey) {
+    // Sets the initial selection: default-tab if it matches a valid tab, otherwise the first one.
+    #selectInitialTab() {
         const assignedTabs = this.shadowRoot.querySelector('#tab-slot').assignedElements();
-        const assignedPanels = this.shadowRoot.querySelector('#panel-slot').assignedElements();
+        if (assignedTabs.length === 0) return;
 
-        const newTab = assignedTabs.find((tab) => tab.tabKey === tabKey);
-        if (!newTab) return;
+        const hasDefaultTab = assignedTabs.some((tab) => tab.tabKey === this.defaultTab);
+        const initialTabKey = hasDefaultTab ? this.defaultTab : assignedTabs[0].tabKey;
 
-        const previouslySelectedTabs = this.querySelectorAll(':scope > fds-tab[aria-selected="true"]');
-        for (const tab of previouslySelectedTabs) {
-            tab.setAttribute('aria-selected', 'false');
-            tab.tabIndex = -1;
+        this.selectTab(initialTabKey, false);
+    }
+
+    // Called after tabs/panels are added or removed. If the current selection is no longer valid,
+    // falls back to the first remaining tab, or clears the selection entirely if none remain.
+    #ensureValidSelection() {
+        const assignedTabs = this.shadowRoot.querySelector('#tab-slot').assignedElements();
+
+        const isStillValid = assignedTabs.some((tab) => tab.tabKey === this.#getSelectedTab());
+        if (isStillValid) return;
+
+        if (assignedTabs.length > 0) {
+            this.selectTab(assignedTabs[0].tabKey);
         }
-
-        newTab.setAttribute('aria-selected', 'true');
-        newTab.tabIndex = 0;
-
-        for (const panel of assignedPanels) {
-            panel.hidden = panel.tabKey !== tabKey;
+        else {
+            this.#setSelectedTab(null);
         }
-
-        const previousTab = previousTabKey
-            ? assignedTabs.find((tab) => tab.tabKey === previousTabKey) ?? null
-            : null;
-
-        this.dispatchEvent(new CustomEvent('fds-tab-changed', {
-            bubbles: true,
-            detail: {
-                selectedTab: newTab,
-                selectedTabKey: tabKey,
-                previousTab: previousTab ?? null,
-                previousTabKey: previousTabKey ?? null,
-            },
-        }));
     }
 
     #connectMutationObserver() {
@@ -202,15 +202,6 @@ class FDSTabs extends HTMLElement {
         }
     }
 
-    // If selected-tab is missing or doesn't match any tab-key, default to the first tab.
-    #applyFallbackSelection() {
-        const hasValidSelection = this.querySelector(`:scope > fds-tab[tab-key="${this.selectedTab}"]`);
-        const firstTab = this.querySelector(':scope > fds-tab[tab-key]');
-        if (!hasValidSelection && firstTab) {
-            this.selectedTab = firstTab.tabKey;
-        }
-    }
-
     #addEventListeners() {
         this.addEventListener('click', this.#handleClick);
         this.addEventListener('keydown', this.#handleKeyDown);
@@ -223,11 +214,10 @@ class FDSTabs extends HTMLElement {
 
     #init() {
         this.#setupHTML();
-        this.#applyFallbackSelection();
         this.#updateSlotAssignments();
+        this.#selectInitialTab();
         this.#addEventListeners();
         this.#connectMutationObserver();
-
         this.#initialized = true;
     }
 
@@ -240,6 +230,47 @@ class FDSTabs extends HTMLElement {
         this.attachShadow({ mode: 'open', slotAssignment: 'manual' });
         this.shadowRoot.adoptedStyleSheets = [this.#sheet];
         this.#sheet.replaceSync(styles('768px'));
+    }
+
+    // #endregion
+
+    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+    selectTab(tabKey, dispatch = true) {
+        if (tabKey === this.#getSelectedTab()) return;
+
+        const assignedTabs = this.shadowRoot.querySelector('#tab-slot').assignedElements();
+        const assignedPanels = this.shadowRoot.querySelector('#panel-slot').assignedElements();
+
+        const newTab = assignedTabs.find((tab) => tab.tabKey === tabKey);
+        if (!newTab) return; // Return if the tab to select doesn't exist
+
+        const previousTabKey = this.#getSelectedTab();
+
+        const previouslySelectedTabs = this.querySelectorAll(':scope > fds-tab[aria-selected="true"]');
+        for (const tab of previouslySelectedTabs) {
+            tab.setAttribute('aria-selected', 'false');
+            tab.tabIndex = -1;
+        }
+
+        newTab.setAttribute('aria-selected', 'true');
+        newTab.tabIndex = 0;
+
+        for (const panel of assignedPanels) {
+            panel.hidden = panel.tabKey !== tabKey;
+        }
+
+        this.#setSelectedTab(tabKey);
+
+        if (dispatch) {
+            this.dispatchEvent(new CustomEvent('fds-tab-changed', {
+                bubbles: true,
+                detail: {
+                    selectedTab: tabKey,
+                    previousTab: previousTabKey,
+                },
+            }));
+        }
     }
 
     // #endregion
@@ -258,19 +289,6 @@ class FDSTabs extends HTMLElement {
         this.#removeEventListeners();
         this.#disconnectMutationObserver();
         this.#initialized = false;
-    }
-
-    // #endregion
-
-    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
-
-    attributeChangedCallback(attribute, oldValue, newValue) {
-        if (!this.#initialized) return;
-        if (oldValue === newValue) return;
-
-        if (attribute === 'selected-tab' && newValue) {
-            this.#updateSelectedTab(newValue, oldValue);
-        }
     }
 
     // #endregion
