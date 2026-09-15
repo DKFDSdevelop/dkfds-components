@@ -8377,7 +8377,7 @@ const fds_tab_styling_styles = breakpoint => `
         text-align: center;
         border: 0;
         text-decoration: underline;
-        overflow-wrap: break-word;
+        overflow-wrap: anywhere;
         cursor: pointer;
 
         border-radius: 20px;
@@ -8407,6 +8407,11 @@ const fds_tab_styling_styles = breakpoint => `
             min-height: 48px;
             padding: 1px 24px;
         }
+    }
+
+    ::slotted(.icon-svg) {
+        margin-right: 8px;
+        flex-shrink: 0;
     }
 `;
 ;// ./src/js/custom-elements/tabs/fds-tab.js
