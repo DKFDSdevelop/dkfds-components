@@ -8591,6 +8591,7 @@ class FDSTabPanel extends HTMLElement {
     this.#setupHTML();
     this.#setupId();
     this.setAttribute('role', 'tabpanel');
+    this.tabIndex = 0;
     this.#initialized = true;
   }
 
