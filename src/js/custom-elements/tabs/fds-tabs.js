@@ -232,6 +232,9 @@ class FDSTabs extends HTMLElement {
     }
 
     #init() {
+        // Ensures custom element children are upgraded before reading their properties (e.g. after insertions with innerHTML or devtools edits)
+        customElements.upgrade(this); 
+
         this.#applyStyles();
         this.#setupHTML();
         this.#updateSlotAssignments();
