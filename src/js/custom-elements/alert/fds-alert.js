@@ -1,13 +1,8 @@
-const styles = `
-    :host {
-        display: block;
-    }
-`;
+import { styles } from './fds-alert-styling';
 
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(styles);
 
-const VARIANTS = ['info', 'success', 'warning', 'error'];
 const DEFAULT_VARIANT = 'info';
 
 class FDSAlert extends HTMLElement {
@@ -21,8 +16,7 @@ class FDSAlert extends HTMLElement {
     // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
     get variant() {
-        const value = this.getAttribute('variant');
-        return VARIANTS.includes(value) ? value : DEFAULT_VARIANT;
+        return this.getAttribute('variant') || DEFAULT_VARIANT;
     }
     set variant(value) { this.setAttribute('variant', value); }
 
@@ -79,7 +73,7 @@ class FDSAlert extends HTMLElement {
 
     #applyVariant() {
         const alert = this.shadowRoot.querySelector('.alert');
-        VARIANTS.forEach(v => alert.classList.remove(`alert-${v}`));
+        alert.className = 'alert';
         alert.classList.add(`alert-${this.variant}`);
     }
 
