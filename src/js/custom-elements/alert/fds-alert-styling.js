@@ -55,4 +55,14 @@ export const styles = `
         margin-top: var(--alert-content-margin-top) !important;
         margin-bottom: var(--alert-content-margin-bottom) !important;
     }
+
+    .alert-icon,
+    slot[name="icon"]::slotted(*) {
+        height: 2.4rem;
+        width: 2.4rem;
+        vertical-align: middle;
+        fill: currentColor;
+        position: absolute;
+        left: 2rem;
+    }
 `;
