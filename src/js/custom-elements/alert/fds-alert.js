@@ -1,5 +1,3 @@
-import * as CE from '../custom-element-utils';
-
 const styles = `
     :host {
         display: block;
@@ -9,92 +7,80 @@ const styles = `
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(styles);
 
+const VARIANTS = ['info', 'success', 'warning', 'error'];
+const DEFAULT_VARIANT = 'info';
+
 class FDSAlert extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-    static observedAttributes = ['attr', 'ready'];
+    static observedAttributes = ['variant'];
 
     // #endregion
 
     // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
-    get attr() { return this.getAttribute('attr'); }
-    set attr(value) { value == null ? this.removeAttribute('attr') : this.setAttribute('attr', value); }
-
-    get ready() { return this.getAttribute('ready') !== 'false'; }
-    set ready(value) { this.setAttribute('ready', value ? 'true' : 'false'); }
+    get variant() {
+        const value = this.getAttribute('variant');
+        return VARIANTS.includes(value) ? value : DEFAULT_VARIANT;
+    }
+    set variant(value) { this.setAttribute('variant', value); }
 
     // #endregion
 
     // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
-    #mutationObserver = null;
-
-    // #endregion
-
-    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
-
-    #handleClick = (event) => {
-        console.log('Click event:', event);
-    };
-
-    #handleKeyDown = (event) => {
-        console.log('KeyDown event:', event);
-    };
-
-    #handleMutations = (records) => {
-        for (const { attributeName, target, addedNodes, removedNodes } of records) {
-            console.log('attributeName', attributeName);
-            console.log('target', target);
-            console.log('addedNodes', addedNodes);
-            console.log('removedNodes', removedNodes);
-        }
-    };
 
     // #endregion
 
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #setupHTML() {
-        // --- Slot ---
-        if (!this.shadowRoot.querySelector('slot[name="element-slot"]')) {
-            const slot = document.createElement('slot');
-            slot.name = 'element-slot';
-            this.shadowRoot.appendChild(slot);
+        // --- Wrapper ---
+        let alert = this.shadowRoot.querySelector('.alert');
+        if (!alert) {
+            alert = document.createElement('div');
+            alert.classList.add('alert');
+            this.shadowRoot.appendChild(alert);
         }
 
-        // --- Button ---
-        let button = this.shadowRoot.querySelector('button');
-        if (!button) {
-            button = document.createElement('button');
-            this.shadowRoot.appendChild(button);
+        // --- Icon slot ---
+        if (!alert.querySelector('slot[name="icon"]')) {
+            const iconSlot = document.createElement('slot');
+            iconSlot.name = 'icon';
+            alert.appendChild(iconSlot);
         }
-        button.textContent = 'Click me';
-    }
 
-    #addEventListeners() {
-        this.shadowRoot.querySelector('button').addEventListener('click', this.#handleClick);
-        this.shadowRoot.querySelector('button').addEventListener('keydown', this.#handleKeyDown);
-    }
-
-    #removeEventListeners() {
-        this.shadowRoot.querySelector('button').removeEventListener('click', this.#handleClick);
-        this.shadowRoot.querySelector('button').removeEventListener('keydown', this.#handleKeyDown);
-    }
-
-    #connectMutationObserver(config = CE.mutationObserverConfig) {
-        if (this.#mutationObserver) return;
-        this.#mutationObserver = new MutationObserver(this.#handleMutations);
-        this.#mutationObserver.observe(this, config);
-    }
-
-    #disconnectMutationObserver() {
-        if (this.#mutationObserver) {
-            this.#mutationObserver.disconnect();
-            this.#mutationObserver = null;
+        // --- Alert body ---
+        let alertBody = alert.querySelector('.alert-body');
+        if (!alertBody) {
+            alertBody = document.createElement('div');
+            alertBody.classList.add('alert-body');
+            alert.appendChild(alertBody);
         }
+
+        // --- Heading slot ---
+        if (!alertBody.querySelector('slot[name="heading"]')) {
+            const headingSlot = document.createElement('slot');
+            headingSlot.name = 'heading';
+            alertBody.appendChild(headingSlot);
+        }
+
+        // --- Content slot ---
+        if (!alertBody.querySelector('slot[name="content"]')) {
+            const contentSlot = document.createElement('slot');
+            contentSlot.name = 'content';
+            alertBody.appendChild(contentSlot);
+        }
+
+        this.#applyVariant();
+    }
+
+    #applyVariant() {
+        const alert = this.shadowRoot.querySelector('.alert');
+        VARIANTS.forEach(v => alert.classList.remove(`alert-${v}`));
+        alert.classList.add(`alert-${this.variant}`);
     }
 
     // #endregion
@@ -113,8 +99,6 @@ class FDSAlert extends HTMLElement {
 
     init() {
         this.#setupHTML();
-        this.#addEventListeners();
-        this.#connectMutationObserver();
         this.#initialized = true;
     }
 
@@ -123,10 +107,6 @@ class FDSAlert extends HTMLElement {
     // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
-        // The 'ready' attribute can be used to defer initialization.
-        // Omit the attribute or set it to anything other than 'false' to initialize immediately.
-        if (this.getAttribute('ready') === 'false') return;
-
         this.init();
     }
 
@@ -135,8 +115,6 @@ class FDSAlert extends HTMLElement {
     // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
-        this.#removeEventListeners();
-        this.#disconnectMutationObserver();
         this.#initialized = false;
     }
 
@@ -145,19 +123,12 @@ class FDSAlert extends HTMLElement {
     // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
-        if (attribute === 'ready') {
-            if (!this.#initialized && this.isConnected && newValue !== 'false') {
-                this.init();
-            }
-            return;
-        }
-
         if (!this.#initialized) return;
         if (oldValue === newValue) return;
 
         switch (attribute) {
-            case 'attr':
-                console.log('attr changed to', newValue);
+            case 'variant':
+                this.#applyVariant();
                 break;
         }
     }
