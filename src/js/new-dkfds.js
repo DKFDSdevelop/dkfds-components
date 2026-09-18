@@ -35,6 +35,7 @@ import registerModal from './custom-elements/modal/fds-modal';
 import registerTab from './custom-elements/tabs/fds-tab';
 import registerTabPanel from './custom-elements/tabs/fds-tab-panel';
 import registerTabs from './custom-elements/tabs/fds-tabs';
+import registerAlert from './custom-elements/alert/fds-alert';
 
 const registerCustomElements = () => {
     registerAccordion();
@@ -71,6 +72,7 @@ const registerCustomElements = () => {
     registerTab();
     registerTabPanel();
     registerTabs();
+    registerAlert();
 };
 
 if (document.readyState === 'loading') {
@@ -80,4 +82,4 @@ else {
     registerCustomElements();
 }
 
-export { registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerDrawer, registerDrawerOpener, registerPortalInfo, registerSolutionInfo, registerDropdownMenu, registerMainMenu, registerTooltip, registerTooltipIcon, registerToggleSwitch, registerModalOpener, registerModalCloser, registerModal };
+export { registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerDrawer, registerDrawerOpener, registerPortalInfo, registerSolutionInfo, registerDropdownMenu, registerMainMenu, registerTooltip, registerTooltipIcon, registerToggleSwitch, registerModalOpener, registerModalCloser, registerModal, registerTab, registerTabPanel, registerTabs, registerAlert };

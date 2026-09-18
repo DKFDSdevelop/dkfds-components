@@ -51,6 +51,7 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   registerAccordion: () => (/* reexport */ fds_accordion),
   registerAccordionGroup: () => (/* reexport */ fds_accordion_group),
+  registerAlert: () => (/* reexport */ fds_alert),
   registerCharacterLimit: () => (/* reexport */ fds_character_limit),
   registerCheckbox: () => (/* reexport */ fds_checkbox),
   registerCheckboxGroup: () => (/* reexport */ fds_checkbox_group),
@@ -76,6 +77,9 @@ __webpack_require__.d(__webpack_exports__, {
   registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
   registerSelect: () => (/* reexport */ fds_select),
   registerSolutionInfo: () => (/* reexport */ fds_solution_info),
+  registerTab: () => (/* reexport */ fds_tab),
+  registerTabPanel: () => (/* reexport */ fds_tab_panel),
+  registerTabs: () => (/* reexport */ fds_tabs),
   registerTextarea: () => (/* reexport */ fds_textarea),
   registerToggleSwitch: () => (/* reexport */ fds_toggle_switch),
   registerTooltip: () => (/* reexport */ fds_tooltip),
@@ -8974,10 +8978,186 @@ function registerTabs() {
   }
 }
 /* harmony default export */ const fds_tabs = (registerTabs);
+;// ./src/js/custom-elements/alert/fds-alert.js
+
+const fds_alert_styles = `
+    :host {
+        display: block;
+    }
+`;
+const fds_alert_sheet = new CSSStyleSheet();
+fds_alert_sheet.replaceSync(fds_alert_styles);
+class FDSAlert extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['attr', 'ready'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get attr() {
+    return this.getAttribute('attr');
+  }
+  set attr(value) {
+    value == null ? this.removeAttribute('attr') : this.setAttribute('attr', value);
+  }
+  get ready() {
+    return this.getAttribute('ready') !== 'false';
+  }
+  set ready(value) {
+    this.setAttribute('ready', value ? 'true' : 'false');
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+  #mutationObserver = null;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleClick = event => {
+    console.log('Click event:', event);
+  };
+  #handleKeyDown = event => {
+    console.log('KeyDown event:', event);
+  };
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      console.log('attributeName', attributeName);
+      console.log('target', target);
+      console.log('addedNodes', addedNodes);
+      console.log('removedNodes', removedNodes);
+    }
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    // --- Slot ---
+    if (!this.shadowRoot.querySelector('slot[name="element-slot"]')) {
+      const slot = document.createElement('slot');
+      slot.name = 'element-slot';
+      this.shadowRoot.appendChild(slot);
+    }
+
+    // --- Button ---
+    let button = this.shadowRoot.querySelector('button');
+    if (!button) {
+      button = document.createElement('button');
+      this.shadowRoot.appendChild(button);
+    }
+    button.textContent = 'Click me';
+  }
+  #addEventListeners() {
+    this.shadowRoot.querySelector('button').addEventListener('click', this.#handleClick);
+    this.shadowRoot.querySelector('button').addEventListener('keydown', this.#handleKeyDown);
+  }
+  #removeEventListeners() {
+    this.shadowRoot.querySelector('button').removeEventListener('click', this.#handleClick);
+    this.shadowRoot.querySelector('button').removeEventListener('keydown', this.#handleKeyDown);
+  }
+  #connectMutationObserver() {
+    let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mutationObserverConfig;
+    if (this.#mutationObserver) return;
+    this.#mutationObserver = new MutationObserver(this.#handleMutations);
+    this.#mutationObserver.observe(this, config);
+  }
+  #disconnectMutationObserver() {
+    if (this.#mutationObserver) {
+      this.#mutationObserver.disconnect();
+      this.#mutationObserver = null;
+    }
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [fds_alert_sheet];
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  init() {
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#connectMutationObserver();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    // The 'ready' attribute can be used to defer initialization.
+    // Omit the attribute or set it to anything other than 'false' to initialize immediately.
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#disconnectMutationObserver();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'attr':
+        console.log('attr changed to', newValue);
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerAlert() {
+  if (!customElements.get('fds-alert')) {
+    customElements.define('fds-alert', FDSAlert);
+  }
+}
+/* harmony default export */ const fds_alert = (registerAlert);
 ;// ./src/js/new-dkfds.js
 
 
 // Custom elements
+
 
 
 
@@ -9047,6 +9227,7 @@ const registerCustomElements = () => {
   fds_tab();
   fds_tab_panel();
   fds_tabs();
+  fds_alert();
 };
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', registerCustomElements);
