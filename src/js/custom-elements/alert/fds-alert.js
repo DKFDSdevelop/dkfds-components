@@ -161,11 +161,11 @@ class FDSAlert extends HTMLElement {
 
                 button.addEventListener('click', this.#handleCloseClick);
                 alertRowWithClose.appendChild(button);
-            } 
+            }
             else {
                 this.#applyCloseLabel();
             }
-        } 
+        }
         else if (button) {
             button.removeEventListener('click', this.#handleCloseClick);
             button.remove();
@@ -177,6 +177,11 @@ class FDSAlert extends HTMLElement {
         if (!label) return;
 
         label.textContent = this.closeLabel;
+    }
+
+    #init() {
+        this.#setupHTML();
+        this.#initialized = true;
     }
 
     // #endregion
@@ -193,11 +198,6 @@ class FDSAlert extends HTMLElement {
 
     // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
-    init() {
-        this.#setupHTML();
-        this.#initialized = true;
-    }
-
     show() {
         this.setAttribute('data-visibility', 'visible');
         this.dispatchEvent(new CustomEvent('fds-alert-shown'));
@@ -213,7 +213,7 @@ class FDSAlert extends HTMLElement {
     // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
-        this.init();
+        this.#init();
     }
 
     // #endregion
