@@ -51,6 +51,7 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   registerAccordion: () => (/* reexport */ fds_accordion),
   registerAccordionGroup: () => (/* reexport */ fds_accordion_group),
+  registerAlert: () => (/* reexport */ fds_alert),
   registerCharacterLimit: () => (/* reexport */ fds_character_limit),
   registerCheckbox: () => (/* reexport */ fds_checkbox),
   registerCheckboxGroup: () => (/* reexport */ fds_checkbox_group),
@@ -76,6 +77,9 @@ __webpack_require__.d(__webpack_exports__, {
   registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
   registerSelect: () => (/* reexport */ fds_select),
   registerSolutionInfo: () => (/* reexport */ fds_solution_info),
+  registerTab: () => (/* reexport */ fds_tab),
+  registerTabPanel: () => (/* reexport */ fds_tab_panel),
+  registerTabs: () => (/* reexport */ fds_tabs),
   registerTextarea: () => (/* reexport */ fds_textarea),
   registerToggleSwitch: () => (/* reexport */ fds_toggle_switch),
   registerTooltip: () => (/* reexport */ fds_tooltip),
@@ -8974,10 +8978,372 @@ function registerTabs() {
   }
 }
 /* harmony default export */ const fds_tabs = (registerTabs);
+;// ./src/js/custom-elements/alert/fds-alert-styling.js
+const fds_alert_styling_styles = `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    :host {
+        display: block;
+    }
+
+    :host([data-visibility="hidden"]) {
+        display: none;
+    }
+
+    .alert {
+        position: relative;
+        margin-top: 16px;
+        margin-bottom: 16px;
+        border-radius: 8px;
+        padding: 1.6rem;
+        padding-left: 5.2rem;
+        background-repeat: no-repeat;
+        background-color: var(--alert-background-color);
+        background-image: linear-gradient(to right, var(--alert-border-color) 4px, transparent 4px);
+    }
+
+    .alert-info {
+        --alert-background-color: #e2f2fb;
+        --alert-border-color: #1B86C3;
+    }
+
+    .alert-success {
+        --alert-background-color: #ddf7ce;
+        --alert-border-color: #358000;
+    }
+
+    .alert-warning {
+        --alert-background-color: #FFEECC;
+        --alert-border-color: #febb30;
+    }
+
+    .alert-error {
+        --alert-background-color: #FFE0E0;
+        --alert-border-color: #CC0000;
+    }
+
+    .alert-row-with-close {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1.6rem;
+    }
+
+    slot[name="heading"]::slotted(*) {
+        margin-top: var(--alert-heading-margin-top) !important;
+        margin-bottom: var(--alert-heading-margin-bottom) !important;
+        font-size: 1.6rem !important;
+        line-height: 1.5 !important;
+        font-weight: 600 !important;
+        color: #1a1a1a !important;
+        overflow-wrap: break-word !important;
+        display: block !important;
+        min-width: 0 !important;
+    }
+
+    .alert-row-with-close slot[name="content"]::slotted(*),
+    slot[name="content"]::slotted(*) {
+        margin-top: var(--alert-content-margin-top) !important;
+        margin-bottom: var(--alert-content-margin-bottom) !important;
+        min-width: 0 !important;
+    }
+
+    .alert-icon,
+    slot[name="icon"]::slotted(*) {
+        height: 2.4rem;
+        width: 2.4rem;
+        vertical-align: middle;
+        fill: currentColor;
+        position: absolute;
+        left: 2rem;
+    }
+
+    .alert-close {
+        background-color: rgba(0, 0, 0, 0);
+        border: 0;
+        border-radius: 0;
+        font-weight: 400;
+        margin: 0;
+        padding: 0;
+        text-align: left;
+        min-height: auto;
+        cursor: pointer;
+        color: #1a1a1a;
+        text-decoration: underline;
+        font-size: 1.4rem;
+        line-height: 2rem;
+        font-weight: 400;
+        letter-spacing: .2px;
+        display: inline-flex;
+        align-items: center;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+    .alert-close .icon-svg {
+        margin-right: 4px;
+        width: 1.6rem;
+        height: 1.6rem;
+        fill: currentColor;
+    }
+`;
+;// ./src/js/custom-elements/alert/fds-alert.js
+
+
+const fds_alert_sheet = new CSSStyleSheet();
+fds_alert_sheet.replaceSync(fds_alert_styling_styles);
+const DEFAULT_VARIANT = 'info';
+const DEFAULT_CLOSE_LABEL = 'Luk';
+const ICONS = {
+  info: 'M440-280h80v-240h-80v240Zm40-320q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640q0 17 11.5 28.5T480-600Zm0 520q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z',
+  success: 'm424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z',
+  warning: 'm40-120 440-760 440 760H40Zm138-80h604L480-720 178-200Zm302-40q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm-40-120h80v-200h-80v200Zm40-100Z',
+  error: 'M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240Zm40 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z'
+};
+const CLOSE_ICON = 'm256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z';
+const ICON_LABELS = {
+  info: 'Information',
+  success: 'Succes',
+  warning: 'Advarsel',
+  error: 'Fejl'
+};
+class FDSAlert extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['variant', 'icon-label', 'closable', 'close-label'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get variant() {
+    return this.getAttribute('variant') || DEFAULT_VARIANT;
+  }
+  set variant(value) {
+    this.setAttribute('variant', value);
+  }
+  get iconLabel() {
+    return this.getAttribute('icon-label') || ICON_LABELS[this.variant] || ICON_LABELS[DEFAULT_VARIANT];
+  }
+  set iconLabel(value) {
+    value == null ? this.removeAttribute('icon-label') : this.setAttribute('icon-label', value);
+  }
+  get closable() {
+    return this.hasAttribute('closable') && this.getAttribute('closable') !== 'false';
+  }
+  set closable(value) {
+    this.setAttribute('closable', value ? 'true' : 'false');
+  }
+  get closeLabel() {
+    return this.getAttribute('close-label') || DEFAULT_CLOSE_LABEL;
+  }
+  set closeLabel(value) {
+    value == null ? this.removeAttribute('close-label') : this.setAttribute('close-label', value);
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleCloseClick = () => {
+    this.hide();
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    // --- Wrapper ---
+    let alert = this.shadowRoot.querySelector('.alert');
+    if (!alert) {
+      alert = document.createElement('div');
+      alert.classList.add('alert');
+      this.shadowRoot.appendChild(alert);
+    }
+
+    // --- Icon slot ---
+    if (!alert.querySelector(':scope > slot[name="icon"]')) {
+      const iconSlot = document.createElement('slot');
+      iconSlot.name = 'icon';
+      alert.appendChild(iconSlot);
+    }
+
+    // --- Alert body ---
+    let alertBody = alert.querySelector(':scope > .alert-body');
+    if (!alertBody) {
+      alertBody = document.createElement('div');
+      alertBody.classList.add('alert-body');
+      alert.appendChild(alertBody);
+    }
+
+    // --- Alert row with close button (holds either heading or content) ---
+    let alertRowWithClose = alertBody.querySelector(':scope > .alert-row-with-close');
+    if (!alertRowWithClose) {
+      alertRowWithClose = document.createElement('div');
+      alertRowWithClose.classList.add('alert-row-with-close');
+      const hasHeading = this.querySelector(':scope > [slot="heading"]') !== null;
+      const slotInRow = document.createElement('slot');
+      slotInRow.name = hasHeading ? 'heading' : 'content'; // Row holds the heading if one exists, otherwise it holds the content
+      alertRowWithClose.appendChild(slotInRow);
+      alertBody.appendChild(alertRowWithClose);
+
+      // Content still needs its own slot below the row, but only if the row took the heading
+      if (hasHeading) {
+        const contentSlot = document.createElement('slot');
+        contentSlot.name = 'content';
+        alertBody.appendChild(contentSlot);
+      }
+    }
+    this.#applyVariant();
+    this.#applyIcon();
+    this.#applyClosable();
+
+    // --- Visibility state ---
+    if (!this.hasAttribute('data-visibility')) {
+      this.setAttribute('data-visibility', 'visible');
+    }
+  }
+  #applyVariant() {
+    const alert = this.shadowRoot.querySelector('.alert');
+    alert.className = 'alert';
+    alert.classList.add(`alert-${this.variant}`);
+  }
+  #applyIcon() {
+    const iconSlot = this.shadowRoot.querySelector('slot[name="icon"]');
+    if (iconSlot.assignedNodes().length > 0) return;
+
+    // If no icon was slotted, generate a default icon instead
+    iconSlot.innerHTML = '';
+    const pathD = ICONS[this.variant] || ICONS[DEFAULT_VARIANT];
+    const icon = createSvgIcon(pathD);
+    icon.classList.add('alert-icon');
+    icon.removeAttribute('aria-hidden');
+    icon.setAttribute('aria-label', this.iconLabel);
+    iconSlot.appendChild(icon);
+  }
+  #applyClosable() {
+    const alertRowWithClose = this.shadowRoot.querySelector('.alert-row-with-close');
+    let button = alertRowWithClose.querySelector(':scope > .alert-close');
+    if (this.closable) {
+      if (!button) {
+        button = document.createElement('button');
+        button.type = 'button';
+        button.classList.add('alert-close');
+        const icon = createSvgIcon(CLOSE_ICON);
+        button.appendChild(icon);
+        const label = document.createElement('span');
+        label.classList.add('alert-close-label');
+        label.textContent = this.closeLabel;
+        button.appendChild(label);
+        button.addEventListener('click', this.#handleCloseClick);
+        alertRowWithClose.appendChild(button);
+      } else {
+        this.#applyCloseLabel();
+      }
+    } else if (button) {
+      button.removeEventListener('click', this.#handleCloseClick);
+      button.remove();
+    }
+  }
+  #applyCloseLabel() {
+    const label = this.shadowRoot.querySelector('.alert-row-with-close > .alert-close > .alert-close-label');
+    if (!label) return;
+    label.textContent = this.closeLabel;
+  }
+  #init() {
+    this.#setupHTML();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [fds_alert_sheet];
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  show() {
+    this.setAttribute('data-visibility', 'visible');
+    this.dispatchEvent(new CustomEvent('fds-alert-shown'));
+  }
+  hide() {
+    this.setAttribute('data-visibility', 'hidden');
+    this.dispatchEvent(new CustomEvent('fds-alert-hidden'));
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    this.#init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'variant':
+        this.#applyVariant();
+        this.#applyIcon();
+        break;
+      case 'icon-label':
+        this.#applyIcon();
+        break;
+      case 'closable':
+        this.#applyClosable();
+        break;
+      case 'close-label':
+        this.#applyCloseLabel();
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerAlert() {
+  if (!customElements.get('fds-alert')) {
+    customElements.define('fds-alert', FDSAlert);
+  }
+}
+/* harmony default export */ const fds_alert = (registerAlert);
 ;// ./src/js/new-dkfds.js
 
 
 // Custom elements
+
 
 
 
@@ -9047,6 +9413,7 @@ const registerCustomElements = () => {
   fds_tab();
   fds_tab_panel();
   fds_tabs();
+  fds_alert();
 };
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', registerCustomElements);
