@@ -4127,6 +4127,7 @@ const styles = `
         font-size: 100%;
         line-height: 1.5;
         margin: 0;
+        color: #1a1a1a;
     }
 
     button:focus,
