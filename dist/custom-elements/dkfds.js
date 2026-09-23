@@ -4393,14 +4393,10 @@ class FDSDatePickerGrid extends HTMLElement {
   #CELL_DATE_FORMAT = 'DAY. MONTH YEAR';
   #DEFAULT_MIN_DATE;
   #DEFAULT_MAX_DATE;
-  #handleChangeMonth;
-  #handleChangeYear;
-  #handlePrevMonth;
-  #handleNextMonth;
-  #handleDateClick;
   #textMinDate;
   #textMaxDate;
   #hasDatePickerConnection;
+  #linkedGrid = null;
 
   // #endregion
 
@@ -4536,6 +4532,29 @@ class FDSDatePickerGrid extends HTMLElement {
       }
     }
   };
+  #handleChangeMonth = event => {
+    this.#selectChange(event);
+  };
+  #handleChangeYear = event => {
+    this.#selectChange(event);
+  };
+  #handlePrevMonth = event => {
+    this.#monthButtonClicked(event);
+  };
+  #handleNextMonth = event => {
+    this.#monthButtonClicked(event);
+  };
+  #handleDateClick = event => {
+    this.#dateClicked(event);
+  };
+  #handleRedrawLinkedGrid = () => {
+    const focusableDate = this.#linkedGrid?.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+    this.#linkedGrid?.forceCompleteRedraw(stringToDate(focusableDate));
+  };
+  #handleRedrawSelf = () => {
+    const focusableDate = this.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+    this.forceCompleteRedraw(stringToDate(focusableDate));
+  };
 
   // #endregion
 
@@ -4553,6 +4572,7 @@ class FDSDatePickerGrid extends HTMLElement {
       dateToFocus = stringToDate(this.getAttribute('default-date'));
     }
     this.#redraw(dateToFocus, false);
+    this.#addEventListeners();
     this.#initialized = true;
   }
   #create() {
@@ -4960,6 +4980,22 @@ class FDSDatePickerGrid extends HTMLElement {
       this.#CELL_DATE_FORMAT = str;
     }
   }
+  #addEventListeners() {
+    this.shadowRoot.querySelector('.grid-container').addEventListener('keydown', this.#handleKeydown, false);
+    this.shadowRoot.querySelector('.selected-month').addEventListener('change', this.#handleChangeMonth, false);
+    this.shadowRoot.querySelector('.selected-year').addEventListener('change', this.#handleChangeYear, false);
+    this.shadowRoot.querySelector('.previous-month').addEventListener('click', this.#handlePrevMonth, false);
+    this.shadowRoot.querySelector('.next-month').addEventListener('click', this.#handleNextMonth, false);
+    this.shadowRoot.querySelector('.date-picker-grid').addEventListener('click', this.#handleDateClick, false);
+  }
+  #removeEventListeners() {
+    this.shadowRoot.querySelector('.grid-container').removeEventListener('keydown', this.#handleKeydown, false);
+    this.shadowRoot.querySelector('.selected-month').removeEventListener('change', this.#handleChangeMonth, false);
+    this.shadowRoot.querySelector('.selected-year').removeEventListener('change', this.#handleChangeYear, false);
+    this.shadowRoot.querySelector('.previous-month').removeEventListener('click', this.#handlePrevMonth, false);
+    this.shadowRoot.querySelector('.next-month').removeEventListener('click', this.#handleNextMonth, false);
+    this.shadowRoot.querySelector('.date-picker-grid').removeEventListener('click', this.#handleDateClick, false);
+  }
 
   // #endregion
 
@@ -4983,21 +5019,6 @@ class FDSDatePickerGrid extends HTMLElement {
     this.#previousMaxDate = 0;
     this.#correctedMinDate = null;
     this.#correctedMaxDate = null;
-    this.#handleChangeMonth = event => {
-      this.#selectChange(event);
-    };
-    this.#handleChangeYear = event => {
-      this.#selectChange(event);
-    };
-    this.#handlePrevMonth = event => {
-      this.#monthButtonClicked(event);
-    };
-    this.#handleNextMonth = event => {
-      this.#monthButtonClicked(event);
-    };
-    this.#handleDateClick = event => {
-      this.#dateClicked(event);
-    };
     this.#hasDatePickerConnection = false;
   }
 
@@ -5067,14 +5088,6 @@ class FDSDatePickerGrid extends HTMLElement {
       this.#updateTextNextButton(this.getAttribute('text-nextbutton'));
     }
 
-    // Add event listeners
-    this.shadowRoot.querySelector('.grid-container').addEventListener('keydown', this.#handleKeydown, false);
-    this.shadowRoot.querySelector('.selected-month').addEventListener('change', this.#handleChangeMonth, false);
-    this.shadowRoot.querySelector('.selected-year').addEventListener('change', this.#handleChangeYear, false);
-    this.shadowRoot.querySelector('.previous-month').addEventListener('click', this.#handlePrevMonth, false);
-    this.shadowRoot.querySelector('.next-month').addEventListener('click', this.#handleNextMonth, false);
-    this.shadowRoot.querySelector('.date-picker-grid').addEventListener('click', this.#handleDateClick, false);
-
     // If the date picker is part of a "duo" defining start date and end date, add event listeners when both grids exist
     const isStartDate = this.hasAttribute('start-date-id');
     const isEndDate = this.hasAttribute('end-date-id');
@@ -5083,14 +5096,9 @@ class FDSDatePickerGrid extends HTMLElement {
     if (isStartDate && endDateGrid) {
       customElements.whenDefined('fds-date-picker-grid').then(() => {
         if (!this.getHasDatePickerConnection() && !endDateGrid?.getHasDatePickerConnection()) {
-          this.addEventListener('date-selected', () => {
-            const focusableDate = endDateGrid.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
-            endDateGrid.forceCompleteRedraw(stringToDate(focusableDate));
-          });
-          endDateGrid.addEventListener('date-selected', () => {
-            const focusableDate = this.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
-            this.forceCompleteRedraw(stringToDate(focusableDate));
-          });
+          this.#linkedGrid = endDateGrid;
+          this.addEventListener('date-selected', this.#handleRedrawLinkedGrid);
+          endDateGrid.addEventListener('date-selected', this.#handleRedrawSelf);
           this.setHasDatePickerConnection(true);
           endDateGrid.setHasDatePickerConnection(true);
         }
@@ -5098,14 +5106,9 @@ class FDSDatePickerGrid extends HTMLElement {
     } else if (isEndDate && startDateGrid) {
       customElements.whenDefined('fds-date-picker-grid').then(() => {
         if (!this.getHasDatePickerConnection() && !startDateGrid?.getHasDatePickerConnection()) {
-          startDateGrid.addEventListener('date-selected', () => {
-            const focusableDate = this.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
-            this.forceCompleteRedraw(stringToDate(focusableDate));
-          });
-          this.addEventListener('date-selected', () => {
-            const focusableDate = startDateGrid.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
-            startDateGrid.forceCompleteRedraw(stringToDate(focusableDate));
-          });
+          this.#linkedGrid = startDateGrid;
+          startDateGrid.addEventListener('date-selected', this.#handleRedrawSelf);
+          this.addEventListener('date-selected', this.#handleRedrawLinkedGrid);
           startDateGrid.setHasDatePickerConnection(true);
           this.setHasDatePickerConnection(true);
         }
@@ -5125,6 +5128,10 @@ class FDSDatePickerGrid extends HTMLElement {
   // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
+    this.#removeEventListeners();
+    this.removeEventListener('date-selected', this.#handleRedrawLinkedGrid);
+    this.#linkedGrid?.removeEventListener('date-selected', this.#handleRedrawSelf);
+    this.#linkedGrid = null;
     this.#initialized = false;
   }
 
@@ -5133,7 +5140,8 @@ class FDSDatePickerGrid extends HTMLElement {
   // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
-    if (!this.#initialized && oldValue !== newValue) return;
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
     let redrawNeeded = false;
     if (attribute === 'selected-date') {
       const date = stringToDate(newValue);
