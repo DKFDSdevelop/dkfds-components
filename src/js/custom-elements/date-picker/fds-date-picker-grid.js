@@ -841,43 +841,56 @@ class FDSDatePickerGrid extends HTMLElement {
 
         let redrawNeeded = false;
 
-        if (attribute === 'selected-date') {
-            const date = Util.stringToDate(newValue);
-            const setFocusOnDate = true;
-            if (Util.isValidDate(date)) {
-                this.#redraw(date, setFocusOnDate);
+        switch (attribute) {
+            case 'selected-date': {
+                const date = Util.stringToDate(newValue);
+                const setFocusOnDate = true;
+                if (Util.isValidDate(date)) {
+                    this.#redraw(date, setFocusOnDate);
+                }
+                else {
+                    // An invalid date might be temporary while the user enters a date in the fds-date-picker's input field
+                    // Keep displaying the previous dates to give a more "steady" experience with no rapid updates
+                    const dateWithCurrentFocus = this.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+                    this.#redraw(Util.stringToDate(dateWithCurrentFocus), setFocusOnDate);
+                }
+                this.dispatchEvent(new Event('date-selected'));
+                break;
             }
-            else {
-                // An invalid date might be temporary while the user enters a date in the fds-date-picker's input field
-                // Keep displaying the previous dates to give a more "steady" experience with no rapid updates
-                const dateWithCurrentFocus = this.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
-                this.#redraw(Util.stringToDate(dateWithCurrentFocus), setFocusOnDate);
-            }
-            this.dispatchEvent(new Event('date-selected'));
-        }
+            case 'min-date':
+            case 'max-date':
+                redrawNeeded = true;
+                break;
 
-        if (attribute === 'min-date' || attribute === 'max-date') {
-            redrawNeeded = true;
-        }
+            case 'text-days':
+                this.#updateTextDays(newValue);
+                break;
 
-        if (attribute === 'text-days') { this.#updateTextDays(newValue); }
+            case 'text-months':
+                this.#updateTextMonths(newValue);
+                break;
 
-        if (attribute === 'text-months') { this.#updateTextMonths(newValue); }
+            case 'text-prevbutton':
+                this.#updateTextPrevButton(newValue);
+                break;
 
-        if (attribute === 'text-prevbutton') { this.#updateTextPrevButton(newValue); }
+            case 'text-nextbutton':
+                this.#updateTextNextButton(newValue);
+                break;
 
-        if (attribute === 'text-nextbutton') { this.#updateTextNextButton(newValue); }
+            case 'text-date-announcement':
+                this.#updateTextDateAnnouncement(newValue);
+                break;
 
-        if (attribute === 'text-date-announcement') { this.#updateTextDateAnnouncement(newValue); }
+            case 'text-mindate':
+                this.#textMinDate = newValue;
+                redrawNeeded = true;
+                break;
 
-        if (attribute === 'text-mindate') {
-            this.#textMinDate = newValue;
-            redrawNeeded = true;
-        }
-
-        if (attribute === 'text-maxdate') {
-            this.#textMaxDate = newValue;
-            redrawNeeded = true;
+            case 'text-maxdate':
+                this.#textMaxDate = newValue;
+                redrawNeeded = true;
+                break;
         }
 
         if (redrawNeeded) {

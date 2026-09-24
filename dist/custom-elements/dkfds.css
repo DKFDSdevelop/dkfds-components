@@ -11734,19 +11734,19 @@ fds-date-picker .button.date-button,
   height:calc(2.4rem + 16px);
   margin-top:8px;
   border:1px solid #8E8E8E;
-  border-left:none;
+  border-left:0;
   border-end-start-radius:0;
   border-start-start-radius:0;
   border-start-end-radius:8px;
   border-end-end-radius:8px;
-  padding-left:12px;
-  padding-right:12px;
+  padding-left:16px;
+  padding-right:16px;
 }
 fds-date-picker .button.date-button:hover, fds-date-picker .button.date-button:disabled,
 .fds-date-picker .button.date-button:hover,
 .fds-date-picker .button.date-button:disabled{
   border:1px solid #8E8E8E;
-  border-left:none;
+  border-left:0;
 }
 fds-date-picker .ce-date-picker[role=dialog],
 .fds-date-picker .ce-date-picker[role=dialog]{

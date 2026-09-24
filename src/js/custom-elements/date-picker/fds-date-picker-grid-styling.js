@@ -97,6 +97,7 @@ export const styles = `
         padding-left: 8px;
         font-weight: 600;
         height: calc(1.6rem + 24px);
+        cursor: pointer;
     }
 
     .selected-month:hover,
@@ -240,17 +241,25 @@ export const styles = `
     }
 
     td[aria-selected]:hover {
+        background-color: #F5F5F5;
+        text-decoration: underline;
+    }
+
+    td[aria-selected]:active {
         background-color: #DCDCDC;
+        text-decoration: underline;
     }
 
     td[aria-selected="true"],
-    td[aria-selected="true"]:hover {
+    td[aria-selected="true"]:hover,
+    td[aria-selected="true"]:active {
         background-color: #1a1a1a;
         color: #ffffff;
+        text-decoration: none;
     }
 
     td[aria-disabled="true"] {
-        color: #BFBFBF;
+        opacity: 0.25;
     }
 
     td[aria-disabled="true"]:focus {
@@ -259,6 +268,11 @@ export const styles = `
 
     td[aria-current="date"] {
         font-weight: 700;
+        text-decoration: underline;
+    }
+
+    td[aria-current="date"][aria-selected="true"]:hover,
+    td[aria-current="date"][aria-selected="true"]:active {
         text-decoration: underline;
     }
 `;

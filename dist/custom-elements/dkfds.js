@@ -4198,6 +4198,7 @@ const styles = `
         padding-left: 8px;
         font-weight: 600;
         height: calc(1.6rem + 24px);
+        cursor: pointer;
     }
 
     .selected-month:hover,
@@ -4341,17 +4342,25 @@ const styles = `
     }
 
     td[aria-selected]:hover {
+        background-color: #F5F5F5;
+        text-decoration: underline;
+    }
+
+    td[aria-selected]:active {
         background-color: #DCDCDC;
+        text-decoration: underline;
     }
 
     td[aria-selected="true"],
-    td[aria-selected="true"]:hover {
+    td[aria-selected="true"]:hover,
+    td[aria-selected="true"]:active {
         background-color: #1a1a1a;
         color: #ffffff;
+        text-decoration: none;
     }
 
     td[aria-disabled="true"] {
-        color: #BFBFBF;
+        opacity: 0.25;
     }
 
     td[aria-disabled="true"]:focus {
@@ -4360,6 +4369,11 @@ const styles = `
 
     td[aria-current="date"] {
         font-weight: 700;
+        text-decoration: underline;
+    }
+
+    td[aria-current="date"][aria-selected="true"]:hover,
+    td[aria-current="date"][aria-selected="true"]:active {
         text-decoration: underline;
     }
 `;
@@ -5143,44 +5157,49 @@ class FDSDatePickerGrid extends HTMLElement {
     if (!this.#initialized) return;
     if (oldValue === newValue) return;
     let redrawNeeded = false;
-    if (attribute === 'selected-date') {
-      const date = stringToDate(newValue);
-      const setFocusOnDate = true;
-      if (isValidDate(date)) {
-        this.#redraw(date, setFocusOnDate);
-      } else {
-        // An invalid date might be temporary while the user enters a date in the fds-date-picker's input field
-        // Keep displaying the previous dates to give a more "steady" experience with no rapid updates
-        const dateWithCurrentFocus = this.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
-        this.#redraw(stringToDate(dateWithCurrentFocus), setFocusOnDate);
-      }
-      this.dispatchEvent(new Event('date-selected'));
-    }
-    if (attribute === 'min-date' || attribute === 'max-date') {
-      redrawNeeded = true;
-    }
-    if (attribute === 'text-days') {
-      this.#updateTextDays(newValue);
-    }
-    if (attribute === 'text-months') {
-      this.#updateTextMonths(newValue);
-    }
-    if (attribute === 'text-prevbutton') {
-      this.#updateTextPrevButton(newValue);
-    }
-    if (attribute === 'text-nextbutton') {
-      this.#updateTextNextButton(newValue);
-    }
-    if (attribute === 'text-date-announcement') {
-      this.#updateTextDateAnnouncement(newValue);
-    }
-    if (attribute === 'text-mindate') {
-      this.#textMinDate = newValue;
-      redrawNeeded = true;
-    }
-    if (attribute === 'text-maxdate') {
-      this.#textMaxDate = newValue;
-      redrawNeeded = true;
+    switch (attribute) {
+      case 'selected-date':
+        {
+          const date = stringToDate(newValue);
+          const setFocusOnDate = true;
+          if (isValidDate(date)) {
+            this.#redraw(date, setFocusOnDate);
+          } else {
+            // An invalid date might be temporary while the user enters a date in the fds-date-picker's input field
+            // Keep displaying the previous dates to give a more "steady" experience with no rapid updates
+            const dateWithCurrentFocus = this.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+            this.#redraw(stringToDate(dateWithCurrentFocus), setFocusOnDate);
+          }
+          this.dispatchEvent(new Event('date-selected'));
+          break;
+        }
+      case 'min-date':
+      case 'max-date':
+        redrawNeeded = true;
+        break;
+      case 'text-days':
+        this.#updateTextDays(newValue);
+        break;
+      case 'text-months':
+        this.#updateTextMonths(newValue);
+        break;
+      case 'text-prevbutton':
+        this.#updateTextPrevButton(newValue);
+        break;
+      case 'text-nextbutton':
+        this.#updateTextNextButton(newValue);
+        break;
+      case 'text-date-announcement':
+        this.#updateTextDateAnnouncement(newValue);
+        break;
+      case 'text-mindate':
+        this.#textMinDate = newValue;
+        redrawNeeded = true;
+        break;
+      case 'text-maxdate':
+        this.#textMaxDate = newValue;
+        redrawNeeded = true;
+        break;
     }
     if (redrawNeeded) {
       const dateWithCurrentFocus = this.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
