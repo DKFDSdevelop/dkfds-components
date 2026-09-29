@@ -13,7 +13,7 @@ export const styles = (breakpoint) => `
         display: flex;
         flex-wrap: wrap;
         align-items: flex-start;
-        width: 100%;
+        width: var(--tabs-tablist-width);
         gap: 8px;
         margin-bottom: 8px;
     }

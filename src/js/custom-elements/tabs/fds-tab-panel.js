@@ -28,10 +28,15 @@ class FDSTabPanel extends HTMLElement {
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #setupHTML() {
-        if (!this.shadowRoot.querySelector('slot')) {
-            const slot = document.createElement('slot');
-            this.shadowRoot.appendChild(slot);
-        }
+        if (this.shadowRoot.querySelector('.scroll-container')) return;
+
+        const container = document.createElement('div');
+        container.classList.add('scroll-container');
+
+        const slot = document.createElement('slot');
+        container.appendChild(slot);
+
+        this.shadowRoot.appendChild(container);
     }
 
     #setupId() {

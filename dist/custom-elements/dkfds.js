@@ -8541,13 +8541,20 @@ const fds_tab_panel_styling_styles = `
         display: block;
         border: 1px solid #8E8E8E;
         width: 100%;
-        padding: 24px;
         overflow: auto hidden;
+        background-color: var(--tab-panel-background-color);
     }
 
     :host(:focus) {
         outline: 3px solid #454545;
         outline-offset: 1px;
+    }
+
+    .scroll-container {
+        display: block;
+        width: fit-content;
+        min-width: 100%;
+        padding: 24px;
     }
 `;
 ;// ./src/js/custom-elements/tabs/fds-tab-panel.js
@@ -8582,10 +8589,12 @@ class FDSTabPanel extends HTMLElement {
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #setupHTML() {
-    if (!this.shadowRoot.querySelector('slot')) {
-      const slot = document.createElement('slot');
-      this.shadowRoot.appendChild(slot);
-    }
+    if (this.shadowRoot.querySelector('.scroll-container')) return;
+    const container = document.createElement('div');
+    container.classList.add('scroll-container');
+    const slot = document.createElement('slot');
+    container.appendChild(slot);
+    this.shadowRoot.appendChild(container);
   }
   #setupId() {
     if (this.id || !this.tabKey) return;
@@ -8663,7 +8672,7 @@ const fds_tabs_styling_styles = breakpoint => `
         display: flex;
         flex-wrap: wrap;
         align-items: flex-start;
-        width: 100%;
+        width: var(--tabs-tablist-width);
         gap: 8px;
         margin-bottom: 8px;
     }
