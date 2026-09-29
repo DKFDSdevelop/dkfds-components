@@ -29,6 +29,7 @@ fds-date-picker,
     input {
         @extend %basic-form-element;
         border: func.border(vars.$input-border);
+        border-right: 0;
         color: func.color(vars.$input-text-color);
         font-size: func.font-size(vars.$input-font-size);
         line-height: func.units(vars.$input-line-height, 'rem');
@@ -77,7 +78,6 @@ fds-date-picker,
         height: calc(#{func.units(vars.$input-line-height, 'rem')} + (8px * 2));
         margin-top: func.units(3);
         border: func.border(vars.$input-border);
-        border-left: 0;
         border-end-start-radius: 0;
         border-start-start-radius: 0;
         border-start-end-radius: func.border-radius('medium');
@@ -87,7 +87,6 @@ fds-date-picker,
 
         &:hover, &:disabled {
             border: func.border(vars.$input-border);
-            border-left: 0;
         }
     }
 

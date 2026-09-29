@@ -11689,6 +11689,7 @@ fds-date-picker label.disabled,
 fds-date-picker input,
 .fds-date-picker input{
   border:1px solid #8E8E8E;
+  border-right:0;
   color:#1a1a1a;
   font-size:1.6rem;
   line-height:2.4rem;
@@ -11734,7 +11735,6 @@ fds-date-picker .button.date-button,
   height:calc(2.4rem + 16px);
   margin-top:8px;
   border:1px solid #8E8E8E;
-  border-left:0;
   border-end-start-radius:0;
   border-start-start-radius:0;
   border-start-end-radius:8px;
@@ -11746,7 +11746,6 @@ fds-date-picker .button.date-button:hover, fds-date-picker .button.date-button:d
 .fds-date-picker .button.date-button:hover,
 .fds-date-picker .button.date-button:disabled{
   border:1px solid #8E8E8E;
-  border-left:0;
 }
 fds-date-picker .ce-date-picker[role=dialog],
 .fds-date-picker .ce-date-picker[role=dialog]{
