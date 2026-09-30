@@ -26,11 +26,11 @@ class FDSAccordion extends HTMLElement {
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #getHeadingElement() {
-        return this.querySelector('h1, h2, h3, h4, h5, h6');
+        return this.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
     }
 
     #getContentElement() {
-        return this.querySelector('.accordion-content');
+        return this.querySelector(':scope > .accordion-content');
     }
 
     #normalizeHeadingLevel(headingLevel) {

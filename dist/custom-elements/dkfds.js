@@ -135,10 +135,10 @@ class FDSAccordion extends HTMLElement {
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #getHeadingElement() {
-    return this.querySelector('h1, h2, h3, h4, h5, h6');
+    return this.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
   }
   #getContentElement() {
-    return this.querySelector('.accordion-content');
+    return this.querySelector(':scope > .accordion-content');
   }
   #normalizeHeadingLevel(headingLevel) {
     const normalizedHeadingLevel = (headingLevel || 'h3').toLowerCase();
@@ -8567,7 +8567,7 @@ const fds_tab_panel_styling_styles = `
 
     :host {
         display: block;
-        border: 1px solid #8E8E8E;
+        border: 1px solid var(--tab-panel-border-color);
         width: 100%;
         overflow: auto hidden;
         background-color: var(--tab-panel-background-color);

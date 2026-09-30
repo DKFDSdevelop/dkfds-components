@@ -7,7 +7,7 @@ export const styles = `
 
     :host {
         display: block;
-        border: 1px solid #8E8E8E;
+        border: 1px solid var(--tab-panel-border-color);
         width: 100%;
         overflow: auto hidden;
         background-color: var(--tab-panel-background-color);
