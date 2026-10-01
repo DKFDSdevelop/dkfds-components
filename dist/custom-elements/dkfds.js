@@ -9025,6 +9025,12 @@ const fds_alert_styling_styles = `
 
     :host {
         display: block;
+        margin-top: 16px;
+        margin-bottom: 16px;
+    }
+
+    :host(:first-child) {
+        margin-top: 0;
     }
 
     :host([data-visibility="hidden"]) {
@@ -9033,8 +9039,6 @@ const fds_alert_styling_styles = `
 
     .alert {
         position: relative;
-        margin-top: 16px;
-        margin-bottom: 16px;
         border-radius: 8px;
         padding: 1.6rem;
         padding-left: 5.2rem;

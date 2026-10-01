@@ -13619,3 +13619,18 @@ fds-tabs fds-tab-panel > :last-child{
 .fds-side-menu > ul > li li li a, .fds-side-menu > ol > li li li a{
   padding-left:64px;
 }
+
+fds-alert [slot=content] a{
+  color:var(--color-black);
+}
+fds-alert [slot=content] a .icon-svg{
+  fill:var(--color-black);
+}
+fds-alert [slot=content] a{
+}
+fds-alert [slot=content] a.icon-link:not(.function-link):visited .icon-svg{
+  fill:var(--color-black);
+}
+fds-alert [slot=content] a.icon-link:not(.function-link):hover .icon-svg{
+  fill:var(--color-black);
+}
