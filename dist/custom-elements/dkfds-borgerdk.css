@@ -13527,7 +13527,8 @@ fds-modal-opener.mobile-menu-opener button span{
   text-decoration:underline;
 }
 
-header fds-modal[variant=drawer] .scrollable-area{
+header fds-modal[variant=drawer] .scrollable-area,
+.header fds-modal[variant=drawer] .scrollable-area{
   background-color:#f1f1f1;
 }
 
