@@ -11505,6 +11505,10 @@ fds-upload-file,
   max-width:66ch;
   margin-top:24px;
 }
+fds-upload-file:first-child,
+.fds-upload-file:first-child{
+  margin-top:0;
+}
 fds-upload-file .fds-upload-label,
 .fds-upload-file .fds-upload-label{
   display:block;
