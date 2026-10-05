@@ -275,6 +275,7 @@ fds-modal-opener.mobile-menu-opener {
     }
 }
 
-header fds-modal[variant="drawer"] .scrollable-area {
+header fds-modal[variant="drawer"] .scrollable-area,
+.header fds-modal[variant="drawer"] .scrollable-area {
     background-color: func.color(vars.$header-portal-background-color);
 }

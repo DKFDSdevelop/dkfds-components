@@ -5,19 +5,23 @@
 
 :root{
   --header-portal-background-color:#f1f1f1;
+  --color-white:#FFFFFF;
   --color-gray-100:#F5F5F5;
   --color-gray-200:#DCDCDC;
   --color-gray-300:#BFBFBF;
   --color-gray-400:#8E8E8E;
   --color-gray-500:#707070;
   --color-gray-600:#454545;
-  --color-gray-900:#1a1a1a;
+  --color-black:#1a1a1a;
   --alert-background-color:var(--color-gray-100);
   --alert-border-color:var(--color-gray-400);
   --alert-heading-margin-top:0;
   --alert-heading-margin-bottom:0;
   --alert-content-margin-top:0;
   --alert-content-margin-bottom:0;
+  --tab-panel-background-color:rgba(0, 0, 0, 0);
+  --tab-panel-border-color:var(--color-gray-400);
+  --tabs-tablist-width:100%;
   --tooltip-arrow-height:8px;
   --tooltip-arrow-distance-to-target:4px;
 }
@@ -11501,6 +11505,10 @@ fds-upload-file,
   max-width:66ch;
   margin-top:24px;
 }
+fds-upload-file:first-child,
+.fds-upload-file:first-child{
+  margin-top:0;
+}
 fds-upload-file .fds-upload-label,
 .fds-upload-file .fds-upload-label{
   display:block;
@@ -12185,112 +12193,6 @@ fds-input-affix .form-input-prefix,
   border-right:0;
   border-top-left-radius:8px;
   border-bottom-left-radius:8px;
-}
-
-fds-drawer,
-.fds-drawer{
-  display:block;
-}
-fds-drawer .mobile-drawer,
-.fds-drawer .mobile-drawer{
-  display:none;
-  position:fixed;
-  inset:0 0 0 auto;
-  background-color:#f1f1f1;
-  flex-direction:column;
-  overflow-y:auto;
-  padding:0;
-  width:85%;
-  max-width:40rem;
-  z-index:9000;
-  box-shadow:0 8px 24px 0 rgba(0, 0, 0, 0.2);
-}
-@keyframes slidein-left{
-  from{
-    transform:translateX(85%);
-  }
-  to{
-    transform:translateX(0);
-  }
-}
-fds-drawer .mobile-drawer.is-visible,
-.fds-drawer .mobile-drawer.is-visible{
-  display:block;
-  animation:slidein-left 0.3s ease-in-out;
-}
-fds-drawer .mobile-drawer .menu-top,
-.fds-drawer .mobile-drawer .menu-top{
-  background-color:white;
-  padding:8px 24px;
-  display:flex;
-  align-items:center;
-  min-height:48px;
-}
-fds-drawer .mobile-drawer .menu-top .menu-heading,
-.fds-drawer .mobile-drawer .menu-top .menu-heading{
-  font-size:2rem;
-  margin-top:0;
-  margin-bottom:0;
-}
-fds-drawer .mobile-drawer .menu-top .button-menu-close,
-.fds-drawer .mobile-drawer .menu-top .button-menu-close{
-  width:unset;
-  margin-left:auto;
-}
-
-.overlay{
-  position:fixed;
-  inset:0;
-  background:#1a1a1a;
-  opacity:0;
-  transition:opacity 0.2s ease-in-out;
-  visibility:hidden;
-  z-index:8000;
-}
-.overlay.is-visible{
-  opacity:0.75;
-  visibility:visible;
-}
-
-fds-drawer-opener,
-.fds-drawer-opener{
-  display:inline-block;
-}
-fds-drawer-opener button,
-.fds-drawer-opener button{
-  width:auto;
-  white-space:nowrap;
-  background:none;
-  padding:0;
-  text-align:left;
-  border:none;
-  font-size:1.6rem;
-  line-height:2.4rem;
-  font-weight:400;
-  color:#1a1a1a;
-  text-transform:none;
-  letter-spacing:normal;
-  cursor:pointer;
-  display:inline-block;
-  overflow-wrap:break-word;
-  max-width:100%;
-}
-fds-drawer-opener button:hover, fds-drawer-opener button:visited, fds-drawer-opener button:focus,
-.fds-drawer-opener button:hover,
-.fds-drawer-opener button:visited,
-.fds-drawer-opener button:focus{
-  color:#1a1a1a;
-}
-fds-drawer-opener button .icon-svg,
-.fds-drawer-opener button .icon-svg{
-  margin-right:4px;
-  fill:currentColor;
-  vertical-align:top;
-  margin-top:0.1rem;
-}
-fds-drawer-opener button span,
-.fds-drawer-opener button span{
-  text-decoration:underline;
 }
 
 fds-portal-info,
@@ -13523,7 +13425,8 @@ fds-modal-opener.mobile-menu-opener button span{
   text-decoration:underline;
 }
 
-header fds-modal[variant=drawer] .scrollable-area{
+header fds-modal[variant=drawer] .scrollable-area,
+.header fds-modal[variant=drawer] .scrollable-area{
   background-color:#f1f1f1;
 }
 
@@ -13614,4 +13517,19 @@ fds-tabs fds-tab-panel > :last-child{
 }
 .fds-side-menu > ul > li li li a, .fds-side-menu > ol > li li li a{
   padding-left:64px;
+}
+
+fds-alert [slot=content] a{
+  color:var(--color-black);
+}
+fds-alert [slot=content] a .icon-svg{
+  fill:var(--color-black);
+}
+fds-alert [slot=content] a{
+}
+fds-alert [slot=content] a.icon-link:not(.function-link):visited .icon-svg{
+  fill:var(--color-black);
+}
+fds-alert [slot=content] a.icon-link:not(.function-link):hover .icon-svg{
+  fill:var(--color-black);
 }

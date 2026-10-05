@@ -8,6 +8,10 @@ fds-upload-file,
     max-width: vars.$typography-text-max-width;
     margin-top: func.units(5);
 
+    &:first-child {
+        margin-top: 0;
+    }
+
     .fds-upload-label {
         display: block;
         margin-bottom: func.units(3);
