@@ -1502,7 +1502,10 @@ h6 a:focus, .h6 a, .h6 a:hover, .h6 a:visited, .h6 a:focus{
   text-decoration:underline;
 }
 
-p, .paragraph{
+p,
+.paragraph,
+ul:not(:where(.accordion, .accordion-bordered, .nav-primary, .mainmenu, .inline-list, .tabnav, .tab-list, .sidenav-list, .sidenav-sub_list, .sidemenu, .function-link-wrapper, .no-max-width, .overflow-list)),
+ol:not(:where(.accordion, .accordion-bordered, .sidenav-list, .sidemenu, .step-indicator, .no-max-width)){
   max-width:66ch;
 }
 

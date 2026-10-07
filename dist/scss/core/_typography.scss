@@ -207,9 +207,13 @@ h6, .h6{
 }
 
 // max-width of 66ch for text
-p, .paragraph {
+p,
+.paragraph,
+ul:not(:where(.accordion, .accordion-bordered, .nav-primary, .mainmenu, .inline-list, .tabnav, .tab-list, .sidenav-list, .sidenav-sub_list, .sidemenu, .function-link-wrapper, .no-max-width, .overflow-list)),
+ol:not(:where(.accordion, .accordion-bordered, .sidenav-list, .sidemenu, .step-indicator, .no-max-width)) {
   max-width: vars.$typography-text-max-width;
 }
+
 .font-lead{
   max-width: vars.$typography-text-max-width;
 }
