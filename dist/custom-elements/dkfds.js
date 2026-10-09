@@ -70,6 +70,8 @@ __webpack_require__.d(__webpack_exports__, {
   registerModal: () => (/* reexport */ fds_modal),
   registerModalCloser: () => (/* reexport */ fds_modal_closer),
   registerModalOpener: () => (/* reexport */ fds_modal_opener),
+  registerMultiselect: () => (/* reexport */ fds_multiselect),
+  registerMultiselectOption: () => (/* reexport */ fds_multiselect_option),
   registerPortalInfo: () => (/* reexport */ fds_portal_info),
   registerRadioButton: () => (/* reexport */ fds_radio_button),
   registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
@@ -9035,10 +9037,362 @@ function registerAlert() {
   }
 }
 /* harmony default export */ const fds_alert = (registerAlert);
+;// ./src/js/custom-elements/multiselect/fds-multiselect.js
+
+const fds_multiselect_styles = `
+    :host {
+        display: block;
+    }
+`;
+const fds_multiselect_sheet = new CSSStyleSheet();
+fds_multiselect_sheet.replaceSync(fds_multiselect_styles);
+class FDSMultiselect extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['attr', 'ready'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get attr() {
+    return this.getAttribute('attr');
+  }
+  set attr(value) {
+    value == null ? this.removeAttribute('attr') : this.setAttribute('attr', value);
+  }
+  get ready() {
+    return this.getAttribute('ready') !== 'false';
+  }
+  set ready(value) {
+    this.setAttribute('ready', value ? 'true' : 'false');
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+  #mutationObserver = null;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleClick = event => {
+    console.log('Click event:', event);
+  };
+  #handleKeyDown = event => {
+    console.log('KeyDown event:', event);
+  };
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      console.log('attributeName', attributeName);
+      console.log('target', target);
+      console.log('addedNodes', addedNodes);
+      console.log('removedNodes', removedNodes);
+    }
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    // --- Slot ---
+    if (!this.shadowRoot.querySelector('slot[name="element-slot"]')) {
+      const slot = document.createElement('slot');
+      slot.name = 'element-slot';
+      this.shadowRoot.appendChild(slot);
+    }
+
+    // --- Button ---
+    let button = this.shadowRoot.querySelector('button');
+    if (!button) {
+      button = document.createElement('button');
+      this.shadowRoot.appendChild(button);
+    }
+    button.textContent = 'Click me';
+  }
+  #addEventListeners() {
+    this.shadowRoot.querySelector('button').addEventListener('click', this.#handleClick);
+    this.shadowRoot.querySelector('button').addEventListener('keydown', this.#handleKeyDown);
+  }
+  #removeEventListeners() {
+    this.shadowRoot.querySelector('button').removeEventListener('click', this.#handleClick);
+    this.shadowRoot.querySelector('button').removeEventListener('keydown', this.#handleKeyDown);
+  }
+  #connectMutationObserver() {
+    let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mutationObserverConfig;
+    if (this.#mutationObserver) return;
+    this.#mutationObserver = new MutationObserver(this.#handleMutations);
+    this.#mutationObserver.observe(this, config);
+  }
+  #disconnectMutationObserver() {
+    if (this.#mutationObserver) {
+      this.#mutationObserver.disconnect();
+      this.#mutationObserver = null;
+    }
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [fds_multiselect_sheet];
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  init() {
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#connectMutationObserver();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    // The 'ready' attribute can be used to defer initialization.
+    // Omit the attribute or set it to anything other than 'false' to initialize immediately.
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#disconnectMutationObserver();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'attr':
+        console.log('attr changed to', newValue);
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerMultiselect() {
+  if (!customElements.get('fds-multiselect')) {
+    customElements.define('fds-multiselect', FDSMultiselect);
+  }
+}
+/* harmony default export */ const fds_multiselect = (registerMultiselect);
+;// ./src/js/custom-elements/multiselect/fds-multiselect-option.js
+
+const fds_multiselect_option_styles = `
+    :host {
+        display: block;
+    }
+`;
+const fds_multiselect_option_sheet = new CSSStyleSheet();
+fds_multiselect_option_sheet.replaceSync(fds_multiselect_option_styles);
+class FDSMultiselectOption extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['attr', 'ready'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get attr() {
+    return this.getAttribute('attr');
+  }
+  set attr(value) {
+    value == null ? this.removeAttribute('attr') : this.setAttribute('attr', value);
+  }
+  get ready() {
+    return this.getAttribute('ready') !== 'false';
+  }
+  set ready(value) {
+    this.setAttribute('ready', value ? 'true' : 'false');
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+  #mutationObserver = null;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleClick = event => {
+    console.log('Click event:', event);
+  };
+  #handleKeyDown = event => {
+    console.log('KeyDown event:', event);
+  };
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      console.log('attributeName', attributeName);
+      console.log('target', target);
+      console.log('addedNodes', addedNodes);
+      console.log('removedNodes', removedNodes);
+    }
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    // --- Slot ---
+    if (!this.shadowRoot.querySelector('slot[name="element-slot"]')) {
+      const slot = document.createElement('slot');
+      slot.name = 'element-slot';
+      this.shadowRoot.appendChild(slot);
+    }
+
+    // --- Button ---
+    let button = this.shadowRoot.querySelector('button');
+    if (!button) {
+      button = document.createElement('button');
+      this.shadowRoot.appendChild(button);
+    }
+    button.textContent = 'Click me';
+  }
+  #addEventListeners() {
+    this.shadowRoot.querySelector('button').addEventListener('click', this.#handleClick);
+    this.shadowRoot.querySelector('button').addEventListener('keydown', this.#handleKeyDown);
+  }
+  #removeEventListeners() {
+    this.shadowRoot.querySelector('button').removeEventListener('click', this.#handleClick);
+    this.shadowRoot.querySelector('button').removeEventListener('keydown', this.#handleKeyDown);
+  }
+  #connectMutationObserver() {
+    let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mutationObserverConfig;
+    if (this.#mutationObserver) return;
+    this.#mutationObserver = new MutationObserver(this.#handleMutations);
+    this.#mutationObserver.observe(this, config);
+  }
+  #disconnectMutationObserver() {
+    if (this.#mutationObserver) {
+      this.#mutationObserver.disconnect();
+      this.#mutationObserver = null;
+    }
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [fds_multiselect_option_sheet];
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  init() {
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#connectMutationObserver();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    // The 'ready' attribute can be used to defer initialization.
+    // Omit the attribute or set it to anything other than 'false' to initialize immediately.
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#disconnectMutationObserver();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'attr':
+        console.log('attr changed to', newValue);
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerMultiselectOption() {
+  if (!customElements.get('fds-multiselect-option')) {
+    customElements.define('fds-multiselect-option', FDSMultiselectOption);
+  }
+}
+/* harmony default export */ const fds_multiselect_option = (registerMultiselectOption);
 ;// ./src/js/new-dkfds.js
 
 
 // Custom elements
+
+
 
 
 
@@ -9106,6 +9460,8 @@ const registerCustomElements = () => {
   fds_tab_panel();
   fds_tabs();
   fds_alert();
+  fds_multiselect();
+  fds_multiselect_option();
 };
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', registerCustomElements);

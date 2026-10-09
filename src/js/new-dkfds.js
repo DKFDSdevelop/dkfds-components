@@ -34,6 +34,8 @@ import registerTab from './custom-elements/tabs/fds-tab';
 import registerTabPanel from './custom-elements/tabs/fds-tab-panel';
 import registerTabs from './custom-elements/tabs/fds-tabs';
 import registerAlert from './custom-elements/alert/fds-alert';
+import registerMultiselect from './custom-elements/multiselect/fds-multiselect';
+import registerMultiselectOption from './custom-elements/multiselect/fds-multiselect-option';
 
 const registerCustomElements = () => {
     registerAccordion();
@@ -69,6 +71,8 @@ const registerCustomElements = () => {
     registerTabPanel();
     registerTabs();
     registerAlert();
+    registerMultiselect();
+    registerMultiselectOption();
 };
 
 if (document.readyState === 'loading') {
@@ -78,4 +82,4 @@ else {
     registerCustomElements();
 }
 
-export { registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerPortalInfo, registerSolutionInfo, registerDropdownMenu, registerMainMenu, registerTooltip, registerTooltipIcon, registerToggleSwitch, registerModalOpener, registerModalCloser, registerModal, registerTab, registerTabPanel, registerTabs, registerAlert };
+export { registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerPortalInfo, registerSolutionInfo, registerDropdownMenu, registerMainMenu, registerTooltip, registerTooltipIcon, registerToggleSwitch, registerModalOpener, registerModalCloser, registerModal, registerTab, registerTabPanel, registerTabs, registerAlert, registerMultiselect, registerMultiselectOption };
