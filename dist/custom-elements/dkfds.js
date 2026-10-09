@@ -9037,107 +9037,72 @@ function registerAlert() {
   }
 }
 /* harmony default export */ const fds_alert = (registerAlert);
-;// ./src/js/custom-elements/multiselect/fds-multiselect.js
-
-const fds_multiselect_styles = `
+;// ./src/js/custom-elements/multiselect/fds-multiselect-styling.js
+const fds_multiselect_styling_styles = `
     :host {
         display: block;
     }
+
+    .opener-label {
+        font-size: 1.6rem;
+        line-height: 2.4rem;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+
+    .opener {
+        appearance: none;
+        display: flex;
+        align-items: center;
+        font: inherit;
+        cursor: pointer;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 32rem;
+        background-color: white;
+        border:1px solid #8E8E8E;
+        color: #1a1a1a;
+        font-size: 1.6rem;
+        line-height: 2.4rem;
+        height: calc(2.4rem + 16px);
+        padding: calc(8px - 1px) calc(16px - 1px);
+        padding-right: 32px;
+        margin-top: 8px;
+    }
+
+    .opener:focus {
+        outline: 3px solid #454545;
+        outline-offset: 1px;
+    }
 `;
+;// ./src/js/custom-elements/multiselect/fds-multiselect.js
+
 const fds_multiselect_sheet = new CSSStyleSheet();
-fds_multiselect_sheet.replaceSync(fds_multiselect_styles);
+fds_multiselect_sheet.replaceSync(fds_multiselect_styling_styles);
 class FDSMultiselect extends HTMLElement {
-  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
-
-  static observedAttributes = ['attr', 'ready'];
-
-  // #endregion
-
-  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
-
-  get attr() {
-    return this.getAttribute('attr');
-  }
-  set attr(value) {
-    value == null ? this.removeAttribute('attr') : this.setAttribute('attr', value);
-  }
-  get ready() {
-    return this.getAttribute('ready') !== 'false';
-  }
-  set ready(value) {
-    this.setAttribute('ready', value ? 'true' : 'false');
-  }
-
-  // #endregion
-
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
-  #mutationObserver = null;
-
-  // #endregion
-
-  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
-
-  #handleClick = event => {
-    console.log('Click event:', event);
-  };
-  #handleKeyDown = event => {
-    console.log('KeyDown event:', event);
-  };
-  #handleMutations = records => {
-    for (const {
-      attributeName,
-      target,
-      addedNodes,
-      removedNodes
-    } of records) {
-      console.log('attributeName', attributeName);
-      console.log('target', target);
-      console.log('addedNodes', addedNodes);
-      console.log('removedNodes', removedNodes);
-    }
-  };
 
   // #endregion
 
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #setupHTML() {
-    // --- Slot ---
-    if (!this.shadowRoot.querySelector('slot[name="element-slot"]')) {
-      const slot = document.createElement('slot');
-      slot.name = 'element-slot';
-      this.shadowRoot.appendChild(slot);
-    }
-
-    // --- Button ---
-    let button = this.shadowRoot.querySelector('button');
-    if (!button) {
-      button = document.createElement('button');
-      this.shadowRoot.appendChild(button);
-    }
-    button.textContent = 'Click me';
-  }
-  #addEventListeners() {
-    this.shadowRoot.querySelector('button').addEventListener('click', this.#handleClick);
-    this.shadowRoot.querySelector('button').addEventListener('keydown', this.#handleKeyDown);
-  }
-  #removeEventListeners() {
-    this.shadowRoot.querySelector('button').removeEventListener('click', this.#handleClick);
-    this.shadowRoot.querySelector('button').removeEventListener('keydown', this.#handleKeyDown);
-  }
-  #connectMutationObserver() {
-    let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mutationObserverConfig;
-    if (this.#mutationObserver) return;
-    this.#mutationObserver = new MutationObserver(this.#handleMutations);
-    this.#mutationObserver.observe(this, config);
-  }
-  #disconnectMutationObserver() {
-    if (this.#mutationObserver) {
-      this.#mutationObserver.disconnect();
-      this.#mutationObserver = null;
-    }
+    if (this.shadowRoot.querySelector('.opener')) return;
+    const label = document.createElement('span');
+    label.classList.add('opener-label');
+    label.id = 'opener-label';
+    label.textContent = 'Vælg frugter';
+    const opener = document.createElement('button');
+    opener.classList.add('opener');
+    opener.setAttribute('type', 'button');
+    opener.setAttribute('role', 'combobox');
+    opener.setAttribute('aria-haspopup', 'listbox');
+    opener.setAttribute('aria-expanded', 'false');
+    opener.setAttribute('aria-labelledby', 'opener-label');
+    opener.textContent = 'Vælg en eller flere';
+    this.shadowRoot.append(label, opener);
   }
 
   // #endregion
@@ -9157,9 +9122,8 @@ class FDSMultiselect extends HTMLElement {
   // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
   init() {
+    if (this.#initialized) return;
     this.#setupHTML();
-    this.#addEventListeners();
-    this.#connectMutationObserver();
     this.#initialized = true;
   }
 
@@ -9168,9 +9132,6 @@ class FDSMultiselect extends HTMLElement {
   // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
-    // The 'ready' attribute can be used to defer initialization.
-    // Omit the attribute or set it to anything other than 'false' to initialize immediately.
-    if (this.getAttribute('ready') === 'false') return;
     this.init();
   }
 
@@ -9179,8 +9140,6 @@ class FDSMultiselect extends HTMLElement {
   // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
-    this.#removeEventListeners();
-    this.#disconnectMutationObserver();
     this.#initialized = false;
   }
 
@@ -9189,19 +9148,8 @@ class FDSMultiselect extends HTMLElement {
   // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
-    if (attribute === 'ready') {
-      if (!this.#initialized && this.isConnected && newValue !== 'false') {
-        this.init();
-      }
-      return;
-    }
     if (!this.#initialized) return;
     if (oldValue === newValue) return;
-    switch (attribute) {
-      case 'attr':
-        console.log('attr changed to', newValue);
-        break;
-    }
   }
 
   // #endregion
