@@ -9091,6 +9091,10 @@ class FDSMultiselect extends HTMLElement {
   #handleOpenerClick = () => {
     this.toggle();
   };
+  #handleLabelClick = event => {
+    event.preventDefault();
+    this.shadowRoot.querySelector('.opener').focus();
+  };
 
   // #endregion
 
@@ -9133,9 +9137,11 @@ class FDSMultiselect extends HTMLElement {
   }
   #addEventListeners() {
     this.shadowRoot.querySelector('.opener').addEventListener('click', this.#handleOpenerClick);
+    this.shadowRoot.querySelector('.opener-label').addEventListener('click', this.#handleLabelClick);
   }
   #removeEventListeners() {
     this.shadowRoot.querySelector('.opener').removeEventListener('click', this.#handleOpenerClick);
+    this.shadowRoot.querySelector('.opener-label').removeEventListener('click', this.#handleLabelClick);
   }
   #init() {
     this.#setupHTML();
