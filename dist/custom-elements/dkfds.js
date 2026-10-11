@@ -9050,6 +9050,10 @@ const fds_multiselect_styling_styles = `
         color: #1a1a1a;
     }
 
+    .field {
+        position: relative;
+    }
+
     .opener {
         appearance: none;
         display: flex;
@@ -9074,6 +9078,29 @@ const fds_multiselect_styling_styles = `
         outline: 3px solid #454545;
         outline-offset: 1px;
     }
+
+    .popup {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        max-width: 32rem;
+        z-index: 10;
+        background-color: white;
+        border: 1px solid #8E8E8E;
+        border-radius: 8px;
+        margin-top: 4px;
+    }
+
+    .listbox {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .option {
+        padding: calc(8px - 1px) calc(16px - 1px);
+        cursor: pointer;
+    }
 `;
 ;// ./src/js/custom-elements/multiselect/fds-multiselect.js
 
@@ -9095,18 +9122,23 @@ class FDSMultiselect extends HTMLElement {
     event.preventDefault();
     this.shadowRoot.querySelector('.opener').focus();
   };
+  #handleOptionChange = () => {
+    this.#updateOpenerText();
+  };
 
   // #endregion
 
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
-  #createOption(label) {
-    const option = document.createElement('div');
-    option.classList.add('option');
-    option.setAttribute('role', 'option');
-    option.setAttribute('aria-selected', 'false');
-    option.textContent = label;
-    return option;
+  #updateOpenerText() {
+    const opener = this.shadowRoot.querySelector('.opener');
+    const selectedOptions = this.querySelectorAll('fds-multiselect-option[selected]');
+    if (selectedOptions.length === 0) {
+      opener.textContent = 'Vælg en eller flere';
+      return;
+    }
+    const labels = Array.from(selectedOptions).map(option => option.textContent.trim());
+    opener.textContent = labels.join(', ');
   }
   #setupHTML() {
     if (this.shadowRoot.querySelector('.opener')) return;
@@ -9131,21 +9163,27 @@ class FDSMultiselect extends HTMLElement {
     listbox.classList.add('listbox');
     listbox.setAttribute('role', 'listbox');
     listbox.setAttribute('aria-multiselectable', 'true');
-    listbox.append(this.#createOption('Banan'), this.#createOption('Æble'), this.#createOption('Appelsin'));
+    listbox.appendChild(document.createElement('slot'));
     popup.append(listbox);
-    this.shadowRoot.append(label, opener, popup);
+    const field = document.createElement('div');
+    field.classList.add('field');
+    field.append(opener, popup);
+    this.shadowRoot.append(label, field);
   }
   #addEventListeners() {
     this.shadowRoot.querySelector('.opener').addEventListener('click', this.#handleOpenerClick);
     this.shadowRoot.querySelector('.opener-label').addEventListener('click', this.#handleLabelClick);
+    this.addEventListener('fds-multiselect-option-change', this.#handleOptionChange);
   }
   #removeEventListeners() {
     this.shadowRoot.querySelector('.opener').removeEventListener('click', this.#handleOpenerClick);
     this.shadowRoot.querySelector('.opener-label').removeEventListener('click', this.#handleLabelClick);
+    this.removeEventListener('fds-multiselect-option-change', this.#handleOptionChange);
   }
   #init() {
     this.#setupHTML();
     this.#addEventListeners();
+    this.#updateOpenerText();
     this.#initialized = true;
   }
 
@@ -9221,10 +9259,17 @@ function registerMultiselect() {
 }
 /* harmony default export */ const fds_multiselect = (registerMultiselect);
 ;// ./src/js/custom-elements/multiselect/fds-multiselect-option.js
-
+const template = document.createElement('template');
+template.innerHTML = `<slot></slot>`;
 const fds_multiselect_option_styles = `
     :host {
         display: block;
+        padding: calc(8px - 1px) calc(16px - 1px);
+        cursor: pointer;
+    }
+
+    :host([selected]) {
+        background-color: #cfe3fc;
     }
 `;
 const fds_multiselect_option_sheet = new CSSStyleSheet();
@@ -9232,23 +9277,23 @@ fds_multiselect_option_sheet.replaceSync(fds_multiselect_option_styles);
 class FDSMultiselectOption extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['attr', 'ready'];
+  static observedAttributes = ['value', 'selected'];
 
   // #endregion
 
   // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
-  get attr() {
-    return this.getAttribute('attr');
+  get value() {
+    return this.getAttribute('value') ?? this.textContent.trim();
   }
-  set attr(value) {
-    value == null ? this.removeAttribute('attr') : this.setAttribute('attr', value);
+  set value(value) {
+    value == null ? this.removeAttribute('value') : this.setAttribute('value', value);
   }
-  get ready() {
-    return this.getAttribute('ready') !== 'false';
+  get selected() {
+    return this.hasAttribute('selected');
   }
-  set ready(value) {
-    this.setAttribute('ready', value ? 'true' : 'false');
+  set selected(value) {
+    value ? this.setAttribute('selected', '') : this.removeAttribute('selected');
   }
 
   // #endregion
@@ -9256,30 +9301,22 @@ class FDSMultiselectOption extends HTMLElement {
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
-  #mutationObserver = null;
 
   // #endregion
 
   // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
-  #handleClick = event => {
-    console.log('Click event:', event);
+  #handleClick = () => {
+    this.selected = !this.selected;
   };
   #handleKeyDown = event => {
-    console.log('KeyDown event:', event);
+    if (event.key !== ' ' && event.key !== 'Enter') return;
+    event.preventDefault(); // Space might cause page scroll. Prevent that.
   };
-  #handleMutations = records => {
-    for (const {
-      attributeName,
-      target,
-      addedNodes,
-      removedNodes
-    } of records) {
-      console.log('attributeName', attributeName);
-      console.log('target', target);
-      console.log('addedNodes', addedNodes);
-      console.log('removedNodes', removedNodes);
-    }
+  #handleKeyUp = event => {
+    if (event.key !== ' ' && event.key !== 'Enter') return; // Prefer key up instead of key down due to WCAG SC 2.5.2
+
+    this.selected = !this.selected;
   };
 
   // #endregion
@@ -9287,40 +9324,32 @@ class FDSMultiselectOption extends HTMLElement {
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #setupHTML() {
-    // --- Slot ---
-    if (!this.shadowRoot.querySelector('slot[name="element-slot"]')) {
-      const slot = document.createElement('slot');
-      slot.name = 'element-slot';
-      this.shadowRoot.appendChild(slot);
-    }
-
-    // --- Button ---
-    let button = this.shadowRoot.querySelector('button');
-    if (!button) {
-      button = document.createElement('button');
-      this.shadowRoot.appendChild(button);
-    }
-    button.textContent = 'Click me';
+    if (this.shadowRoot.querySelector('slot')) return;
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+  }
+  #updateSelected(isSelected) {
+    this.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+    this.dispatchEvent(new CustomEvent('fds-multiselect-option-change', {
+      bubbles: true,
+      composed: true
+    }));
   }
   #addEventListeners() {
-    this.shadowRoot.querySelector('button').addEventListener('click', this.#handleClick);
-    this.shadowRoot.querySelector('button').addEventListener('keydown', this.#handleKeyDown);
+    this.addEventListener('click', this.#handleClick);
+    this.addEventListener('keydown', this.#handleKeyDown);
+    this.addEventListener('keyup', this.#handleKeyUp);
   }
   #removeEventListeners() {
-    this.shadowRoot.querySelector('button').removeEventListener('click', this.#handleClick);
-    this.shadowRoot.querySelector('button').removeEventListener('keydown', this.#handleKeyDown);
+    this.removeEventListener('click', this.#handleClick);
+    this.removeEventListener('keydown', this.#handleKeyDown);
+    this.removeEventListener('keyup', this.#handleKeyUp);
   }
-  #connectMutationObserver() {
-    let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mutationObserverConfig;
-    if (this.#mutationObserver) return;
-    this.#mutationObserver = new MutationObserver(this.#handleMutations);
-    this.#mutationObserver.observe(this, config);
-  }
-  #disconnectMutationObserver() {
-    if (this.#mutationObserver) {
-      this.#mutationObserver.disconnect();
-      this.#mutationObserver = null;
-    }
+  #init() {
+    this.#setupHTML();
+    this.setAttribute('role', 'option');
+    this.setAttribute('aria-selected', this.selected ? 'true' : 'false');
+    this.#addEventListeners();
+    this.#initialized = true;
   }
 
   // #endregion
@@ -9337,24 +9366,10 @@ class FDSMultiselectOption extends HTMLElement {
 
   // #endregion
 
-  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
-
-  init() {
-    this.#setupHTML();
-    this.#addEventListeners();
-    this.#connectMutationObserver();
-    this.#initialized = true;
-  }
-
-  // #endregion
-
   // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
-    // The 'ready' attribute can be used to defer initialization.
-    // Omit the attribute or set it to anything other than 'false' to initialize immediately.
-    if (this.getAttribute('ready') === 'false') return;
-    this.init();
+    this.#init();
   }
 
   // #endregion
@@ -9363,7 +9378,6 @@ class FDSMultiselectOption extends HTMLElement {
 
   disconnectedCallback() {
     this.#removeEventListeners();
-    this.#disconnectMutationObserver();
     this.#initialized = false;
   }
 
@@ -9372,17 +9386,11 @@ class FDSMultiselectOption extends HTMLElement {
   // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
-    if (attribute === 'ready') {
-      if (!this.#initialized && this.isConnected && newValue !== 'false') {
-        this.init();
-      }
-      return;
-    }
     if (!this.#initialized) return;
     if (oldValue === newValue) return;
     switch (attribute) {
-      case 'attr':
-        console.log('attr changed to', newValue);
+      case 'selected':
+        this.#updateSelected(this.selected);
         break;
     }
   }

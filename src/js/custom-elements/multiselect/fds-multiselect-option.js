@@ -1,8 +1,15 @@
-import * as CE from '../custom-element-utils';
+const template = document.createElement('template');
+template.innerHTML = `<slot></slot>`;
 
 const styles = `
     :host {
         display: block;
+        padding: calc(8px - 1px) calc(16px - 1px);
+        cursor: pointer;
+    }
+
+    :host([selected]) {
+        background-color: #cfe3fc;
     }
 `;
 
@@ -13,44 +20,42 @@ class FDSMultiselectOption extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-    static observedAttributes = ['attr', 'ready'];
+    static observedAttributes = ['value', 'selected'];
 
     // #endregion
 
     // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
-    get attr() { return this.getAttribute('attr'); }
-    set attr(value) { value == null ? this.removeAttribute('attr') : this.setAttribute('attr', value); }
+    get value() { return this.getAttribute('value') ?? this.textContent.trim(); }
+    set value(value) { value == null ? this.removeAttribute('value') : this.setAttribute('value', value); }
 
-    get ready() { return this.getAttribute('ready') !== 'false'; }
-    set ready(value) { this.setAttribute('ready', value ? 'true' : 'false'); }
+    get selected() { return this.hasAttribute('selected'); }
+    set selected(value) { value ? this.setAttribute('selected', '') : this.removeAttribute('selected'); }
 
     // #endregion
 
     // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
-    #mutationObserver = null;
 
     // #endregion
 
     // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
-    #handleClick = (event) => {
-        console.log('Click event:', event);
+    #handleClick = () => {
+        this.selected = !this.selected;
     };
 
     #handleKeyDown = (event) => {
-        console.log('KeyDown event:', event);
+        if (event.key !== ' ' && event.key !== 'Enter') return;
+
+        event.preventDefault(); // Space might cause page scroll. Prevent that.
     };
 
-    #handleMutations = (records) => {
-        for (const { attributeName, target, addedNodes, removedNodes } of records) {
-            console.log('attributeName', attributeName);
-            console.log('target', target);
-            console.log('addedNodes', addedNodes);
-            console.log('removedNodes', removedNodes);
-        }
+    #handleKeyUp = (event) => {
+        if (event.key !== ' ' && event.key !== 'Enter') return; // Prefer key up instead of key down due to WCAG SC 2.5.2
+
+        this.selected = !this.selected;
     };
 
     // #endregion
@@ -58,43 +63,36 @@ class FDSMultiselectOption extends HTMLElement {
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #setupHTML() {
-        // --- Slot ---
-        if (!this.shadowRoot.querySelector('slot[name="element-slot"]')) {
-            const slot = document.createElement('slot');
-            slot.name = 'element-slot';
-            this.shadowRoot.appendChild(slot);
-        }
+        if (this.shadowRoot.querySelector('slot')) return;
+        this.shadowRoot.appendChild(template.content.cloneNode(true));
+    }
 
-        // --- Button ---
-        let button = this.shadowRoot.querySelector('button');
-        if (!button) {
-            button = document.createElement('button');
-            this.shadowRoot.appendChild(button);
-        }
-        button.textContent = 'Click me';
+    #updateSelected(isSelected) {
+        this.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+        this.dispatchEvent(new CustomEvent('fds-multiselect-option-change', { bubbles: true, composed: true }));
     }
 
     #addEventListeners() {
-        this.shadowRoot.querySelector('button').addEventListener('click', this.#handleClick);
-        this.shadowRoot.querySelector('button').addEventListener('keydown', this.#handleKeyDown);
+        this.addEventListener('click', this.#handleClick);
+        this.addEventListener('keydown', this.#handleKeyDown);
+        this.addEventListener('keyup', this.#handleKeyUp);
     }
 
     #removeEventListeners() {
-        this.shadowRoot.querySelector('button').removeEventListener('click', this.#handleClick);
-        this.shadowRoot.querySelector('button').removeEventListener('keydown', this.#handleKeyDown);
+        this.removeEventListener('click', this.#handleClick);
+        this.removeEventListener('keydown', this.#handleKeyDown);
+        this.removeEventListener('keyup', this.#handleKeyUp);
     }
 
-    #connectMutationObserver(config = CE.mutationObserverConfig) {
-        if (this.#mutationObserver) return;
-        this.#mutationObserver = new MutationObserver(this.#handleMutations);
-        this.#mutationObserver.observe(this, config);
-    }
+    #init() {
+        this.#setupHTML();
 
-    #disconnectMutationObserver() {
-        if (this.#mutationObserver) {
-            this.#mutationObserver.disconnect();
-            this.#mutationObserver = null;
-        }
+        this.setAttribute('role', 'option');
+        this.setAttribute('aria-selected', this.selected ? 'true' : 'false');
+
+        this.#addEventListeners();
+
+        this.#initialized = true;
     }
 
     // #endregion
@@ -109,25 +107,10 @@ class FDSMultiselectOption extends HTMLElement {
 
     // #endregion
 
-    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
-
-    init() {
-        this.#setupHTML();
-        this.#addEventListeners();
-        this.#connectMutationObserver();
-        this.#initialized = true;
-    }
-
-    // #endregion
-
     // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
-        // The 'ready' attribute can be used to defer initialization.
-        // Omit the attribute or set it to anything other than 'false' to initialize immediately.
-        if (this.getAttribute('ready') === 'false') return;
-
-        this.init();
+        this.#init();
     }
 
     // #endregion
@@ -136,7 +119,6 @@ class FDSMultiselectOption extends HTMLElement {
 
     disconnectedCallback() {
         this.#removeEventListeners();
-        this.#disconnectMutationObserver();
         this.#initialized = false;
     }
 
@@ -145,19 +127,12 @@ class FDSMultiselectOption extends HTMLElement {
     // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
-        if (attribute === 'ready') {
-            if (!this.#initialized && this.isConnected && newValue !== 'false') {
-                this.init();
-            }
-            return;
-        }
-
         if (!this.#initialized) return;
         if (oldValue === newValue) return;
 
         switch (attribute) {
-            case 'attr':
-                console.log('attr changed to', newValue);
+            case 'selected':
+                this.#updateSelected(this.selected);
                 break;
         }
     }

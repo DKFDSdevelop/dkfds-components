@@ -10,6 +10,10 @@ export const styles = `
         color: #1a1a1a;
     }
 
+    .field {
+        position: relative;
+    }
+
     .opener {
         appearance: none;
         display: flex;
@@ -33,5 +37,28 @@ export const styles = `
     .opener:focus {
         outline: 3px solid #454545;
         outline-offset: 1px;
+    }
+
+    .popup {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        max-width: 32rem;
+        z-index: 10;
+        background-color: white;
+        border: 1px solid #8E8E8E;
+        border-radius: 8px;
+        margin-top: 4px;
+    }
+
+    .listbox {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .option {
+        padding: calc(8px - 1px) calc(16px - 1px);
+        cursor: pointer;
     }
 `;

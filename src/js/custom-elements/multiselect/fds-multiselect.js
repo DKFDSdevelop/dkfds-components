@@ -22,17 +22,25 @@ class FDSMultiselect extends HTMLElement {
         this.shadowRoot.querySelector('.opener').focus();
     };
 
+    #handleOptionChange = () => {
+        this.#updateOpenerText();
+    };
+
     // #endregion
 
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
-    #createOption(label) {
-        const option = document.createElement('div');
-        option.classList.add('option');
-        option.setAttribute('role', 'option');
-        option.setAttribute('aria-selected', 'false');
-        option.textContent = label;
-        return option;
+    #updateOpenerText() {
+        const opener = this.shadowRoot.querySelector('.opener');
+        const selectedOptions = this.querySelectorAll('fds-multiselect-option[selected]');
+
+        if (selectedOptions.length === 0) {
+            opener.textContent = 'Vælg en eller flere';
+            return;
+        }
+
+        const labels = Array.from(selectedOptions).map((option) => option.textContent.trim());
+        opener.textContent = labels.join(', ');
     }
 
     #setupHTML() {
@@ -62,31 +70,33 @@ class FDSMultiselect extends HTMLElement {
         listbox.classList.add('listbox');
         listbox.setAttribute('role', 'listbox');
         listbox.setAttribute('aria-multiselectable', 'true');
-
-        listbox.append(
-            this.#createOption('Banan'),
-            this.#createOption('Æble'),
-            this.#createOption('Appelsin')
-        );
+        listbox.appendChild(document.createElement('slot'));
 
         popup.append(listbox);
 
-        this.shadowRoot.append(label, opener, popup);
+        const field = document.createElement('div');
+        field.classList.add('field');
+        field.append(opener, popup);
+
+        this.shadowRoot.append(label, field);
     }
 
     #addEventListeners() {
         this.shadowRoot.querySelector('.opener').addEventListener('click', this.#handleOpenerClick);
         this.shadowRoot.querySelector('.opener-label').addEventListener('click', this.#handleLabelClick);
+        this.addEventListener('fds-multiselect-option-change', this.#handleOptionChange);
     }
 
     #removeEventListeners() {
         this.shadowRoot.querySelector('.opener').removeEventListener('click', this.#handleOpenerClick);
         this.shadowRoot.querySelector('.opener-label').removeEventListener('click', this.#handleLabelClick);
+        this.removeEventListener('fds-multiselect-option-change', this.#handleOptionChange);
     }
 
     #init() {
         this.#setupHTML();
         this.#addEventListeners();
+        this.#updateOpenerText();
 
         this.#initialized = true;
     }
