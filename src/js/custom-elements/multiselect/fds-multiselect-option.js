@@ -1,15 +1,8 @@
-const template = document.createElement('template');
-template.innerHTML = `<slot></slot>`;
+import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 const styles = `
     :host {
-        display: block;
-        padding: calc(8px - 1px) calc(16px - 1px);
-        cursor: pointer;
-    }
-
-    :host([selected]) {
-        background-color: #cfe3fc;
+        display: none;
     }
 `;
 
@@ -18,81 +11,43 @@ sheet.replaceSync(styles);
 
 class FDSMultiselectOption extends HTMLElement {
 
-    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
-
-    static observedAttributes = ['value', 'selected'];
-
-    // #endregion
-
     // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
     get value() { return this.getAttribute('value') ?? this.textContent.trim(); }
     set value(value) { value == null ? this.removeAttribute('value') : this.setAttribute('value', value); }
 
-    get selected() { return this.hasAttribute('selected'); }
-    set selected(value) { value ? this.setAttribute('selected', '') : this.removeAttribute('selected'); }
-
     // #endregion
 
     // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
-    #initialized = false;
-
-    // #endregion
-
-    // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
-
-    #handleClick = () => {
-        this.selected = !this.selected;
-    };
-
-    #handleKeyDown = (event) => {
-        if (event.key !== ' ' && event.key !== 'Enter') return;
-
-        event.preventDefault(); // Space might cause page scroll. Prevent that.
-    };
-
-    #handleKeyUp = (event) => {
-        if (event.key !== ' ' && event.key !== 'Enter') return; // Prefer key up instead of key down due to WCAG SC 2.5.2
-
-        this.selected = !this.selected;
-    };
+    #selected = false;
 
     // #endregion
 
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #setupHTML() {
-        if (this.shadowRoot.querySelector('slot')) return;
-        this.shadowRoot.appendChild(template.content.cloneNode(true));
+        if (this.id) return;
+        this.id = generateAndVerifyUniqueId('fds-multiselect-option');
+    }
+
+    #isDefaultSelected() {
+        const attr = this.getAttribute('default-selected');
+        if (attr === null) return false;
+        return attr.toLowerCase() !== 'false';
     }
 
     #updateSelected(isSelected) {
-        this.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+        if (this.#selected === isSelected) return;
+        this.#selected = isSelected;
+        this.setAttribute('data-selected', isSelected ? 'true' : 'false');
         this.dispatchEvent(new CustomEvent('fds-multiselect-option-change', { bubbles: true, composed: true }));
-    }
-
-    #addEventListeners() {
-        this.addEventListener('click', this.#handleClick);
-        this.addEventListener('keydown', this.#handleKeyDown);
-        this.addEventListener('keyup', this.#handleKeyUp);
-    }
-
-    #removeEventListeners() {
-        this.removeEventListener('click', this.#handleClick);
-        this.removeEventListener('keydown', this.#handleKeyDown);
-        this.removeEventListener('keyup', this.#handleKeyUp);
     }
 
     #init() {
         this.#setupHTML();
-
-        this.setAttribute('role', 'option');
-        this.setAttribute('aria-selected', this.selected ? 'true' : 'false');
-
-        this.#addEventListeners();
-
-        this.#initialized = true;
+        this.#selected = this.#isDefaultSelected();
+        this.#updateSelected(this.#selected);
     }
 
     // #endregion
@@ -107,34 +62,26 @@ class FDSMultiselectOption extends HTMLElement {
 
     // #endregion
 
+    // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+    select() {
+        this.#updateSelected(true);
+    }
+
+    deselect() {
+        this.#updateSelected(false);
+    }
+
+    toggle() {
+        this.#updateSelected(!this.#selected);
+    }
+
+    // #endregion
+
     // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
         this.#init();
-    }
-
-    // #endregion
-
-    // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
-
-    disconnectedCallback() {
-        this.#removeEventListeners();
-        this.#initialized = false;
-    }
-
-    // #endregion
-
-    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
-
-    attributeChangedCallback(attribute, oldValue, newValue) {
-        if (!this.#initialized) return;
-        if (oldValue === newValue) return;
-
-        switch (attribute) {
-            case 'selected':
-                this.#updateSelected(this.selected);
-                break;
-        }
     }
 
     // #endregion

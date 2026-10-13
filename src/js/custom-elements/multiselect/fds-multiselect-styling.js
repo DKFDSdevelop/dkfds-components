@@ -61,4 +61,13 @@ export const styles = `
         padding: calc(8px - 1px) calc(16px - 1px);
         cursor: pointer;
     }
+
+    .option[aria-selected="true"] {
+        background-color: #C6DBEF;
+    }
+
+    .option[data-active] {
+        outline: 2px solid #454545;
+        outline-offset: -2px;
+    }
 `;
