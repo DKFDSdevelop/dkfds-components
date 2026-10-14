@@ -9240,7 +9240,17 @@ class FDSMultiselect extends HTMLElement {
     event.preventDefault();
     this.shadowRoot.querySelector('.opener').focus();
   };
+  #handleFocusOut = () => {
+    this.close();
+  };
   #handlePopupMouseDown = event => {
+    event.preventDefault();
+  };
+
+  // Removing a tag with the mouse while the popup is open should not close the popup
+  #handleTagsMouseDown = event => {
+    const tag = event.target.closest('.tag');
+    if (!tag) return;
     event.preventDefault();
   };
   #handleListboxClick = event => {
@@ -9263,12 +9273,31 @@ class FDSMultiselect extends HTMLElement {
     this.#updateOpenerText();
   };
   #handleTagClick = event => {
+    // Only react when the click originated from an actual tag (handler may receive
+    // clicks delegated from anywhere in the shadow tree).
     const tag = event.target.closest('.tag');
     if (!tag) return;
+
+    // Do nothing if the tag clicked somehow doesn't have a matching <fds-multiselect-option>.
     const sourceOption = this.#findSourceForTag(tag);
-    if (sourceOption) {
+    if (!sourceOption) return;
+    const opener = this.shadowRoot.querySelector('.opener');
+    const isOpen = opener.getAttribute('aria-expanded') === 'true';
+
+    // If the popup is open, always keep focus on the opener when a tag is clicked.
+    if (isOpen) {
+      opener.focus();
       sourceOption.deselect();
+      return;
     }
+    const tags = Array.from(this.shadowRoot.querySelectorAll('.tag'));
+    const index = tags.indexOf(tag);
+
+    // Place focus on either the next tag, the previous tag if no next tag, or on the
+    // opener if no tags are left at all.
+    const focusTarget = tags[index + 1] ?? tags[index - 1] ?? opener;
+    sourceOption.deselect();
+    focusTarget.focus();
   };
   #handleOpenerKeyDown = event => {
     const opener = this.shadowRoot.querySelector('.opener');
@@ -9460,6 +9489,7 @@ class FDSMultiselect extends HTMLElement {
     tags.setAttribute('role', 'group');
     const popup = document.createElement('div');
     popup.classList.add('popup');
+    popup.setAttribute('tabindex', '-1');
     popup.hidden = true;
     const listbox = document.createElement('div');
     listbox.id = generateAndVerifyUniqueId('multiselect-listbox');
@@ -9478,7 +9508,9 @@ class FDSMultiselect extends HTMLElement {
     this.shadowRoot.querySelector('.opener').addEventListener('keydown', this.#handleOpenerKeyDown);
     this.shadowRoot.querySelector('.popup').addEventListener('mousedown', this.#handlePopupMouseDown);
     this.shadowRoot.querySelector('.listbox').addEventListener('click', this.#handleListboxClick);
-    this.shadowRoot.addEventListener('click', this.#handleTagClick);
+    this.shadowRoot.addEventListener('click', this.#handleTagClick); // Listener is placed on the shadow root to avoid NVDA announcing an unlabeled "clickable"
+    this.shadowRoot.addEventListener('mousedown', this.#handleTagsMouseDown);
+    this.shadowRoot.addEventListener('focusout', this.#handleFocusOut);
     this.addEventListener('fds-multiselect-option-change', this.#handleOptionChange);
   }
   #removeEventListeners() {
@@ -9487,6 +9519,8 @@ class FDSMultiselect extends HTMLElement {
     this.shadowRoot.querySelector('.popup').removeEventListener('mousedown', this.#handlePopupMouseDown);
     this.shadowRoot.querySelector('.listbox').removeEventListener('click', this.#handleListboxClick);
     this.shadowRoot.removeEventListener('click', this.#handleTagClick);
+    this.shadowRoot.removeEventListener('mousedown', this.#handleTagsMouseDown);
+    this.shadowRoot.removeEventListener('focusout', this.#handleFocusOut);
     this.removeEventListener('fds-multiselect-option-change', this.#handleOptionChange);
   }
   #init() {
