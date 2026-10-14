@@ -10,7 +10,7 @@ class FDSMultiselect extends HTMLElement {
 
     #initialized = false;
     #optionElements = new Map();
-    #optionChips = new Map();
+    #optionTags = new Map();
 
     // #endregion
 
@@ -43,7 +43,7 @@ class FDSMultiselect extends HTMLElement {
         const sourceOption = event.target;
         const isSelected = sourceOption.getAttribute('data-selected') === 'true';
 
-        isSelected ? this.#addChip(sourceOption) : this.#removeChip(sourceOption);
+        isSelected ? this.#addTag(sourceOption) : this.#removeTag(sourceOption);
 
         const shadowOption = this.#optionElements.get(sourceOption);
         if (shadowOption) {
@@ -53,11 +53,11 @@ class FDSMultiselect extends HTMLElement {
         this.#updateOpenerText();
     };
 
-    #handleChipClick = (event) => {
-        const chip = event.target.closest('.chip');
-        if (!chip) return;
+    #handleTagClick = (event) => {
+        const tag = event.target.closest('.tag');
+        if (!tag) return;
 
-        const sourceOption = this.#findSourceForChip(chip);
+        const sourceOption = this.#findSourceForTag(tag);
         if (sourceOption) { sourceOption.deselect(); }
     };
 
@@ -138,9 +138,9 @@ class FDSMultiselect extends HTMLElement {
         return null;
     }
 
-    #findSourceForChip(chip) {
-        for (const [source, chipEl] of this.#optionChips) {
-            if (chipEl === chip) { return source; }
+    #findSourceForTag(tag) {
+        for (const [source, tagEl] of this.#optionTags) {
+            if (tagEl === tag) { return source; }
         }
         return null;
     }
@@ -167,40 +167,40 @@ class FDSMultiselect extends HTMLElement {
         shadowOption.scrollIntoView({ block: 'nearest' });
     }
 
-    #addChip(sourceOption) {
-        if (this.#optionChips.has(sourceOption)) return;
+    #addTag(sourceOption) {
+        if (this.#optionTags.has(sourceOption)) return;
 
-        const chip = document.createElement('button');
-        chip.classList.add('chip');
-        chip.setAttribute('type', 'button');
-        chip.textContent = sourceOption.textContent.trim();
+        const tag = document.createElement('button');
+        tag.classList.add('tag');
+        tag.setAttribute('type', 'button');
+        tag.textContent = sourceOption.textContent.trim();
 
-        const container = this.shadowRoot.querySelector('.chips');
-        container.appendChild(chip);
+        const container = this.shadowRoot.querySelector('.tags');
+        container.appendChild(tag);
 
-        this.#optionChips.set(sourceOption, chip);
+        this.#optionTags.set(sourceOption, tag);
     }
 
-    #removeChip(sourceOption) {
-        const chip = this.#optionChips.get(sourceOption);
-        if (!chip) return;
+    #removeTag(sourceOption) {
+        const tag = this.#optionTags.get(sourceOption);
+        if (!tag) return;
 
-        chip.remove();
-        this.#optionChips.delete(sourceOption);
+        tag.remove();
+        this.#optionTags.delete(sourceOption);
     }
 
     #updateOpenerText() {
         const openerText = this.shadowRoot.querySelector('.opener-text');
-        const chips = this.shadowRoot.querySelectorAll('.chip');
+        const tags = this.shadowRoot.querySelectorAll('.tag');
 
-        if (chips.length === 0) {
+        if (tags.length === 0) {
             openerText.textContent = 'Vælg en eller flere';
             return;
         }
 
         const labels = [];
-        for (const chip of chips) {
-            labels.push(chip.textContent.trim());
+        for (const tag of tags) {
+            labels.push(tag.textContent.trim());
         }
         openerText.textContent = labels.join(', ');
     }
@@ -212,7 +212,7 @@ class FDSMultiselect extends HTMLElement {
         for (const sourceOption of optionsToBuild) {
             const shadowOption = document.createElement('div');
             shadowOption.classList.add('option');
-            shadowOption.id = generateAndVerifyUniqueId('fds-multiselect-option-shadow');
+            shadowOption.id = generateAndVerifyUniqueId('multiselect-option');
             shadowOption.setAttribute('role', 'option');
             shadowOption.setAttribute('tabindex', '-1');
             shadowOption.setAttribute('aria-selected', sourceOption.getAttribute('data-selected') === 'true' ? 'true' : 'false');
@@ -222,7 +222,7 @@ class FDSMultiselect extends HTMLElement {
             this.#optionElements.set(sourceOption, shadowOption);
 
             if (sourceOption.getAttribute('data-selected') === 'true') {
-                this.#addChip(sourceOption);
+                this.#addTag(sourceOption);
             }
         }
     }
@@ -231,13 +231,13 @@ class FDSMultiselect extends HTMLElement {
         if (this.shadowRoot.querySelector('.opener')) return;
 
         const label = document.createElement('label');
-        label.id = 'multiselect-label';
+        label.id = 'multiselect-label-id';
         label.classList.add('opener-label');
         label.setAttribute('for', 'opener');
         label.textContent = 'Vælg frugter';
 
         const opener = document.createElement('button');
-        opener.id = 'opener';
+        opener.id = 'opener-id';
         opener.classList.add('opener');
         opener.setAttribute('type', 'button');
         opener.setAttribute('role', 'combobox');
@@ -256,7 +256,7 @@ class FDSMultiselect extends HTMLElement {
         popup.hidden = true;
 
         const listbox = document.createElement('div');
-        listbox.id = 'listbox';
+        listbox.id = 'listbox-id';
         listbox.classList.add('listbox');
         listbox.setAttribute('role', 'listbox');
         listbox.setAttribute('aria-multiselectable', 'true');
@@ -264,14 +264,14 @@ class FDSMultiselect extends HTMLElement {
 
         popup.append(listbox);
 
-        const field = document.createElement('div');
-        field.classList.add('field');
-        field.append(opener, popup);
+        const openerWrapper = document.createElement('div');
+        openerWrapper.classList.add('opener-wrapper');
+        openerWrapper.append(opener, popup);
 
-        const chips = document.createElement('div');
-        chips.classList.add('chips');
+        const tags = document.createElement('div');
+        tags.classList.add('tags');
 
-        this.shadowRoot.append(label, field, chips);
+        this.shadowRoot.append(label, openerWrapper, tags);
     }
 
     #addEventListeners() {
@@ -280,7 +280,7 @@ class FDSMultiselect extends HTMLElement {
         this.shadowRoot.querySelector('.opener-label').addEventListener('click', this.#handleLabelClick);
         this.shadowRoot.querySelector('.popup').addEventListener('mousedown', this.#handlePopupMouseDown);
         this.shadowRoot.querySelector('.listbox').addEventListener('click', this.#handleListboxClick);
-        this.shadowRoot.querySelector('.chips').addEventListener('click', this.#handleChipClick);
+        this.shadowRoot.querySelector('.tags').addEventListener('click', this.#handleTagClick);
         this.addEventListener('fds-multiselect-option-change', this.#handleOptionChange);
     }
 
@@ -290,7 +290,7 @@ class FDSMultiselect extends HTMLElement {
         this.shadowRoot.querySelector('.opener-label').removeEventListener('click', this.#handleLabelClick);
         this.shadowRoot.querySelector('.popup').removeEventListener('mousedown', this.#handlePopupMouseDown);
         this.shadowRoot.querySelector('.listbox').removeEventListener('click', this.#handleListboxClick);
-        this.shadowRoot.querySelector('.chips').removeEventListener('click', this.#handleChipClick);
+        this.shadowRoot.querySelector('.tags').removeEventListener('click', this.#handleTagClick);
         this.removeEventListener('fds-multiselect-option-change', this.#handleOptionChange);
     }
 

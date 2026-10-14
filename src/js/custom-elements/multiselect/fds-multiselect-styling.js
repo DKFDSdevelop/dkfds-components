@@ -10,7 +10,7 @@ export const styles = `
         color: #1a1a1a;
     }
 
-    .field {
+    .opener-wrapper {
         position: relative;
     }
 

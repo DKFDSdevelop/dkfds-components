@@ -1,5 +1,3 @@
-import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
-
 const styles = `
     :host {
         display: none;
@@ -26,11 +24,6 @@ class FDSMultiselectOption extends HTMLElement {
 
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
-    #setupHTML() {
-        if (this.id) return;
-        this.id = generateAndVerifyUniqueId('fds-multiselect-option');
-    }
-
     #isDefaultSelected() {
         const attr = this.getAttribute('default-selected');
         if (attr === null) return false;
@@ -45,7 +38,6 @@ class FDSMultiselectOption extends HTMLElement {
     }
 
     #init() {
-        this.#setupHTML();
         this.#selected = this.#isDefaultSelected();
         this.#updateSelected(this.#selected);
     }
