@@ -58,7 +58,8 @@ export const styles = `
     .tag {
         pointer-events: auto;
         appearance: none;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
         border: none;
         border-radius: 16px;
         background-color: #E6E6E6;
@@ -75,6 +76,13 @@ export const styles = `
         display: block;
         overflow-wrap: break-word;
         min-width: 0;
+    }
+
+    .tag .icon-svg {
+        min-height: 2.4rem;
+        min-width: 2.4rem;
+        max-height: 2.4rem;
+        max-width: 2.4rem;
     }
 
     .sr-only {

@@ -9098,7 +9098,8 @@ const fds_multiselect_styling_styles = `
     .tag {
         pointer-events: auto;
         appearance: none;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
         border: none;
         border-radius: 16px;
         background-color: #E6E6E6;
@@ -9115,6 +9116,13 @@ const fds_multiselect_styling_styles = `
         display: block;
         overflow-wrap: break-word;
         min-width: 0;
+    }
+
+    .tag .icon-svg {
+        min-height: 2.4rem;
+        min-width: 2.4rem;
+        max-height: 2.4rem;
+        max-width: 2.4rem;
     }
 
     .sr-only {
@@ -9169,12 +9177,13 @@ const fds_multiselect_styling_styles = `
 ;// ./src/js/custom-elements/multiselect/fds-multiselect.js
 
 
+
 const fds_multiselect_sheet = new CSSStyleSheet();
 fds_multiselect_sheet.replaceSync(fds_multiselect_styling_styles);
 class FDSMultiselect extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['label', 'placeholder'];
+  static observedAttributes = ['label', 'placeholder', 'sr-group-text'];
 
   // #endregion
 
@@ -9191,6 +9200,12 @@ class FDSMultiselect extends HTMLElement {
   }
   set placeholder(value) {
     value == null ? this.removeAttribute('placeholder') : this.setAttribute('placeholder', value);
+  }
+  get srGroupText() {
+    return this.getAttribute('sr-group-text');
+  }
+  set srGroupText(value) {
+    value == null ? this.removeAttribute('sr-group-text') : this.setAttribute('sr-group-text', value);
   }
 
   // #endregion
@@ -9348,22 +9363,28 @@ class FDSMultiselect extends HTMLElement {
   }
   #addTag(sourceOption) {
     if (this.#optionTags.has(sourceOption)) return;
+    const label = sourceOption.textContent.trim();
     const tag = document.createElement('button');
     tag.classList.add('tag');
     tag.setAttribute('type', 'button');
+    tag.setAttribute('aria-label', `Fjern ${label}`);
     const tagLabel = document.createElement('span');
     tagLabel.classList.add('tag-label');
-    tagLabel.textContent = sourceOption.textContent.trim();
+    tagLabel.textContent = label;
     tag.appendChild(tagLabel);
+    const closeIcon = createSvgIcon("m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z");
+    tag.appendChild(closeIcon);
     const container = this.shadowRoot.querySelector('.tags');
     container.appendChild(tag);
     this.#optionTags.set(sourceOption, tag);
+    this.#updateTagsGroup();
   }
   #removeTag(sourceOption) {
     const tag = this.#optionTags.get(sourceOption);
     if (!tag) return;
     tag.remove();
     this.#optionTags.delete(sourceOption);
+    this.#updateTagsGroup();
   }
   #updateOpenerText() {
     const openerText = this.shadowRoot.querySelector('.opener-text');
@@ -9414,6 +9435,7 @@ class FDSMultiselect extends HTMLElement {
     opener.appendChild(openerText);
     const tags = document.createElement('div');
     tags.classList.add('tags');
+    tags.setAttribute('role', 'group');
     const popup = document.createElement('div');
     popup.classList.add('popup');
     popup.hidden = true;
@@ -9434,7 +9456,7 @@ class FDSMultiselect extends HTMLElement {
     this.shadowRoot.querySelector('.opener').addEventListener('keydown', this.#handleOpenerKeyDown);
     this.shadowRoot.querySelector('.popup').addEventListener('mousedown', this.#handlePopupMouseDown);
     this.shadowRoot.querySelector('.listbox').addEventListener('click', this.#handleListboxClick);
-    this.shadowRoot.querySelector('.tags').addEventListener('click', this.#handleTagClick);
+    this.shadowRoot.addEventListener('click', this.#handleTagClick);
     this.addEventListener('fds-multiselect-option-change', this.#handleOptionChange);
   }
   #removeEventListeners() {
@@ -9442,7 +9464,7 @@ class FDSMultiselect extends HTMLElement {
     this.shadowRoot.querySelector('.opener').removeEventListener('keydown', this.#handleOpenerKeyDown);
     this.shadowRoot.querySelector('.popup').removeEventListener('mousedown', this.#handlePopupMouseDown);
     this.shadowRoot.querySelector('.listbox').removeEventListener('click', this.#handleListboxClick);
-    this.shadowRoot.querySelector('.tags').removeEventListener('click', this.#handleTagClick);
+    this.shadowRoot.removeEventListener('click', this.#handleTagClick);
     this.removeEventListener('fds-multiselect-option-change', this.#handleOptionChange);
   }
   #init() {
@@ -9466,6 +9488,7 @@ class FDSMultiselect extends HTMLElement {
         labelEl.remove();
       }
       listbox.removeAttribute('aria-labelledby');
+      this.#updateTagsGroup();
       return;
     }
 
@@ -9482,6 +9505,19 @@ class FDSMultiselect extends HTMLElement {
       this.shadowRoot.insertBefore(labelEl, openerWrapper);
     }
     labelEl.textContent = labelText;
+    this.#updateTagsGroup();
+  }
+  #updateTagsGroup() {
+    const tags = this.shadowRoot.querySelector('.tags');
+    const hasTags = tags.children.length > 0;
+    const labelText = this.label;
+    if (!hasTags || !labelText) {
+      tags.removeAttribute('role');
+      tags.removeAttribute('aria-label');
+      return;
+    }
+    tags.setAttribute('role', 'group');
+    tags.setAttribute('aria-label', this.srGroupText ?? `Valgte muligheder for ${labelText}`);
   }
 
   // #endregion
@@ -9558,6 +9594,7 @@ class FDSMultiselect extends HTMLElement {
     if (oldValue === newValue) return;
     switch (attribute) {
       case 'label':
+      case 'sr-group-text':
         this.#updateLabel();
         break;
       case 'placeholder':
