@@ -5,6 +5,9 @@ import { styles } from './fds-multiselect-styling';
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(styles);
 
+const CHEVRON_CLOSED_PATH = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
+const CHEVRON_OPEN_PATH = 'M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z';
+
 class FDSMultiselect extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
@@ -38,6 +41,7 @@ class FDSMultiselect extends HTMLElement {
 
     #handleOpenerClick = () => {
         this.toggle();
+        this.shadowRoot.querySelector('.opener').focus();
     };
 
     #handleLabelClick = (event) => {
@@ -263,6 +267,11 @@ class FDSMultiselect extends HTMLElement {
         }
     }
 
+    #setChevronPath(path) {
+        const chevronPath = this.shadowRoot.querySelector('.chevron-icon path');
+        if (chevronPath) { chevronPath.setAttribute('d', path); }
+    }
+
     #setupHTML() {
         if (this.shadowRoot.querySelector('.opener')) return;
 
@@ -278,6 +287,10 @@ class FDSMultiselect extends HTMLElement {
         const openerText = document.createElement('span');
         openerText.classList.add('opener-text');
         opener.appendChild(openerText);
+
+        const chevronIcon = CE.createSvgIcon(CHEVRON_CLOSED_PATH);
+        chevronIcon.classList.add('chevron-icon');
+        opener.appendChild(chevronIcon);
 
         const tags = document.createElement('div');
         tags.classList.add('tags');
@@ -405,6 +418,7 @@ class FDSMultiselect extends HTMLElement {
 
         opener.setAttribute('aria-expanded', 'true');
         popup.hidden = false;
+        this.#setChevronPath(CHEVRON_OPEN_PATH);
 
         if (!this.#getActiveShadowOption()) {
             const shadowOptions = this.shadowRoot.querySelectorAll('.option');
@@ -422,6 +436,7 @@ class FDSMultiselect extends HTMLElement {
 
         opener.setAttribute('aria-expanded', 'false');
         popup.hidden = true;
+        this.#setChevronPath(CHEVRON_CLOSED_PATH);
 
         const active = this.#getActiveShadowOption();
         if (active) {

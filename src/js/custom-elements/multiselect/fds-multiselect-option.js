@@ -38,8 +38,7 @@ class FDSMultiselectOption extends HTMLElement {
     }
 
     #init() {
-        this.#selected = this.#isDefaultSelected();
-        this.#updateSelected(this.#selected);
+        this.#updateSelected(this.#isDefaultSelected());
     }
 
     // #endregion

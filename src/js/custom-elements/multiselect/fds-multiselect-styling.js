@@ -40,7 +40,17 @@ export const styles = `
         font-size: 1.6rem;
         line-height: 2.4rem;
         width: 100%;
-        padding: 4px;
+        padding: 4px 28px 4px 4px;
+    }
+
+    .chevron-icon {
+        position: absolute;
+        top: 50%;
+        right: 8px;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        pointer-events: none;
     }
 
     .tags {

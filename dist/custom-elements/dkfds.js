@@ -9080,7 +9080,17 @@ const fds_multiselect_styling_styles = `
         font-size: 1.6rem;
         line-height: 2.4rem;
         width: 100%;
-        padding: 4px;
+        padding: 4px 28px 4px 4px;
+    }
+
+    .chevron-icon {
+        position: absolute;
+        top: 50%;
+        right: 8px;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        pointer-events: none;
     }
 
     .tags {
@@ -9180,6 +9190,8 @@ const fds_multiselect_styling_styles = `
 
 const fds_multiselect_sheet = new CSSStyleSheet();
 fds_multiselect_sheet.replaceSync(fds_multiselect_styling_styles);
+const CHEVRON_CLOSED_PATH = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
+const CHEVRON_OPEN_PATH = 'M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z';
 class FDSMultiselect extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -9222,6 +9234,7 @@ class FDSMultiselect extends HTMLElement {
 
   #handleOpenerClick = () => {
     this.toggle();
+    this.shadowRoot.querySelector('.opener').focus();
   };
   #handleLabelClick = event => {
     event.preventDefault();
@@ -9420,6 +9433,12 @@ class FDSMultiselect extends HTMLElement {
       }
     }
   }
+  #setChevronPath(path) {
+    const chevronPath = this.shadowRoot.querySelector('.chevron-icon path');
+    if (chevronPath) {
+      chevronPath.setAttribute('d', path);
+    }
+  }
   #setupHTML() {
     if (this.shadowRoot.querySelector('.opener')) return;
     const opener = document.createElement('button');
@@ -9433,6 +9452,9 @@ class FDSMultiselect extends HTMLElement {
     const openerText = document.createElement('span');
     openerText.classList.add('opener-text');
     opener.appendChild(openerText);
+    const chevronIcon = createSvgIcon(CHEVRON_CLOSED_PATH);
+    chevronIcon.classList.add('chevron-icon');
+    opener.appendChild(chevronIcon);
     const tags = document.createElement('div');
     tags.classList.add('tags');
     tags.setAttribute('role', 'group');
@@ -9542,6 +9564,7 @@ class FDSMultiselect extends HTMLElement {
     const popup = this.shadowRoot.querySelector('.popup');
     opener.setAttribute('aria-expanded', 'true');
     popup.hidden = false;
+    this.#setChevronPath(CHEVRON_OPEN_PATH);
     if (!this.#getActiveShadowOption()) {
       const shadowOptions = this.shadowRoot.querySelectorAll('.option');
       if (shadowOptions.length > 0) {
@@ -9555,6 +9578,7 @@ class FDSMultiselect extends HTMLElement {
     const popup = this.shadowRoot.querySelector('.popup');
     opener.setAttribute('aria-expanded', 'false');
     popup.hidden = true;
+    this.#setChevronPath(CHEVRON_CLOSED_PATH);
     const active = this.#getActiveShadowOption();
     if (active) {
       active.removeAttribute('data-active');
@@ -9654,8 +9678,7 @@ class FDSMultiselectOption extends HTMLElement {
     }));
   }
   #init() {
-    this.#selected = this.#isDefaultSelected();
-    this.#updateSelected(this.#selected);
+    this.#updateSelected(this.#isDefaultSelected());
   }
 
   // #endregion
