@@ -6,6 +6,22 @@ sheet.replaceSync(styles);
 
 class FDSMultiselect extends HTMLElement {
 
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static observedAttributes = ['label', 'placeholder'];
+
+    // #endregion
+
+    // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+    get label() { return this.getAttribute('label'); }
+    set label(value) { value == null ? this.removeAttribute('label') : this.setAttribute('label', value); }
+
+    get placeholder() { return this.getAttribute('placeholder') ?? 'Vælg en eller flere'; }
+    set placeholder(value) { value == null ? this.removeAttribute('placeholder') : this.setAttribute('placeholder', value); }
+
+    // #endregion
+
     // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
@@ -194,7 +210,7 @@ class FDSMultiselect extends HTMLElement {
         const tags = this.shadowRoot.querySelectorAll('.tag');
 
         if (tags.length === 0) {
-            openerText.textContent = 'Vælg en eller flere';
+            openerText.textContent = this.placeholder;
             return;
         }
 
@@ -230,11 +246,6 @@ class FDSMultiselect extends HTMLElement {
     #setupHTML() {
         if (this.shadowRoot.querySelector('.opener')) return;
 
-        const label = document.createElement('label');
-        label.id = generateAndVerifyUniqueId('multiselect-label');
-        label.classList.add('opener-label');
-        label.textContent = 'Vælg frugter';
-
         const opener = document.createElement('button');
         opener.id = generateAndVerifyUniqueId('multiselect-opener');
         opener.classList.add('opener');
@@ -244,11 +255,8 @@ class FDSMultiselect extends HTMLElement {
         opener.setAttribute('aria-expanded', 'false');
         opener.setAttribute('aria-activedescendant', '');
 
-        label.setAttribute('for', opener.id);
-
         const openerText = document.createElement('span');
         openerText.classList.add('opener-text');
-        openerText.textContent = 'Vælg en eller flere';
         opener.appendChild(openerText);
 
         const popup = document.createElement('div');
@@ -260,7 +268,6 @@ class FDSMultiselect extends HTMLElement {
         listbox.classList.add('listbox');
         listbox.setAttribute('role', 'listbox');
         listbox.setAttribute('aria-multiselectable', 'true');
-        listbox.setAttribute('aria-labelledby', label.id);
 
         opener.setAttribute('aria-controls', listbox.id);
 
@@ -273,13 +280,12 @@ class FDSMultiselect extends HTMLElement {
         const tags = document.createElement('div');
         tags.classList.add('tags');
 
-        this.shadowRoot.append(label, openerWrapper, tags);
+        this.shadowRoot.append(openerWrapper, tags);
     }
 
     #addEventListeners() {
         this.shadowRoot.querySelector('.opener').addEventListener('click', this.#handleOpenerClick);
         this.shadowRoot.querySelector('.opener').addEventListener('keydown', this.#handleOpenerKeyDown);
-        this.shadowRoot.querySelector('.opener-label').addEventListener('click', this.#handleLabelClick);
         this.shadowRoot.querySelector('.popup').addEventListener('mousedown', this.#handlePopupMouseDown);
         this.shadowRoot.querySelector('.listbox').addEventListener('click', this.#handleListboxClick);
         this.shadowRoot.querySelector('.tags').addEventListener('click', this.#handleTagClick);
@@ -289,7 +295,6 @@ class FDSMultiselect extends HTMLElement {
     #removeEventListeners() {
         this.shadowRoot.querySelector('.opener').removeEventListener('click', this.#handleOpenerClick);
         this.shadowRoot.querySelector('.opener').removeEventListener('keydown', this.#handleOpenerKeyDown);
-        this.shadowRoot.querySelector('.opener-label').removeEventListener('click', this.#handleLabelClick);
         this.shadowRoot.querySelector('.popup').removeEventListener('mousedown', this.#handlePopupMouseDown);
         this.shadowRoot.querySelector('.listbox').removeEventListener('click', this.#handleListboxClick);
         this.shadowRoot.querySelector('.tags').removeEventListener('click', this.#handleTagClick);
@@ -298,11 +303,46 @@ class FDSMultiselect extends HTMLElement {
 
     #init() {
         this.#setupHTML();
+        this.#updateLabel();
         this.#buildOptions();
         this.#addEventListeners();
         this.#updateOpenerText();
 
         this.#initialized = true;
+    }
+
+    #updateLabel() {
+        const labelText = this.label;
+        const listbox = this.shadowRoot.querySelector('.listbox');
+        let labelEl = this.shadowRoot.querySelector('.opener-label');
+
+        // Remove the label element if the label attribute is empty or missing
+        if (!labelText) {
+            console.warn('fds-multiselect: missing "label" attribute.', this);
+            if (labelEl) {
+                labelEl.removeEventListener('click', this.#handleLabelClick);
+                labelEl.remove();
+            }
+            listbox.removeAttribute('aria-labelledby');
+            return;
+        }
+
+        // Add the label element if it is missing and the multiselect has a valid label attribute
+        if (!labelEl) {
+            const opener = this.shadowRoot.querySelector('.opener');
+            const openerWrapper = this.shadowRoot.querySelector('.opener-wrapper');
+
+            labelEl = document.createElement('label');
+            labelEl.id = generateAndVerifyUniqueId('multiselect-label');
+            labelEl.classList.add('opener-label');
+            labelEl.setAttribute('for', opener.id);
+            labelEl.addEventListener('click', this.#handleLabelClick);
+            listbox.setAttribute('aria-labelledby', labelEl.id);
+
+            this.shadowRoot.insertBefore(labelEl, openerWrapper);
+        }
+
+        labelEl.textContent = labelText;
     }
 
     // #endregion
@@ -375,6 +415,24 @@ class FDSMultiselect extends HTMLElement {
     disconnectedCallback() {
         this.#removeEventListeners();
         this.#initialized = false;
+    }
+
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+    attributeChangedCallback(attribute, oldValue, newValue) {
+        if (!this.#initialized) return;
+        if (oldValue === newValue) return;
+
+        switch (attribute) {
+            case 'label':
+                this.#updateLabel();
+                break;
+            case 'placeholder':
+                this.#updateOpenerText();
+                break;
+        }
     }
 
     // #endregion
