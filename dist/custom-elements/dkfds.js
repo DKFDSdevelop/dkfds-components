@@ -9052,31 +9052,82 @@ const fds_multiselect_styling_styles = `
 
     .opener-wrapper {
         position: relative;
-    }
-
-    .opener {
-        appearance: none;
-        display: flex;
-        align-items: center;
-        font: inherit;
-        cursor: pointer;
-        border-radius: 8px;
-        width: 100%;
+        display: grid;
         max-width: 32rem;
         background-color: white;
-        border:1px solid #8E8E8E;
-        color: #1a1a1a;
-        font-size: 1.6rem;
-        line-height: 2.4rem;
-        height: calc(2.4rem + 16px);
-        padding: calc(8px - 1px) calc(16px - 1px);
-        padding-right: 32px;
+        border: 1px solid #8E8E8E;
+        border-radius: 8px;
         margin-top: 8px;
     }
 
-    .opener:focus {
+    .opener-wrapper:has(.opener:focus) {
         outline: 3px solid #454545;
         outline-offset: 1px;
+    }
+
+    .opener {
+        grid-area: 1 / 1;
+        z-index: 1;
+        appearance: none;
+        display: flex;
+        align-items: center;
+        align-self: stretch;
+        font: inherit;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: #1a1a1a;
+        font-size: 1.6rem;
+        line-height: 2.4rem;
+        width: 100%;
+        padding: 4px;
+    }
+
+    .tags {
+        grid-area: 1 / 1;
+        z-index: 2;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px;
+        padding: 4px;
+        pointer-events: none;
+        max-width: 32rem;
+    }
+
+    .tag {
+        pointer-events: auto;
+        appearance: none;
+        display: inline-block;
+        border: none;
+        border-radius: 16px;
+        background-color: #E6E6E6;
+        color: #1a1a1a;
+        font: inherit;
+        font-size: 1.4rem;
+        line-height: 2rem;
+        padding: 2px 10px;
+        cursor: pointer;
+        max-width: 100%;
+    }
+
+    .tag-label {
+        display: block;
+        overflow-wrap: break-word;
+        min-width: 0;
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        border: 0;
+        user-select: none;
+        white-space: nowrap;
     }
 
     .popup {
@@ -9085,6 +9136,9 @@ const fds_multiselect_styling_styles = `
         left: 0;
         right: 0;
         max-width: 32rem;
+        max-height: min(440px, 100vh);
+        overflow-y: auto;
+        overscroll-behavior: contain;
         z-index: 10;
         background-color: white;
         border: 1px solid #8E8E8E;
@@ -9100,6 +9154,7 @@ const fds_multiselect_styling_styles = `
     .option {
         padding: calc(8px - 1px) calc(16px - 1px);
         cursor: pointer;
+        overflow-wrap: break-word;
     }
 
     .option[aria-selected="true"] {
@@ -9296,7 +9351,10 @@ class FDSMultiselect extends HTMLElement {
     const tag = document.createElement('button');
     tag.classList.add('tag');
     tag.setAttribute('type', 'button');
-    tag.textContent = sourceOption.textContent.trim();
+    const tagLabel = document.createElement('span');
+    tagLabel.classList.add('tag-label');
+    tagLabel.textContent = sourceOption.textContent.trim();
+    tag.appendChild(tagLabel);
     const container = this.shadowRoot.querySelector('.tags');
     container.appendChild(tag);
     this.#optionTags.set(sourceOption, tag);
@@ -9312,6 +9370,7 @@ class FDSMultiselect extends HTMLElement {
     const tags = this.shadowRoot.querySelectorAll('.tag');
     if (tags.length === 0) {
       openerText.textContent = this.placeholder;
+      openerText.classList.remove('sr-only');
       return;
     }
     const labels = [];
@@ -9319,11 +9378,13 @@ class FDSMultiselect extends HTMLElement {
       labels.push(tag.textContent.trim());
     }
     openerText.textContent = labels.join(', ');
+    openerText.classList.add('sr-only');
   }
   #buildOptions() {
     const listbox = this.shadowRoot.querySelector('.listbox');
     const optionsToBuild = this.querySelectorAll('fds-multiselect-option');
     for (const sourceOption of optionsToBuild) {
+      if (this.#optionElements.has(sourceOption)) continue;
       const shadowOption = document.createElement('div');
       shadowOption.classList.add('option');
       shadowOption.id = generateAndVerifyUniqueId('multiselect-option');
@@ -9351,6 +9412,8 @@ class FDSMultiselect extends HTMLElement {
     const openerText = document.createElement('span');
     openerText.classList.add('opener-text');
     opener.appendChild(openerText);
+    const tags = document.createElement('div');
+    tags.classList.add('tags');
     const popup = document.createElement('div');
     popup.classList.add('popup');
     popup.hidden = true;
@@ -9363,10 +9426,8 @@ class FDSMultiselect extends HTMLElement {
     popup.append(listbox);
     const openerWrapper = document.createElement('div');
     openerWrapper.classList.add('opener-wrapper');
-    openerWrapper.append(opener, popup);
-    const tags = document.createElement('div');
-    tags.classList.add('tags');
-    this.shadowRoot.append(openerWrapper, tags);
+    openerWrapper.append(opener, tags, popup);
+    this.shadowRoot.append(openerWrapper);
   }
   #addEventListeners() {
     this.shadowRoot.querySelector('.opener').addEventListener('click', this.#handleOpenerClick);

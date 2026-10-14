@@ -189,7 +189,11 @@ class FDSMultiselect extends HTMLElement {
         const tag = document.createElement('button');
         tag.classList.add('tag');
         tag.setAttribute('type', 'button');
-        tag.textContent = sourceOption.textContent.trim();
+
+        const tagLabel = document.createElement('span');
+        tagLabel.classList.add('tag-label');
+        tagLabel.textContent = sourceOption.textContent.trim();
+        tag.appendChild(tagLabel);
 
         const container = this.shadowRoot.querySelector('.tags');
         container.appendChild(tag);
@@ -211,6 +215,7 @@ class FDSMultiselect extends HTMLElement {
 
         if (tags.length === 0) {
             openerText.textContent = this.placeholder;
+            openerText.classList.remove('sr-only');
             return;
         }
 
@@ -219,6 +224,7 @@ class FDSMultiselect extends HTMLElement {
             labels.push(tag.textContent.trim());
         }
         openerText.textContent = labels.join(', ');
+        openerText.classList.add('sr-only');
     }
 
     #buildOptions() {
@@ -226,6 +232,8 @@ class FDSMultiselect extends HTMLElement {
         const optionsToBuild = this.querySelectorAll('fds-multiselect-option');
 
         for (const sourceOption of optionsToBuild) {
+            if (this.#optionElements.has(sourceOption)) continue;
+
             const shadowOption = document.createElement('div');
             shadowOption.classList.add('option');
             shadowOption.id = generateAndVerifyUniqueId('multiselect-option');
@@ -259,6 +267,9 @@ class FDSMultiselect extends HTMLElement {
         openerText.classList.add('opener-text');
         opener.appendChild(openerText);
 
+        const tags = document.createElement('div');
+        tags.classList.add('tags');
+
         const popup = document.createElement('div');
         popup.classList.add('popup');
         popup.hidden = true;
@@ -275,12 +286,9 @@ class FDSMultiselect extends HTMLElement {
 
         const openerWrapper = document.createElement('div');
         openerWrapper.classList.add('opener-wrapper');
-        openerWrapper.append(opener, popup);
+        openerWrapper.append(opener, tags, popup);
 
-        const tags = document.createElement('div');
-        tags.classList.add('tags');
-
-        this.shadowRoot.append(openerWrapper, tags);
+        this.shadowRoot.append(openerWrapper);
     }
 
     #addEventListeners() {
