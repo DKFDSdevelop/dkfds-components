@@ -36,7 +36,7 @@ class FDSMultiselect extends HTMLElement {
         this.#setActiveShadowOption(shadowOption);
 
         const sourceOption = this.#findSourceForShadow(shadowOption);
-        if (sourceOption) { sourceOption.toggle(); } 
+        if (sourceOption) { sourceOption.toggle(); }
     };
 
     #handleOptionChange = (event) => {
@@ -231,20 +231,20 @@ class FDSMultiselect extends HTMLElement {
         if (this.shadowRoot.querySelector('.opener')) return;
 
         const label = document.createElement('label');
-        label.id = 'multiselect-label-id';
+        label.id = generateAndVerifyUniqueId('multiselect-label');
         label.classList.add('opener-label');
-        label.setAttribute('for', 'opener');
         label.textContent = 'Vælg frugter';
 
         const opener = document.createElement('button');
-        opener.id = 'opener-id';
+        opener.id = generateAndVerifyUniqueId('multiselect-opener');
         opener.classList.add('opener');
         opener.setAttribute('type', 'button');
         opener.setAttribute('role', 'combobox');
         opener.setAttribute('aria-haspopup', 'listbox');
         opener.setAttribute('aria-expanded', 'false');
-        opener.setAttribute('aria-controls', 'listbox');
         opener.setAttribute('aria-activedescendant', '');
+
+        label.setAttribute('for', opener.id);
 
         const openerText = document.createElement('span');
         openerText.classList.add('opener-text');
@@ -256,11 +256,13 @@ class FDSMultiselect extends HTMLElement {
         popup.hidden = true;
 
         const listbox = document.createElement('div');
-        listbox.id = 'listbox-id';
+        listbox.id = generateAndVerifyUniqueId('multiselect-listbox');
         listbox.classList.add('listbox');
         listbox.setAttribute('role', 'listbox');
         listbox.setAttribute('aria-multiselectable', 'true');
         listbox.setAttribute('aria-labelledby', label.id);
+
+        opener.setAttribute('aria-controls', listbox.id);
 
         popup.append(listbox);
 
