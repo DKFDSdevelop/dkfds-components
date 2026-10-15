@@ -9170,13 +9170,34 @@ const fds_multiselect_styling_styles = `
     }
 
     .option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         padding: calc(8px - 1px) calc(16px - 1px);
         cursor: pointer;
-        overflow-wrap: break-word;
     }
 
-    .option[aria-selected="true"] {
-        background-color: #C6DBEF;
+    .option-checkbox {
+        flex: 0 0 auto;
+        width: 20px;
+        height: 20px;
+        border: 1px solid #8E8E8E;
+        border-radius: 4px;
+        padding: 2px;
+        box-sizing: border-box;
+    }
+
+    .option-checkbox path {
+        display: none;
+    }
+
+    .option[aria-selected="true"] .option-checkbox path {
+        display: block;
+    }
+
+    .option-label {
+        min-width: 0;
+        overflow-wrap: break-word;
     }
 
     .option[data-active] {
@@ -9454,7 +9475,13 @@ class FDSMultiselect extends HTMLElement {
       shadowOption.setAttribute('role', 'option');
       shadowOption.setAttribute('tabindex', '-1');
       shadowOption.setAttribute('aria-selected', sourceOption.getAttribute('data-selected') === 'true' ? 'true' : 'false');
-      shadowOption.textContent = sourceOption.textContent.trim();
+      const checkbox = createSvgIcon('M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z');
+      checkbox.classList.add('option-checkbox');
+      shadowOption.appendChild(checkbox);
+      const optionLabel = document.createElement('span');
+      optionLabel.classList.add('option-label');
+      optionLabel.textContent = sourceOption.textContent.trim();
+      shadowOption.appendChild(optionLabel);
       listbox.appendChild(shadowOption);
       this.#optionElements.set(sourceOption, shadowOption);
       if (sourceOption.getAttribute('data-selected') === 'true') {

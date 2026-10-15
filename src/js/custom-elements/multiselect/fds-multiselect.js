@@ -290,7 +290,15 @@ class FDSMultiselect extends HTMLElement {
             shadowOption.setAttribute('role', 'option');
             shadowOption.setAttribute('tabindex', '-1');
             shadowOption.setAttribute('aria-selected', sourceOption.getAttribute('data-selected') === 'true' ? 'true' : 'false');
-            shadowOption.textContent = sourceOption.textContent.trim();
+
+            const checkbox = CE.createSvgIcon('M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z');
+            checkbox.classList.add('option-checkbox');
+            shadowOption.appendChild(checkbox);
+
+            const optionLabel = document.createElement('span');
+            optionLabel.classList.add('option-label');
+            optionLabel.textContent = sourceOption.textContent.trim();
+            shadowOption.appendChild(optionLabel);
 
             listbox.appendChild(shadowOption);
             this.#optionElements.set(sourceOption, shadowOption);
