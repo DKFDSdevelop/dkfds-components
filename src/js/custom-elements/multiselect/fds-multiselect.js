@@ -106,6 +106,23 @@ class FDSMultiselect extends HTMLElement {
         this.#updateOpenerText();
         this.#updateFormValue();
 
+        // The width of the tag should be constrained to avoid too much empty space.
+        if (isSelected) {
+            const tag = this.#optionTags.get(sourceOption);
+
+            if (tag) {
+                // The 62.5% trick means we need to ensure the document has loaded for correct calculations.
+                const pageIsAlreadyLoaded = document.readyState === 'complete';
+
+                if (pageIsAlreadyLoaded) {
+                    this.#constrainTagWidth(tag);
+                }
+                else {
+                    window.addEventListener('load', () => this.#constrainTagWidth(tag), { once: true });
+                }
+            }
+        }
+
         // Keep the popup visually anchored on screen.
         if (isOpen) {
             const rectAfter = popup.getBoundingClientRect();
@@ -299,6 +316,39 @@ class FDSMultiselect extends HTMLElement {
         tag.remove();
         this.#optionTags.delete(sourceOption);
         this.#updateTagsGroup();
+    }
+
+    #constrainTagWidth(tag) {
+        const container = this.shadowRoot.querySelector('.tags');
+        const tagLabel = tag.querySelector('.tag-label');
+        const icon = tag.querySelector('.icon-svg');
+        const textNode = tagLabel.firstChild;
+        if (!textNode) return;
+
+        // Force wrapping temporarily to the container's available width.
+        tag.style.maxWidth = `${container.clientWidth}px`;
+
+        const range = document.createRange();
+        range.selectNodeContents(textNode);
+
+        let widestLine = 0;
+        for (const rect of range.getClientRects()) {
+            if (rect.width > widestLine) { widestLine = rect.width; }
+        }
+
+        if (widestLine === 0) {
+            tag.style.maxWidth = '';
+            return;
+        }
+
+        const tagStyle = getComputedStyle(tag);
+        const tagLabelStyle = getComputedStyle(tagLabel);
+        const paddingLeft = parseFloat(tagStyle.paddingLeft);
+        const paddingRight = parseFloat(tagStyle.paddingRight);
+        const paddingRightLabel = parseFloat(tagLabelStyle.paddingRight);
+        const iconWidth = icon ? icon.getBoundingClientRect().width : 0;
+
+        tag.style.maxWidth = `${Math.ceil(widestLine + paddingLeft + paddingRight + paddingRightLabel + iconWidth)}px`;
     }
 
     #updateOpenerText() {

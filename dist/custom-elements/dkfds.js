@@ -9040,100 +9040,10 @@ function registerAlert() {
 /* harmony default export */ const fds_alert = (registerAlert);
 ;// ./src/js/custom-elements/multiselect/fds-multiselect-styling.js
 const fds_multiselect_styling_styles = `
-    :host {
-        display: block;
-    }
-
-    .opener-label {
-        font-size: 1.6rem;
-        line-height: 2.4rem;
-        font-weight: 600;
-        color: #1a1a1a;
-    }
-
-    .opener-wrapper {
-        position: relative;
-        display: grid;
-        max-width: 32rem;
-        background-color: white;
-        border: 1px solid #8E8E8E;
-        border-radius: 8px;
-        margin-top: 8px;
-    }
-
-    .opener-wrapper:has(.opener:focus) {
-        outline: 3px solid #454545;
-        outline-offset: 1px;
-    }
-
-    .opener {
-        grid-area: 1 / 1;
-        z-index: 1;
-        appearance: none;
-        display: flex;
-        align-items: center;
-        align-self: stretch;
-        font: inherit;
-        cursor: pointer;
-        border: none;
-        background: transparent;
-        color: #1a1a1a;
-        font-size: 1.6rem;
-        line-height: 2.4rem;
-        width: 100%;
-        padding: 4px 28px 4px 4px;
-    }
-
-    .chevron-icon {
-        position: absolute;
-        top: 50%;
-        right: 8px;
-        transform: translateY(-50%);
-        width: 20px;
-        height: 20px;
-        pointer-events: none;
-    }
-
-    .tags {
-        grid-area: 1 / 1;
-        z-index: 2;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 4px;
-        padding: 4px;
-        pointer-events: none;
-        max-width: 32rem;
-    }
-
-    .tag {
-        pointer-events: auto;
-        appearance: none;
-        display: inline-flex;
-        align-items: center;
-        border: none;
-        border-radius: 16px;
-        background-color: #E6E6E6;
-        color: #1a1a1a;
-        font: inherit;
-        font-size: 1.4rem;
-        line-height: 2rem;
-        padding: 2px 10px;
-        cursor: pointer;
-        max-width: 100%;
-    }
-
-    .tag-label {
-        display: block;
-        overflow-wrap: break-word;
-        min-width: 0;
-    }
-
-    .tag .icon-svg {
-        min-height: 2.4rem;
-        min-width: 2.4rem;
-        max-height: 2.4rem;
-        max-width: 2.4rem;
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
     }
 
     .sr-only {
@@ -9147,6 +9057,115 @@ const fds_multiselect_styling_styles = `
         border: 0;
         user-select: none;
         white-space: nowrap;
+    }
+
+    :host {
+        display: block;
+    }
+
+    .opener-label {
+        font-size: 1.6rem;
+        line-height: 2.4rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        overflow-wrap: break-word;
+        display: block;
+        max-width: 66ch;
+    }
+
+    .opener-wrapper {
+        position: relative;
+        display: grid;
+        max-width: 32rem;
+        margin-top: 8px;
+    }
+
+    .opener {
+        grid-area: 1 / 1;
+        z-index: 1;
+        appearance: none;
+        display: flex;
+        align-items: center;
+        align-self: stretch;
+        font: inherit;
+        cursor: pointer;
+        color: #1a1a1a;
+        font-size: 1.6rem;
+        line-height: 2.4rem;
+        width: 100%;
+        min-width: 0;
+        padding: 7px 47px 7px 15px;
+        border: 1px solid #8E8E8E;
+        border-radius: 8px;
+        background-color: transparent;
+    }
+
+    .opener:focus {
+        outline: 3px solid #454545;
+        outline-offset: 1px;
+    }
+
+    .opener-text {
+        overflow-wrap: break-word;
+        max-width: 100%;
+        text-align: start;
+    }
+
+    .chevron-icon {
+        position: absolute;
+        top: 50%;
+        right: 16px;
+        transform: translateY(-50%);
+        width: 2.4rem;
+        height: 2.4rem;
+        pointer-events: none;
+    }
+
+    .tags {
+        grid-area: 1 / 1;
+        z-index: 2;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 48px 8px 16px;
+        pointer-events: none;
+        max-width: 32rem;
+        min-width: 0;
+    }
+
+    .tag {
+        pointer-events: auto;
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        border: none;
+        border-radius: 1.2rem;
+        background-color: var(--color-gray-600);
+        color: var(--color-white);
+        font: inherit;
+        font-size: 1.6rem;
+        line-height: 1.5;
+        cursor: pointer;
+        max-width: 100%;
+        font-weight: 500;
+        text-align: start;
+        padding: 0 0.8rem 0 0.8rem;
+    }
+
+    .tag-label {
+        display: block;
+        overflow-wrap: break-word;
+        min-width: 0;
+        padding-right: 0.4rem;
+    }
+
+    .tag .icon-svg {
+        min-height: 1.6rem;
+        min-width: 1.6rem;
+        max-height: 1.6rem;
+        max-width: 1.6rem;
+        fill: var(--color-white);
     }
 
     .popup {
@@ -9316,6 +9335,22 @@ class FDSMultiselect extends HTMLElement {
     }
     this.#updateOpenerText();
     this.#updateFormValue();
+
+    // The width of the tag should be constrained to avoid too much empty space.
+    if (isSelected) {
+      const tag = this.#optionTags.get(sourceOption);
+      if (tag) {
+        // The 62.5% trick means we need to ensure the document has loaded for correct calculations.
+        const pageIsAlreadyLoaded = document.readyState === 'complete';
+        if (pageIsAlreadyLoaded) {
+          this.#constrainTagWidth(tag);
+        } else {
+          window.addEventListener('load', () => this.#constrainTagWidth(tag), {
+            once: true
+          });
+        }
+      }
+    }
 
     // Keep the popup visually anchored on screen.
     if (isOpen) {
@@ -9494,6 +9529,35 @@ class FDSMultiselect extends HTMLElement {
     tag.remove();
     this.#optionTags.delete(sourceOption);
     this.#updateTagsGroup();
+  }
+  #constrainTagWidth(tag) {
+    const container = this.shadowRoot.querySelector('.tags');
+    const tagLabel = tag.querySelector('.tag-label');
+    const icon = tag.querySelector('.icon-svg');
+    const textNode = tagLabel.firstChild;
+    if (!textNode) return;
+
+    // Force wrapping temporarily to the container's available width.
+    tag.style.maxWidth = `${container.clientWidth}px`;
+    const range = document.createRange();
+    range.selectNodeContents(textNode);
+    let widestLine = 0;
+    for (const rect of range.getClientRects()) {
+      if (rect.width > widestLine) {
+        widestLine = rect.width;
+      }
+    }
+    if (widestLine === 0) {
+      tag.style.maxWidth = '';
+      return;
+    }
+    const tagStyle = getComputedStyle(tag);
+    const tagLabelStyle = getComputedStyle(tagLabel);
+    const paddingLeft = parseFloat(tagStyle.paddingLeft);
+    const paddingRight = parseFloat(tagStyle.paddingRight);
+    const paddingRightLabel = parseFloat(tagLabelStyle.paddingRight);
+    const iconWidth = icon ? icon.getBoundingClientRect().width : 0;
+    tag.style.maxWidth = `${Math.ceil(widestLine + paddingLeft + paddingRight + paddingRightLabel + iconWidth)}px`;
   }
   #updateOpenerText() {
     const openerText = this.shadowRoot.querySelector('.opener-text');
