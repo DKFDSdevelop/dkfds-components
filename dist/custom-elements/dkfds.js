@@ -3930,6 +3930,7 @@ class FDSDatePicker extends HTMLElement {
         }
         break;
       case 'Escape':
+        event.preventDefault();
         this.#closeAndFocusButton();
         break;
     }
@@ -9286,12 +9287,27 @@ class FDSMultiselect extends HTMLElement {
   #handleOptionChange = event => {
     const sourceOption = event.target;
     const isSelected = sourceOption.getAttribute('data-selected') === 'true';
+    const opener = this.shadowRoot.querySelector('.opener');
+    const isOpen = opener.getAttribute('aria-expanded') === 'true';
+    const popup = this.shadowRoot.querySelector('.popup');
+    const rectBefore = isOpen ? popup.getBoundingClientRect() : null; // Get the popup's screen position
+
     isSelected ? this.#addTag(sourceOption) : this.#removeTag(sourceOption);
     const shadowOption = this.#optionElements.get(sourceOption);
     if (shadowOption) {
       shadowOption.setAttribute('aria-selected', isSelected ? 'true' : 'false');
     }
     this.#updateOpenerText();
+
+    // Keep the popup visually anchored on screen.
+    if (isOpen) {
+      const rectAfter = popup.getBoundingClientRect();
+      const difference = rectAfter.top - rectBefore.top;
+      if (difference !== 0) {
+        const scrollable = this.#getScrollableAncestor();
+        scrollable.scrollBy(0, difference);
+      }
+    }
   };
   #handleTagClick = event => {
     // Only react when the click originated from an actual tag (handler may receive
@@ -9423,6 +9439,18 @@ class FDSMultiselect extends HTMLElement {
     shadowOption.scrollIntoView({
       block: 'nearest'
     });
+  }
+  #getScrollableAncestor() {
+    let node = this.parentElement;
+    while (node) {
+      const style = getComputedStyle(node);
+      const isScrollable = (style.overflowY === 'auto' || style.overflowY === 'scroll') && node.scrollHeight > node.clientHeight;
+      if (isScrollable) {
+        return node;
+      }
+      node = node.parentElement;
+    }
+    return document.scrollingElement ?? document.documentElement;
   }
   #addTag(sourceOption) {
     if (this.#optionTags.has(sourceOption)) return;
