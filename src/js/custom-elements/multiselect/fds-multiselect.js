@@ -12,7 +12,8 @@ class FDSMultiselect extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-    static observedAttributes = ['label', 'placeholder', 'sr-group-text'];
+    static formAssociated = true;
+    static observedAttributes = ['label', 'placeholder', 'sr-group-text', 'name'];
 
     // #endregion
 
@@ -27,6 +28,17 @@ class FDSMultiselect extends HTMLElement {
     get srGroupText() { return this.getAttribute('sr-group-text'); }
     set srGroupText(value) { value == null ? this.removeAttribute('sr-group-text') : this.setAttribute('sr-group-text', value); }
 
+    get name() { return this.getAttribute('name'); }
+    set name(value) { value == null ? this.removeAttribute('name') : this.setAttribute('name', value); }
+
+    get value() {
+        const values = [];
+        for (const sourceOption of this.querySelectorAll('fds-multiselect-option')) {
+            if (this.#optionTags.has(sourceOption)) { values.push(sourceOption.value); }
+        }
+        return values;
+    }
+
     // #endregion
 
     // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
@@ -34,6 +46,7 @@ class FDSMultiselect extends HTMLElement {
     #initialized = false;
     #optionElements = new Map();
     #optionTags = new Map();
+    #internals;
 
     // #endregion
 
@@ -91,6 +104,7 @@ class FDSMultiselect extends HTMLElement {
         }
 
         this.#updateOpenerText();
+        this.#updateFormValue();
 
         // Keep the popup visually anchored on screen.
         if (isOpen) {
@@ -416,6 +430,7 @@ class FDSMultiselect extends HTMLElement {
         this.#buildOptions();
         this.#addEventListeners();
         this.#updateOpenerText();
+        this.#updateFormValue();
 
         this.#initialized = true;
     }
@@ -471,6 +486,21 @@ class FDSMultiselect extends HTMLElement {
         tags.setAttribute('aria-label', this.srGroupText ?? `Valgte muligheder for ${labelText}`);
     }
 
+    #updateFormValue() {
+        const name = this.name;
+
+        if (!name) {
+            this.#internals.setFormValue(null);
+            return;
+        }
+
+        const formData = new FormData();
+        for (const value of this.value) {
+            formData.append(name, value);
+        }
+        this.#internals.setFormValue(formData);
+    }
+
     // #endregion
 
     // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
@@ -479,6 +509,7 @@ class FDSMultiselect extends HTMLElement {
         super();
         this.attachShadow({ mode: 'open' });
         this.shadowRoot.adoptedStyleSheets = [sheet];
+        this.#internals = this.attachInternals();
     }
 
     // #endregion
@@ -561,6 +592,19 @@ class FDSMultiselect extends HTMLElement {
             case 'placeholder':
                 this.#updateOpenerText();
                 break;
+            case 'name':
+                this.#updateFormValue();
+                break;
+        }
+    }
+
+    // #endregion
+
+    // #region - FORM-ASSOCIATED CALLBACKS ------------------------------------------------------------------
+
+    formResetCallback() {
+        for (const sourceOption of this.querySelectorAll('fds-multiselect-option')) {
+            sourceOption.reset();
         }
     }
 

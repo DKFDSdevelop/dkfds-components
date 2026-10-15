@@ -67,6 +67,10 @@ class FDSMultiselectOption extends HTMLElement {
         this.#updateSelected(!this.#selected);
     }
 
+    reset() {
+        this.#updateSelected(this.#isDefaultSelected());
+    }
+
     // #endregion
 
     // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------

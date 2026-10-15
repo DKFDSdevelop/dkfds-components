@@ -9217,7 +9217,8 @@ const CHEVRON_OPEN_PATH = 'M480-528 296-344l-56-56 240-240 240 240-56 56-184-184
 class FDSMultiselect extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['label', 'placeholder', 'sr-group-text'];
+  static formAssociated = true;
+  static observedAttributes = ['label', 'placeholder', 'sr-group-text', 'name'];
 
   // #endregion
 
@@ -9241,6 +9242,21 @@ class FDSMultiselect extends HTMLElement {
   set srGroupText(value) {
     value == null ? this.removeAttribute('sr-group-text') : this.setAttribute('sr-group-text', value);
   }
+  get name() {
+    return this.getAttribute('name');
+  }
+  set name(value) {
+    value == null ? this.removeAttribute('name') : this.setAttribute('name', value);
+  }
+  get value() {
+    const values = [];
+    for (const sourceOption of this.querySelectorAll('fds-multiselect-option')) {
+      if (this.#optionTags.has(sourceOption)) {
+        values.push(sourceOption.value);
+      }
+    }
+    return values;
+  }
 
   // #endregion
 
@@ -9249,6 +9265,7 @@ class FDSMultiselect extends HTMLElement {
   #initialized = false;
   #optionElements = (() => new Map())();
   #optionTags = (() => new Map())();
+  #internals;
 
   // #endregion
 
@@ -9298,6 +9315,7 @@ class FDSMultiselect extends HTMLElement {
       shadowOption.setAttribute('aria-selected', isSelected ? 'true' : 'false');
     }
     this.#updateOpenerText();
+    this.#updateFormValue();
 
     // Keep the popup visually anchored on screen.
     if (isOpen) {
@@ -9584,6 +9602,7 @@ class FDSMultiselect extends HTMLElement {
     this.#buildOptions();
     this.#addEventListeners();
     this.#updateOpenerText();
+    this.#updateFormValue();
     this.#initialized = true;
   }
   #updateLabel() {
@@ -9630,6 +9649,18 @@ class FDSMultiselect extends HTMLElement {
     tags.setAttribute('role', 'group');
     tags.setAttribute('aria-label', this.srGroupText ?? `Valgte muligheder for ${labelText}`);
   }
+  #updateFormValue() {
+    const name = this.name;
+    if (!name) {
+      this.#internals.setFormValue(null);
+      return;
+    }
+    const formData = new FormData();
+    for (const value of this.value) {
+      formData.append(name, value);
+    }
+    this.#internals.setFormValue(formData);
+  }
 
   // #endregion
 
@@ -9641,6 +9672,7 @@ class FDSMultiselect extends HTMLElement {
       mode: 'open'
     });
     this.shadowRoot.adoptedStyleSheets = [fds_multiselect_sheet];
+    this.#internals = this.attachInternals();
   }
 
   // #endregion
@@ -9713,6 +9745,19 @@ class FDSMultiselect extends HTMLElement {
       case 'placeholder':
         this.#updateOpenerText();
         break;
+      case 'name':
+        this.#updateFormValue();
+        break;
+    }
+  }
+
+  // #endregion
+
+  // #region - FORM-ASSOCIATED CALLBACKS ------------------------------------------------------------------
+
+  formResetCallback() {
+    for (const sourceOption of this.querySelectorAll('fds-multiselect-option')) {
+      sourceOption.reset();
     }
   }
 
@@ -9794,6 +9839,9 @@ class FDSMultiselectOption extends HTMLElement {
   }
   toggle() {
     this.#updateSelected(!this.#selected);
+  }
+  reset() {
+    this.#updateSelected(this.#isDefaultSelected());
   }
 
   // #endregion
