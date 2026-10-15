@@ -56,7 +56,7 @@ export const styles = `
         padding: 7px 47px 7px 15px;
         border: 1px solid #8E8E8E;
         border-radius: 8px;
-        background-color: transparent;
+        background-color: var(--color-white);
     }
 
     .opener:focus {
@@ -112,6 +112,11 @@ export const styles = `
         padding: 0 0.8rem 0 0.8rem;
     }
 
+    .tag:focus {
+        outline: 3px solid #454545;
+        outline-offset: 1px;
+    }
+
     .tag-label {
         display: block;
         overflow-wrap: break-word;
@@ -141,6 +146,9 @@ export const styles = `
         border: 1px solid #8E8E8E;
         border-radius: 8px;
         margin-top: 4px;
+        padding-top: 7px;
+        padding-bottom: 7px;
+        box-shadow: 0 4px 12px 0 rgba(0, 0, 0, .2);
     }
 
     .listbox {
@@ -150,37 +158,52 @@ export const styles = `
 
     .option {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 8px;
-        padding: calc(8px - 1px) calc(16px - 1px);
+        padding: 8px calc(16px - 1px);
         cursor: pointer;
+    }
+
+    .option:hover {
+        background-color: var(--color-gray-100);
+    }
+
+    .option:active {
+        background-color: var(--color-gray-200);
     }
 
     .option-checkbox {
         flex: 0 0 auto;
-        width: 20px;
-        height: 20px;
-        border: 1px solid #8E8E8E;
+        width: 2.4rem;
+        height: 2.4rem;
+        border: 2px solid var(--color-black);
         border-radius: 4px;
-        padding: 2px;
-        box-sizing: border-box;
+        background-color: var(--color-white);
     }
 
     .option-checkbox path {
         display: none;
     }
 
+    .option[aria-selected="true"] .option-checkbox {
+        background-color: var(--color-black);
+        border: 0;
+    }
+
     .option[aria-selected="true"] .option-checkbox path {
         display: block;
+        fill: var(--color-white);
     }
 
     .option-label {
         min-width: 0;
         overflow-wrap: break-word;
+        line-height: 1.5;
+        color: var(--color-black);
     }
 
     .option[data-active] {
-        outline: 2px solid #454545;
-        outline-offset: -2px;
+        outline: 3px solid #454545;
+        outline-offset: -3px;
     }
 `;
