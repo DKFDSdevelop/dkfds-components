@@ -70,6 +70,8 @@ __webpack_require__.d(__webpack_exports__, {
   registerModal: () => (/* reexport */ fds_modal),
   registerModalCloser: () => (/* reexport */ fds_modal_closer),
   registerModalOpener: () => (/* reexport */ fds_modal_opener),
+  registerMultiselect: () => (/* reexport */ fds_multiselect),
+  registerMultiselectOption: () => (/* reexport */ fds_multiselect_option),
   registerPortalInfo: () => (/* reexport */ fds_portal_info),
   registerRadioButton: () => (/* reexport */ fds_radio_button),
   registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
@@ -3928,6 +3930,7 @@ class FDSDatePicker extends HTMLElement {
         }
         break;
       case 'Escape':
+        event.preventDefault();
         this.#closeAndFocusButton();
         break;
     }
@@ -9035,10 +9038,921 @@ function registerAlert() {
   }
 }
 /* harmony default export */ const fds_alert = (registerAlert);
+;// ./src/js/custom-elements/multiselect/fds-multiselect-styling.js
+const fds_multiselect_styling_styles = `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        border: 0;
+        user-select: none;
+        white-space: nowrap;
+    }
+
+    :host {
+        display: block;
+    }
+
+    .opener-label {
+        font-size: 1.6rem;
+        line-height: 2.4rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        overflow-wrap: break-word;
+        display: block;
+        max-width: 66ch;
+    }
+
+    .opener-wrapper {
+        position: relative;
+        display: grid;
+        max-width: 32rem;
+        margin-top: 8px;
+    }
+
+    .opener {
+        grid-area: 1 / 1;
+        z-index: 1;
+        appearance: none;
+        display: flex;
+        align-items: center;
+        align-self: stretch;
+        font: inherit;
+        cursor: pointer;
+        color: #1a1a1a;
+        font-size: 1.6rem;
+        line-height: 2.4rem;
+        width: 100%;
+        min-width: 0;
+        padding: 7px 47px 7px 15px;
+        border: 1px solid #8E8E8E;
+        border-radius: 8px;
+        background-color: var(--color-white);
+    }
+
+    .opener:focus {
+        outline: 3px solid #454545;
+        outline-offset: 1px;
+    }
+
+    .opener-text {
+        overflow-wrap: break-word;
+        max-width: 100%;
+        text-align: start;
+    }
+
+    .chevron-icon {
+        position: absolute;
+        top: 50%;
+        right: 16px;
+        transform: translateY(-50%);
+        width: 2.4rem;
+        height: 2.4rem;
+        pointer-events: none;
+    }
+
+    .tags {
+        grid-area: 1 / 1;
+        z-index: 2;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 48px 8px 16px;
+        pointer-events: none;
+        max-width: 32rem;
+        min-width: 0;
+    }
+
+    .tag {
+        pointer-events: auto;
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        border: none;
+        border-radius: 1.2rem;
+        background-color: var(--color-gray-600);
+        color: var(--color-white);
+        font: inherit;
+        font-size: 1.6rem;
+        line-height: 1.5;
+        cursor: pointer;
+        max-width: 100%;
+        font-weight: 500;
+        text-align: start;
+        padding: 0 0.8rem 0 0.8rem;
+    }
+
+    .tag:focus {
+        outline: 3px solid #454545;
+        outline-offset: 1px;
+    }
+
+    .tag-label {
+        display: block;
+        overflow-wrap: break-word;
+        min-width: 0;
+        padding-right: 0.4rem;
+    }
+
+    .tag .icon-svg {
+        min-height: 1.6rem;
+        min-width: 1.6rem;
+        max-height: 1.6rem;
+        max-width: 1.6rem;
+        fill: var(--color-white);
+    }
+
+    .popup {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        max-width: 32rem;
+        max-height: min(440px, 100vh);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        z-index: 10;
+        background-color: white;
+        border: 1px solid #8E8E8E;
+        border-radius: 8px;
+        margin-top: 4px;
+        padding-top: 7px;
+        padding-bottom: 7px;
+        box-shadow: 0 4px 12px 0 rgba(0, 0, 0, .2);
+    }
+
+    .listbox {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .option {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 8px calc(16px - 1px);
+        cursor: pointer;
+    }
+
+    .option:hover {
+        background-color: var(--color-gray-100);
+    }
+
+    .option:active {
+        background-color: var(--color-gray-200);
+    }
+
+    .option-checkbox {
+        flex: 0 0 auto;
+        width: 2.4rem;
+        height: 2.4rem;
+        border: 2px solid var(--color-black);
+        border-radius: 4px;
+        background-color: var(--color-white);
+    }
+
+    .option-checkbox path {
+        display: none;
+    }
+
+    .option[aria-selected="true"] .option-checkbox {
+        background-color: var(--color-black);
+        border: 0;
+    }
+
+    .option[aria-selected="true"] .option-checkbox path {
+        display: block;
+        fill: var(--color-white);
+    }
+
+    .option-label {
+        min-width: 0;
+        overflow-wrap: break-word;
+        line-height: 1.5;
+        color: var(--color-black);
+    }
+
+    .option[data-active] {
+        outline: 3px solid #454545;
+        outline-offset: -3px;
+    }
+`;
+;// ./src/js/custom-elements/multiselect/fds-multiselect.js
+
+
+
+const fds_multiselect_sheet = new CSSStyleSheet();
+fds_multiselect_sheet.replaceSync(fds_multiselect_styling_styles);
+const CHEVRON_CLOSED_PATH = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
+const CHEVRON_OPEN_PATH = 'M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z';
+class FDSMultiselect extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static formAssociated = true;
+  static observedAttributes = ['label', 'placeholder', 'sr-group-text', 'name'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get label() {
+    return this.getAttribute('label');
+  }
+  set label(value) {
+    value == null ? this.removeAttribute('label') : this.setAttribute('label', value);
+  }
+  get placeholder() {
+    return this.getAttribute('placeholder') ?? 'Vælg en eller flere';
+  }
+  set placeholder(value) {
+    value == null ? this.removeAttribute('placeholder') : this.setAttribute('placeholder', value);
+  }
+  get srGroupText() {
+    return this.getAttribute('sr-group-text');
+  }
+  set srGroupText(value) {
+    value == null ? this.removeAttribute('sr-group-text') : this.setAttribute('sr-group-text', value);
+  }
+  get name() {
+    return this.getAttribute('name');
+  }
+  set name(value) {
+    value == null ? this.removeAttribute('name') : this.setAttribute('name', value);
+  }
+  get value() {
+    const values = [];
+    for (const sourceOption of this.querySelectorAll('fds-multiselect-option')) {
+      if (this.#optionTags.has(sourceOption)) {
+        values.push(sourceOption.value);
+      }
+    }
+    return values;
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+  #optionElements = (() => new Map())();
+  #optionTags = (() => new Map())();
+  #internals;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleOpenerClick = () => {
+    this.toggle();
+    this.shadowRoot.querySelector('.opener').focus();
+  };
+  #handleLabelClick = event => {
+    event.preventDefault();
+    this.shadowRoot.querySelector('.opener').focus();
+  };
+  #handleFocusOut = () => {
+    this.close();
+  };
+  #handlePopupMouseDown = event => {
+    event.preventDefault();
+  };
+
+  // Removing a tag with the mouse while the popup is open should not close the popup
+  #handleTagsMouseDown = event => {
+    const tag = event.target.closest('.tag');
+    if (!tag) return;
+    event.preventDefault();
+  };
+  #handleListboxClick = event => {
+    const shadowOption = event.target.closest('.option');
+    if (!shadowOption) return;
+    this.#setActiveShadowOption(shadowOption);
+    const sourceOption = this.#findSourceForShadow(shadowOption);
+    if (sourceOption) {
+      sourceOption.toggle();
+    }
+  };
+  #handleOptionChange = event => {
+    const sourceOption = event.target;
+    const isSelected = sourceOption.getAttribute('data-selected') === 'true';
+    const opener = this.shadowRoot.querySelector('.opener');
+    const isOpen = opener.getAttribute('aria-expanded') === 'true';
+    const popup = this.shadowRoot.querySelector('.popup');
+    const rectBefore = isOpen ? popup.getBoundingClientRect() : null; // Get the popup's screen position
+
+    isSelected ? this.#addTag(sourceOption) : this.#removeTag(sourceOption);
+    const shadowOption = this.#optionElements.get(sourceOption);
+    if (shadowOption) {
+      shadowOption.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+    }
+    this.#updateOpenerText();
+    this.#updateFormValue();
+
+    // The width of the tag should be constrained to avoid too much empty space.
+    if (isSelected) {
+      const tag = this.#optionTags.get(sourceOption);
+      if (tag) {
+        // The 62.5% trick means we need to ensure the document has loaded for correct calculations.
+        const pageIsAlreadyLoaded = document.readyState === 'complete';
+        if (pageIsAlreadyLoaded) {
+          this.#constrainTagWidth(tag);
+        } else {
+          window.addEventListener('load', () => this.#constrainTagWidth(tag), {
+            once: true
+          });
+        }
+      }
+    }
+
+    // Keep the popup visually anchored on screen.
+    if (isOpen) {
+      const rectAfter = popup.getBoundingClientRect();
+      const difference = rectAfter.top - rectBefore.top;
+      if (difference !== 0) {
+        const scrollable = this.#getScrollableAncestor();
+        scrollable.scrollBy(0, difference);
+      }
+    }
+  };
+  #handleTagClick = event => {
+    // Only react when the click originated from an actual tag (handler may receive
+    // clicks delegated from anywhere in the shadow tree).
+    const tag = event.target.closest('.tag');
+    if (!tag) return;
+
+    // Do nothing if the tag clicked somehow doesn't have a matching <fds-multiselect-option>.
+    const sourceOption = this.#findSourceForTag(tag);
+    if (!sourceOption) return;
+    const opener = this.shadowRoot.querySelector('.opener');
+    const isOpen = opener.getAttribute('aria-expanded') === 'true';
+
+    // If the popup is open, always keep focus on the opener when a tag is clicked.
+    if (isOpen) {
+      opener.focus();
+      sourceOption.deselect();
+      return;
+    }
+    const tags = Array.from(this.shadowRoot.querySelectorAll('.tag'));
+    const index = tags.indexOf(tag);
+
+    // Place focus on either the next tag, the previous tag if no next tag, or on the
+    // opener if no tags are left at all.
+    const focusTarget = tags[index + 1] ?? tags[index - 1] ?? opener;
+    sourceOption.deselect();
+    focusTarget.focus();
+  };
+  #handleOpenerKeyDown = event => {
+    const opener = this.shadowRoot.querySelector('.opener');
+    const isOpen = opener.getAttribute('aria-expanded') === 'true';
+    const shadowOptions = Array.from(this.shadowRoot.querySelectorAll('.option'));
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        if (!isOpen) {
+          this.open();
+        } else {
+          const active = this.#getActiveShadowOption();
+          const currentIndex = active ? shadowOptions.indexOf(active) : -1;
+          let index = currentIndex + 1;
+          if (index > shadowOptions.length - 1) {
+            index = shadowOptions.length - 1;
+          }
+          this.#setActiveShadowOption(shadowOptions[index]);
+        }
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        if (!isOpen) {
+          this.open();
+        } else {
+          const active = this.#getActiveShadowOption();
+          const currentIndex = active ? shadowOptions.indexOf(active) : -1;
+          let index = currentIndex - 1;
+          if (index < 0) {
+            index = 0;
+          }
+          this.#setActiveShadowOption(shadowOptions[index]);
+        }
+        break;
+      case 'Home':
+        if (!isOpen) return;
+        event.preventDefault();
+        this.#setActiveShadowOption(shadowOptions[0]);
+        break;
+      case 'End':
+        if (!isOpen) return;
+        event.preventDefault();
+        this.#setActiveShadowOption(shadowOptions[shadowOptions.length - 1]);
+        break;
+      case 'Enter':
+      case ' ':
+        {
+          if (!isOpen) return;
+          event.preventDefault();
+          const active = this.#getActiveShadowOption();
+          if (active) {
+            const sourceOption = this.#findSourceForShadow(active);
+            if (sourceOption) {
+              sourceOption.toggle();
+            }
+          }
+          break;
+        }
+      case 'Escape':
+        if (!isOpen) return;
+        event.preventDefault();
+        this.close();
+        break;
+    }
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #findSourceForShadow(shadowOption) {
+    for (const [source, shadow] of this.#optionElements) {
+      if (shadow === shadowOption) {
+        return source;
+      }
+    }
+    return null;
+  }
+  #findSourceForTag(tag) {
+    for (const [source, tagEl] of this.#optionTags) {
+      if (tagEl === tag) {
+        return source;
+      }
+    }
+    return null;
+  }
+  #getActiveShadowOption() {
+    const opener = this.shadowRoot.querySelector('.opener');
+    const activeId = opener.getAttribute('aria-activedescendant');
+    if (!activeId) return null;
+    return this.shadowRoot.getElementById(activeId);
+  }
+  #setActiveShadowOption(shadowOption) {
+    if (!shadowOption) return;
+    const opener = this.shadowRoot.querySelector('.opener');
+    const previous = this.#getActiveShadowOption();
+    if (previous) {
+      previous.removeAttribute('data-active');
+    }
+    shadowOption.setAttribute('data-active', '');
+    opener.setAttribute('aria-activedescendant', shadowOption.id);
+    shadowOption.scrollIntoView({
+      block: 'nearest'
+    });
+  }
+  #getScrollableAncestor() {
+    let node = this.parentElement;
+    while (node) {
+      const style = getComputedStyle(node);
+      const isScrollable = (style.overflowY === 'auto' || style.overflowY === 'scroll') && node.scrollHeight > node.clientHeight;
+      if (isScrollable) {
+        return node;
+      }
+      node = node.parentElement;
+    }
+    return document.scrollingElement ?? document.documentElement;
+  }
+  #addTag(sourceOption) {
+    if (this.#optionTags.has(sourceOption)) return;
+    const label = sourceOption.textContent.trim();
+    const tag = document.createElement('button');
+    tag.classList.add('tag');
+    tag.setAttribute('type', 'button');
+    tag.setAttribute('aria-label', `Fjern ${label}`);
+    const tagLabel = document.createElement('span');
+    tagLabel.classList.add('tag-label');
+    tagLabel.textContent = label;
+    tag.appendChild(tagLabel);
+    const closeIcon = createSvgIcon("m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z");
+    tag.appendChild(closeIcon);
+    const container = this.shadowRoot.querySelector('.tags');
+    container.appendChild(tag);
+    this.#optionTags.set(sourceOption, tag);
+    this.#updateTagsGroup();
+  }
+  #removeTag(sourceOption) {
+    const tag = this.#optionTags.get(sourceOption);
+    if (!tag) return;
+    tag.remove();
+    this.#optionTags.delete(sourceOption);
+    this.#updateTagsGroup();
+  }
+  #constrainTagWidth(tag) {
+    const container = this.shadowRoot.querySelector('.tags');
+    const tagLabel = tag.querySelector('.tag-label');
+    const icon = tag.querySelector('.icon-svg');
+    const textNode = tagLabel.firstChild;
+    if (!textNode) return;
+
+    // Force wrapping temporarily to the container's available width.
+    tag.style.maxWidth = `${container.clientWidth}px`;
+    const range = document.createRange();
+    range.selectNodeContents(textNode);
+    let widestLine = 0;
+    for (const rect of range.getClientRects()) {
+      if (rect.width > widestLine) {
+        widestLine = rect.width;
+      }
+    }
+    if (widestLine === 0) {
+      tag.style.maxWidth = '';
+      return;
+    }
+    const tagStyle = getComputedStyle(tag);
+    const tagLabelStyle = getComputedStyle(tagLabel);
+    const paddingLeft = parseFloat(tagStyle.paddingLeft);
+    const paddingRight = parseFloat(tagStyle.paddingRight);
+    const paddingRightLabel = parseFloat(tagLabelStyle.paddingRight);
+    const iconWidth = icon ? icon.getBoundingClientRect().width : 0;
+    tag.style.maxWidth = `${Math.ceil(widestLine + paddingLeft + paddingRight + paddingRightLabel + iconWidth)}px`;
+  }
+  #updateOpenerText() {
+    const openerText = this.shadowRoot.querySelector('.opener-text');
+    const tags = this.shadowRoot.querySelectorAll('.tag');
+    if (tags.length === 0) {
+      openerText.textContent = this.placeholder;
+      openerText.classList.remove('sr-only');
+      return;
+    }
+    const labels = [];
+    for (const tag of tags) {
+      labels.push(tag.textContent.trim());
+    }
+    openerText.textContent = labels.join(', ');
+    openerText.classList.add('sr-only');
+  }
+  #buildOptions() {
+    const listbox = this.shadowRoot.querySelector('.listbox');
+    const optionsToBuild = this.querySelectorAll('fds-multiselect-option');
+    for (const sourceOption of optionsToBuild) {
+      if (this.#optionElements.has(sourceOption)) continue;
+      const shadowOption = document.createElement('div');
+      shadowOption.classList.add('option');
+      shadowOption.id = generateAndVerifyUniqueId('multiselect-option');
+      shadowOption.setAttribute('role', 'option');
+      shadowOption.setAttribute('tabindex', '-1');
+      shadowOption.setAttribute('aria-selected', sourceOption.getAttribute('data-selected') === 'true' ? 'true' : 'false');
+      const checkbox = createSvgIcon('M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z');
+      checkbox.classList.add('option-checkbox');
+      shadowOption.appendChild(checkbox);
+      const optionLabel = document.createElement('span');
+      optionLabel.classList.add('option-label');
+      optionLabel.textContent = sourceOption.textContent.trim();
+      shadowOption.appendChild(optionLabel);
+      listbox.appendChild(shadowOption);
+      this.#optionElements.set(sourceOption, shadowOption);
+      if (sourceOption.getAttribute('data-selected') === 'true') {
+        this.#addTag(sourceOption);
+      }
+    }
+  }
+  #setChevronPath(path) {
+    const chevronPath = this.shadowRoot.querySelector('.chevron-icon path');
+    if (chevronPath) {
+      chevronPath.setAttribute('d', path);
+    }
+  }
+  #setupHTML() {
+    if (this.shadowRoot.querySelector('.opener')) return;
+    const opener = document.createElement('button');
+    opener.id = generateAndVerifyUniqueId('multiselect-opener');
+    opener.classList.add('opener');
+    opener.setAttribute('type', 'button');
+    opener.setAttribute('role', 'combobox');
+    opener.setAttribute('aria-haspopup', 'listbox');
+    opener.setAttribute('aria-expanded', 'false');
+    opener.setAttribute('aria-activedescendant', '');
+    const openerText = document.createElement('span');
+    openerText.classList.add('opener-text');
+    opener.appendChild(openerText);
+    const chevronIcon = createSvgIcon(CHEVRON_CLOSED_PATH);
+    chevronIcon.classList.add('chevron-icon');
+    opener.appendChild(chevronIcon);
+    const tags = document.createElement('div');
+    tags.classList.add('tags');
+    tags.setAttribute('role', 'group');
+    const popup = document.createElement('div');
+    popup.classList.add('popup');
+    popup.setAttribute('tabindex', '-1');
+    popup.hidden = true;
+    const listbox = document.createElement('div');
+    listbox.id = generateAndVerifyUniqueId('multiselect-listbox');
+    listbox.classList.add('listbox');
+    listbox.setAttribute('role', 'listbox');
+    listbox.setAttribute('aria-multiselectable', 'true');
+    opener.setAttribute('aria-controls', listbox.id);
+    popup.append(listbox);
+    const openerWrapper = document.createElement('div');
+    openerWrapper.classList.add('opener-wrapper');
+    openerWrapper.append(opener, tags, popup);
+    this.shadowRoot.append(openerWrapper);
+  }
+  #addEventListeners() {
+    this.shadowRoot.querySelector('.opener').addEventListener('click', this.#handleOpenerClick);
+    this.shadowRoot.querySelector('.opener').addEventListener('keydown', this.#handleOpenerKeyDown);
+    this.shadowRoot.querySelector('.popup').addEventListener('mousedown', this.#handlePopupMouseDown);
+    this.shadowRoot.querySelector('.listbox').addEventListener('click', this.#handleListboxClick);
+    this.shadowRoot.addEventListener('click', this.#handleTagClick); // Listener is placed on the shadow root to avoid NVDA announcing an unlabeled "clickable"
+    this.shadowRoot.addEventListener('mousedown', this.#handleTagsMouseDown);
+    this.shadowRoot.addEventListener('focusout', this.#handleFocusOut);
+    this.addEventListener('fds-multiselect-option-change', this.#handleOptionChange);
+  }
+  #removeEventListeners() {
+    this.shadowRoot.querySelector('.opener').removeEventListener('click', this.#handleOpenerClick);
+    this.shadowRoot.querySelector('.opener').removeEventListener('keydown', this.#handleOpenerKeyDown);
+    this.shadowRoot.querySelector('.popup').removeEventListener('mousedown', this.#handlePopupMouseDown);
+    this.shadowRoot.querySelector('.listbox').removeEventListener('click', this.#handleListboxClick);
+    this.shadowRoot.removeEventListener('click', this.#handleTagClick);
+    this.shadowRoot.removeEventListener('mousedown', this.#handleTagsMouseDown);
+    this.shadowRoot.removeEventListener('focusout', this.#handleFocusOut);
+    this.removeEventListener('fds-multiselect-option-change', this.#handleOptionChange);
+  }
+  #init() {
+    this.#setupHTML();
+    this.#updateLabel();
+    this.#buildOptions();
+    this.#addEventListeners();
+    this.#updateOpenerText();
+    this.#updateFormValue();
+    this.#initialized = true;
+  }
+  #updateLabel() {
+    const labelText = this.label;
+    const listbox = this.shadowRoot.querySelector('.listbox');
+    let labelEl = this.shadowRoot.querySelector('.opener-label');
+
+    // Remove the label element if the label attribute is empty or missing
+    if (!labelText) {
+      console.warn('fds-multiselect: missing "label" attribute.', this);
+      if (labelEl) {
+        labelEl.removeEventListener('click', this.#handleLabelClick);
+        labelEl.remove();
+      }
+      listbox.removeAttribute('aria-labelledby');
+      this.#updateTagsGroup();
+      return;
+    }
+
+    // Add the label element if it is missing and the multiselect has a valid label attribute
+    if (!labelEl) {
+      const opener = this.shadowRoot.querySelector('.opener');
+      const openerWrapper = this.shadowRoot.querySelector('.opener-wrapper');
+      labelEl = document.createElement('label');
+      labelEl.id = generateAndVerifyUniqueId('multiselect-label');
+      labelEl.classList.add('opener-label');
+      labelEl.setAttribute('for', opener.id);
+      labelEl.addEventListener('click', this.#handleLabelClick);
+      listbox.setAttribute('aria-labelledby', labelEl.id);
+      this.shadowRoot.insertBefore(labelEl, openerWrapper);
+    }
+    labelEl.textContent = labelText;
+    this.#updateTagsGroup();
+  }
+  #updateTagsGroup() {
+    const tags = this.shadowRoot.querySelector('.tags');
+    const hasTags = tags.children.length > 0;
+    const labelText = this.label;
+    if (!hasTags || !labelText) {
+      tags.removeAttribute('role');
+      tags.removeAttribute('aria-label');
+      return;
+    }
+    tags.setAttribute('role', 'group');
+    tags.setAttribute('aria-label', this.srGroupText ?? `Valgte muligheder for ${labelText}`);
+  }
+  #updateFormValue() {
+    const name = this.name;
+    if (!name) {
+      this.#internals.setFormValue(null);
+      return;
+    }
+    const formData = new FormData();
+    for (const value of this.value) {
+      formData.append(name, value);
+    }
+    this.#internals.setFormValue(formData);
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [fds_multiselect_sheet];
+    this.#internals = this.attachInternals();
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  open() {
+    if (!this.#initialized) return;
+    const opener = this.shadowRoot.querySelector('.opener');
+    const popup = this.shadowRoot.querySelector('.popup');
+    opener.setAttribute('aria-expanded', 'true');
+    popup.hidden = false;
+    this.#setChevronPath(CHEVRON_OPEN_PATH);
+    if (!this.#getActiveShadowOption()) {
+      const shadowOptions = this.shadowRoot.querySelectorAll('.option');
+      if (shadowOptions.length > 0) {
+        this.#setActiveShadowOption(shadowOptions[0]);
+      }
+    }
+  }
+  close() {
+    if (!this.#initialized) return;
+    const opener = this.shadowRoot.querySelector('.opener');
+    const popup = this.shadowRoot.querySelector('.popup');
+    opener.setAttribute('aria-expanded', 'false');
+    popup.hidden = true;
+    this.#setChevronPath(CHEVRON_CLOSED_PATH);
+    const active = this.#getActiveShadowOption();
+    if (active) {
+      active.removeAttribute('data-active');
+    }
+    opener.setAttribute('aria-activedescendant', '');
+  }
+  toggle() {
+    if (!this.#initialized) return;
+    const opener = this.shadowRoot.querySelector('.opener');
+    const isOpen = opener.getAttribute('aria-expanded') === 'true';
+    isOpen ? this.close() : this.open();
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    this.#init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'label':
+      case 'sr-group-text':
+        this.#updateLabel();
+        break;
+      case 'placeholder':
+        this.#updateOpenerText();
+        break;
+      case 'name':
+        this.#updateFormValue();
+        break;
+    }
+  }
+
+  // #endregion
+
+  // #region - FORM-ASSOCIATED CALLBACKS ------------------------------------------------------------------
+
+  formResetCallback() {
+    for (const sourceOption of this.querySelectorAll('fds-multiselect-option')) {
+      sourceOption.reset();
+    }
+  }
+
+  // #endregion
+}
+function registerMultiselect() {
+  if (!customElements.get('fds-multiselect')) {
+    customElements.define('fds-multiselect', FDSMultiselect);
+  }
+}
+/* harmony default export */ const fds_multiselect = (registerMultiselect);
+;// ./src/js/custom-elements/multiselect/fds-multiselect-option.js
+const fds_multiselect_option_styles = `
+    :host {
+        display: none;
+    }
+`;
+const fds_multiselect_option_sheet = new CSSStyleSheet();
+fds_multiselect_option_sheet.replaceSync(fds_multiselect_option_styles);
+class FDSMultiselectOption extends HTMLElement {
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get value() {
+    return this.getAttribute('value') ?? this.textContent.trim();
+  }
+  set value(value) {
+    value == null ? this.removeAttribute('value') : this.setAttribute('value', value);
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #selected = false;
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #isDefaultSelected() {
+    const attr = this.getAttribute('default-selected');
+    if (attr === null) return false;
+    return attr.toLowerCase() !== 'false';
+  }
+  #updateSelected(isSelected) {
+    if (this.#selected === isSelected) return;
+    this.#selected = isSelected;
+    this.setAttribute('data-selected', isSelected ? 'true' : 'false');
+    this.dispatchEvent(new CustomEvent('fds-multiselect-option-change', {
+      bubbles: true,
+      composed: true
+    }));
+  }
+  #init() {
+    this.#updateSelected(this.#isDefaultSelected());
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [fds_multiselect_option_sheet];
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  select() {
+    this.#updateSelected(true);
+  }
+  deselect() {
+    this.#updateSelected(false);
+  }
+  toggle() {
+    this.#updateSelected(!this.#selected);
+  }
+  reset() {
+    this.#updateSelected(this.#isDefaultSelected());
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    this.#init();
+  }
+
+  // #endregion
+}
+function registerMultiselectOption() {
+  if (!customElements.get('fds-multiselect-option')) {
+    customElements.define('fds-multiselect-option', FDSMultiselectOption);
+  }
+}
+/* harmony default export */ const fds_multiselect_option = (registerMultiselectOption);
 ;// ./src/js/new-dkfds.js
 
 
 // Custom elements
+
+
 
 
 
@@ -9106,6 +10020,8 @@ const registerCustomElements = () => {
   fds_tab_panel();
   fds_tabs();
   fds_alert();
+  fds_multiselect();
+  fds_multiselect_option();
 };
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', registerCustomElements);

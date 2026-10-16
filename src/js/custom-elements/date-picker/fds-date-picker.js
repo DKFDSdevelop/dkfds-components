@@ -342,6 +342,7 @@ class FDSDatePicker extends HTMLElement {
                 }
                 break;
             case 'Escape':
+                event.preventDefault();
                 this.#closeAndFocusButton();
                 break;
         }
