@@ -8928,6 +8928,7 @@ class FDSAlert extends HTMLElement {
     const icon = createSvgIcon(pathD);
     icon.classList.add('alert-icon');
     icon.removeAttribute('aria-hidden');
+    icon.setAttribute('role', 'img');
     icon.setAttribute('aria-label', this.iconLabel);
     iconSlot.appendChild(icon);
   }
