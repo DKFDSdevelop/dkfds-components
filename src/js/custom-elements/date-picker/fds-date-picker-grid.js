@@ -452,6 +452,7 @@ class FDSDatePickerGrid extends HTMLElement {
             gridcells[i].removeAttribute('aria-selected');
             gridcells[i].removeAttribute('aria-disabled');
             gridcells[i].removeAttribute('aria-current');
+            gridcells[i].setAttribute('aria-hidden', 'true');
             gridcells[i].innerHTML = '';
         }
 
@@ -464,6 +465,7 @@ class FDSDatePickerGrid extends HTMLElement {
 
             // Set the data-date attribute for each date cell
             gridcells[i + offset - 1].setAttribute('data-date', `${Util.ISOFormatFromDate(gridcellDate)}`);
+            gridcells[i + offset - 1].removeAttribute('aria-hidden'); // Remove aria-hidden when the cell actually contains a date
 
             // Set the aria-label for each cell
             const ariaLabel = this.#CELL_DATE_FORMAT
