@@ -4693,6 +4693,7 @@ class FDSDatePickerGrid extends HTMLElement {
       const gridBodyRow = document.createElement('tr');
       for (let j = 0; j < this.#DAYS.length; j++) {
         const gridCell = document.createElement('td');
+        gridCell.addEventListener('click', this.#handleDateClick, false); // Event listener added to each cell for proper iOS VoiceOVer support
         gridBodyRow.appendChild(gridCell);
       }
       gridBody.appendChild(gridBodyRow);
@@ -4947,8 +4948,8 @@ class FDSDatePickerGrid extends HTMLElement {
     }
   }
   #dateClicked(event) {
-    if (event.target.hasAttribute('data-date') && !event.target.hasAttribute('aria-disabled')) {
-      this.setAttribute('selected-date', event.target.getAttribute('data-date'));
+    if (event.currentTarget.hasAttribute('data-date') && !event.currentTarget.hasAttribute('aria-disabled')) {
+      this.setAttribute('selected-date', event.currentTarget.getAttribute('data-date'));
       this.dispatchEvent(new Event('date-clicked'));
     }
   }
@@ -5002,7 +5003,6 @@ class FDSDatePickerGrid extends HTMLElement {
     this.shadowRoot.querySelector('.selected-year').addEventListener('change', this.#handleChangeYear, false);
     this.shadowRoot.querySelector('.previous-month').addEventListener('click', this.#handlePrevMonth, false);
     this.shadowRoot.querySelector('.next-month').addEventListener('click', this.#handleNextMonth, false);
-    this.shadowRoot.querySelector('.date-picker-grid').addEventListener('click', this.#handleDateClick, false);
   }
   #removeEventListeners() {
     this.shadowRoot.querySelector('.grid-container').removeEventListener('keydown', this.#handleKeydown, false);
@@ -5010,7 +5010,7 @@ class FDSDatePickerGrid extends HTMLElement {
     this.shadowRoot.querySelector('.selected-year').removeEventListener('change', this.#handleChangeYear, false);
     this.shadowRoot.querySelector('.previous-month').removeEventListener('click', this.#handlePrevMonth, false);
     this.shadowRoot.querySelector('.next-month').removeEventListener('click', this.#handleNextMonth, false);
-    this.shadowRoot.querySelector('.date-picker-grid').removeEventListener('click', this.#handleDateClick, false);
+    this.shadowRoot.querySelectorAll('td').forEach(td => td.removeEventListener('click', this.#handleDateClick, false));
   }
 
   // #endregion
