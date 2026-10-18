@@ -211,6 +211,8 @@ class FDSDatePickerGrid extends HTMLElement {
     }
 
     #create() {
+        if (this.shadowRoot.querySelector('.grid-container')) return;
+
         const gridContainer = document.createElement('div');
         gridContainer.classList.add('grid-container');
         gridContainer.setAttribute('tabindex', '-1'); // Used to prevent focus from escaping when non-clickable items are clicked
