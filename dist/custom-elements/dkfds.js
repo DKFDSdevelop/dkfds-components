@@ -9073,7 +9073,7 @@ const fds_multiselect_styling_styles = `
         font-weight: 600;
         color: #1a1a1a;
         overflow-wrap: break-word;
-        display: block;
+        display: inline-block;
         max-width: 66ch;
     }
 
@@ -9185,7 +9185,6 @@ const fds_multiselect_styling_styles = `
         max-width: 32rem;
         max-height: min(440px, 100vh);
         overflow-y: auto;
-        overscroll-behavior: contain;
         z-index: 10;
         background-color: white;
         border: 1px solid #8E8E8E;
