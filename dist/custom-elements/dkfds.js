@@ -9200,6 +9200,10 @@ const fds_multiselect_styling_styles = `
         flex-direction: column;
     }
 
+    .listbox:focus {
+        outline: 0;
+    }
+
     .option {
         display: flex;
         align-items: flex-start;
