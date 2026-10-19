@@ -28,7 +28,7 @@ export const styles = `
         font-weight: 600;
         color: #1a1a1a;
         overflow-wrap: break-word;
-        display: block;
+        display: inline-block;
         max-width: 66ch;
     }
 
@@ -112,7 +112,7 @@ export const styles = `
         padding: 0 0.8rem 0 0.8rem;
     }
 
-    .tag:focus {
+    .tag:focus-visible {
         outline: 3px solid #454545;
         outline-offset: 1px;
     }
@@ -140,7 +140,6 @@ export const styles = `
         max-width: 32rem;
         max-height: min(440px, 100vh);
         overflow-y: auto;
-        overscroll-behavior: contain;
         z-index: 10;
         background-color: white;
         border: 1px solid #8E8E8E;
@@ -154,6 +153,10 @@ export const styles = `
     .listbox {
         display: flex;
         flex-direction: column;
+    }
+
+    .listbox:focus {
+        outline: 0;
     }
 
     .option {

@@ -54,7 +54,6 @@ class FDSMultiselect extends HTMLElement {
 
     #handleOpenerClick = () => {
         this.toggle();
-        this.shadowRoot.querySelector('.opener').focus();
     };
 
     #handleLabelClick = (event) => {
@@ -62,7 +61,8 @@ class FDSMultiselect extends HTMLElement {
         this.shadowRoot.querySelector('.opener').focus();
     };
 
-    #handleFocusOut = () => {
+    #handleFocusOut = (event) => {
+        if (event.relatedTarget && this.shadowRoot.contains(event.relatedTarget)) return;
         this.close();
     };
 
@@ -127,9 +127,9 @@ class FDSMultiselect extends HTMLElement {
         if (isOpen) {
             const rectAfter = popup.getBoundingClientRect();
             const difference = rectAfter.top - rectBefore.top;
+
             if (difference !== 0) {
-                const scrollable = this.#getScrollableAncestor();
-                scrollable.scrollBy(0, difference);
+                this.#getScrollableAncestor().scrollBy(0, difference);
             }
         }
     };
@@ -147,11 +147,8 @@ class FDSMultiselect extends HTMLElement {
         const opener = this.shadowRoot.querySelector('.opener');
         const isOpen = opener.getAttribute('aria-expanded') === 'true';
 
-        // If the popup is open, always keep focus on the opener when a tag is clicked.
         if (isOpen) {
-            opener.focus();
-            sourceOption.deselect();
-            return;
+            this.close();
         }
 
         const tags = Array.from(this.shadowRoot.querySelectorAll('.tag'));
@@ -166,67 +163,59 @@ class FDSMultiselect extends HTMLElement {
     };
 
     #handleOpenerKeyDown = (event) => {
-        const opener = this.shadowRoot.querySelector('.opener');
-        const isOpen = opener.getAttribute('aria-expanded') === 'true';
+        if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return; // Enter and Space is handled by #handleOpenerClick()
+
+        event.preventDefault();
+        this.open();
+    };
+
+    #handleListboxKeyDown = (event) => {
         const shadowOptions = Array.from(this.shadowRoot.querySelectorAll('.option'));
+        const active = this.#getActiveShadowOption();
+        const currentIndex = active ? shadowOptions.indexOf(active) : -1;
 
         switch (event.key) {
-            case 'ArrowDown':
+            case 'ArrowDown': {
                 event.preventDefault();
-                if (!isOpen) {
-                    this.open();
-                }
-                else {
-                    const active = this.#getActiveShadowOption();
-                    const currentIndex = active ? shadowOptions.indexOf(active) : -1;
-                    let index = currentIndex + 1;
-                    if (index > shadowOptions.length - 1) { index = shadowOptions.length - 1; }
-                    this.#setActiveShadowOption(shadowOptions[index]);
-                }
+                const nextIndex = Math.min(currentIndex + 1, shadowOptions.length - 1);
+                this.#setActiveShadowOption(shadowOptions[nextIndex]);
                 break;
+            }
 
-            case 'ArrowUp':
+            case 'ArrowUp': {
                 event.preventDefault();
-                if (!isOpen) {
-                    this.open();
-                }
-                else {
-                    const active = this.#getActiveShadowOption();
-                    const currentIndex = active ? shadowOptions.indexOf(active) : -1;
-                    let index = currentIndex - 1;
-                    if (index < 0) { index = 0; }
-                    this.#setActiveShadowOption(shadowOptions[index]);
-                }
+                const previousIndex = currentIndex < 0 ? 0 : Math.max(currentIndex - 1, 0);
+                this.#setActiveShadowOption(shadowOptions[previousIndex]);
                 break;
+            }
 
             case 'Home':
-                if (!isOpen) return;
                 event.preventDefault();
                 this.#setActiveShadowOption(shadowOptions[0]);
                 break;
 
             case 'End':
-                if (!isOpen) return;
                 event.preventDefault();
                 this.#setActiveShadowOption(shadowOptions[shadowOptions.length - 1]);
                 break;
 
             case 'Enter':
             case ' ': {
-                if (!isOpen) return;
                 event.preventDefault();
-                const active = this.#getActiveShadowOption();
+
                 if (active) {
                     const sourceOption = this.#findSourceForShadow(active);
-                    if (sourceOption) { sourceOption.toggle(); }
+                    if (sourceOption) {
+                        sourceOption.toggle();
+                    }
                 }
                 break;
             }
 
             case 'Escape':
-                if (!isOpen) return;
                 event.preventDefault();
                 this.close();
+                this.shadowRoot.querySelector('.opener').focus();
                 break;
         }
     };
@@ -250,8 +239,9 @@ class FDSMultiselect extends HTMLElement {
     }
 
     #getActiveShadowOption() {
-        const opener = this.shadowRoot.querySelector('.opener');
-        const activeId = opener.getAttribute('aria-activedescendant');
+        const listbox = this.shadowRoot.querySelector('.listbox');
+        const activeId = listbox.getAttribute('aria-activedescendant');
+
         if (!activeId) return null;
         return this.shadowRoot.getElementById(activeId);
     }
@@ -259,7 +249,7 @@ class FDSMultiselect extends HTMLElement {
     #setActiveShadowOption(shadowOption) {
         if (!shadowOption) return;
 
-        const opener = this.shadowRoot.querySelector('.opener');
+        const listbox = this.shadowRoot.querySelector('.listbox');
         const previous = this.#getActiveShadowOption();
 
         if (previous) {
@@ -267,7 +257,7 @@ class FDSMultiselect extends HTMLElement {
         }
 
         shadowOption.setAttribute('data-active', '');
-        opener.setAttribute('aria-activedescendant', shadowOption.id);
+        listbox.setAttribute('aria-activedescendant', shadowOption.id);
         shadowOption.scrollIntoView({ block: 'nearest' });
     }
 
@@ -299,12 +289,10 @@ class FDSMultiselect extends HTMLElement {
         tagLabel.textContent = label;
         tag.appendChild(tagLabel);
 
-        const closeIcon = CE.createSvgIcon("m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z");
+        const closeIcon = CE.createSvgIcon('m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z');
         tag.appendChild(closeIcon);
 
-        const container = this.shadowRoot.querySelector('.tags');
-        container.appendChild(tag);
-
+        this.shadowRoot.querySelector('.tags').appendChild(tag);
         this.#optionTags.set(sourceOption, tag);
         this.#updateTagsGroup();
     }
@@ -319,15 +307,24 @@ class FDSMultiselect extends HTMLElement {
     }
 
     #constrainTagWidth(tag) {
-        const container = this.shadowRoot.querySelector('.tags');
         const tagLabel = tag.querySelector('.tag-label');
-        const icon = tag.querySelector('.icon-svg');
         const textNode = tagLabel.firstChild;
         if (!textNode) return;
+        const icon = tag.querySelector('.icon-svg');
 
-        // Force wrapping temporarily to the container's available width.
-        tag.style.maxWidth = `${container.clientWidth}px`;
+        // Calculate height threshold for when a tag's text is considered to span several lines
+        const tagLineHeight = parseFloat(getComputedStyle(tag).lineHeight);
+        const PIXEL_BUFFER = 1; // 1 px added to avoid issues where height may be a floating number
+        const singleLineHeightThreshold = tagLineHeight + PIXEL_BUFFER;
 
+        // Reset any previously applied constraint.
+        tag.style.maxWidth = '';
+
+        const height = tag.getBoundingClientRect().height;
+        if (height <= singleLineHeightThreshold) return; // Already a single line so nothing to constrain.
+
+        // The tag wrapped onto multiple lines. Measure the widest actual rendered
+        // line and set a max-width, so the box doesn't stretch wider than the text.
         const range = document.createRange();
         range.selectNodeContents(textNode);
 
@@ -336,16 +333,15 @@ class FDSMultiselect extends HTMLElement {
             if (rect.width > widestLine) { widestLine = rect.width; }
         }
 
-        if (widestLine === 0) {
-            tag.style.maxWidth = '';
-            return;
-        }
+        if (widestLine === 0) return;
 
         const tagStyle = getComputedStyle(tag);
-        const tagLabelStyle = getComputedStyle(tagLabel);
         const paddingLeft = parseFloat(tagStyle.paddingLeft);
         const paddingRight = parseFloat(tagStyle.paddingRight);
+
+        const tagLabelStyle = getComputedStyle(tagLabel);
         const paddingRightLabel = parseFloat(tagLabelStyle.paddingRight);
+        
         const iconWidth = icon ? icon.getBoundingClientRect().width : 0;
 
         tag.style.maxWidth = `${Math.ceil(widestLine + paddingLeft + paddingRight + paddingRightLabel + iconWidth)}px`;
@@ -365,6 +361,7 @@ class FDSMultiselect extends HTMLElement {
         for (const tag of tags) {
             labels.push(tag.textContent.trim());
         }
+
         openerText.textContent = labels.join(', ');
         openerText.classList.add('sr-only');
     }
@@ -414,9 +411,8 @@ class FDSMultiselect extends HTMLElement {
         opener.classList.add('opener');
         opener.setAttribute('type', 'button');
         opener.setAttribute('role', 'combobox');
-        opener.setAttribute('aria-haspopup', 'listbox');
+        opener.setAttribute('aria-haspopup', 'dialog');
         opener.setAttribute('aria-expanded', 'false');
-        opener.setAttribute('aria-activedescendant', '');
 
         const openerText = document.createElement('span');
         openerText.classList.add('opener-text');
@@ -428,20 +424,22 @@ class FDSMultiselect extends HTMLElement {
 
         const tags = document.createElement('div');
         tags.classList.add('tags');
-        tags.setAttribute('role', 'group');
 
         const popup = document.createElement('div');
+        popup.id = generateAndVerifyUniqueId('multiselect-dialog');
         popup.classList.add('popup');
-        popup.setAttribute('tabindex', '-1');
+        popup.setAttribute('role', 'dialog');
+        popup.setAttribute('aria-label', 'Vælg en eller flere muligheder');
         popup.hidden = true;
+
+        opener.setAttribute('aria-controls', popup.id);
 
         const listbox = document.createElement('div');
         listbox.id = generateAndVerifyUniqueId('multiselect-listbox');
         listbox.classList.add('listbox');
         listbox.setAttribute('role', 'listbox');
         listbox.setAttribute('aria-multiselectable', 'true');
-
-        opener.setAttribute('aria-controls', listbox.id);
+        listbox.setAttribute('tabindex', '0');
 
         popup.append(listbox);
 
@@ -457,6 +455,7 @@ class FDSMultiselect extends HTMLElement {
         this.shadowRoot.querySelector('.opener').addEventListener('keydown', this.#handleOpenerKeyDown);
         this.shadowRoot.querySelector('.popup').addEventListener('mousedown', this.#handlePopupMouseDown);
         this.shadowRoot.querySelector('.listbox').addEventListener('click', this.#handleListboxClick);
+        this.shadowRoot.querySelector('.listbox').addEventListener('keydown', this.#handleListboxKeyDown);
         this.shadowRoot.addEventListener('click', this.#handleTagClick); // Listener is placed on the shadow root to avoid NVDA announcing an unlabeled "clickable"
         this.shadowRoot.addEventListener('mousedown', this.#handleTagsMouseDown);
         this.shadowRoot.addEventListener('focusout', this.#handleFocusOut);
@@ -468,6 +467,7 @@ class FDSMultiselect extends HTMLElement {
         this.shadowRoot.querySelector('.opener').removeEventListener('keydown', this.#handleOpenerKeyDown);
         this.shadowRoot.querySelector('.popup').removeEventListener('mousedown', this.#handlePopupMouseDown);
         this.shadowRoot.querySelector('.listbox').removeEventListener('click', this.#handleListboxClick);
+        this.shadowRoot.querySelector('.listbox').removeEventListener('keydown', this.#handleListboxKeyDown);
         this.shadowRoot.removeEventListener('click', this.#handleTagClick);
         this.shadowRoot.removeEventListener('mousedown', this.#handleTagsMouseDown);
         this.shadowRoot.removeEventListener('focusout', this.#handleFocusOut);
@@ -493,10 +493,12 @@ class FDSMultiselect extends HTMLElement {
         // Remove the label element if the label attribute is empty or missing
         if (!labelText) {
             console.warn('fds-multiselect: missing "label" attribute.', this);
+
             if (labelEl) {
                 labelEl.removeEventListener('click', this.#handleLabelClick);
                 labelEl.remove();
             }
+
             listbox.removeAttribute('aria-labelledby');
             this.#updateTagsGroup();
             return;
@@ -512,12 +514,12 @@ class FDSMultiselect extends HTMLElement {
             labelEl.classList.add('opener-label');
             labelEl.setAttribute('for', opener.id);
             labelEl.addEventListener('click', this.#handleLabelClick);
-            listbox.setAttribute('aria-labelledby', labelEl.id);
 
             this.shadowRoot.insertBefore(labelEl, openerWrapper);
         }
 
         labelEl.textContent = labelText;
+        listbox.setAttribute('aria-labelledby', labelEl.id);
         this.#updateTagsGroup();
     }
 
@@ -537,17 +539,16 @@ class FDSMultiselect extends HTMLElement {
     }
 
     #updateFormValue() {
-        const name = this.name;
-
-        if (!name) {
+        if (!this.name) {
             this.#internals.setFormValue(null);
             return;
         }
 
         const formData = new FormData();
         for (const value of this.value) {
-            formData.append(name, value);
+            formData.append(this.name, value);
         }
+
         this.#internals.setFormValue(formData);
     }
 
@@ -571,17 +572,17 @@ class FDSMultiselect extends HTMLElement {
 
         const opener = this.shadowRoot.querySelector('.opener');
         const popup = this.shadowRoot.querySelector('.popup');
+        const listbox = this.shadowRoot.querySelector('.listbox');
 
         opener.setAttribute('aria-expanded', 'true');
         popup.hidden = false;
         this.#setChevronPath(CHEVRON_OPEN_PATH);
 
         if (!this.#getActiveShadowOption()) {
-            const shadowOptions = this.shadowRoot.querySelectorAll('.option');
-            if (shadowOptions.length > 0) {
-                this.#setActiveShadowOption(shadowOptions[0]);
-            }
+            this.#setActiveShadowOption(listbox.querySelector('.option'));
         }
+
+        listbox.focus();
     }
 
     close() {
@@ -589,6 +590,7 @@ class FDSMultiselect extends HTMLElement {
 
         const opener = this.shadowRoot.querySelector('.opener');
         const popup = this.shadowRoot.querySelector('.popup');
+        const listbox = this.shadowRoot.querySelector('.listbox');
 
         opener.setAttribute('aria-expanded', 'false');
         popup.hidden = true;
@@ -598,7 +600,8 @@ class FDSMultiselect extends HTMLElement {
         if (active) {
             active.removeAttribute('data-active');
         }
-        opener.setAttribute('aria-activedescendant', '');
+
+        listbox.setAttribute('aria-activedescendant', '');
     }
 
     toggle() {
@@ -606,7 +609,14 @@ class FDSMultiselect extends HTMLElement {
 
         const opener = this.shadowRoot.querySelector('.opener');
         const isOpen = opener.getAttribute('aria-expanded') === 'true';
-        isOpen ? this.close() : this.open();
+
+        if (isOpen) {
+            this.close();
+            opener.focus();
+        }
+        else {
+            this.open();
+        }
     }
 
     // #endregion
