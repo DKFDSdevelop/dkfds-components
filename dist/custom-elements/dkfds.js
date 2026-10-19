@@ -9543,14 +9543,23 @@ class FDSMultiselect extends HTMLElement {
     this.#updateTagsGroup();
   }
   #constrainTagWidth(tag) {
-    const container = this.shadowRoot.querySelector('.tags');
     const tagLabel = tag.querySelector('.tag-label');
-    const icon = tag.querySelector('.icon-svg');
     const textNode = tagLabel.firstChild;
     if (!textNode) return;
+    const icon = tag.querySelector('.icon-svg');
 
-    // Force wrapping temporarily to the container's available width.
-    tag.style.maxWidth = `${container.clientWidth}px`;
+    // Calculate height threshold for when a tag's text is considered to span several lines
+    const tagLineHeight = parseFloat(getComputedStyle(tag).lineHeight);
+    const PIXEL_BUFFER = 1; // 1 px added to avoid issues where height may be a floating number
+    const singleLineHeightThreshold = tagLineHeight + PIXEL_BUFFER;
+
+    // Reset any previously applied constraint.
+    tag.style.maxWidth = '';
+    const height = tag.getBoundingClientRect().height;
+    if (height <= singleLineHeightThreshold) return; // Already a single line so nothing to constrain.
+
+    // The tag wrapped onto multiple lines. Measure the widest actual rendered
+    // line and set a max-width, so the box doesn't stretch wider than the text.
     const range = document.createRange();
     range.selectNodeContents(textNode);
     let widestLine = 0;
@@ -9559,14 +9568,11 @@ class FDSMultiselect extends HTMLElement {
         widestLine = rect.width;
       }
     }
-    if (widestLine === 0) {
-      tag.style.maxWidth = '';
-      return;
-    }
+    if (widestLine === 0) return;
     const tagStyle = getComputedStyle(tag);
-    const tagLabelStyle = getComputedStyle(tagLabel);
     const paddingLeft = parseFloat(tagStyle.paddingLeft);
     const paddingRight = parseFloat(tagStyle.paddingRight);
+    const tagLabelStyle = getComputedStyle(tagLabel);
     const paddingRightLabel = parseFloat(tagLabelStyle.paddingRight);
     const iconWidth = icon ? icon.getBoundingClientRect().width : 0;
     tag.style.maxWidth = `${Math.ceil(widestLine + paddingLeft + paddingRight + paddingRightLabel + iconWidth)}px`;
