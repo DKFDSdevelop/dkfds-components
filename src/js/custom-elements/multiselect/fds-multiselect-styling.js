@@ -112,7 +112,7 @@ export const styles = `
         padding: 0 0.8rem 0 0.8rem;
     }
 
-    .tag:focus {
+    .tag:focus-visible {
         outline: 3px solid #454545;
         outline-offset: 1px;
     }
