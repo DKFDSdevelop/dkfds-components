@@ -149,8 +149,8 @@ const copyFilesAndCreateJavaScript = {
     stats: 'minimal',
 };
 
-const copyFilesAndCreateCustomElementJS = {
-    name: 'copyFilesAndCreateCustomElementJS',
+const copyFilesAndCreateWebComponentJS = {
+    name: 'copyFilesAndCreateWebComponentJS',
     dependencies: ['copyFilesAndCreateJavaScript'],
     mode: 'production',
     module: JS_BABEL,
@@ -167,7 +167,7 @@ const copyFilesAndCreateCustomElementJS = {
     },
     output: {
         path: JS_OUTPUT_PATH,
-        filename: 'custom-elements/[name].js',
+        filename: 'web-components/[name].js',
         globalObject: 'this',
         library: JS_OUTPUT_LIBRARY,
     },
@@ -338,8 +338,8 @@ const createMinifiedCSS = {
     stats: 'minimal',
 };
 
-const createCustomElementCSS = {
-    name: 'createCustomElementCSS',
+const createWebComponentCSS = {
+    name: 'createWebComponentCSS',
     dependencies: ['copyFilesAndCreateJavaScript'],
     mode: 'production',
     entry: {
@@ -351,7 +351,7 @@ const createCustomElementCSS = {
         CSS_REMOVE_EMPTY_SCRIPTS,
         /* Create stylesheets */
         new MiniCssExtractPlugin({
-            filename: 'custom-elements/[name].css'
+            filename: 'web-components/[name].css'
         }),
     ],
     module: {
@@ -437,4 +437,4 @@ const createCustomElementCSS = {
 // module.exports
 ////////////////////////////////////////////////////////////////////////////////
 
-module.exports = [copyFilesAndCreateJavaScript, copyFilesAndCreateCustomElementJS, createMinifiedJavaScript, createCSS, createMinifiedCSS, createCustomElementCSS];
+module.exports = [copyFilesAndCreateJavaScript, copyFilesAndCreateWebComponentJS, createMinifiedJavaScript, createCSS, createMinifiedCSS, createWebComponentCSS];

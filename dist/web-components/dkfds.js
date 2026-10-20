@@ -104,7 +104,7 @@ function generateAndVerifyUniqueId(str) {
   }
   return uniqueId;
 }
-;// ./src/js/custom-elements/accordion/fds-accordion.js
+;// ./src/js/web-components/accordion/fds-accordion.js
 
 class FDSAccordion extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
@@ -429,7 +429,7 @@ function registerAccordion() {
   }
 }
 /* harmony default export */ const fds_accordion = (registerAccordion);
-;// ./src/js/custom-elements/accordion/fds-accordion-group.js
+;// ./src/js/web-components/accordion/fds-accordion-group.js
 class FDSAccordionGroup extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -605,7 +605,7 @@ function registerAccordionGroup() {
   }
 }
 /* harmony default export */ const fds_accordion_group = (registerAccordionGroup);
-;// ./src/js/custom-elements/custom-element-utils.js
+;// ./src/js/web-components/custom-element-utils.js
 
 
 /**
@@ -803,7 +803,7 @@ function setInvalid(element, errorMessages) {
 function isVisibleAndFocusable(element) {
   return element.offsetParent !== null && !element.disabled && element.tabIndex >= 0;
 }
-;// ./src/js/custom-elements/input/fds-input.js
+;// ./src/js/web-components/input/fds-input.js
 
 
 class FDSInput extends HTMLElement {
@@ -980,7 +980,7 @@ function registerInput() {
   }
 }
 /* harmony default export */ const fds_input = (registerInput);
-;// ./src/js/custom-elements/help-text/fds-help-text.js
+;// ./src/js/web-components/help-text/fds-help-text.js
 
 class FDSHelpText extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
@@ -1089,7 +1089,7 @@ function registerHelpText() {
   }
 }
 /* harmony default export */ const fds_help_text = (registerHelpText);
-;// ./src/js/custom-elements/character-limit/fds-character-limit.js
+;// ./src/js/web-components/character-limit/fds-character-limit.js
 
 class FDSCharacterLimit extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
@@ -1348,7 +1348,7 @@ function registerCharacterLimit() {
   }
 }
 /* harmony default export */ const fds_character_limit = (registerCharacterLimit);
-;// ./src/js/custom-elements/error-message/fds-error-message.js
+;// ./src/js/web-components/error-message/fds-error-message.js
 
 class FDSErrorMessage extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
@@ -1496,7 +1496,7 @@ function registerErrorMessage() {
   }
 }
 /* harmony default export */ const fds_error_message = (registerErrorMessage);
-;// ./src/js/custom-elements/checkbox/fds-checkbox.js
+;// ./src/js/web-components/checkbox/fds-checkbox.js
 
 
 class FDSCheckbox extends HTMLElement {
@@ -1701,7 +1701,7 @@ function registerCheckbox() {
   }
 }
 /* harmony default export */ const fds_checkbox = (registerCheckbox);
-;// ./src/js/custom-elements/checkbox/fds-checkbox-group.js
+;// ./src/js/web-components/checkbox/fds-checkbox-group.js
 
 class FDSCheckboxGroup extends HTMLElement {
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
@@ -1824,7 +1824,7 @@ function registerCheckboxGroup() {
   }
 }
 /* harmony default export */ const fds_checkbox_group = (registerCheckboxGroup);
-;// ./src/js/custom-elements/radio-button/fds-radio-button.js
+;// ./src/js/web-components/radio-button/fds-radio-button.js
 
 
 class FDSRadioButton extends HTMLElement {
@@ -2018,7 +2018,7 @@ function registerRadioButton() {
   }
 }
 /* harmony default export */ const fds_radio_button = (registerRadioButton);
-;// ./src/js/custom-elements/radio-button/fds-radio-button-group.js
+;// ./src/js/web-components/radio-button/fds-radio-button-group.js
 
 class FDSRadioButtonGroup extends HTMLElement {
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
@@ -2132,7 +2132,7 @@ function registerRadioButtonGroup() {
   }
 }
 /* harmony default export */ const fds_radio_button_group = (registerRadioButtonGroup);
-;// ./src/js/custom-elements/date-input/fds-date-input.js
+;// ./src/js/web-components/date-input/fds-date-input.js
 
 class FDSDateInput extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
@@ -2487,7 +2487,7 @@ function registerDateInput() {
   }
 }
 /* harmony default export */ const fds_date_input = (registerDateInput);
-;// ./src/js/custom-elements/select/fds-select.js
+;// ./src/js/web-components/select/fds-select.js
 
 class FDSSelect extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
@@ -2631,7 +2631,7 @@ function registerSelect() {
   }
 }
 /* harmony default export */ const fds_select = (registerSelect);
-;// ./src/js/custom-elements/upload-file/fds-upload-file.js
+;// ./src/js/web-components/upload-file/fds-upload-file.js
 
 
 class FDSUploadFile extends HTMLElement {
@@ -3194,7 +3194,7 @@ function registerUploadFile() {
   }
 }
 /* harmony default export */ const fds_upload_file = (registerUploadFile);
-;// ./src/js/custom-elements/upload-file/fds-file-item.js
+;// ./src/js/web-components/upload-file/fds-file-item.js
 
 class FDSFileItem extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
@@ -3379,7 +3379,7 @@ function registerFileItem() {
   }
 }
 /* harmony default export */ const fds_file_item = (registerFileItem);
-;// ./src/js/custom-elements/date-picker/fds-date-picker-utils.js
+;// ./src/js/web-components/date-picker/fds-date-picker-utils.js
 /**
  * Get weekday index with Monday as 0
  *
@@ -3646,7 +3646,7 @@ function datesAreEqual(date1, date2) {
   }
   return date1.getTime() === date2.getTime();
 }
-;// ./src/js/custom-elements/date-picker/fds-date-picker.js
+;// ./src/js/web-components/date-picker/fds-date-picker.js
 
 
 
@@ -4099,7 +4099,7 @@ function registerDatePicker() {
   }
 }
 /* harmony default export */ const fds_date_picker = (registerDatePicker);
-;// ./src/js/custom-elements/date-picker/fds-date-picker-grid-styling.js
+;// ./src/js/web-components/date-picker/fds-date-picker-grid-styling.js
 const styles = `
     *,
     *::before,
@@ -4378,7 +4378,7 @@ const styles = `
         text-decoration: underline;
     }
 `;
-;// ./src/js/custom-elements/date-picker/fds-date-picker-grid.js
+;// ./src/js/web-components/date-picker/fds-date-picker-grid.js
 
 
 
@@ -5223,7 +5223,7 @@ function registerDatePickerGrid() {
   }
 }
 /* harmony default export */ const fds_date_picker_grid = (registerDatePickerGrid);
-;// ./src/js/custom-elements/textarea/fds-textarea.js
+;// ./src/js/web-components/textarea/fds-textarea.js
 
 
 class FDSTextarea extends HTMLElement {
@@ -5371,7 +5371,7 @@ function registerTextarea() {
   }
 }
 /* harmony default export */ const fds_textarea = (registerTextarea);
-;// ./src/js/custom-elements/error-summary/fds-error-summary.js
+;// ./src/js/web-components/error-summary/fds-error-summary.js
 
 const ERROR_WRAPPER_SELECTORS = ['fds-input', 'fds-checkbox', 'fds-checkbox-group', 'fds-radio-button-group', 'fds-date-input', 'fds-textarea', 'fds-select', 'fds-upload-file', 'fds-date-picker'];
 const ERROR_WRAPPER_SELECTOR = ERROR_WRAPPER_SELECTORS.join(', ');
@@ -5714,7 +5714,7 @@ function registerErrorSummary() {
   }
 }
 /* harmony default export */ const fds_error_summary = (registerErrorSummary);
-;// ./src/js/custom-elements/input-affix/input-affix.js
+;// ./src/js/web-components/input-affix/input-affix.js
 
 class FDSInputAffix extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
@@ -5807,7 +5807,7 @@ function registerInputAffix() {
   }
 }
 /* harmony default export */ const input_affix = (registerInputAffix);
-;// ./src/js/custom-elements/header/fds-portal-info-styling.js
+;// ./src/js/web-components/header/fds-portal-info-styling.js
 /**
  * Breakpoint is passed as a parameter rather than read from a CSS custom property
  * due to unreliable timing in execution order.
@@ -5856,7 +5856,7 @@ const fds_portal_info_styling_styles = breakpoint => `
         background-color: var(--header-portal-background-color, #FFFFFF);
     }
 `;
-;// ./src/js/custom-elements/header/fds-portal-info.js
+;// ./src/js/web-components/header/fds-portal-info.js
 
 
 class FDSPortalInfo extends HTMLElement {
@@ -6054,7 +6054,7 @@ function registerPortalInfo() {
   }
 }
 /* harmony default export */ const fds_portal_info = (registerPortalInfo);
-;// ./src/js/custom-elements/header/fds-solution-info-styling.js
+;// ./src/js/web-components/header/fds-solution-info-styling.js
 const fds_solution_info_styling_styles = `
     *,
     *::before,
@@ -6076,7 +6076,7 @@ const fds_solution_info_styling_styles = `
         margin-left: auto;
     }
 `;
-;// ./src/js/custom-elements/header/fds-solution-info.js
+;// ./src/js/web-components/header/fds-solution-info.js
 
 const fds_solution_info_sheet = new CSSStyleSheet();
 fds_solution_info_sheet.replaceSync(fds_solution_info_styling_styles);
@@ -6226,7 +6226,7 @@ function registerSolutionInfo() {
   }
 }
 /* harmony default export */ const fds_solution_info = (registerSolutionInfo);
-;// ./src/js/custom-elements/dropdown-menu/fds-dropdown-menu.js
+;// ./src/js/web-components/dropdown-menu/fds-dropdown-menu.js
 
 class FDSDropdownMenu extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
@@ -6432,7 +6432,7 @@ function registerDropdownMenu() {
   }
 }
 /* harmony default export */ const fds_dropdown_menu = (registerDropdownMenu);
-;// ./src/js/custom-elements/header/fds-main-menu.js
+;// ./src/js/web-components/header/fds-main-menu.js
 class FDSMainMenu extends HTMLElement {
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
@@ -6617,7 +6617,7 @@ function registerMainMenu() {
   }
 }
 /* harmony default export */ const fds_main_menu = (registerMainMenu);
-;// ./src/js/custom-elements/tooltip/fds-tooltip-utils.js
+;// ./src/js/web-components/tooltip/fds-tooltip-utils.js
 const MIN_MARGIN = 8; // Minimum margin to the edge of the viewport in pixels
 const MAX_WIDTH = 330; // Maximum width of the tooltip in pixels
 
@@ -6729,7 +6729,7 @@ function setVerticalPlacement(tooltip, arrow, trigger, preferredPlacement) {
   // Arrow is always centered on the trigger
   arrow.style.left = `${Math.round(triggerRect.left + triggerRect.width / 2)}px`;
 }
-;// ./src/js/custom-elements/tooltip/fds-tooltip.js
+;// ./src/js/web-components/tooltip/fds-tooltip.js
 
 
 class FDSTooltip extends HTMLElement {
@@ -7017,7 +7017,7 @@ function registerTooltip() {
   }
 }
 /* harmony default export */ const fds_tooltip = (registerTooltip);
-;// ./src/js/custom-elements/tooltip/fds-tooltip-icon.js
+;// ./src/js/web-components/tooltip/fds-tooltip-icon.js
 
 
 
@@ -7290,7 +7290,7 @@ function registerTooltipIcon() {
   }
 }
 /* harmony default export */ const fds_tooltip_icon = (registerTooltipIcon);
-;// ./src/js/custom-elements/toggle-switch/fds-toggle-switch.js
+;// ./src/js/web-components/toggle-switch/fds-toggle-switch.js
 class FDSToggleSwitch extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -7444,7 +7444,7 @@ function registerToggleSwitch() {
   }
 }
 /* harmony default export */ const fds_toggle_switch = (registerToggleSwitch);
-;// ./src/js/custom-elements/modal/fds-modal-opener.js
+;// ./src/js/web-components/modal/fds-modal-opener.js
 class FDSModalOpener extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -7555,7 +7555,7 @@ function registerModalOpener() {
   }
 }
 /* harmony default export */ const fds_modal_opener = (registerModalOpener);
-;// ./src/js/custom-elements/modal/fds-modal-closer.js
+;// ./src/js/web-components/modal/fds-modal-closer.js
 class FDSModalCloser extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -7667,7 +7667,7 @@ function registerModalCloser() {
   }
 }
 /* harmony default export */ const fds_modal_closer = (registerModalCloser);
-;// ./src/js/custom-elements/modal/fds-modal.js
+;// ./src/js/web-components/modal/fds-modal.js
 
 
 class FDSModal extends HTMLElement {
@@ -8053,7 +8053,7 @@ let breakpoints = {
   'xl': 1200
 };
 /* harmony default export */ const utils_breakpoints = (breakpoints);
-;// ./src/js/custom-elements/tabs/fds-tab-styling.js
+;// ./src/js/web-components/tabs/fds-tab-styling.js
 const fds_tab_styling_styles = breakpoint => `
     *,
     *::before,
@@ -8107,7 +8107,7 @@ const fds_tab_styling_styles = breakpoint => `
         flex-shrink: 0;
     }
 `;
-;// ./src/js/custom-elements/tabs/fds-tab.js
+;// ./src/js/web-components/tabs/fds-tab.js
 
 
 
@@ -8218,7 +8218,7 @@ function registerTab() {
   }
 }
 /* harmony default export */ const fds_tab = (registerTab);
-;// ./src/js/custom-elements/tabs/fds-tab-panel-styling.js
+;// ./src/js/web-components/tabs/fds-tab-panel-styling.js
 const fds_tab_panel_styling_styles = `
     *,
     *::before,
@@ -8246,7 +8246,7 @@ const fds_tab_panel_styling_styles = `
         padding: 24px;
     }
 `;
-;// ./src/js/custom-elements/tabs/fds-tab-panel.js
+;// ./src/js/web-components/tabs/fds-tab-panel.js
 
 
 const fds_tab_panel_sheet = new CSSStyleSheet();
@@ -8345,7 +8345,7 @@ function registerTabPanel() {
   }
 }
 /* harmony default export */ const fds_tab_panel = (registerTabPanel);
-;// ./src/js/custom-elements/tabs/fds-tabs-styling.js
+;// ./src/js/web-components/tabs/fds-tabs-styling.js
 const fds_tabs_styling_styles = breakpoint => `
     *,
     *::before,
@@ -8373,7 +8373,7 @@ const fds_tabs_styling_styles = breakpoint => `
         }
     }
 `;
-;// ./src/js/custom-elements/tabs/fds-tabs.js
+;// ./src/js/web-components/tabs/fds-tabs.js
 
 
 const fds_tabs_mutationObserverConfig = {
@@ -8676,7 +8676,7 @@ function registerTabs() {
   }
 }
 /* harmony default export */ const fds_tabs = (registerTabs);
-;// ./src/js/custom-elements/alert/fds-alert-styling.js
+;// ./src/js/web-components/alert/fds-alert-styling.js
 const fds_alert_styling_styles = `
     *,
     *::before,
@@ -8793,7 +8793,7 @@ const fds_alert_styling_styles = `
         fill: currentColor;
     }
 `;
-;// ./src/js/custom-elements/alert/fds-alert.js
+;// ./src/js/web-components/alert/fds-alert.js
 
 
 const fds_alert_sheet = new CSSStyleSheet();
@@ -9042,7 +9042,7 @@ function registerAlert() {
   }
 }
 /* harmony default export */ const fds_alert = (registerAlert);
-;// ./src/js/custom-elements/multiselect/fds-multiselect-styling.js
+;// ./src/js/web-components/multiselect/fds-multiselect-styling.js
 const fds_multiselect_styling_styles = `
     *,
     *::before,
@@ -9255,7 +9255,7 @@ const fds_multiselect_styling_styles = `
         outline-offset: -3px;
     }
 `;
-;// ./src/js/custom-elements/multiselect/fds-multiselect.js
+;// ./src/js/web-components/multiselect/fds-multiselect.js
 
 
 
@@ -9858,7 +9858,7 @@ function registerMultiselect() {
   }
 }
 /* harmony default export */ const fds_multiselect = (registerMultiselect);
-;// ./src/js/custom-elements/multiselect/fds-multiselect-option.js
+;// ./src/js/web-components/multiselect/fds-multiselect-option.js
 const fds_multiselect_option_styles = `
     :host {
         display: none;
@@ -9952,7 +9952,7 @@ function registerMultiselectOption() {
 ;// ./src/js/new-dkfds.js
 
 
-// Custom elements
+// Web Components
 
 
 
