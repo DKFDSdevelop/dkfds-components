@@ -8,7 +8,7 @@
   "main": "dist/js/dkfds.min.js",
   "exports": {
     ".": "./dist/js/dkfds.min.js",
-    "./new-dkfds": "./dist/custom-elements/dkfds.js"
+    "./dkfds-web-components": "./dist/web-components/dkfds.js"
   },
   "scripts": {
     "build": "npx webpack"
