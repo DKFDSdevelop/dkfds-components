@@ -4,9 +4,9 @@
 	else if(typeof define === 'function' && define.amd)
 		define([], factory);
 	else if(typeof exports === 'object')
-		exports["DKFDS"] = factory();
+		exports["DKFDSWebComponents"] = factory();
 	else
-		root["DKFDS"] = factory();
+		root["DKFDSWebComponents"] = factory();
 })(this, () => {
 return /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";

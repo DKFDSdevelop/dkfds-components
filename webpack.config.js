@@ -28,6 +28,11 @@ const JS_OUTPUT_LIBRARY = {
     type: 'umd',
 };
 
+const JS_OUTPUT_LIBRARY_WEB_COMPONENTS = {
+    name: 'DKFDSWebComponents',
+    type: 'umd',
+};
+
 const JS_BABEL = {
     rules: [
         {
@@ -169,7 +174,7 @@ const copyFilesAndCreateWebComponentJS = {
         path: JS_OUTPUT_PATH,
         filename: 'web-components/[name].js',
         globalObject: 'this',
-        library: JS_OUTPUT_LIBRARY,
+        library: JS_OUTPUT_LIBRARY_WEB_COMPONENTS,
     },
     stats: 'minimal',
 };
