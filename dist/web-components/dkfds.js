@@ -9949,7 +9949,7 @@ function registerMultiselectOption() {
   }
 }
 /* harmony default export */ const fds_multiselect_option = (registerMultiselectOption);
-;// ./src/js/new-dkfds.js
+;// ./src/js/dkfds-web-components.js
 
 
 // Web Components

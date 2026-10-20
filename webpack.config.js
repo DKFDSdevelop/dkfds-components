@@ -163,7 +163,7 @@ const copyFilesAndCreateWebComponentJS = {
         minimize: false
     },
     entry: {
-        "dkfds": './src/js/new-dkfds.js',
+        "dkfds": './src/js/dkfds-web-components.js',
     },
     output: {
         path: JS_OUTPUT_PATH,
@@ -343,9 +343,9 @@ const createWebComponentCSS = {
     dependencies: ['copyFilesAndCreateJavaScript'],
     mode: 'production',
     entry: {
-        "dkfds-borgerdk": './src/stylesheets/new-dkfds-borgerdk.scss',
-        "dkfds-virkdk": './src/stylesheets/new-dkfds-virkdk.scss',
-        "dkfds": './src/stylesheets/new-dkfds.scss',
+        "dkfds-borgerdk": './src/stylesheets/dkfds-borgerdk-web-components.scss',
+        "dkfds-virkdk": './src/stylesheets/dkfds-virkdk-web-components.scss',
+        "dkfds": './src/stylesheets/dkfds-web-components.scss',
     },
     plugins: [
         CSS_REMOVE_EMPTY_SCRIPTS,
