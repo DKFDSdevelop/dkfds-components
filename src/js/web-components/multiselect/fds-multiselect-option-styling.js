@@ -24,11 +24,6 @@ export const styles = `
         background-color: var(--color-gray-200);
     }
 
-    :host([data-active]) {
-        outline: 3px solid #454545;
-        outline-offset: -3px;
-    }
-
     .option-checkbox {
         flex: 0 0 auto;
         width: 2.4rem;

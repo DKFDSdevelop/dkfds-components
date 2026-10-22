@@ -9119,8 +9119,15 @@ class FDSMultiselect extends HTMLElement {
     const dialog = this.shadowRoot.querySelector('.dialog');
     dialog.hidden = true;
   };
-  #handleFocusOut = () => {
-    // TODO: if focus moved outside the dialog/opener entirely, close (set opener.expanded = false).
+  #handleFocusOut = event => {
+    if (event.relatedTarget && this.contains(event.relatedTarget)) return;
+    const opener = this.querySelector('fds-multiselect-opener');
+    opener?.close();
+  };
+  #handleDialogMouseDown = event => {
+    if (event.target.closest('fds-multiselect-option')) return;
+    // Prevent closing the dialog when something else inside it than fds-multiselect-option is clicked.
+    event.preventDefault();
   };
   #handleOptionsClose = () => {
     const opener = this.querySelector('fds-multiselect-opener');
@@ -9188,14 +9195,16 @@ class FDSMultiselect extends HTMLElement {
   #addEventListeners() {
     this.addEventListener('fds-multiselect-opener-expanded', this.#handleOpenerExpanded);
     this.addEventListener('fds-multiselect-opener-collapsed', this.#handleOpenerCollapsed);
-    this.shadowRoot.addEventListener('focusout', this.#handleFocusOut);
     this.addEventListener('fds-multiselect-options-close', this.#handleOptionsClose);
+    this.addEventListener('focusout', this.#handleFocusOut);
+    this.shadowRoot.querySelector('.dialog').addEventListener('mousedown', this.#handleDialogMouseDown);
   }
   #removeEventListeners() {
     this.removeEventListener('fds-multiselect-opener-expanded', this.#handleOpenerExpanded);
     this.removeEventListener('fds-multiselect-opener-collapsed', this.#handleOpenerCollapsed);
-    this.shadowRoot.removeEventListener('focusout', this.#handleFocusOut);
     this.removeEventListener('fds-multiselect-options-close', this.#handleOptionsClose);
+    this.removeEventListener('focusout', this.#handleFocusOut);
+    this.shadowRoot.querySelector('.dialog').removeEventListener('mousedown', this.#handleDialogMouseDown);
   }
   #init() {
     customElements.upgrade(this);
@@ -9461,6 +9470,11 @@ const fds_multiselect_options_styling_styles = `
     ::slotted(fds-multiselect-option) {
         min-width: 0;
     }
+
+    :host(:focus) ::slotted(fds-multiselect-option[data-active]) {
+        outline: 3px solid #454545;
+        outline-offset: -3px;
+    }
 `;
 ;// ./src/js/web-components/multiselect/fds-multiselect-options.js
 
@@ -9646,11 +9660,6 @@ const fds_multiselect_option_styling_styles = `
 
     :host(:active) {
         background-color: var(--color-gray-200);
-    }
-
-    :host([data-active]) {
-        outline: 3px solid #454545;
-        outline-offset: -3px;
     }
 
     .option-checkbox {

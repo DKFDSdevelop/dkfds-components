@@ -30,8 +30,17 @@ class FDSMultiselect extends HTMLElement {
         dialog.hidden = true;
     };
 
-    #handleFocusOut = () => {
-        // TODO: if focus moved outside the dialog/opener entirely, close (set opener.expanded = false).
+    #handleFocusOut = (event) => {
+        if (event.relatedTarget && this.contains(event.relatedTarget)) return;
+
+        const opener = this.querySelector('fds-multiselect-opener');
+        opener?.close();
+    };
+
+    #handleDialogMouseDown = (event) => {
+        if (event.target.closest('fds-multiselect-option')) return;
+        // Prevent closing the dialog when something else inside it than fds-multiselect-option is clicked.
+        event.preventDefault(); 
     };
 
     #handleOptionsClose = () => {
@@ -100,15 +109,17 @@ class FDSMultiselect extends HTMLElement {
     #addEventListeners() {
         this.addEventListener('fds-multiselect-opener-expanded', this.#handleOpenerExpanded);
         this.addEventListener('fds-multiselect-opener-collapsed', this.#handleOpenerCollapsed);
-        this.shadowRoot.addEventListener('focusout', this.#handleFocusOut);
         this.addEventListener('fds-multiselect-options-close', this.#handleOptionsClose);
+        this.addEventListener('focusout', this.#handleFocusOut);
+        this.shadowRoot.querySelector('.dialog').addEventListener('mousedown', this.#handleDialogMouseDown);
     }
 
     #removeEventListeners() {
         this.removeEventListener('fds-multiselect-opener-expanded', this.#handleOpenerExpanded);
         this.removeEventListener('fds-multiselect-opener-collapsed', this.#handleOpenerCollapsed);
-        this.shadowRoot.removeEventListener('focusout', this.#handleFocusOut);
         this.removeEventListener('fds-multiselect-options-close', this.#handleOptionsClose);
+        this.removeEventListener('focusout', this.#handleFocusOut);
+        this.shadowRoot.querySelector('.dialog').removeEventListener('mousedown', this.#handleDialogMouseDown);
     }
 
     #init() {
