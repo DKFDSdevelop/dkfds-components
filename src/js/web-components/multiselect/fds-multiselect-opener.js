@@ -1,8 +1,12 @@
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
+import * as CE from '../custom-element-utils';
 import { styles } from './fds-multiselect-opener-styling';
 
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(styles);
+
+const CHEVRON_CLOSED_PATH = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
+const CHEVRON_OPEN_PATH = 'M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z';
 
 class FDSMultiselectOpener extends HTMLElement {
 
@@ -47,9 +51,13 @@ class FDSMultiselectOpener extends HTMLElement {
     #setupHTML() {
         if (this.shadowRoot.querySelector('slot')) return;
 
-        // TODO: chevron icon, tags container, visual only.
         const slot = document.createElement('slot');
         this.shadowRoot.appendChild(slot);
+
+        // TODO: tags container, visual only.
+        const chevronIcon = CE.createSvgIcon(CHEVRON_CLOSED_PATH);
+        chevronIcon.classList.add('chevron-icon');
+        this.shadowRoot.appendChild(chevronIcon);
     }
 
     #addEventListeners() {
@@ -75,6 +83,11 @@ class FDSMultiselectOpener extends HTMLElement {
         this.#initialized = true;
     }
 
+    #setChevronPath(path) {
+        const chevronPath = this.shadowRoot.querySelector('.chevron-icon path');
+        if (chevronPath) { chevronPath.setAttribute('d', path); }
+    }
+
     // #endregion
 
     // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
@@ -94,12 +107,14 @@ class FDSMultiselectOpener extends HTMLElement {
     open() {
         if (this.expanded) return;
         this.setAttribute('aria-expanded', 'true');
+        this.#setChevronPath(CHEVRON_OPEN_PATH);
         this.dispatchEvent(new CustomEvent('fds-multiselect-opener-expanded', { bubbles: true }));
     }
 
     close() {
         if (!this.expanded) return;
         this.setAttribute('aria-expanded', 'false');
+        this.#setChevronPath(CHEVRON_CLOSED_PATH);
         this.dispatchEvent(new CustomEvent('fds-multiselect-opener-collapsed', { bubbles: true }));
     }
 

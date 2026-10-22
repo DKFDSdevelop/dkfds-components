@@ -4,8 +4,7 @@ export const styles = `
         flex-direction: column;
     }
 
-    :host(:focus-visible) {
-        outline: 3px solid #454545;
-        outline-offset: -3px;
+    :host(:focus) {
+        outline: 0;
     }
 `;

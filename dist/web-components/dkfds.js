@@ -9105,6 +9105,8 @@ class FDSMultiselect extends HTMLElement {
   #handleOpenerExpanded = () => {
     const dialog = this.shadowRoot.querySelector('.dialog');
     dialog.hidden = false;
+    const options = this.querySelector('fds-multiselect-options');
+    options?.focus();
   };
   #handleOpenerCollapsed = () => {
     const dialog = this.shadowRoot.querySelector('.dialog');
@@ -9116,7 +9118,7 @@ class FDSMultiselect extends HTMLElement {
   #handleOptionsClose = () => {
     const opener = this.querySelector('fds-multiselect-opener');
     if (!opener) return;
-    opener.expanded = false;
+    opener.close();
     opener.focus();
   };
   #handleMutations = () => {
@@ -9240,6 +9242,7 @@ function registerMultiselect() {
 ;// ./src/js/web-components/multiselect/fds-multiselect-opener-styling.js
 const fds_multiselect_opener_styling_styles = `
     :host {
+        position: relative;
         display: flex;
         align-items: center;
         cursor: pointer;
@@ -9248,7 +9251,7 @@ const fds_multiselect_opener_styling_styles = `
         line-height: 2.4rem;
         width: 100%;
         min-width: 0;
-        padding: 7px 15px;
+        padding: 7px 47px 7px 15px;
         border: 1px solid #8E8E8E;
         border-radius: 8px;
         background-color: var(--color-white);
@@ -9258,12 +9261,25 @@ const fds_multiselect_opener_styling_styles = `
         outline: 3px solid #454545;
         outline-offset: 1px;
     }
+
+    .chevron-icon {
+        position: absolute;
+        top: 50%;
+        right: 16px;
+        transform: translateY(-50%);
+        width: 2.4rem;
+        height: 2.4rem;
+        pointer-events: none;
+    }
 `;
 ;// ./src/js/web-components/multiselect/fds-multiselect-opener.js
 
 
+
 const fds_multiselect_opener_sheet = new CSSStyleSheet();
 fds_multiselect_opener_sheet.replaceSync(fds_multiselect_opener_styling_styles);
+const CHEVRON_CLOSED_PATH = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
+const CHEVRON_OPEN_PATH = 'M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z';
 class FDSMultiselectOpener extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -9303,10 +9319,13 @@ class FDSMultiselectOpener extends HTMLElement {
 
   #setupHTML() {
     if (this.shadowRoot.querySelector('slot')) return;
-
-    // TODO: chevron icon, tags container, visual only.
     const slot = document.createElement('slot');
     this.shadowRoot.appendChild(slot);
+
+    // TODO: tags container, visual only.
+    const chevronIcon = createSvgIcon(CHEVRON_CLOSED_PATH);
+    chevronIcon.classList.add('chevron-icon');
+    this.shadowRoot.appendChild(chevronIcon);
   }
   #addEventListeners() {
     this.addEventListener('click', this.#handleClick);
@@ -9327,6 +9346,12 @@ class FDSMultiselectOpener extends HTMLElement {
     }
     this.#addEventListeners();
     this.#initialized = true;
+  }
+  #setChevronPath(path) {
+    const chevronPath = this.shadowRoot.querySelector('.chevron-icon path');
+    if (chevronPath) {
+      chevronPath.setAttribute('d', path);
+    }
   }
 
   // #endregion
@@ -9351,6 +9376,7 @@ class FDSMultiselectOpener extends HTMLElement {
   open() {
     if (this.expanded) return;
     this.setAttribute('aria-expanded', 'true');
+    this.#setChevronPath(CHEVRON_OPEN_PATH);
     this.dispatchEvent(new CustomEvent('fds-multiselect-opener-expanded', {
       bubbles: true
     }));
@@ -9358,6 +9384,7 @@ class FDSMultiselectOpener extends HTMLElement {
   close() {
     if (!this.expanded) return;
     this.setAttribute('aria-expanded', 'false');
+    this.#setChevronPath(CHEVRON_CLOSED_PATH);
     this.dispatchEvent(new CustomEvent('fds-multiselect-opener-collapsed', {
       bubbles: true
     }));
@@ -9400,9 +9427,8 @@ const fds_multiselect_options_styling_styles = `
         flex-direction: column;
     }
 
-    :host(:focus-visible) {
-        outline: 3px solid #454545;
-        outline-offset: -3px;
+    :host(:focus) {
+        outline: 0;
     }
 `;
 ;// ./src/js/web-components/multiselect/fds-multiselect-options.js

@@ -20,6 +20,9 @@ class FDSMultiselect extends HTMLElement {
     #handleOpenerExpanded = () => {
         const dialog = this.shadowRoot.querySelector('.dialog');
         dialog.hidden = false;
+
+        const options = this.querySelector('fds-multiselect-options');
+        options?.focus();
     };
 
     #handleOpenerCollapsed = () => {
@@ -35,7 +38,7 @@ class FDSMultiselect extends HTMLElement {
         const opener = this.querySelector('fds-multiselect-opener');
         if (!opener) return;
 
-        opener.expanded = false;
+        opener.close();
         opener.focus();
     };
 
