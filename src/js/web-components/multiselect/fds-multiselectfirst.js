@@ -1,6 +1,6 @@
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 import * as CE from '../custom-element-utils';
-import { styles } from './fds-multiselect-styling';
+import { styles } from './fds-multiselectfirst-styling';
 
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(styles);
@@ -8,7 +8,7 @@ sheet.replaceSync(styles);
 const CHEVRON_CLOSED_PATH = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
 const CHEVRON_OPEN_PATH = 'M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z';
 
-class FDSMultiselect extends HTMLElement {
+class FDSMultiselectfirst extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -33,7 +33,7 @@ class FDSMultiselect extends HTMLElement {
 
     get value() {
         const values = [];
-        for (const sourceOption of this.querySelectorAll('fds-multiselect-option')) {
+        for (const sourceOption of this.querySelectorAll('fds-multiselectfirst-option')) {
             if (this.#optionTags.has(sourceOption)) { values.push(sourceOption.value); }
         }
         return values;
@@ -140,7 +140,7 @@ class FDSMultiselect extends HTMLElement {
         const tag = event.target.closest('.tag');
         if (!tag) return;
 
-        // Do nothing if the tag clicked somehow doesn't have a matching <fds-multiselect-option>.
+        // Do nothing if the tag clicked somehow doesn't have a matching <fds-multiselectfirst-option>.
         const sourceOption = this.#findSourceForTag(tag);
         if (!sourceOption) return;
 
@@ -368,7 +368,7 @@ class FDSMultiselect extends HTMLElement {
 
     #buildOptions() {
         const listbox = this.shadowRoot.querySelector('.listbox');
-        const optionsToBuild = this.querySelectorAll('fds-multiselect-option');
+        const optionsToBuild = this.querySelectorAll('fds-multiselectfirst-option');
 
         for (const sourceOption of optionsToBuild) {
             if (this.#optionElements.has(sourceOption)) continue;
@@ -459,7 +459,7 @@ class FDSMultiselect extends HTMLElement {
         this.shadowRoot.addEventListener('click', this.#handleTagClick); // Listener is placed on the shadow root to avoid NVDA announcing an unlabeled "clickable"
         this.shadowRoot.addEventListener('mousedown', this.#handleTagsMouseDown);
         this.shadowRoot.addEventListener('focusout', this.#handleFocusOut);
-        this.addEventListener('fds-multiselect-option-change', this.#handleOptionChange);
+        this.addEventListener('fds-multiselectfirst-option-change', this.#handleOptionChange);
     }
 
     #removeEventListeners() {
@@ -471,7 +471,7 @@ class FDSMultiselect extends HTMLElement {
         this.shadowRoot.removeEventListener('click', this.#handleTagClick);
         this.shadowRoot.removeEventListener('mousedown', this.#handleTagsMouseDown);
         this.shadowRoot.removeEventListener('focusout', this.#handleFocusOut);
-        this.removeEventListener('fds-multiselect-option-change', this.#handleOptionChange);
+        this.removeEventListener('fds-multiselectfirst-option-change', this.#handleOptionChange);
     }
 
     #init() {
@@ -492,7 +492,7 @@ class FDSMultiselect extends HTMLElement {
 
         // Remove the label element if the label attribute is empty or missing
         if (!labelText) {
-            console.warn('fds-multiselect: missing "label" attribute.', this);
+            console.warn('fds-multiselectfirst: missing "label" attribute.', this);
 
             if (labelEl) {
                 labelEl.removeEventListener('click', this.#handleLabelClick);
@@ -663,7 +663,7 @@ class FDSMultiselect extends HTMLElement {
     // #region - FORM-ASSOCIATED CALLBACKS ------------------------------------------------------------------
 
     formResetCallback() {
-        for (const sourceOption of this.querySelectorAll('fds-multiselect-option')) {
+        for (const sourceOption of this.querySelectorAll('fds-multiselectfirst-option')) {
             sourceOption.reset();
         }
     }
@@ -671,10 +671,10 @@ class FDSMultiselect extends HTMLElement {
     // #endregion
 }
 
-function registerMultiselect() {
-    if (!customElements.get('fds-multiselect')) {
-        customElements.define('fds-multiselect', FDSMultiselect);
+function registerMultiselectfirst() {
+    if (!customElements.get('fds-multiselectfirst')) {
+        customElements.define('fds-multiselectfirst', FDSMultiselectfirst);
     }
 }
 
-export default registerMultiselect;
+export default registerMultiselectfirst;

@@ -7,7 +7,7 @@ const styles = `
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(styles);
 
-class FDSMultiselectOption extends HTMLElement {
+class FDSMultiselectfirstOption extends HTMLElement {
 
     // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ class FDSMultiselectOption extends HTMLElement {
         if (this.#selected === isSelected) return;
         this.#selected = isSelected;
         this.setAttribute('data-selected', isSelected ? 'true' : 'false');
-        this.dispatchEvent(new CustomEvent('fds-multiselect-option-change', { bubbles: true, composed: true }));
+        this.dispatchEvent(new CustomEvent('fds-multiselectfirst-option-change', { bubbles: true, composed: true }));
     }
 
     #init() {
@@ -82,10 +82,10 @@ class FDSMultiselectOption extends HTMLElement {
     // #endregion
 }
 
-function registerMultiselectOption() {
-    if (!customElements.get('fds-multiselect-option')) {
-        customElements.define('fds-multiselect-option', FDSMultiselectOption);
+function registerMultiselectfirstOption() {
+    if (!customElements.get('fds-multiselectfirst-option')) {
+        customElements.define('fds-multiselectfirst-option', FDSMultiselectfirstOption);
     }
 }
 
-export default registerMultiselectOption;
+export default registerMultiselectfirstOption;
