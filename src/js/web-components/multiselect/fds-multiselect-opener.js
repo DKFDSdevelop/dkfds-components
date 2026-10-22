@@ -48,10 +48,16 @@ class FDSMultiselectOpener extends HTMLElement {
 
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
+    #setChevronPath(path) {
+        const chevronPath = this.shadowRoot.querySelector('.chevron-icon path');
+        if (chevronPath) { chevronPath.setAttribute('d', path); }
+    }
+
     #setupHTML() {
         if (this.shadowRoot.querySelector('slot')) return;
 
         const slot = document.createElement('slot');
+        slot.classList.add('opener-text');
         this.shadowRoot.appendChild(slot);
 
         // TODO: tags container, visual only.
@@ -81,11 +87,6 @@ class FDSMultiselectOpener extends HTMLElement {
 
         this.#addEventListeners();
         this.#initialized = true;
-    }
-
-    #setChevronPath(path) {
-        const chevronPath = this.shadowRoot.querySelector('.chevron-icon path');
-        if (chevronPath) { chevronPath.setAttribute('d', path); }
     }
 
     // #endregion

@@ -9046,10 +9046,15 @@ function registerAlert() {
 /* harmony default export */ const fds_alert = (registerAlert);
 ;// ./src/js/web-components/multiselect/fds-multiselect-styling.js
 const fds_multiselect_styling_styles = `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
     :host {
         display: block;
         position: relative;
-        max-width: 32rem;
     }
 
     ::slotted(label) {
@@ -9065,6 +9070,7 @@ const fds_multiselect_styling_styles = `
     ::slotted(fds-multiselect-opener) {
         display: block;
         margin-top: 8px;
+        max-width: 32rem;
     }
 
     .dialog {
@@ -9075,6 +9081,7 @@ const fds_multiselect_styling_styles = `
         max-width: 32rem;
         max-height: min(440px, 100vh);
         overflow-y: auto;
+        overflow-x: hidden;
         overscroll-behavior: contain;
         z-index: 10;
         background-color: var(--color-white);
@@ -9241,6 +9248,12 @@ function registerMultiselect() {
 /* harmony default export */ const fds_multiselect = (registerMultiselect);
 ;// ./src/js/web-components/multiselect/fds-multiselect-opener-styling.js
 const fds_multiselect_opener_styling_styles = `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
     :host {
         position: relative;
         display: flex;
@@ -9260,6 +9273,12 @@ const fds_multiselect_opener_styling_styles = `
     :host(:focus-visible) {
         outline: 3px solid #454545;
         outline-offset: 1px;
+    }
+
+    .opener-text {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-wrap: break-word;
     }
 
     .chevron-icon {
@@ -9317,9 +9336,16 @@ class FDSMultiselectOpener extends HTMLElement {
 
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
+  #setChevronPath(path) {
+    const chevronPath = this.shadowRoot.querySelector('.chevron-icon path');
+    if (chevronPath) {
+      chevronPath.setAttribute('d', path);
+    }
+  }
   #setupHTML() {
     if (this.shadowRoot.querySelector('slot')) return;
     const slot = document.createElement('slot');
+    slot.classList.add('opener-text');
     this.shadowRoot.appendChild(slot);
 
     // TODO: tags container, visual only.
@@ -9346,12 +9372,6 @@ class FDSMultiselectOpener extends HTMLElement {
     }
     this.#addEventListeners();
     this.#initialized = true;
-  }
-  #setChevronPath(path) {
-    const chevronPath = this.shadowRoot.querySelector('.chevron-icon path');
-    if (chevronPath) {
-      chevronPath.setAttribute('d', path);
-    }
   }
 
   // #endregion
@@ -9422,13 +9442,24 @@ function registerMultiselectOpener() {
 /* harmony default export */ const fds_multiselect_opener = (registerMultiselectOpener);
 ;// ./src/js/web-components/multiselect/fds-multiselect-options-styling.js
 const fds_multiselect_options_styling_styles = `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
     :host {
         display: flex;
         flex-direction: column;
+        overflow-x: hidden;
     }
 
     :host(:focus) {
         outline: 0;
+    }
+
+    ::slotted(fds-multiselect-option) {
+        min-width: 0;
     }
 `;
 ;// ./src/js/web-components/multiselect/fds-multiselect-options.js
@@ -9592,6 +9623,12 @@ function registerMultiselectOptions() {
 /* harmony default export */ const fds_multiselect_options = (registerMultiselectOptions);
 ;// ./src/js/web-components/multiselect/fds-multiselect-option-styling.js
 const fds_multiselect_option_styling_styles = `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
     :host {
         display: flex;
         align-items: flex-start;
@@ -9616,12 +9653,37 @@ const fds_multiselect_option_styling_styles = `
         outline-offset: -3px;
     }
 
-    :host([aria-selected="true"]) {
-        background-color: var(--color-gray-100);
-        font-weight: 600;
+    .option-checkbox {
+        flex: 0 0 auto;
+        width: 2.4rem;
+        height: 2.4rem;
+        border: 2px solid var(--color-black);
+        border-radius: 4px;
+        background-color: var(--color-white);
+    }
+
+    .option-checkbox path {
+        display: none;
+    }
+
+    :host([aria-selected="true"]) .option-checkbox {
+        background-color: var(--color-black);
+        border: 0;
+    }
+
+    :host([aria-selected="true"]) .option-checkbox path {
+        display: block;
+        fill: var(--color-white);
+    }
+
+    .option-label {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-wrap: break-word;
     }
 `;
 ;// ./src/js/web-components/multiselect/fds-multiselect-option.js
+
 
 
 const fds_multiselect_option_sheet = new CSSStyleSheet();
@@ -9654,10 +9716,14 @@ class FDSMultiselectOption extends HTMLElement {
 
   #setupHTML() {
     if (this.shadowRoot.querySelector('slot')) return;
-
-    // TODO: checkbox icon + label slot, visual only.
+    const checkbox = createSvgIcon('M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z');
+    checkbox.classList.add('option-checkbox');
+    this.shadowRoot.appendChild(checkbox);
+    const labelWrapper = document.createElement('span');
+    labelWrapper.classList.add('option-label');
     const slot = document.createElement('slot');
-    this.shadowRoot.appendChild(slot);
+    labelWrapper.appendChild(slot);
+    this.shadowRoot.appendChild(labelWrapper);
   }
   #init() {
     this.#setupHTML();

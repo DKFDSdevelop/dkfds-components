@@ -1,4 +1,5 @@
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
+import * as CE from '../custom-element-utils';
 import { styles } from './fds-multiselect-option-styling';
 
 const sheet = new CSSStyleSheet();
@@ -30,9 +31,17 @@ class FDSMultiselectOption extends HTMLElement {
     #setupHTML() {
         if (this.shadowRoot.querySelector('slot')) return;
 
-        // TODO: checkbox icon + label slot, visual only.
+        const checkbox = CE.createSvgIcon('M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z');
+        checkbox.classList.add('option-checkbox');
+        this.shadowRoot.appendChild(checkbox);
+
+        const labelWrapper = document.createElement('span');
+        labelWrapper.classList.add('option-label');
+
         const slot = document.createElement('slot');
-        this.shadowRoot.appendChild(slot);
+        labelWrapper.appendChild(slot);
+
+        this.shadowRoot.appendChild(labelWrapper);
     }
 
     #init() {

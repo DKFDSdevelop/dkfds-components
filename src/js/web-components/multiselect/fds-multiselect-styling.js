@@ -1,8 +1,13 @@
 export const styles = `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
     :host {
         display: block;
         position: relative;
-        max-width: 32rem;
     }
 
     ::slotted(label) {
@@ -18,6 +23,7 @@ export const styles = `
     ::slotted(fds-multiselect-opener) {
         display: block;
         margin-top: 8px;
+        max-width: 32rem;
     }
 
     .dialog {
@@ -28,6 +34,7 @@ export const styles = `
         max-width: 32rem;
         max-height: min(440px, 100vh);
         overflow-y: auto;
+        overflow-x: hidden;
         overscroll-behavior: contain;
         z-index: 10;
         background-color: var(--color-white);

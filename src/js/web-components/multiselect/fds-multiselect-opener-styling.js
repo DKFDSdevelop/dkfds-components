@@ -1,4 +1,10 @@
 export const styles = `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
     :host {
         position: relative;
         display: flex;
@@ -18,6 +24,12 @@ export const styles = `
     :host(:focus-visible) {
         outline: 3px solid #454545;
         outline-offset: 1px;
+    }
+
+    .opener-text {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-wrap: break-word;
     }
 
     .chevron-icon {
