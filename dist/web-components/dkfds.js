@@ -70,6 +70,10 @@ __webpack_require__.d(__webpack_exports__, {
   registerModal: () => (/* reexport */ fds_modal),
   registerModalCloser: () => (/* reexport */ fds_modal_closer),
   registerModalOpener: () => (/* reexport */ fds_modal_opener),
+  registerMultiselect: () => (/* reexport */ fds_multiselect),
+  registerMultiselectOpener: () => (/* reexport */ fds_multiselect_opener),
+  registerMultiselectOption: () => (/* reexport */ fds_multiselect_option),
+  registerMultiselectOptions: () => (/* reexport */ fds_multiselect_options),
   registerPortalInfo: () => (/* reexport */ fds_portal_info),
   registerRadioButton: () => (/* reexport */ fds_radio_button),
   registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
@@ -9040,6 +9044,684 @@ function registerAlert() {
   }
 }
 /* harmony default export */ const fds_alert = (registerAlert);
+;// ./src/js/web-components/multiselect/fds-multiselect-styling.js
+const fds_multiselect_styling_styles = `
+    :host {
+        display: block;
+        position: relative;
+        max-width: 32rem;
+    }
+
+    ::slotted(label) {
+        font-size: 1.6rem;
+        line-height: 2.4rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        overflow-wrap: break-word;
+        display: block;
+        max-width: 66ch;
+    }
+
+    ::slotted(fds-multiselect-opener) {
+        display: block;
+        margin-top: 8px;
+    }
+
+    .dialog {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        max-width: 32rem;
+        max-height: min(440px, 100vh);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        z-index: 10;
+        background-color: var(--color-white);
+        border: 1px solid #8E8E8E;
+        border-radius: 8px;
+        margin-top: 4px;
+        padding-top: 7px;
+        padding-bottom: 7px;
+        box-shadow: 0 4px 12px 0 rgba(0, 0, 0, .2);
+    }
+`;
+;// ./src/js/web-components/multiselect/fds-multiselect.js
+
+
+const fds_multiselect_sheet = new CSSStyleSheet();
+fds_multiselect_sheet.replaceSync(fds_multiselect_styling_styles);
+const DIALOG_LABEL = 'Vælg en eller flere muligheder';
+class FDSMultiselect extends HTMLElement {
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+  #mutationObserver = null;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleOpenerExpanded = () => {
+    const dialog = this.shadowRoot.querySelector('.dialog');
+    dialog.hidden = false;
+  };
+  #handleOpenerCollapsed = () => {
+    const dialog = this.shadowRoot.querySelector('.dialog');
+    dialog.hidden = true;
+  };
+  #handleFocusOut = () => {
+    // TODO: if focus moved outside the dialog/opener entirely, close (set opener.expanded = false).
+  };
+  #handleOptionsClose = () => {
+    const opener = this.querySelector('fds-multiselect-opener');
+    if (!opener) return;
+    opener.expanded = false;
+    opener.focus();
+  };
+  #handleMutations = () => {
+    this.#wireRelationships();
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #wireRelationships() {
+    const label = this.querySelector('label');
+    const opener = this.querySelector('fds-multiselect-opener');
+    const options = this.querySelector('fds-multiselect-options');
+    if (opener && !opener.id) {
+      opener.id = generateAndVerifyUniqueId('multiselect-opener');
+    }
+    if (options && !options.id) {
+      options.id = generateAndVerifyUniqueId('multiselect-options');
+    }
+    if (label && opener) {
+      label.htmlFor = opener.id;
+    }
+    if (opener && options) {
+      opener.setAttribute('aria-controls', options.id);
+    }
+    if (options) {
+      options.setAttribute('slot', 'options');
+    }
+
+    // TODO: fds-help-text / fds-error-message -> opener.aria-describedby (once in scope).
+  }
+  #setupHTML() {
+    if (this.shadowRoot.querySelector('.dialog')) return;
+    const slot = document.createElement('slot');
+    const dialog = document.createElement('div');
+    dialog.classList.add('dialog');
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-label', DIALOG_LABEL);
+    dialog.hidden = true;
+    const optionsSlot = document.createElement('slot');
+    optionsSlot.name = 'options';
+    dialog.appendChild(optionsSlot);
+    this.shadowRoot.append(slot, dialog);
+  }
+  #connectMutationObserver() {
+    if (this.#mutationObserver) return;
+    this.#mutationObserver = new MutationObserver(this.#handleMutations);
+    this.#mutationObserver.observe(this, {
+      childList: true,
+      subtree: false
+    });
+  }
+  #disconnectMutationObserver() {
+    if (this.#mutationObserver) {
+      this.#mutationObserver.disconnect();
+      this.#mutationObserver = null;
+    }
+  }
+  #addEventListeners() {
+    this.addEventListener('fds-multiselect-opener-expanded', this.#handleOpenerExpanded);
+    this.addEventListener('fds-multiselect-opener-collapsed', this.#handleOpenerCollapsed);
+    this.shadowRoot.addEventListener('focusout', this.#handleFocusOut);
+    this.addEventListener('fds-multiselect-options-close', this.#handleOptionsClose);
+  }
+  #removeEventListeners() {
+    this.removeEventListener('fds-multiselect-opener-expanded', this.#handleOpenerExpanded);
+    this.removeEventListener('fds-multiselect-opener-collapsed', this.#handleOpenerCollapsed);
+    this.shadowRoot.removeEventListener('focusout', this.#handleFocusOut);
+    this.removeEventListener('fds-multiselect-options-close', this.#handleOptionsClose);
+  }
+  #init() {
+    customElements.upgrade(this);
+    this.#setupHTML();
+    this.#wireRelationships();
+    this.#addEventListeners();
+    this.#connectMutationObserver();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [fds_multiselect_sheet];
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    if (!this.#initialized) {
+      this.#init();
+    }
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#disconnectMutationObserver();
+    this.#initialized = false;
+  }
+
+  // #endregion
+}
+function registerMultiselect() {
+  if (!customElements.get('fds-multiselect')) {
+    customElements.define('fds-multiselect', FDSMultiselect);
+  }
+}
+/* harmony default export */ const fds_multiselect = (registerMultiselect);
+;// ./src/js/web-components/multiselect/fds-multiselect-opener-styling.js
+const fds_multiselect_opener_styling_styles = `
+    :host {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        color: #1a1a1a;
+        font-size: 1.6rem;
+        line-height: 2.4rem;
+        width: 100%;
+        min-width: 0;
+        padding: 7px 15px;
+        border: 1px solid #8E8E8E;
+        border-radius: 8px;
+        background-color: var(--color-white);
+    }
+
+    :host(:focus-visible) {
+        outline: 3px solid #454545;
+        outline-offset: 1px;
+    }
+`;
+;// ./src/js/web-components/multiselect/fds-multiselect-opener.js
+
+
+const fds_multiselect_opener_sheet = new CSSStyleSheet();
+fds_multiselect_opener_sheet.replaceSync(fds_multiselect_opener_styling_styles);
+class FDSMultiselectOpener extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static formAssociated = true;
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleClick = () => {
+    this.toggle();
+  };
+  #handleKeyDown = event => {
+    switch (event.key) {
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        this.toggle();
+        break;
+      case 'ArrowDown':
+      case 'ArrowUp':
+        event.preventDefault();
+        this.open();
+        break;
+    }
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    if (this.shadowRoot.querySelector('slot')) return;
+
+    // TODO: chevron icon, tags container, visual only.
+    const slot = document.createElement('slot');
+    this.shadowRoot.appendChild(slot);
+  }
+  #addEventListeners() {
+    this.addEventListener('click', this.#handleClick);
+    this.addEventListener('keydown', this.#handleKeyDown);
+  }
+  #removeEventListeners() {
+    this.removeEventListener('click', this.#handleClick);
+    this.removeEventListener('keydown', this.#handleKeyDown);
+  }
+  #init() {
+    this.#setupHTML();
+    this.setAttribute('role', 'combobox');
+    this.setAttribute('aria-haspopup', 'dialog');
+    this.setAttribute('aria-expanded', 'false');
+    this.tabIndex = 0;
+    if (!this.id) {
+      this.id = generateAndVerifyUniqueId('multiselect-opener');
+    }
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [fds_multiselect_opener_sheet];
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  get expanded() {
+    return this.getAttribute('aria-expanded') === 'true';
+  }
+  open() {
+    if (this.expanded) return;
+    this.setAttribute('aria-expanded', 'true');
+    this.dispatchEvent(new CustomEvent('fds-multiselect-opener-expanded', {
+      bubbles: true
+    }));
+  }
+  close() {
+    if (!this.expanded) return;
+    this.setAttribute('aria-expanded', 'false');
+    this.dispatchEvent(new CustomEvent('fds-multiselect-opener-collapsed', {
+      bubbles: true
+    }));
+  }
+  toggle() {
+    this.expanded ? this.close() : this.open();
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    if (!this.#initialized) {
+      this.#init();
+    }
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+  }
+
+  // #endregion
+}
+function registerMultiselectOpener() {
+  if (!customElements.get('fds-multiselect-opener')) {
+    customElements.define('fds-multiselect-opener', FDSMultiselectOpener);
+  }
+}
+/* harmony default export */ const fds_multiselect_opener = (registerMultiselectOpener);
+;// ./src/js/web-components/multiselect/fds-multiselect-options-styling.js
+const fds_multiselect_options_styling_styles = `
+    :host {
+        display: flex;
+        flex-direction: column;
+    }
+
+    :host(:focus-visible) {
+        outline: 3px solid #454545;
+        outline-offset: -3px;
+    }
+`;
+;// ./src/js/web-components/multiselect/fds-multiselect-options.js
+
+
+const fds_multiselect_options_sheet = new CSSStyleSheet();
+fds_multiselect_options_sheet.replaceSync(fds_multiselect_options_styling_styles);
+class FDSMultiselectOptions extends HTMLElement {
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleClick = event => {
+    const option = event.target.closest('fds-multiselect-option');
+    if (!option) return;
+    this.#setActiveOption(option);
+    option.toggle();
+  };
+  #handleFocus = () => {
+    if (this.#getActiveOption()) return;
+    const options = this.querySelectorAll('fds-multiselect-option');
+    if (options.length > 0) {
+      this.#setActiveOption(options[0]);
+    }
+  };
+  #handleKeyDown = event => {
+    const options = Array.from(this.querySelectorAll('fds-multiselect-option'));
+    const active = this.#getActiveOption();
+    const currentIndex = active ? options.indexOf(active) : -1;
+    switch (event.key) {
+      case 'ArrowDown':
+        {
+          event.preventDefault();
+          const nextIndex = Math.min(currentIndex + 1, options.length - 1);
+          this.#setActiveOption(options[nextIndex]);
+          break;
+        }
+      case 'ArrowUp':
+        {
+          event.preventDefault();
+          const previousIndex = currentIndex < 0 ? 0 : Math.max(currentIndex - 1, 0);
+          this.#setActiveOption(options[previousIndex]);
+          break;
+        }
+      case 'Home':
+        event.preventDefault();
+        this.#setActiveOption(options[0]);
+        break;
+      case 'End':
+        event.preventDefault();
+        this.#setActiveOption(options[options.length - 1]);
+        break;
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        if (active) {
+          active.toggle();
+        }
+        break;
+      case 'Escape':
+        event.preventDefault();
+        this.dispatchEvent(new CustomEvent('fds-multiselect-options-close', {
+          bubbles: true
+        }));
+        break;
+    }
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #getActiveOption() {
+    const activeId = this.getAttribute('aria-activedescendant');
+    if (!activeId) return null;
+    return this.querySelector(`#${activeId}`);
+  }
+  #setActiveOption(option) {
+    if (!option) return;
+    const previous = this.#getActiveOption();
+    if (previous) {
+      previous.removeAttribute('data-active');
+    }
+    option.setAttribute('data-active', '');
+    this.setAttribute('aria-activedescendant', option.id);
+    option.scrollIntoView({
+      block: 'nearest'
+    });
+  }
+  #setupHTML() {
+    if (this.shadowRoot.querySelector('slot')) return;
+
+    // TODO: scroll container, visual only.
+    const slot = document.createElement('slot');
+    this.shadowRoot.appendChild(slot);
+  }
+  #addEventListeners() {
+    this.addEventListener('click', this.#handleClick);
+    this.addEventListener('focus', this.#handleFocus);
+    this.addEventListener('keydown', this.#handleKeyDown);
+  }
+  #removeEventListeners() {
+    this.removeEventListener('click', this.#handleClick);
+    this.removeEventListener('focus', this.#handleFocus);
+    this.removeEventListener('keydown', this.#handleKeyDown);
+  }
+  #init() {
+    this.#setupHTML();
+    this.setAttribute('role', 'listbox');
+    this.setAttribute('aria-multiselectable', 'true');
+    this.tabIndex = 0;
+    if (!this.id) {
+      this.id = generateAndVerifyUniqueId('multiselect-options');
+    }
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [fds_multiselect_options_sheet];
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    if (!this.#initialized) {
+      this.#init();
+    }
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+  }
+
+  // #endregion
+}
+function registerMultiselectOptions() {
+  if (!customElements.get('fds-multiselect-options')) {
+    customElements.define('fds-multiselect-options', FDSMultiselectOptions);
+  }
+}
+/* harmony default export */ const fds_multiselect_options = (registerMultiselectOptions);
+;// ./src/js/web-components/multiselect/fds-multiselect-option-styling.js
+const fds_multiselect_option_styling_styles = `
+    :host {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 8px 15px;
+        cursor: pointer;
+        color: var(--color-black);
+        font-size: 1.6rem;
+        line-height: 1.5;
+    }
+
+    :host(:hover) {
+        background-color: var(--color-gray-100);
+    }
+
+    :host(:active) {
+        background-color: var(--color-gray-200);
+    }
+
+    :host([data-active]) {
+        outline: 3px solid #454545;
+        outline-offset: -3px;
+    }
+
+    :host([aria-selected="true"]) {
+        background-color: var(--color-gray-100);
+        font-weight: 600;
+    }
+`;
+;// ./src/js/web-components/multiselect/fds-multiselect-option.js
+
+
+const fds_multiselect_option_sheet = new CSSStyleSheet();
+fds_multiselect_option_sheet.replaceSync(fds_multiselect_option_styling_styles);
+class FDSMultiselectOption extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['default-selected'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get value() {
+    return this.getAttribute('value') ?? this.textContent.trim();
+  }
+  set value(value) {
+    value == null ? this.removeAttribute('value') : this.setAttribute('value', value);
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    if (this.shadowRoot.querySelector('slot')) return;
+
+    // TODO: checkbox icon + label slot, visual only.
+    const slot = document.createElement('slot');
+    this.shadowRoot.appendChild(slot);
+  }
+  #init() {
+    this.#setupHTML();
+    this.setAttribute('role', 'option');
+    if (!this.id) {
+      this.id = generateAndVerifyUniqueId('multiselect-option');
+    }
+    if (!this.hasAttribute('aria-selected')) {
+      this.setAttribute('aria-selected', this.hasAttribute('default-selected') ? 'true' : 'false');
+    }
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [fds_multiselect_option_sheet];
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  get selected() {
+    return this.getAttribute('aria-selected') === 'true';
+  }
+  toggle() {
+    const willBeSelected = !this.selected;
+    this.setAttribute('aria-selected', willBeSelected ? 'true' : 'false');
+    this.dispatchEvent(new CustomEvent(willBeSelected ? 'fds-multiselect-option-selected' : 'fds-multiselect-option-deselected', {
+      bubbles: true
+    }));
+  }
+  deselect() {
+    if (!this.selected) return;
+    this.setAttribute('aria-selected', 'false');
+    this.dispatchEvent(new CustomEvent('fds-multiselect-option-deselected', {
+      bubbles: true
+    }));
+  }
+  reset() {
+    const willBeSelected = this.hasAttribute('default-selected');
+    this.setAttribute('aria-selected', willBeSelected ? 'true' : 'false');
+    this.dispatchEvent(new CustomEvent(willBeSelected ? 'fds-multiselect-option-selected' : 'fds-multiselect-option-deselected', {
+      bubbles: true
+    }));
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    if (!this.#initialized) {
+      this.#init();
+    }
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    // TODO: handle default-selected changing after connect, if needed.
+  }
+
+  // #endregion
+}
+function registerMultiselectOption() {
+  if (!customElements.get('fds-multiselect-option')) {
+    customElements.define('fds-multiselect-option', FDSMultiselectOption);
+  }
+}
+/* harmony default export */ const fds_multiselect_option = (registerMultiselectOption);
 ;// ./src/js/dkfds-web-components.js
 
 
@@ -9077,8 +9759,9 @@ function registerAlert() {
 
 
 
-//import registerMultiselect from './web-components/multiselect/fds-multiselect';
-//import registerMultiselectOption from './web-components/multiselect/fds-multiselect-option';
+
+
+
 
 const registerCustomElements = () => {
   fds_accordion();
@@ -9114,8 +9797,10 @@ const registerCustomElements = () => {
   fds_tab_panel();
   fds_tabs();
   fds_alert();
-  //registerMultiselect();
-  //registerMultiselectOption();
+  fds_multiselect();
+  fds_multiselect_opener();
+  fds_multiselect_options();
+  fds_multiselect_option();
 };
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', registerCustomElements);
