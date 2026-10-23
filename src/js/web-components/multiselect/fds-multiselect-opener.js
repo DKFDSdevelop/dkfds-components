@@ -7,12 +7,21 @@ sheet.replaceSync(styles);
 
 const CHEVRON_CLOSED_PATH = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
 const CHEVRON_OPEN_PATH = 'M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z';
+const DEFAULT_PLACEHOLDER = 'Vælg en eller flere';
 
 class FDSMultiselectOpener extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-    static formAssociated = true; // Prevent browsers from complaining about the opener not having a label
+    static formAssociated = true;
+    static observedAttributes = ['placeholder'];
+
+    // #endregion
+
+    // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+    get placeholder() { return this.getAttribute('placeholder') ?? DEFAULT_PLACEHOLDER; }
+    set placeholder(value) { value == null ? this.removeAttribute('placeholder') : this.setAttribute('placeholder', value); }
 
     // #endregion
 
@@ -54,21 +63,11 @@ class FDSMultiselectOpener extends HTMLElement {
     }
 
     #setupHTML() {
-        if (this.shadowRoot.querySelector('slot')) return;
+        if (this.shadowRoot.querySelector('.opener-text')) return;
 
         const openerText = document.createElement('span');
         openerText.classList.add('opener-text');
-
-        // Create unnamed slot for the "placeholder" text in fds-multiselect-opener
-        const slot = document.createElement('slot');
-        openerText.appendChild(slot);
-
         this.shadowRoot.appendChild(openerText);
-
-        // Create a screen reader message announcing selected options
-        const selectedOptionsText = document.createElement('span');
-        selectedOptionsText.classList.add('selected-options-text', 'sr-only');
-        this.shadowRoot.appendChild(selectedOptionsText);
 
         const chevronIcon = CE.createSvgIcon(CHEVRON_CLOSED_PATH);
         chevronIcon.classList.add('chevron-icon');
@@ -147,18 +146,11 @@ class FDSMultiselectOpener extends HTMLElement {
             }
         }
 
-        // Update the selected options text for screen readers
-        const selectedOptionsText = this.shadowRoot.querySelector('.selected-options-text');
-        selectedOptionsText.textContent = selectedLabels.join(', ');
-
-        // Hide the opener's placeholder text from screen readers when options have been selected
         const openerText = this.shadowRoot.querySelector('.opener-text');
-        if (selectedLabels.length > 0) {
-            openerText.setAttribute('aria-hidden', 'true');
-        }
-        else {
-            openerText.removeAttribute('aria-hidden');
-        }
+        const hasSelectedOptions = selectedLabels.length > 0;
+
+        openerText.textContent = hasSelectedOptions ? selectedLabels.join(', ') : this.placeholder;
+        openerText.classList.toggle('sr-only', hasSelectedOptions);
     }
 
     // #endregion
@@ -176,6 +168,19 @@ class FDSMultiselectOpener extends HTMLElement {
     disconnectedCallback() {
         this.#removeEventListeners();
         this.#initialized = false;
+    }
+
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+    attributeChangedCallback(attribute, oldValue, newValue) {
+        if (!this.#initialized) return;
+        if (oldValue === newValue) return;
+
+        if (attribute === 'placeholder') {
+            this.refreshOpener();
+        }
     }
 
     // #endregion
