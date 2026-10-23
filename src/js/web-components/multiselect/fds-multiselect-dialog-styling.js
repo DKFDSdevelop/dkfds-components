@@ -15,7 +15,6 @@ export const styles = `
         max-height: min(440px, 100vh);
         overflow-y: auto;
         overflow-x: hidden;
-        overscroll-behavior: contain;
         z-index: 10;
         background-color: var(--color-white);
         border: 1px solid #8E8E8E;

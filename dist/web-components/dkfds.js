@@ -9254,6 +9254,9 @@ class FDSMultiselect extends HTMLElement {
   }
   #addTag(sourceOption) {
     if (this.#optionTags.has(sourceOption)) return;
+    const dialog = this.querySelector('fds-multiselect-dialog');
+    const isOpen = dialog && !dialog.hidden;
+    const rectBefore = isOpen ? dialog.getBoundingClientRect() : null;
     const label = sourceOption.textContent.trim();
     const tag = document.createElement('button');
     tag.classList.add('tag');
@@ -9271,15 +9274,46 @@ class FDSMultiselect extends HTMLElement {
     this.#refreshOpener();
     this.#updateTagsGroup();
     this.#updateFormValue();
+
+    // Prevent the dialog from changing position on the screen when an option is selected
+    if (isOpen) {
+      const rectAfter = dialog.getBoundingClientRect();
+      const difference = rectAfter.top - rectBefore.top;
+      if (difference !== 0) {
+        this.#getScrollableAncestor().scrollBy(0, difference);
+      }
+    }
   }
   #removeTag(sourceOption) {
     const tag = this.#optionTags.get(sourceOption);
     if (!tag) return;
+    const dialog = this.querySelector('fds-multiselect-dialog');
+    const isOpen = dialog && !dialog.hidden;
+    const rectBefore = isOpen ? dialog.getBoundingClientRect() : null;
     tag.remove();
     this.#optionTags.delete(sourceOption);
     this.#refreshOpener();
     this.#updateTagsGroup();
     this.#updateFormValue();
+    if (isOpen) {
+      const rectAfter = dialog.getBoundingClientRect();
+      const difference = rectAfter.top - rectBefore.top;
+      if (difference !== 0) {
+        this.#getScrollableAncestor().scrollBy(0, difference);
+      }
+    }
+  }
+  #getScrollableAncestor() {
+    let node = this.parentElement;
+    while (node) {
+      const style = getComputedStyle(node);
+      const isScrollable = (style.overflowY === 'auto' || style.overflowY === 'scroll') && node.scrollHeight > node.clientHeight;
+      if (isScrollable) {
+        return node;
+      }
+      node = node.parentElement;
+    }
+    return document.scrollingElement ?? document.documentElement;
   }
   #constrainTagWidth(tag) {
     const tagLabel = tag.querySelector('.tag-label');
@@ -10133,7 +10167,6 @@ const fds_multiselect_dialog_styling_styles = `
         max-height: min(440px, 100vh);
         overflow-y: auto;
         overflow-x: hidden;
-        overscroll-behavior: contain;
         z-index: 10;
         background-color: var(--color-white);
         border: 1px solid #8E8E8E;
