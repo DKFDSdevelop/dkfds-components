@@ -12,7 +12,7 @@ class FDSMultiselectOpener extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-    static formAssociated = true;
+    static formAssociated = true; // Prevent browsers from complaining about the opener not having a label
 
     // #endregion
 

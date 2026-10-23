@@ -16,7 +16,7 @@ export const styles = `
         font-weight: 600;
         color: #1a1a1a;
         overflow-wrap: break-word;
-        display: block;
+        display: inline-block;
         max-width: 66ch;
     }
 

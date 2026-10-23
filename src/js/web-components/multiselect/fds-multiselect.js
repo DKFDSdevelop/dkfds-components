@@ -7,11 +7,34 @@ sheet.replaceSync(styles);
 
 class FDSMultiselect extends HTMLElement {
 
+    // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+    static formAssociated = true;
+    static observedAttributes = ['name'];
+
+    // #endregion
+
+    // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+    get name() { return this.getAttribute('name'); }
+    set name(value) { value == null ? this.removeAttribute('name') : this.setAttribute('name', value); }
+
+    get value() {
+        const values = [];
+        for (const sourceOption of this.querySelectorAll('fds-multiselect-option')) {
+            if (this.#optionTags.has(sourceOption)) { values.push(sourceOption.value); }
+        }
+        return values;
+    }
+
+    // #endregion
+
     // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
     #mutationObserver = null;
     #optionTags = new Map();
+    #internals;
 
     // #endregion
 
@@ -34,7 +57,9 @@ class FDSMultiselect extends HTMLElement {
     };
 
     #handleLabelClick = (event) => {
-        if (!event.target.closest('label')) return;
+        const isLabelClick = event.composedPath().some(node => node.nodeName === 'LABEL');
+        if (!isLabelClick) return;
+
         // Prevent the native label click from forwarding to the opener and opening the dialog.
         event.preventDefault();
         this.querySelector('fds-multiselect-opener')?.focus();
@@ -90,6 +115,11 @@ class FDSMultiselect extends HTMLElement {
         this.#wireRelationships();
     };
 
+    #handleWindowLoad = () => {
+        const tags = this.shadowRoot.querySelectorAll('.tag');
+        tags.forEach(tag => this.#constrainTagWidth(tag));
+    };
+
     // #endregion
 
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
@@ -125,6 +155,7 @@ class FDSMultiselect extends HTMLElement {
 
         this.#refreshOpener();
         this.#updateTagsGroup();
+        this.#updateFormValue();
     }
 
     #removeTag(sourceOption) {
@@ -136,6 +167,7 @@ class FDSMultiselect extends HTMLElement {
 
         this.#refreshOpener();
         this.#updateTagsGroup();
+        this.#updateFormValue();
     }
 
     #constrainTagWidth(tag) {
@@ -192,6 +224,20 @@ class FDSMultiselect extends HTMLElement {
 
         tags.setAttribute('role', 'group');
         tags.setAttribute('aria-label', `Valgte muligheder for ${label.textContent}`);
+    }
+
+    #updateFormValue() {
+        if (!this.name) {
+            this.#internals.setFormValue(null);
+            return;
+        }
+
+        const formData = new FormData();
+        for (const value of this.value) {
+            formData.append(this.name, value);
+        }
+
+        this.#internals.setFormValue(formData);
     }
 
     #wireRelationships() {
@@ -257,11 +303,6 @@ class FDSMultiselect extends HTMLElement {
         }
     }
 
-    #handleWindowLoad = () => {
-        const tags = this.shadowRoot.querySelectorAll('.tag');
-        tags.forEach(tag => this.#constrainTagWidth(tag));
-    };
-
     #addEventListeners() {
         this.addEventListener('fds-multiselect-opener-expanded', this.#handleOpenerExpanded);
         this.addEventListener('fds-multiselect-opener-collapsed', this.#handleOpenerCollapsed);
@@ -293,6 +334,7 @@ class FDSMultiselect extends HTMLElement {
         this.#wireRelationships();
         this.#addEventListeners();
         this.#connectMutationObserver();
+        this.#updateFormValue();
 
         this.#initialized = true;
     }
@@ -305,6 +347,7 @@ class FDSMultiselect extends HTMLElement {
         super();
         this.attachShadow({ mode: 'open' });
         this.shadowRoot.adoptedStyleSheets = [sheet];
+        this.#internals = this.attachInternals();
     }
 
     // #endregion
@@ -323,6 +366,29 @@ class FDSMultiselect extends HTMLElement {
         this.#removeEventListeners();
         this.#disconnectMutationObserver();
         this.#initialized = false;
+    }
+
+    // #endregion
+
+    // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+    attributeChangedCallback(attribute, oldValue, newValue) {
+        if (!this.#initialized) return;
+        if (oldValue === newValue) return;
+
+        if (attribute === 'name') {
+            this.#updateFormValue();
+        }
+    }
+
+    // #endregion
+
+    // #region - FORM-ASSOCIATED CALLBACKS ------------------------------------------------------------------
+
+    formResetCallback() {
+        for (const sourceOption of this.querySelectorAll('fds-multiselect-option')) {
+            sourceOption.reset();
+        }
     }
 
     // #endregion

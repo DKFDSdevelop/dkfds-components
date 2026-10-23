@@ -9064,7 +9064,7 @@ const fds_multiselect_styling_styles = `
         font-weight: 600;
         color: #1a1a1a;
         overflow-wrap: break-word;
-        display: block;
+        display: inline-block;
         max-width: 66ch;
     }
 
@@ -9139,11 +9139,39 @@ const fds_multiselect_styling_styles = `
 const fds_multiselect_sheet = new CSSStyleSheet();
 fds_multiselect_sheet.replaceSync(fds_multiselect_styling_styles);
 class FDSMultiselect extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static formAssociated = true;
+  static observedAttributes = ['name'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get name() {
+    return this.getAttribute('name');
+  }
+  set name(value) {
+    value == null ? this.removeAttribute('name') : this.setAttribute('name', value);
+  }
+  get value() {
+    const values = [];
+    for (const sourceOption of this.querySelectorAll('fds-multiselect-option')) {
+      if (this.#optionTags.has(sourceOption)) {
+        values.push(sourceOption.value);
+      }
+    }
+    return values;
+  }
+
+  // #endregion
+
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
   #mutationObserver = null;
   #optionTags = (() => new Map())();
+  #internals;
 
   // #endregion
 
@@ -9162,7 +9190,9 @@ class FDSMultiselect extends HTMLElement {
     this.#removeTag(event.target);
   };
   #handleLabelClick = event => {
-    if (!event.target.closest('label')) return;
+    const isLabelClick = event.composedPath().some(node => node.nodeName === 'LABEL');
+    if (!isLabelClick) return;
+
     // Prevent the native label click from forwarding to the opener and opening the dialog.
     event.preventDefault();
     this.querySelector('fds-multiselect-opener')?.focus();
@@ -9205,6 +9235,10 @@ class FDSMultiselect extends HTMLElement {
   #handleMutations = () => {
     this.#wireRelationships();
   };
+  #handleWindowLoad = () => {
+    const tags = this.shadowRoot.querySelectorAll('.tag');
+    tags.forEach(tag => this.#constrainTagWidth(tag));
+  };
 
   // #endregion
 
@@ -9236,6 +9270,7 @@ class FDSMultiselect extends HTMLElement {
     this.#constrainTagWidth(tag);
     this.#refreshOpener();
     this.#updateTagsGroup();
+    this.#updateFormValue();
   }
   #removeTag(sourceOption) {
     const tag = this.#optionTags.get(sourceOption);
@@ -9244,6 +9279,7 @@ class FDSMultiselect extends HTMLElement {
     this.#optionTags.delete(sourceOption);
     this.#refreshOpener();
     this.#updateTagsGroup();
+    this.#updateFormValue();
   }
   #constrainTagWidth(tag) {
     const tagLabel = tag.querySelector('.tag-label');
@@ -9291,6 +9327,17 @@ class FDSMultiselect extends HTMLElement {
     }
     tags.setAttribute('role', 'group');
     tags.setAttribute('aria-label', `Valgte muligheder for ${label.textContent}`);
+  }
+  #updateFormValue() {
+    if (!this.name) {
+      this.#internals.setFormValue(null);
+      return;
+    }
+    const formData = new FormData();
+    for (const value of this.value) {
+      formData.append(this.name, value);
+    }
+    this.#internals.setFormValue(formData);
   }
   #wireRelationships() {
     const label = this.querySelector('label');
@@ -9355,10 +9402,6 @@ class FDSMultiselect extends HTMLElement {
       this.#mutationObserver = null;
     }
   }
-  #handleWindowLoad = () => {
-    const tags = this.shadowRoot.querySelectorAll('.tag');
-    tags.forEach(tag => this.#constrainTagWidth(tag));
-  };
   #addEventListeners() {
     this.addEventListener('fds-multiselect-opener-expanded', this.#handleOpenerExpanded);
     this.addEventListener('fds-multiselect-opener-collapsed', this.#handleOpenerCollapsed);
@@ -9389,6 +9432,7 @@ class FDSMultiselect extends HTMLElement {
     this.#wireRelationships();
     this.#addEventListeners();
     this.#connectMutationObserver();
+    this.#updateFormValue();
     this.#initialized = true;
   }
 
@@ -9402,6 +9446,7 @@ class FDSMultiselect extends HTMLElement {
       mode: 'open'
     });
     this.shadowRoot.adoptedStyleSheets = [fds_multiselect_sheet];
+    this.#internals = this.attachInternals();
   }
 
   // #endregion
@@ -9422,6 +9467,28 @@ class FDSMultiselect extends HTMLElement {
     this.#removeEventListeners();
     this.#disconnectMutationObserver();
     this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    if (attribute === 'name') {
+      this.#updateFormValue();
+    }
+  }
+
+  // #endregion
+
+  // #region - FORM-ASSOCIATED CALLBACKS ------------------------------------------------------------------
+
+  formResetCallback() {
+    for (const sourceOption of this.querySelectorAll('fds-multiselect-option')) {
+      sourceOption.reset();
+    }
   }
 
   // #endregion
@@ -9504,7 +9571,7 @@ const CHEVRON_OPEN_PATH = 'M480-528 296-344l-56-56 240-240 240 240-56 56-184-184
 class FDSMultiselectOpener extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static formAssociated = true;
+  static formAssociated = true; // Prevent browsers from complaining about the opener not having a label
 
   // #endregion
 
