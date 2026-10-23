@@ -71,7 +71,10 @@ __webpack_require__.d(__webpack_exports__, {
   registerModalCloser: () => (/* reexport */ fds_modal_closer),
   registerModalOpener: () => (/* reexport */ fds_modal_opener),
   registerMultiselect: () => (/* reexport */ fds_multiselect),
+  registerMultiselectDialog: () => (/* reexport */ fds_multiselect_dialog),
+  registerMultiselectOpener: () => (/* reexport */ fds_multiselect_opener),
   registerMultiselectOption: () => (/* reexport */ fds_multiselect_option),
+  registerMultiselectOptions: () => (/* reexport */ fds_multiselect_options),
   registerPortalInfo: () => (/* reexport */ fds_portal_info),
   registerRadioButton: () => (/* reexport */ fds_radio_button),
   registerRadioButtonGroup: () => (/* reexport */ fds_radio_button_group),
@@ -9050,24 +9053,12 @@ const fds_multiselect_styling_styles = `
         box-sizing: border-box;
     }
 
-    .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        margin: -1px;
-        padding: 0;
-        overflow: hidden;
-        clip-path: inset(50%);
-        border: 0;
-        user-select: none;
-        white-space: nowrap;
-    }
-
     :host {
         display: block;
+        position: relative;
     }
 
-    .opener-label {
+    ::slotted(label) {
         font-size: 1.6rem;
         line-height: 2.4rem;
         font-weight: 600;
@@ -9080,49 +9071,14 @@ const fds_multiselect_styling_styles = `
     .opener-wrapper {
         position: relative;
         display: grid;
-        max-width: 32rem;
         margin-top: 8px;
+        max-width: 32rem;
     }
 
-    .opener {
+    ::slotted(fds-multiselect-opener) {
+        display: block;
         grid-area: 1 / 1;
         z-index: 1;
-        appearance: none;
-        display: flex;
-        align-items: center;
-        align-self: stretch;
-        font: inherit;
-        cursor: pointer;
-        color: #1a1a1a;
-        font-size: 1.6rem;
-        line-height: 2.4rem;
-        width: 100%;
-        min-width: 0;
-        padding: 7px 47px 7px 15px;
-        border: 1px solid #8E8E8E;
-        border-radius: 8px;
-        background-color: var(--color-white);
-    }
-
-    .opener:focus {
-        outline: 3px solid #454545;
-        outline-offset: 1px;
-    }
-
-    .opener-text {
-        overflow-wrap: break-word;
-        max-width: 100%;
-        text-align: start;
-    }
-
-    .chevron-icon {
-        position: absolute;
-        top: 50%;
-        right: 16px;
-        transform: translateY(-50%);
-        width: 2.4rem;
-        height: 2.4rem;
-        pointer-events: none;
     }
 
     .tags {
@@ -9134,7 +9090,6 @@ const fds_multiselect_styling_styles = `
         gap: 8px;
         padding: 8px 48px 8px 16px;
         pointer-events: none;
-        max-width: 32rem;
         min-width: 0;
     }
 
@@ -9176,84 +9131,6 @@ const fds_multiselect_styling_styles = `
         max-width: 1.6rem;
         fill: var(--color-white);
     }
-
-    .popup {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        max-width: 32rem;
-        max-height: min(440px, 100vh);
-        overflow-y: auto;
-        z-index: 10;
-        background-color: white;
-        border: 1px solid #8E8E8E;
-        border-radius: 8px;
-        margin-top: 4px;
-        padding-top: 7px;
-        padding-bottom: 7px;
-        box-shadow: 0 4px 12px 0 rgba(0, 0, 0, .2);
-    }
-
-    .listbox {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .listbox:focus {
-        outline: 0;
-    }
-
-    .option {
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
-        padding: 8px calc(16px - 1px);
-        cursor: pointer;
-    }
-
-    .option:hover {
-        background-color: var(--color-gray-100);
-    }
-
-    .option:active {
-        background-color: var(--color-gray-200);
-    }
-
-    .option-checkbox {
-        flex: 0 0 auto;
-        width: 2.4rem;
-        height: 2.4rem;
-        border: 2px solid var(--color-black);
-        border-radius: 4px;
-        background-color: var(--color-white);
-    }
-
-    .option-checkbox path {
-        display: none;
-    }
-
-    .option[aria-selected="true"] .option-checkbox {
-        background-color: var(--color-black);
-        border: 0;
-    }
-
-    .option[aria-selected="true"] .option-checkbox path {
-        display: block;
-        fill: var(--color-white);
-    }
-
-    .option-label {
-        min-width: 0;
-        overflow-wrap: break-word;
-        line-height: 1.5;
-        color: var(--color-black);
-    }
-
-    .option[data-active] {
-        outline: 3px solid #454545;
-        outline-offset: -3px;
-    }
 `;
 ;// ./src/js/web-components/multiselect/fds-multiselect.js
 
@@ -9261,41 +9138,33 @@ const fds_multiselect_styling_styles = `
 
 const fds_multiselect_sheet = new CSSStyleSheet();
 fds_multiselect_sheet.replaceSync(fds_multiselect_styling_styles);
-const CHEVRON_CLOSED_PATH = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
-const CHEVRON_OPEN_PATH = 'M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z';
 class FDSMultiselect extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
   static formAssociated = true;
-  static observedAttributes = ['label', 'placeholder', 'sr-group-text', 'name'];
+  static observedAttributes = ['name', 'sr-tags-label', 'show-required-status', 'aria-required'];
 
   // #endregion
 
   // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
-  get label() {
-    return this.getAttribute('label');
-  }
-  set label(value) {
-    value == null ? this.removeAttribute('label') : this.setAttribute('label', value);
-  }
-  get placeholder() {
-    return this.getAttribute('placeholder') ?? 'Vælg en eller flere';
-  }
-  set placeholder(value) {
-    value == null ? this.removeAttribute('placeholder') : this.setAttribute('placeholder', value);
-  }
-  get srGroupText() {
-    return this.getAttribute('sr-group-text');
-  }
-  set srGroupText(value) {
-    value == null ? this.removeAttribute('sr-group-text') : this.setAttribute('sr-group-text', value);
-  }
   get name() {
     return this.getAttribute('name');
   }
   set name(value) {
     value == null ? this.removeAttribute('name') : this.setAttribute('name', value);
+  }
+  get srTagsLabel() {
+    return this.getAttribute('sr-tags-label');
+  }
+  set srTagsLabel(value) {
+    value == null ? this.removeAttribute('sr-tags-label') : this.setAttribute('sr-tags-label', value);
+  }
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value == null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
   }
   get value() {
     const values = [];
@@ -9312,7 +9181,7 @@ class FDSMultiselect extends HTMLElement {
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
-  #optionElements = (() => new Map())();
+  #mutationObserver = null;
   #optionTags = (() => new Map())();
   #internals;
 
@@ -9320,90 +9189,34 @@ class FDSMultiselect extends HTMLElement {
 
   // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
-  #handleOpenerClick = () => {
-    this.toggle();
+  #handleOpenerExpanded = () => {
+    this.querySelector('fds-multiselect-dialog')?.open();
+  };
+  #handleOpenerCollapsed = () => {
+    this.querySelector('fds-multiselect-dialog')?.close();
+  };
+  #handleOptionSelected = event => {
+    this.#addTag(event.target);
+  };
+  #handleOptionDeselected = event => {
+    this.#removeTag(event.target);
   };
   #handleLabelClick = event => {
+    const isLabelClick = event.composedPath().some(node => node.nodeName === 'LABEL');
+    if (!isLabelClick) return;
+
+    // Prevent the native label click from forwarding to the opener and opening the dialog.
     event.preventDefault();
-    this.shadowRoot.querySelector('.opener').focus();
-  };
-  #handleFocusOut = event => {
-    if (event.relatedTarget && this.shadowRoot.contains(event.relatedTarget)) return;
-    this.close();
-  };
-  #handlePopupMouseDown = event => {
-    event.preventDefault();
-  };
-
-  // Removing a tag with the mouse while the popup is open should not close the popup
-  #handleTagsMouseDown = event => {
-    const tag = event.target.closest('.tag');
-    if (!tag) return;
-    event.preventDefault();
-  };
-  #handleListboxClick = event => {
-    const shadowOption = event.target.closest('.option');
-    if (!shadowOption) return;
-    this.#setActiveShadowOption(shadowOption);
-    const sourceOption = this.#findSourceForShadow(shadowOption);
-    if (sourceOption) {
-      sourceOption.toggle();
-    }
-  };
-  #handleOptionChange = event => {
-    const sourceOption = event.target;
-    const isSelected = sourceOption.getAttribute('data-selected') === 'true';
-    const opener = this.shadowRoot.querySelector('.opener');
-    const isOpen = opener.getAttribute('aria-expanded') === 'true';
-    const popup = this.shadowRoot.querySelector('.popup');
-    const rectBefore = isOpen ? popup.getBoundingClientRect() : null; // Get the popup's screen position
-
-    isSelected ? this.#addTag(sourceOption) : this.#removeTag(sourceOption);
-    const shadowOption = this.#optionElements.get(sourceOption);
-    if (shadowOption) {
-      shadowOption.setAttribute('aria-selected', isSelected ? 'true' : 'false');
-    }
-    this.#updateOpenerText();
-    this.#updateFormValue();
-
-    // The width of the tag should be constrained to avoid too much empty space.
-    if (isSelected) {
-      const tag = this.#optionTags.get(sourceOption);
-      if (tag) {
-        // The 62.5% trick means we need to ensure the document has loaded for correct calculations.
-        const pageIsAlreadyLoaded = document.readyState === 'complete';
-        if (pageIsAlreadyLoaded) {
-          this.#constrainTagWidth(tag);
-        } else {
-          window.addEventListener('load', () => this.#constrainTagWidth(tag), {
-            once: true
-          });
-        }
-      }
-    }
-
-    // Keep the popup visually anchored on screen.
-    if (isOpen) {
-      const rectAfter = popup.getBoundingClientRect();
-      const difference = rectAfter.top - rectBefore.top;
-      if (difference !== 0) {
-        this.#getScrollableAncestor().scrollBy(0, difference);
-      }
-    }
+    this.querySelector('fds-multiselect-opener')?.focus();
   };
   #handleTagClick = event => {
-    // Only react when the click originated from an actual tag (handler may receive
-    // clicks delegated from anywhere in the shadow tree).
     const tag = event.target.closest('.tag');
     if (!tag) return;
-
-    // Do nothing if the tag clicked somehow doesn't have a matching <fds-multiselect-option>.
     const sourceOption = this.#findSourceForTag(tag);
     if (!sourceOption) return;
-    const opener = this.shadowRoot.querySelector('.opener');
-    const isOpen = opener.getAttribute('aria-expanded') === 'true';
-    if (isOpen) {
-      this.close();
+    const opener = this.querySelector('fds-multiselect-opener');
+    if (opener?.expanded) {
+      opener.close();
     }
     const tags = Array.from(this.shadowRoot.querySelectorAll('.tag'));
     const index = tags.indexOf(tag);
@@ -9412,73 +9225,37 @@ class FDSMultiselect extends HTMLElement {
     // opener if no tags are left at all.
     const focusTarget = tags[index + 1] ?? tags[index - 1] ?? opener;
     sourceOption.deselect();
-    focusTarget.focus();
+    focusTarget?.focus();
   };
-  #handleOpenerKeyDown = event => {
-    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return; // Enter and Space is handled by #handleOpenerClick()
+  #handleFocusOut = event => {
+    const relatedTarget = event.relatedTarget;
 
-    event.preventDefault();
-    this.open();
+    // Ensure the opener only closes when something outside the multiselect gets focus.
+    const stillInside = relatedTarget && (this.contains(relatedTarget) || this.shadowRoot.contains(relatedTarget));
+    if (stillInside) return;
+    const opener = this.querySelector('fds-multiselect-opener');
+    opener?.close();
   };
-  #handleListboxKeyDown = event => {
-    const shadowOptions = Array.from(this.shadowRoot.querySelectorAll('.option'));
-    const active = this.#getActiveShadowOption();
-    const currentIndex = active ? shadowOptions.indexOf(active) : -1;
-    switch (event.key) {
-      case 'ArrowDown':
-        {
-          event.preventDefault();
-          const nextIndex = Math.min(currentIndex + 1, shadowOptions.length - 1);
-          this.#setActiveShadowOption(shadowOptions[nextIndex]);
-          break;
-        }
-      case 'ArrowUp':
-        {
-          event.preventDefault();
-          const previousIndex = currentIndex < 0 ? 0 : Math.max(currentIndex - 1, 0);
-          this.#setActiveShadowOption(shadowOptions[previousIndex]);
-          break;
-        }
-      case 'Home':
-        event.preventDefault();
-        this.#setActiveShadowOption(shadowOptions[0]);
-        break;
-      case 'End':
-        event.preventDefault();
-        this.#setActiveShadowOption(shadowOptions[shadowOptions.length - 1]);
-        break;
-      case 'Enter':
-      case ' ':
-        {
-          event.preventDefault();
-          if (active) {
-            const sourceOption = this.#findSourceForShadow(active);
-            if (sourceOption) {
-              sourceOption.toggle();
-            }
-          }
-          break;
-        }
-      case 'Escape':
-        event.preventDefault();
-        this.close();
-        this.shadowRoot.querySelector('.opener').focus();
-        break;
-    }
+  #handleKeyDown = event => {
+    if (event.key !== 'Escape') return;
+    const opener = this.querySelector('fds-multiselect-opener');
+    if (!opener?.expanded) return;
+    event.preventDefault();
+    opener.close();
+    opener.focus();
+  };
+  #handleMutations = () => {
+    this.#wireRelationships();
+  };
+  #handleWindowLoad = () => {
+    const tags = this.shadowRoot.querySelectorAll('.tag');
+    tags.forEach(tag => this.#constrainTagWidth(tag));
   };
 
   // #endregion
 
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
-  #findSourceForShadow(shadowOption) {
-    for (const [source, shadow] of this.#optionElements) {
-      if (shadow === shadowOption) {
-        return source;
-      }
-    }
-    return null;
-  }
   #findSourceForTag(tag) {
     for (const [source, tagEl] of this.#optionTags) {
       if (tagEl === tag) {
@@ -9487,39 +9264,11 @@ class FDSMultiselect extends HTMLElement {
     }
     return null;
   }
-  #getActiveShadowOption() {
-    const listbox = this.shadowRoot.querySelector('.listbox');
-    const activeId = listbox.getAttribute('aria-activedescendant');
-    if (!activeId) return null;
-    return this.shadowRoot.getElementById(activeId);
-  }
-  #setActiveShadowOption(shadowOption) {
-    if (!shadowOption) return;
-    const listbox = this.shadowRoot.querySelector('.listbox');
-    const previous = this.#getActiveShadowOption();
-    if (previous) {
-      previous.removeAttribute('data-active');
-    }
-    shadowOption.setAttribute('data-active', '');
-    listbox.setAttribute('aria-activedescendant', shadowOption.id);
-    shadowOption.scrollIntoView({
-      block: 'nearest'
-    });
-  }
-  #getScrollableAncestor() {
-    let node = this.parentElement;
-    while (node) {
-      const style = getComputedStyle(node);
-      const isScrollable = (style.overflowY === 'auto' || style.overflowY === 'scroll') && node.scrollHeight > node.clientHeight;
-      if (isScrollable) {
-        return node;
-      }
-      node = node.parentElement;
-    }
-    return document.scrollingElement ?? document.documentElement;
-  }
   #addTag(sourceOption) {
     if (this.#optionTags.has(sourceOption)) return;
+    const dialog = this.querySelector('fds-multiselect-dialog');
+    const isOpen = dialog && !dialog.hidden;
+    const rectBefore = isOpen ? dialog.getBoundingClientRect() : null;
     const label = sourceOption.textContent.trim();
     const tag = document.createElement('button');
     tag.classList.add('tag');
@@ -9533,14 +9282,40 @@ class FDSMultiselect extends HTMLElement {
     tag.appendChild(closeIcon);
     this.shadowRoot.querySelector('.tags').appendChild(tag);
     this.#optionTags.set(sourceOption, tag);
+    this.#constrainTagWidth(tag);
+    this.#refreshOpener();
     this.#updateTagsGroup();
+    this.#updateFormValue();
+    this.#updateValidity();
+
+    // Prevent the dialog from changing position on the screen when an option is selected
+    if (isOpen) {
+      const rectAfter = dialog.getBoundingClientRect();
+      const difference = rectAfter.top - rectBefore.top;
+      if (difference !== 0) {
+        this.#getScrollableAncestor().scrollBy(0, difference);
+      }
+    }
   }
   #removeTag(sourceOption) {
     const tag = this.#optionTags.get(sourceOption);
     if (!tag) return;
+    const dialog = this.querySelector('fds-multiselect-dialog');
+    const isOpen = dialog && !dialog.hidden;
+    const rectBefore = isOpen ? dialog.getBoundingClientRect() : null;
     tag.remove();
     this.#optionTags.delete(sourceOption);
+    this.#refreshOpener();
     this.#updateTagsGroup();
+    this.#updateFormValue();
+    this.#updateValidity();
+    if (isOpen) {
+      const rectAfter = dialog.getBoundingClientRect();
+      const difference = rectAfter.top - rectBefore.top;
+      if (difference !== 0) {
+        this.#getScrollableAncestor().scrollBy(0, difference);
+      }
+    }
   }
   #constrainTagWidth(tag) {
     const tagLabel = tag.querySelector('.tag-label');
@@ -9577,162 +9352,17 @@ class FDSMultiselect extends HTMLElement {
     const iconWidth = icon ? icon.getBoundingClientRect().width : 0;
     tag.style.maxWidth = `${Math.ceil(widestLine + paddingLeft + paddingRight + paddingRightLabel + iconWidth)}px`;
   }
-  #updateOpenerText() {
-    const openerText = this.shadowRoot.querySelector('.opener-text');
-    const tags = this.shadowRoot.querySelectorAll('.tag');
-    if (tags.length === 0) {
-      openerText.textContent = this.placeholder;
-      openerText.classList.remove('sr-only');
-      return;
-    }
-    const labels = [];
-    for (const tag of tags) {
-      labels.push(tag.textContent.trim());
-    }
-    openerText.textContent = labels.join(', ');
-    openerText.classList.add('sr-only');
-  }
-  #buildOptions() {
-    const listbox = this.shadowRoot.querySelector('.listbox');
-    const optionsToBuild = this.querySelectorAll('fds-multiselect-option');
-    for (const sourceOption of optionsToBuild) {
-      if (this.#optionElements.has(sourceOption)) continue;
-      const shadowOption = document.createElement('div');
-      shadowOption.classList.add('option');
-      shadowOption.id = generateAndVerifyUniqueId('multiselect-option');
-      shadowOption.setAttribute('role', 'option');
-      shadowOption.setAttribute('tabindex', '-1');
-      shadowOption.setAttribute('aria-selected', sourceOption.getAttribute('data-selected') === 'true' ? 'true' : 'false');
-      const checkbox = createSvgIcon('M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z');
-      checkbox.classList.add('option-checkbox');
-      shadowOption.appendChild(checkbox);
-      const optionLabel = document.createElement('span');
-      optionLabel.classList.add('option-label');
-      optionLabel.textContent = sourceOption.textContent.trim();
-      shadowOption.appendChild(optionLabel);
-      listbox.appendChild(shadowOption);
-      this.#optionElements.set(sourceOption, shadowOption);
-      if (sourceOption.getAttribute('data-selected') === 'true') {
-        this.#addTag(sourceOption);
-      }
-    }
-  }
-  #setChevronPath(path) {
-    const chevronPath = this.shadowRoot.querySelector('.chevron-icon path');
-    if (chevronPath) {
-      chevronPath.setAttribute('d', path);
-    }
-  }
-  #setupHTML() {
-    if (this.shadowRoot.querySelector('.opener')) return;
-    const opener = document.createElement('button');
-    opener.id = generateAndVerifyUniqueId('multiselect-opener');
-    opener.classList.add('opener');
-    opener.setAttribute('type', 'button');
-    opener.setAttribute('role', 'combobox');
-    opener.setAttribute('aria-haspopup', 'dialog');
-    opener.setAttribute('aria-expanded', 'false');
-    const openerText = document.createElement('span');
-    openerText.classList.add('opener-text');
-    opener.appendChild(openerText);
-    const chevronIcon = createSvgIcon(CHEVRON_CLOSED_PATH);
-    chevronIcon.classList.add('chevron-icon');
-    opener.appendChild(chevronIcon);
-    const tags = document.createElement('div');
-    tags.classList.add('tags');
-    const popup = document.createElement('div');
-    popup.id = generateAndVerifyUniqueId('multiselect-dialog');
-    popup.classList.add('popup');
-    popup.setAttribute('role', 'dialog');
-    popup.setAttribute('aria-label', 'Vælg en eller flere muligheder');
-    popup.hidden = true;
-    opener.setAttribute('aria-controls', popup.id);
-    const listbox = document.createElement('div');
-    listbox.id = generateAndVerifyUniqueId('multiselect-listbox');
-    listbox.classList.add('listbox');
-    listbox.setAttribute('role', 'listbox');
-    listbox.setAttribute('aria-multiselectable', 'true');
-    listbox.setAttribute('tabindex', '0');
-    popup.append(listbox);
-    const openerWrapper = document.createElement('div');
-    openerWrapper.classList.add('opener-wrapper');
-    openerWrapper.append(opener, tags, popup);
-    this.shadowRoot.append(openerWrapper);
-  }
-  #addEventListeners() {
-    this.shadowRoot.querySelector('.opener').addEventListener('click', this.#handleOpenerClick);
-    this.shadowRoot.querySelector('.opener').addEventListener('keydown', this.#handleOpenerKeyDown);
-    this.shadowRoot.querySelector('.popup').addEventListener('mousedown', this.#handlePopupMouseDown);
-    this.shadowRoot.querySelector('.listbox').addEventListener('click', this.#handleListboxClick);
-    this.shadowRoot.querySelector('.listbox').addEventListener('keydown', this.#handleListboxKeyDown);
-    this.shadowRoot.addEventListener('click', this.#handleTagClick); // Listener is placed on the shadow root to avoid NVDA announcing an unlabeled "clickable"
-    this.shadowRoot.addEventListener('mousedown', this.#handleTagsMouseDown);
-    this.shadowRoot.addEventListener('focusout', this.#handleFocusOut);
-    this.addEventListener('fds-multiselect-option-change', this.#handleOptionChange);
-  }
-  #removeEventListeners() {
-    this.shadowRoot.querySelector('.opener').removeEventListener('click', this.#handleOpenerClick);
-    this.shadowRoot.querySelector('.opener').removeEventListener('keydown', this.#handleOpenerKeyDown);
-    this.shadowRoot.querySelector('.popup').removeEventListener('mousedown', this.#handlePopupMouseDown);
-    this.shadowRoot.querySelector('.listbox').removeEventListener('click', this.#handleListboxClick);
-    this.shadowRoot.querySelector('.listbox').removeEventListener('keydown', this.#handleListboxKeyDown);
-    this.shadowRoot.removeEventListener('click', this.#handleTagClick);
-    this.shadowRoot.removeEventListener('mousedown', this.#handleTagsMouseDown);
-    this.shadowRoot.removeEventListener('focusout', this.#handleFocusOut);
-    this.removeEventListener('fds-multiselect-option-change', this.#handleOptionChange);
-  }
-  #init() {
-    this.#setupHTML();
-    this.#updateLabel();
-    this.#buildOptions();
-    this.#addEventListeners();
-    this.#updateOpenerText();
-    this.#updateFormValue();
-    this.#initialized = true;
-  }
-  #updateLabel() {
-    const labelText = this.label;
-    const listbox = this.shadowRoot.querySelector('.listbox');
-    let labelEl = this.shadowRoot.querySelector('.opener-label');
-
-    // Remove the label element if the label attribute is empty or missing
-    if (!labelText) {
-      console.warn('fds-multiselect: missing "label" attribute.', this);
-      if (labelEl) {
-        labelEl.removeEventListener('click', this.#handleLabelClick);
-        labelEl.remove();
-      }
-      listbox.removeAttribute('aria-labelledby');
-      this.#updateTagsGroup();
-      return;
-    }
-
-    // Add the label element if it is missing and the multiselect has a valid label attribute
-    if (!labelEl) {
-      const opener = this.shadowRoot.querySelector('.opener');
-      const openerWrapper = this.shadowRoot.querySelector('.opener-wrapper');
-      labelEl = document.createElement('label');
-      labelEl.id = generateAndVerifyUniqueId('multiselect-label');
-      labelEl.classList.add('opener-label');
-      labelEl.setAttribute('for', opener.id);
-      labelEl.addEventListener('click', this.#handleLabelClick);
-      this.shadowRoot.insertBefore(labelEl, openerWrapper);
-    }
-    labelEl.textContent = labelText;
-    listbox.setAttribute('aria-labelledby', labelEl.id);
-    this.#updateTagsGroup();
-  }
   #updateTagsGroup() {
     const tags = this.shadowRoot.querySelector('.tags');
     const hasTags = tags.children.length > 0;
-    const labelText = this.label;
-    if (!hasTags || !labelText) {
+    const label = this.querySelector('label');
+    if (!hasTags || !label) {
       tags.removeAttribute('role');
       tags.removeAttribute('aria-label');
       return;
     }
     tags.setAttribute('role', 'group');
-    tags.setAttribute('aria-label', this.srGroupText ?? `Valgte muligheder for ${labelText}`);
+    tags.setAttribute('aria-label', this.srTagsLabel ?? `Valgte muligheder for ${label.textContent}`);
   }
   #updateFormValue() {
     if (!this.name) {
@@ -9744,6 +9374,141 @@ class FDSMultiselect extends HTMLElement {
       formData.append(this.name, value);
     }
     this.#internals.setFormValue(formData);
+  }
+  #updateValidity() {
+    const isRequired = this.hasAttribute('aria-required') && this.getAttribute('aria-required') !== 'false';
+    const hasValue = this.value.length > 0;
+    if (isRequired && !hasValue) {
+      const opener = this.querySelector('fds-multiselect-opener');
+      this.#internals.setValidity({
+        valueMissing: true
+      }, 'Vælg mindst én mulighed', opener);
+    } else {
+      this.#internals.setValidity({});
+    }
+  }
+  #updateRequiredStatus() {
+    const label = this.querySelector('label');
+    if (!label) return;
+    const value = this.getAttribute('show-required-status');
+    if (value === null) {
+      const indicator = label.querySelector(':scope > span.weight-normal');
+      if (indicator) {
+        indicator.remove();
+      }
+      return;
+    }
+    showRequiredStatus(label, this, value);
+  }
+  #getScrollableAncestor() {
+    let node = this.parentElement;
+    while (node) {
+      const style = getComputedStyle(node);
+      const isScrollable = (style.overflowY === 'auto' || style.overflowY === 'scroll') && node.scrollHeight > node.clientHeight;
+      if (isScrollable) {
+        return node;
+      }
+      node = node.parentElement;
+    }
+    return document.scrollingElement ?? document.documentElement;
+  }
+  #wireRelationships() {
+    const label = this.querySelector('label');
+    const opener = this.querySelector('fds-multiselect-opener');
+    const dialog = this.querySelector('fds-multiselect-dialog');
+    if (opener && !opener.id) {
+      opener.id = generateAndVerifyUniqueId('multiselect-opener');
+    }
+    if (dialog && !dialog.id) {
+      dialog.id = generateAndVerifyUniqueId('multiselect-dialog');
+    }
+    if (label && opener) {
+      label.htmlFor = opener.id;
+    }
+    if (opener && dialog) {
+      opener.setAttribute('aria-controls', dialog.id);
+    }
+    if (opener) {
+      opener.setAttribute('slot', 'opener');
+    }
+    if (dialog) {
+      dialog.setAttribute('slot', 'dialog');
+    }
+    this.#updateRequiredStatus();
+    for (const sourceOption of this.querySelectorAll('fds-multiselect-option[default-selected]')) {
+      this.#addTag(sourceOption);
+    }
+  }
+
+  // fds-multiselect-opener may not have been upgraded yet when called on page load.
+  // Ensure refreshOpener is called when the custom element is defined.
+  #refreshOpener() {
+    customElements.whenDefined('fds-multiselect-opener').then(() => {
+      const opener = this.querySelector('fds-multiselect-opener');
+      opener?.refreshOpener();
+    });
+  }
+  #setupHTML() {
+    if (this.shadowRoot.querySelector('.opener-wrapper')) return;
+    const labelSlot = document.createElement('slot');
+    const openerWrapper = document.createElement('div');
+    openerWrapper.classList.add('opener-wrapper');
+    const openerSlot = document.createElement('slot');
+    openerSlot.name = 'opener';
+    const tags = document.createElement('div');
+    tags.classList.add('tags');
+    openerWrapper.append(openerSlot, tags);
+    const dialogSlot = document.createElement('slot');
+    dialogSlot.name = 'dialog';
+    this.shadowRoot.append(labelSlot, openerWrapper, dialogSlot);
+  }
+  #connectMutationObserver() {
+    if (this.#mutationObserver) return;
+    this.#mutationObserver = new MutationObserver(this.#handleMutations);
+    this.#mutationObserver.observe(this, {
+      childList: true,
+      subtree: false
+    });
+  }
+  #disconnectMutationObserver() {
+    if (this.#mutationObserver) {
+      this.#mutationObserver.disconnect();
+      this.#mutationObserver = null;
+    }
+  }
+  #addEventListeners() {
+    this.addEventListener('fds-multiselect-opener-expanded', this.#handleOpenerExpanded);
+    this.addEventListener('fds-multiselect-opener-collapsed', this.#handleOpenerCollapsed);
+    this.addEventListener('fds-multiselect-option-selected', this.#handleOptionSelected);
+    this.addEventListener('fds-multiselect-option-deselected', this.#handleOptionDeselected);
+    this.addEventListener('click', this.#handleLabelClick);
+    this.addEventListener('focusout', this.#handleFocusOut);
+    this.addEventListener('keydown', this.#handleKeyDown);
+    this.shadowRoot.addEventListener('click', this.#handleTagClick);
+    window.addEventListener('load', this.#handleWindowLoad, {
+      once: true
+    });
+  }
+  #removeEventListeners() {
+    this.removeEventListener('fds-multiselect-opener-expanded', this.#handleOpenerExpanded);
+    this.removeEventListener('fds-multiselect-opener-collapsed', this.#handleOpenerCollapsed);
+    this.removeEventListener('fds-multiselect-option-selected', this.#handleOptionSelected);
+    this.removeEventListener('fds-multiselect-option-deselected', this.#handleOptionDeselected);
+    this.removeEventListener('click', this.#handleLabelClick);
+    this.removeEventListener('focusout', this.#handleFocusOut);
+    this.removeEventListener('keydown', this.#handleKeyDown);
+    this.shadowRoot.removeEventListener('click', this.#handleTagClick);
+    window.removeEventListener('load', this.#handleWindowLoad);
+  }
+  #init() {
+    customElements.upgrade(this);
+    this.#setupHTML();
+    this.#wireRelationships();
+    this.#addEventListeners();
+    this.#connectMutationObserver();
+    this.#updateFormValue();
+    this.#updateValidity();
+    this.#initialized = true;
   }
 
   // #endregion
@@ -9761,53 +9526,12 @@ class FDSMultiselect extends HTMLElement {
 
   // #endregion
 
-  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
-
-  open() {
-    if (!this.#initialized) return;
-    const opener = this.shadowRoot.querySelector('.opener');
-    const popup = this.shadowRoot.querySelector('.popup');
-    const listbox = this.shadowRoot.querySelector('.listbox');
-    opener.setAttribute('aria-expanded', 'true');
-    popup.hidden = false;
-    this.#setChevronPath(CHEVRON_OPEN_PATH);
-    if (!this.#getActiveShadowOption()) {
-      this.#setActiveShadowOption(listbox.querySelector('.option'));
-    }
-    listbox.focus();
-  }
-  close() {
-    if (!this.#initialized) return;
-    const opener = this.shadowRoot.querySelector('.opener');
-    const popup = this.shadowRoot.querySelector('.popup');
-    const listbox = this.shadowRoot.querySelector('.listbox');
-    opener.setAttribute('aria-expanded', 'false');
-    popup.hidden = true;
-    this.#setChevronPath(CHEVRON_CLOSED_PATH);
-    const active = this.#getActiveShadowOption();
-    if (active) {
-      active.removeAttribute('data-active');
-    }
-    listbox.setAttribute('aria-activedescendant', '');
-  }
-  toggle() {
-    if (!this.#initialized) return;
-    const opener = this.shadowRoot.querySelector('.opener');
-    const isOpen = opener.getAttribute('aria-expanded') === 'true';
-    if (isOpen) {
-      this.close();
-      opener.focus();
-    } else {
-      this.open();
-    }
-  }
-
-  // #endregion
-
   // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
-    this.#init();
+    if (!this.#initialized) {
+      this.#init();
+    }
   }
 
   // #endregion
@@ -9816,6 +9540,7 @@ class FDSMultiselect extends HTMLElement {
 
   disconnectedCallback() {
     this.#removeEventListeners();
+    this.#disconnectMutationObserver();
     this.#initialized = false;
   }
 
@@ -9827,15 +9552,18 @@ class FDSMultiselect extends HTMLElement {
     if (!this.#initialized) return;
     if (oldValue === newValue) return;
     switch (attribute) {
-      case 'label':
-      case 'sr-group-text':
-        this.#updateLabel();
-        break;
-      case 'placeholder':
-        this.#updateOpenerText();
-        break;
       case 'name':
         this.#updateFormValue();
+        break;
+      case 'sr-tags-label':
+        this.#updateTagsGroup();
+        break;
+      case 'show-required-status':
+        this.#updateRequiredStatus();
+        break;
+      case 'aria-required':
+        this.#updateRequiredStatus();
+        this.#updateValidity();
         break;
     }
   }
@@ -9858,15 +9586,503 @@ function registerMultiselect() {
   }
 }
 /* harmony default export */ const fds_multiselect = (registerMultiselect);
-;// ./src/js/web-components/multiselect/fds-multiselect-option.js
-const fds_multiselect_option_styles = `
+;// ./src/js/web-components/multiselect/fds-multiselect-opener-styling.js
+const fds_multiselect_opener_styling_styles = `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        border: 0;
+        user-select: none;
+        white-space: nowrap;
+    }
+
     :host {
-        display: none;
+        position: relative;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        color: #1a1a1a;
+        font-size: 1.6rem;
+        line-height: 2.4rem;
+        width: 100%;
+        min-width: 0;
+        padding: 7px 47px 7px 15px;
+        border: 1px solid #8E8E8E;
+        border-radius: 8px;
+        background-color: var(--color-white);
+    }
+
+    :host(:focus) {
+        outline: 3px solid #454545;
+        outline-offset: 1px;
+    }
+
+    .opener-text {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-wrap: break-word;
+    }
+
+    .chevron-icon {
+        position: absolute;
+        top: 50%;
+        right: 16px;
+        transform: translateY(-50%);
+        width: 2.4rem;
+        height: 2.4rem;
+        pointer-events: none;
     }
 `;
+;// ./src/js/web-components/multiselect/fds-multiselect-opener.js
+
+
+
+const fds_multiselect_opener_sheet = new CSSStyleSheet();
+fds_multiselect_opener_sheet.replaceSync(fds_multiselect_opener_styling_styles);
+const CHEVRON_CLOSED_PATH = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
+const CHEVRON_OPEN_PATH = 'M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z';
+const DEFAULT_PLACEHOLDER = 'Vælg en eller flere';
+class FDSMultiselectOpener extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static formAssociated = true;
+  static observedAttributes = ['placeholder'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get placeholder() {
+    return this.getAttribute('placeholder') ?? DEFAULT_PLACEHOLDER;
+  }
+  set placeholder(value) {
+    value == null ? this.removeAttribute('placeholder') : this.setAttribute('placeholder', value);
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleClick = () => {
+    this.toggle();
+  };
+  #handleKeyDown = event => {
+    switch (event.key) {
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        this.toggle();
+        break;
+      case 'ArrowDown':
+      case 'ArrowUp':
+        event.preventDefault();
+        this.open();
+        break;
+    }
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setChevronPath(path) {
+    const chevronPath = this.shadowRoot.querySelector('.chevron-icon path');
+    if (chevronPath) {
+      chevronPath.setAttribute('d', path);
+    }
+  }
+  #setupHTML() {
+    if (this.shadowRoot.querySelector('.opener-text')) return;
+    const openerText = document.createElement('span');
+    openerText.classList.add('opener-text');
+    this.shadowRoot.appendChild(openerText);
+    const chevronIcon = createSvgIcon(CHEVRON_CLOSED_PATH);
+    chevronIcon.classList.add('chevron-icon');
+    this.shadowRoot.appendChild(chevronIcon);
+  }
+  #addEventListeners() {
+    this.addEventListener('click', this.#handleClick);
+    this.addEventListener('keydown', this.#handleKeyDown);
+  }
+  #removeEventListeners() {
+    this.removeEventListener('click', this.#handleClick);
+    this.removeEventListener('keydown', this.#handleKeyDown);
+  }
+  #init() {
+    this.#setupHTML();
+    this.setAttribute('role', 'combobox');
+    this.setAttribute('aria-haspopup', 'dialog');
+    this.setAttribute('aria-expanded', 'false');
+    this.tabIndex = 0;
+    if (!this.id) {
+      this.id = generateAndVerifyUniqueId('multiselect-opener');
+    }
+    this.#addEventListeners();
+    this.refreshOpener();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [fds_multiselect_opener_sheet];
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  get expanded() {
+    return this.getAttribute('aria-expanded') === 'true';
+  }
+  open() {
+    if (this.expanded) return;
+    this.setAttribute('aria-expanded', 'true');
+    this.#setChevronPath(CHEVRON_OPEN_PATH);
+    this.dispatchEvent(new CustomEvent('fds-multiselect-opener-expanded', {
+      bubbles: true
+    }));
+  }
+  close() {
+    if (!this.expanded) return;
+    this.setAttribute('aria-expanded', 'false');
+    this.#setChevronPath(CHEVRON_CLOSED_PATH);
+    this.dispatchEvent(new CustomEvent('fds-multiselect-opener-collapsed', {
+      bubbles: true
+    }));
+  }
+  toggle() {
+    this.expanded ? this.close() : this.open();
+  }
+  refreshOpener() {
+    const multiselect = this.closest('fds-multiselect');
+    const tags = multiselect?.shadowRoot?.querySelectorAll('.tags .tag') ?? [];
+
+    // Extract label text from each tag
+    const selectedLabels = [];
+    for (const tag of tags) {
+      const labelText = tag.querySelector('.tag-label')?.textContent.trim();
+      if (labelText) {
+        selectedLabels.push(labelText);
+      }
+    }
+    const openerText = this.shadowRoot.querySelector('.opener-text');
+    const hasSelectedOptions = selectedLabels.length > 0;
+    openerText.textContent = hasSelectedOptions ? selectedLabels.join(', ') : this.placeholder;
+    openerText.classList.toggle('sr-only', hasSelectedOptions);
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    if (!this.#initialized) {
+      this.#init();
+    }
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    if (attribute === 'placeholder') {
+      this.refreshOpener();
+    }
+  }
+
+  // #endregion
+}
+function registerMultiselectOpener() {
+  if (!customElements.get('fds-multiselect-opener')) {
+    customElements.define('fds-multiselect-opener', FDSMultiselectOpener);
+  }
+}
+/* harmony default export */ const fds_multiselect_opener = (registerMultiselectOpener);
+;// ./src/js/web-components/multiselect/fds-multiselect-options-styling.js
+const fds_multiselect_options_styling_styles = `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    :host {
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
+    }
+
+    :host(:focus) {
+        outline: 0;
+    }
+
+    ::slotted(fds-multiselect-option) {
+        min-width: 0;
+    }
+
+    :host(:focus) ::slotted(fds-multiselect-option[data-active]) {
+        outline: 3px solid #454545;
+        outline-offset: -3px;
+    }
+`;
+;// ./src/js/web-components/multiselect/fds-multiselect-options.js
+
+
+const fds_multiselect_options_sheet = new CSSStyleSheet();
+fds_multiselect_options_sheet.replaceSync(fds_multiselect_options_styling_styles);
+class FDSMultiselectOptions extends HTMLElement {
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleClick = event => {
+    const option = event.target.closest('fds-multiselect-option');
+    if (!option) return;
+    this.#setActiveOption(option);
+    option.toggle();
+  };
+  #handleFocus = () => {
+    if (this.#getActiveOption()) return;
+    const options = this.querySelectorAll('fds-multiselect-option');
+    if (options.length > 0) {
+      this.#setActiveOption(options[0]);
+    }
+  };
+  #handleKeyDown = event => {
+    const options = Array.from(this.querySelectorAll('fds-multiselect-option'));
+    const active = this.#getActiveOption();
+    const currentIndex = active ? options.indexOf(active) : -1;
+    switch (event.key) {
+      case 'ArrowDown':
+        {
+          event.preventDefault();
+          const nextIndex = Math.min(currentIndex + 1, options.length - 1);
+          this.#setActiveOption(options[nextIndex]);
+          break;
+        }
+      case 'ArrowUp':
+        {
+          event.preventDefault();
+          const previousIndex = currentIndex < 0 ? 0 : Math.max(currentIndex - 1, 0);
+          this.#setActiveOption(options[previousIndex]);
+          break;
+        }
+      case 'Home':
+        event.preventDefault();
+        this.#setActiveOption(options[0]);
+        break;
+      case 'End':
+        event.preventDefault();
+        this.#setActiveOption(options[options.length - 1]);
+        break;
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        if (active) {
+          active.toggle();
+        }
+        break;
+    }
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #getActiveOption() {
+    const activeId = this.getAttribute('aria-activedescendant');
+    if (!activeId) return null;
+    return this.querySelector(`#${activeId}`);
+  }
+  #setActiveOption(option) {
+    if (!option) return;
+    const previous = this.#getActiveOption();
+    if (previous) {
+      previous.removeAttribute('data-active');
+    }
+    option.setAttribute('data-active', '');
+    this.setAttribute('aria-activedescendant', option.id);
+    option.scrollIntoView({
+      block: 'nearest'
+    });
+  }
+  #setupHTML() {
+    if (this.shadowRoot.querySelector('slot')) return;
+
+    // TODO: scroll container, visual only.
+    const slot = document.createElement('slot');
+    this.shadowRoot.appendChild(slot);
+  }
+  #addEventListeners() {
+    this.addEventListener('click', this.#handleClick);
+    this.addEventListener('focus', this.#handleFocus);
+    this.addEventListener('keydown', this.#handleKeyDown);
+  }
+  #removeEventListeners() {
+    this.removeEventListener('click', this.#handleClick);
+    this.removeEventListener('focus', this.#handleFocus);
+    this.removeEventListener('keydown', this.#handleKeyDown);
+  }
+  #init() {
+    this.#setupHTML();
+    this.setAttribute('role', 'listbox');
+    this.setAttribute('aria-multiselectable', 'true');
+    this.tabIndex = 0;
+    if (!this.id) {
+      this.id = generateAndVerifyUniqueId('multiselect-options');
+    }
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [fds_multiselect_options_sheet];
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    if (!this.#initialized) {
+      this.#init();
+    }
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+  }
+
+  // #endregion
+}
+function registerMultiselectOptions() {
+  if (!customElements.get('fds-multiselect-options')) {
+    customElements.define('fds-multiselect-options', FDSMultiselectOptions);
+  }
+}
+/* harmony default export */ const fds_multiselect_options = (registerMultiselectOptions);
+;// ./src/js/web-components/multiselect/fds-multiselect-option-styling.js
+const fds_multiselect_option_styling_styles = `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    :host {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 8px 15px;
+        cursor: pointer;
+        color: var(--color-black);
+        font-size: 1.6rem;
+        line-height: 1.5;
+    }
+
+    :host(:hover) {
+        background-color: var(--color-gray-100);
+    }
+
+    :host(:active) {
+        background-color: var(--color-gray-200);
+    }
+
+    .option-checkbox {
+        flex: 0 0 auto;
+        width: 2.4rem;
+        height: 2.4rem;
+        border: 2px solid var(--color-black);
+        border-radius: 4px;
+        background-color: var(--color-white);
+    }
+
+    .option-checkbox path {
+        display: none;
+    }
+
+    :host([aria-selected="true"]) .option-checkbox {
+        background-color: var(--color-black);
+        border: 0;
+    }
+
+    :host([aria-selected="true"]) .option-checkbox path {
+        display: block;
+        fill: var(--color-white);
+    }
+
+    .option-label {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-wrap: break-word;
+    }
+`;
+;// ./src/js/web-components/multiselect/fds-multiselect-option.js
+
+
+
 const fds_multiselect_option_sheet = new CSSStyleSheet();
-fds_multiselect_option_sheet.replaceSync(fds_multiselect_option_styles);
+fds_multiselect_option_sheet.replaceSync(fds_multiselect_option_styling_styles);
 class FDSMultiselectOption extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['default-selected'];
+
+  // #endregion
+
   // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
   get value() {
@@ -9880,28 +10096,33 @@ class FDSMultiselectOption extends HTMLElement {
 
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
-  #selected = false;
+  #initialized = false;
 
   // #endregion
 
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
-  #isDefaultSelected() {
-    const attr = this.getAttribute('default-selected');
-    if (attr === null) return false;
-    return attr.toLowerCase() !== 'false';
-  }
-  #updateSelected(isSelected) {
-    if (this.#selected === isSelected) return;
-    this.#selected = isSelected;
-    this.setAttribute('data-selected', isSelected ? 'true' : 'false');
-    this.dispatchEvent(new CustomEvent('fds-multiselect-option-change', {
-      bubbles: true,
-      composed: true
-    }));
+  #setupHTML() {
+    if (this.shadowRoot.querySelector('slot')) return;
+    const checkbox = createSvgIcon('M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z');
+    checkbox.classList.add('option-checkbox');
+    this.shadowRoot.appendChild(checkbox);
+    const labelWrapper = document.createElement('span');
+    labelWrapper.classList.add('option-label');
+    const slot = document.createElement('slot');
+    labelWrapper.appendChild(slot);
+    this.shadowRoot.appendChild(labelWrapper);
   }
   #init() {
-    this.#updateSelected(this.#isDefaultSelected());
+    this.#setupHTML();
+    this.setAttribute('role', 'option');
+    if (!this.id) {
+      this.id = generateAndVerifyUniqueId('multiselect-option');
+    }
+    if (!this.hasAttribute('aria-selected')) {
+      this.setAttribute('aria-selected', this.hasAttribute('default-selected') ? 'true' : 'false');
+    }
+    this.#initialized = true;
   }
 
   // #endregion
@@ -9920,17 +10141,29 @@ class FDSMultiselectOption extends HTMLElement {
 
   // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
-  select() {
-    this.#updateSelected(true);
-  }
-  deselect() {
-    this.#updateSelected(false);
+  get selected() {
+    return this.getAttribute('aria-selected') === 'true';
   }
   toggle() {
-    this.#updateSelected(!this.#selected);
+    const willBeSelected = !this.selected;
+    this.setAttribute('aria-selected', willBeSelected ? 'true' : 'false');
+    this.dispatchEvent(new CustomEvent(willBeSelected ? 'fds-multiselect-option-selected' : 'fds-multiselect-option-deselected', {
+      bubbles: true
+    }));
+  }
+  deselect() {
+    if (!this.selected) return;
+    this.setAttribute('aria-selected', 'false');
+    this.dispatchEvent(new CustomEvent('fds-multiselect-option-deselected', {
+      bubbles: true
+    }));
   }
   reset() {
-    this.#updateSelected(this.#isDefaultSelected());
+    const willBeSelected = this.hasAttribute('default-selected');
+    this.setAttribute('aria-selected', willBeSelected ? 'true' : 'false');
+    this.dispatchEvent(new CustomEvent(willBeSelected ? 'fds-multiselect-option-selected' : 'fds-multiselect-option-deselected', {
+      bubbles: true
+    }));
   }
 
   // #endregion
@@ -9938,7 +10171,27 @@ class FDSMultiselectOption extends HTMLElement {
   // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
-    this.#init();
+    if (!this.#initialized) {
+      this.#init();
+    }
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    // TODO: handle default-selected changing after connect, if needed.
   }
 
   // #endregion
@@ -9949,10 +10202,175 @@ function registerMultiselectOption() {
   }
 }
 /* harmony default export */ const fds_multiselect_option = (registerMultiselectOption);
+;// ./src/js/web-components/multiselect/fds-multiselect-dialog-styling.js
+const fds_multiselect_dialog_styling_styles = `
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    :host {
+        display: block;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        max-width: 32rem;
+        max-height: min(440px, 100vh);
+        overflow-y: auto;
+        overflow-x: hidden;
+        z-index: 10;
+        background-color: var(--color-white);
+        border: 1px solid #8E8E8E;
+        border-radius: 8px;
+        margin-top: 4px;
+        padding-top: 7px;
+        padding-bottom: 7px;
+        box-shadow: 0 4px 12px 0 rgba(0, 0, 0, .2);
+    }
+
+    :host([hidden]) {
+        display: none;
+    }
+`;
+;// ./src/js/web-components/multiselect/fds-multiselect-dialog.js
+
+
+const fds_multiselect_dialog_sheet = new CSSStyleSheet();
+fds_multiselect_dialog_sheet.replaceSync(fds_multiselect_dialog_styling_styles);
+const DEFAULT_HEADING = 'Vælg en eller flere muligheder';
+class FDSMultiselectDialog extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['sr-heading'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get srHeading() {
+    return this.getAttribute('sr-heading') ?? DEFAULT_HEADING;
+  }
+  set srHeading(value) {
+    value == null ? this.removeAttribute('sr-heading') : this.setAttribute('sr-heading', value);
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleMouseDown = event => {
+    if (event.target.closest('fds-multiselect-option')) return;
+    // Prevent closing the dialog when something else inside it than fds-multiselect-option is clicked.
+    event.preventDefault();
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    if (this.shadowRoot.querySelector('slot')) return;
+    const slot = document.createElement('slot');
+    this.shadowRoot.appendChild(slot);
+  }
+  #addEventListeners() {
+    this.addEventListener('mousedown', this.#handleMouseDown);
+  }
+  #removeEventListeners() {
+    this.removeEventListener('mousedown', this.#handleMouseDown);
+  }
+  #init() {
+    this.#setupHTML();
+    this.setAttribute('role', 'dialog');
+    this.setAttribute('aria-label', this.srHeading);
+    if (!this.id) {
+      this.id = generateAndVerifyUniqueId('multiselect-dialog');
+    }
+    this.hidden = true;
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
+
+  constructor() {
+    super();
+    this.attachShadow({
+      mode: 'open'
+    });
+    this.shadowRoot.adoptedStyleSheets = [fds_multiselect_dialog_sheet];
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  open() {
+    if (!this.hidden) return;
+    this.hidden = false;
+    this.querySelector('fds-multiselect-options')?.focus();
+  }
+  close() {
+    if (this.hidden) return;
+    this.hidden = true;
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    if (!this.#initialized) {
+      this.#init();
+    }
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    if (attribute === 'sr-heading') {
+      this.setAttribute('aria-label', this.srHeading);
+    }
+  }
+
+  // #endregion
+}
+function registerMultiselectDialog() {
+  if (!customElements.get('fds-multiselect-dialog')) {
+    customElements.define('fds-multiselect-dialog', FDSMultiselectDialog);
+  }
+}
+/* harmony default export */ const fds_multiselect_dialog = (registerMultiselectDialog);
 ;// ./src/js/dkfds-web-components.js
 
 
 // Web Components
+
+
+
 
 
 
@@ -10022,8 +10440,11 @@ const registerCustomElements = () => {
   fds_tab_panel();
   fds_tabs();
   fds_alert();
-  fds_multiselect();
   fds_multiselect_option();
+  fds_multiselect_options();
+  fds_multiselect_opener();
+  fds_multiselect_dialog();
+  fds_multiselect();
 };
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', registerCustomElements);
