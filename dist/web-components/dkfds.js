@@ -9142,7 +9142,7 @@ class FDSMultiselect extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
   static formAssociated = true;
-  static observedAttributes = ['name'];
+  static observedAttributes = ['name', 'sr-tags-label', 'show-required-status', 'aria-required'];
 
   // #endregion
 
@@ -9153,6 +9153,18 @@ class FDSMultiselect extends HTMLElement {
   }
   set name(value) {
     value == null ? this.removeAttribute('name') : this.setAttribute('name', value);
+  }
+  get srTagsLabel() {
+    return this.getAttribute('sr-tags-label');
+  }
+  set srTagsLabel(value) {
+    value == null ? this.removeAttribute('sr-tags-label') : this.setAttribute('sr-tags-label', value);
+  }
+  get showRequiredStatus() {
+    return this.getAttribute('show-required-status');
+  }
+  set showRequiredStatus(value) {
+    value == null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value);
   }
   get value() {
     const values = [];
@@ -9274,6 +9286,7 @@ class FDSMultiselect extends HTMLElement {
     this.#refreshOpener();
     this.#updateTagsGroup();
     this.#updateFormValue();
+    this.#updateValidity();
 
     // Prevent the dialog from changing position on the screen when an option is selected
     if (isOpen) {
@@ -9295,6 +9308,7 @@ class FDSMultiselect extends HTMLElement {
     this.#refreshOpener();
     this.#updateTagsGroup();
     this.#updateFormValue();
+    this.#updateValidity();
     if (isOpen) {
       const rectAfter = dialog.getBoundingClientRect();
       const difference = rectAfter.top - rectBefore.top;
@@ -9302,18 +9316,6 @@ class FDSMultiselect extends HTMLElement {
         this.#getScrollableAncestor().scrollBy(0, difference);
       }
     }
-  }
-  #getScrollableAncestor() {
-    let node = this.parentElement;
-    while (node) {
-      const style = getComputedStyle(node);
-      const isScrollable = (style.overflowY === 'auto' || style.overflowY === 'scroll') && node.scrollHeight > node.clientHeight;
-      if (isScrollable) {
-        return node;
-      }
-      node = node.parentElement;
-    }
-    return document.scrollingElement ?? document.documentElement;
   }
   #constrainTagWidth(tag) {
     const tagLabel = tag.querySelector('.tag-label');
@@ -9360,7 +9362,7 @@ class FDSMultiselect extends HTMLElement {
       return;
     }
     tags.setAttribute('role', 'group');
-    tags.setAttribute('aria-label', `Valgte muligheder for ${label.textContent}`);
+    tags.setAttribute('aria-label', this.srTagsLabel ?? `Valgte muligheder for ${label.textContent}`);
   }
   #updateFormValue() {
     if (!this.name) {
@@ -9372,6 +9374,43 @@ class FDSMultiselect extends HTMLElement {
       formData.append(this.name, value);
     }
     this.#internals.setFormValue(formData);
+  }
+  #updateValidity() {
+    const isRequired = this.hasAttribute('aria-required') && this.getAttribute('aria-required') !== 'false';
+    const hasValue = this.value.length > 0;
+    if (isRequired && !hasValue) {
+      const opener = this.querySelector('fds-multiselect-opener');
+      this.#internals.setValidity({
+        valueMissing: true
+      }, 'Vælg mindst én mulighed', opener);
+    } else {
+      this.#internals.setValidity({});
+    }
+  }
+  #updateRequiredStatus() {
+    const label = this.querySelector('label');
+    if (!label) return;
+    const value = this.getAttribute('show-required-status');
+    if (value === null) {
+      const indicator = label.querySelector(':scope > span.weight-normal');
+      if (indicator) {
+        indicator.remove();
+      }
+      return;
+    }
+    showRequiredStatus(label, this, value);
+  }
+  #getScrollableAncestor() {
+    let node = this.parentElement;
+    while (node) {
+      const style = getComputedStyle(node);
+      const isScrollable = (style.overflowY === 'auto' || style.overflowY === 'scroll') && node.scrollHeight > node.clientHeight;
+      if (isScrollable) {
+        return node;
+      }
+      node = node.parentElement;
+    }
+    return document.scrollingElement ?? document.documentElement;
   }
   #wireRelationships() {
     const label = this.querySelector('label');
@@ -9395,6 +9434,7 @@ class FDSMultiselect extends HTMLElement {
     if (dialog) {
       dialog.setAttribute('slot', 'dialog');
     }
+    this.#updateRequiredStatus();
     for (const sourceOption of this.querySelectorAll('fds-multiselect-option[default-selected]')) {
       this.#addTag(sourceOption);
     }
@@ -9467,6 +9507,7 @@ class FDSMultiselect extends HTMLElement {
     this.#addEventListeners();
     this.#connectMutationObserver();
     this.#updateFormValue();
+    this.#updateValidity();
     this.#initialized = true;
   }
 
@@ -9510,8 +9551,20 @@ class FDSMultiselect extends HTMLElement {
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
     if (oldValue === newValue) return;
-    if (attribute === 'name') {
-      this.#updateFormValue();
+    switch (attribute) {
+      case 'name':
+        this.#updateFormValue();
+        break;
+      case 'sr-tags-label':
+        this.#updateTagsGroup();
+        break;
+      case 'show-required-status':
+        this.#updateRequiredStatus();
+        break;
+      case 'aria-required':
+        this.#updateRequiredStatus();
+        this.#updateValidity();
+        break;
     }
   }
 
