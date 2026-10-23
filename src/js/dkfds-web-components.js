@@ -38,6 +38,7 @@ import registerMultiselect from './web-components/multiselect/fds-multiselect';
 import registerMultiselectOpener from './web-components/multiselect/fds-multiselect-opener';
 import registerMultiselectOptions from './web-components/multiselect/fds-multiselect-options';
 import registerMultiselectOption from './web-components/multiselect/fds-multiselect-option';
+import registerMultiselectDialog from './web-components/multiselect/fds-multiselect-dialog';
 
 const registerCustomElements = () => {
     registerAccordion();
@@ -76,6 +77,7 @@ const registerCustomElements = () => {
     registerMultiselectOption();
     registerMultiselectOptions();
     registerMultiselectOpener();
+    registerMultiselectDialog();
     registerMultiselect();
 };
 
@@ -86,4 +88,4 @@ else {
     registerCustomElements();
 }
 
-export { registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerPortalInfo, registerSolutionInfo, registerDropdownMenu, registerMainMenu, registerTooltip, registerTooltipIcon, registerToggleSwitch, registerModalOpener, registerModalCloser, registerModal, registerTab, registerTabPanel, registerTabs, registerAlert, registerMultiselect, registerMultiselectOpener, registerMultiselectOptions, registerMultiselectOption };
+export { registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerUploadFile, registerFileItem, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerPortalInfo, registerSolutionInfo, registerDropdownMenu, registerMainMenu, registerTooltip, registerTooltipIcon, registerToggleSwitch, registerModalOpener, registerModalCloser, registerModal, registerTab, registerTabPanel, registerTabs, registerAlert, registerMultiselect, registerMultiselectOpener, registerMultiselectDialog, registerMultiselectOptions, registerMultiselectOption };

@@ -33,7 +33,7 @@ export const styles = `
         background-color: var(--color-white);
     }
 
-    :host(:focus-visible) {
+    :host(:focus) {
         outline: 3px solid #454545;
         outline-offset: 1px;
     }

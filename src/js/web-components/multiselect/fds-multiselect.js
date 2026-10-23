@@ -5,8 +5,6 @@ import { styles } from './fds-multiselect-styling';
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(styles);
 
-const DIALOG_LABEL = 'Vælg en eller flere muligheder';
-
 class FDSMultiselect extends HTMLElement {
 
     // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
@@ -20,24 +18,11 @@ class FDSMultiselect extends HTMLElement {
     // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleOpenerExpanded = () => {
-        const dialog = this.shadowRoot.querySelector('.dialog');
-        dialog.hidden = false;
-
-        const options = this.querySelector('fds-multiselect-options');
-        options?.focus();
+        this.querySelector('fds-multiselect-dialog')?.open();
     };
 
     #handleOpenerCollapsed = () => {
-        const dialog = this.shadowRoot.querySelector('.dialog');
-        dialog.hidden = true;
-    };
-
-    #handleOptionsClose = () => {
-        const opener = this.querySelector('fds-multiselect-opener');
-        if (!opener) return;
-
-        opener.close();
-        opener.focus();
+        this.querySelector('fds-multiselect-dialog')?.close();
     };
 
     #handleOptionSelected = (event) => {
@@ -46,6 +31,13 @@ class FDSMultiselect extends HTMLElement {
 
     #handleOptionDeselected = (event) => {
         this.#removeTag(event.target);
+    };
+
+    #handleLabelClick = (event) => {
+        if (!event.target.closest('label')) return;
+        // Prevent the native label click from forwarding to the opener and opening the dialog.
+        event.preventDefault();
+        this.querySelector('fds-multiselect-opener')?.focus();
     };
 
     #handleTagClick = (event) => {
@@ -83,19 +75,19 @@ class FDSMultiselect extends HTMLElement {
         opener?.close();
     };
 
-    #handleDialogMouseDown = (event) => {
-        if (event.target.closest('fds-multiselect-option')) return;
-        // Prevent closing the dialog when something else inside it than fds-multiselect-option is clicked.
+    #handleKeyDown = (event) => {
+        if (event.key !== 'Escape') return;
+
+        const opener = this.querySelector('fds-multiselect-opener');
+        if (!opener?.expanded) return;
+
         event.preventDefault();
+        opener.close();
+        opener.focus();
     };
 
     #handleMutations = () => {
         this.#wireRelationships();
-    };
-
-    #handleWindowLoad = () => {
-        const tags = this.shadowRoot.querySelectorAll('.tag');
-        tags.forEach(tag => this.#constrainTagWidth(tag));
     };
 
     // #endregion
@@ -205,23 +197,23 @@ class FDSMultiselect extends HTMLElement {
     #wireRelationships() {
         const label = this.querySelector('label');
         const opener = this.querySelector('fds-multiselect-opener');
-        const options = this.querySelector('fds-multiselect-options');
+        const dialog = this.querySelector('fds-multiselect-dialog');
 
         if (opener && !opener.id) { opener.id = generateAndVerifyUniqueId('multiselect-opener'); }
-        if (options && !options.id) { options.id = generateAndVerifyUniqueId('multiselect-options'); }
+        if (dialog && !dialog.id) { dialog.id = generateAndVerifyUniqueId('multiselect-dialog'); }
 
         if (label && opener) { label.htmlFor = opener.id; }
-        if (opener && options) { opener.setAttribute('aria-controls', options.id); }
+        if (opener && dialog) { opener.setAttribute('aria-controls', dialog.id); }
 
         if (opener) { opener.setAttribute('slot', 'opener'); }
-        if (options) { options.setAttribute('slot', 'options'); }
+        if (dialog) { dialog.setAttribute('slot', 'dialog'); }
 
         for (const sourceOption of this.querySelectorAll('fds-multiselect-option[default-selected]')) {
             this.#addTag(sourceOption);
         }
     }
 
-    // fds-multiselect-opener may not have been updated yet when called on page load.
+    // fds-multiselect-opener may not have been upgraded yet when called on page load.
     // Ensure refreshOpener is called when the custom element is defined.
     #refreshOpener() {
         customElements.whenDefined('fds-multiselect-opener').then(() => {
@@ -231,7 +223,7 @@ class FDSMultiselect extends HTMLElement {
     }
 
     #setupHTML() {
-        if (this.shadowRoot.querySelector('.dialog')) return;
+        if (this.shadowRoot.querySelector('.opener-wrapper')) return;
 
         const labelSlot = document.createElement('slot');
 
@@ -246,17 +238,10 @@ class FDSMultiselect extends HTMLElement {
 
         openerWrapper.append(openerSlot, tags);
 
-        const dialog = document.createElement('div');
-        dialog.classList.add('dialog');
-        dialog.setAttribute('role', 'dialog');
-        dialog.setAttribute('aria-label', DIALOG_LABEL);
-        dialog.hidden = true;
+        const dialogSlot = document.createElement('slot');
+        dialogSlot.name = 'dialog';
 
-        const optionsSlot = document.createElement('slot');
-        optionsSlot.name = 'options';
-        dialog.appendChild(optionsSlot);
-
-        this.shadowRoot.append(labelSlot, openerWrapper, dialog);
+        this.shadowRoot.append(labelSlot, openerWrapper, dialogSlot);
     }
 
     #connectMutationObserver() {
@@ -272,27 +257,32 @@ class FDSMultiselect extends HTMLElement {
         }
     }
 
+    #handleWindowLoad = () => {
+        const tags = this.shadowRoot.querySelectorAll('.tag');
+        tags.forEach(tag => this.#constrainTagWidth(tag));
+    };
+
     #addEventListeners() {
         this.addEventListener('fds-multiselect-opener-expanded', this.#handleOpenerExpanded);
         this.addEventListener('fds-multiselect-opener-collapsed', this.#handleOpenerCollapsed);
-        this.addEventListener('fds-multiselect-options-close', this.#handleOptionsClose);
         this.addEventListener('fds-multiselect-option-selected', this.#handleOptionSelected);
         this.addEventListener('fds-multiselect-option-deselected', this.#handleOptionDeselected);
+        this.addEventListener('click', this.#handleLabelClick);
         this.addEventListener('focusout', this.#handleFocusOut);
+        this.addEventListener('keydown', this.#handleKeyDown);
         this.shadowRoot.addEventListener('click', this.#handleTagClick);
-        this.shadowRoot.querySelector('.dialog').addEventListener('mousedown', this.#handleDialogMouseDown);
         window.addEventListener('load', this.#handleWindowLoad, { once: true });
     }
 
     #removeEventListeners() {
         this.removeEventListener('fds-multiselect-opener-expanded', this.#handleOpenerExpanded);
         this.removeEventListener('fds-multiselect-opener-collapsed', this.#handleOpenerCollapsed);
-        this.removeEventListener('fds-multiselect-options-close', this.#handleOptionsClose);
         this.removeEventListener('fds-multiselect-option-selected', this.#handleOptionSelected);
         this.removeEventListener('fds-multiselect-option-deselected', this.#handleOptionDeselected);
+        this.removeEventListener('click', this.#handleLabelClick);
         this.removeEventListener('focusout', this.#handleFocusOut);
+        this.removeEventListener('keydown', this.#handleKeyDown);
         this.shadowRoot.removeEventListener('click', this.#handleTagClick);
-        this.shadowRoot.querySelector('.dialog').removeEventListener('mousedown', this.#handleDialogMouseDown);
         window.removeEventListener('load', this.#handleWindowLoad);
     }
 

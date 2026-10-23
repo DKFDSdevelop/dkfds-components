@@ -64,11 +64,6 @@ class FDSMultiselectOptions extends HTMLElement {
                 event.preventDefault();
                 if (active) { active.toggle(); }
                 break;
-
-            case 'Escape':
-                event.preventDefault();
-                this.dispatchEvent(new CustomEvent('fds-multiselect-options-close', { bubbles: true }));
-                break;
         }
     };
 
