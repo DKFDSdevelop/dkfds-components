@@ -73,10 +73,10 @@ const registerCustomElements = () => {
     registerTabPanel();
     registerTabs();
     registerAlert();
-    registerMultiselect();
-    registerMultiselectOpener();
-    registerMultiselectOptions();
     registerMultiselectOption();
+    registerMultiselectOptions();
+    registerMultiselectOpener();
+    registerMultiselect();
 };
 
 if (document.readyState === 'loading') {

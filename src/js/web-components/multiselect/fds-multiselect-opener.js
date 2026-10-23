@@ -56,11 +56,20 @@ class FDSMultiselectOpener extends HTMLElement {
     #setupHTML() {
         if (this.shadowRoot.querySelector('slot')) return;
 
-        const slot = document.createElement('slot');
-        slot.classList.add('opener-text');
-        this.shadowRoot.appendChild(slot);
+        const openerText = document.createElement('span');
+        openerText.classList.add('opener-text');
 
-        // TODO: tags container, visual only.
+        // Create unnamed slot for the "placeholder" text in fds-multiselect-opener
+        const slot = document.createElement('slot');
+        openerText.appendChild(slot);
+
+        this.shadowRoot.appendChild(openerText);
+
+        // Create a screen reader message announcing selected options
+        const selectedOptionsText = document.createElement('span');
+        selectedOptionsText.classList.add('selected-options-text', 'sr-only');
+        this.shadowRoot.appendChild(selectedOptionsText);
+
         const chevronIcon = CE.createSvgIcon(CHEVRON_CLOSED_PATH);
         chevronIcon.classList.add('chevron-icon');
         this.shadowRoot.appendChild(chevronIcon);
@@ -86,6 +95,7 @@ class FDSMultiselectOpener extends HTMLElement {
         if (!this.id) { this.id = generateAndVerifyUniqueId('multiselect-opener'); }
 
         this.#addEventListeners();
+        this.refreshOpener();
         this.#initialized = true;
     }
 
@@ -121,6 +131,34 @@ class FDSMultiselectOpener extends HTMLElement {
 
     toggle() {
         this.expanded ? this.close() : this.open();
+    }
+
+    refreshOpener() {
+        const multiselect = this.closest('fds-multiselect');
+        const tags = multiselect?.shadowRoot?.querySelectorAll('.tags .tag') ?? [];
+
+        // Extract label text from each tag
+        const selectedLabels = [];
+        for (const tag of tags) {
+            const labelText = tag.querySelector('.tag-label')?.textContent.trim();
+
+            if (labelText) {
+                selectedLabels.push(labelText);
+            }
+        }
+
+        // Update the selected options text for screen readers
+        const selectedOptionsText = this.shadowRoot.querySelector('.selected-options-text');
+        selectedOptionsText.textContent = selectedLabels.join(', ');
+
+        // Hide the opener's placeholder text from screen readers when options have been selected
+        const openerText = this.shadowRoot.querySelector('.opener-text');
+        if (selectedLabels.length > 0) {
+            openerText.setAttribute('aria-hidden', 'true');
+        }
+        else {
+            openerText.removeAttribute('aria-hidden');
+        }
     }
 
     // #endregion

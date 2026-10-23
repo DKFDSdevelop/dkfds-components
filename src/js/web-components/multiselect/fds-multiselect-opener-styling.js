@@ -5,6 +5,18 @@ export const styles = `
         box-sizing: border-box;
     }
 
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        border: 0;
+        white-space: nowrap;
+    }
+
     :host {
         position: relative;
         display: flex;
@@ -30,6 +42,10 @@ export const styles = `
         flex: 1 1 auto;
         min-width: 0;
         overflow-wrap: break-word;
+    }
+
+    .opener-text[aria-hidden="true"] {
+        display: none;
     }
 
     .chevron-icon {
