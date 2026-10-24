@@ -34,10 +34,13 @@ class FDSMultiselectOpener extends HTMLElement {
     // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleClick = () => {
+        if (this.hasAttribute('aria-disabled')) return;
         this.toggle();
     };
 
     #handleKeyDown = (event) => {
+        if (this.hasAttribute('aria-disabled')) return;
+        
         switch (event.key) {
             case 'Enter':
             case ' ':
