@@ -1053,7 +1053,7 @@ class FDSHelpText extends HTMLElement {
 
     // During disconnect, the custom element may lose connection to the wrapper.
     // Save the wrapper and use it to dispatch events - otherwise, the events may be lost.
-    this.#parentWrapper = this.closest('fds-input, fds-checkbox, fds-checkbox-group, fds-radio-button, fds-radio-button-group, fds-date-input, fds-upload-file');
+    this.#parentWrapper = this.closest('fds-input, fds-checkbox, fds-checkbox-group, fds-radio-button, fds-radio-button-group, fds-date-input, fds-upload-file, fds-multiselect');
     this.#parentWrapper?.dispatchEvent(new Event('help-text-callback'));
   }
 
@@ -9493,6 +9493,7 @@ class FDSMultiselect extends HTMLElement {
     this.#syncRequiredToOpener();
     this.#updateRequiredStatus();
     this.#syncDisabledState();
+    this.#updateAriaDescribedBy();
     for (const sourceOption of this.querySelectorAll('fds-multiselect-option[default-selected]')) {
       this.#addTag(sourceOption);
     }
@@ -9505,6 +9506,12 @@ class FDSMultiselect extends HTMLElement {
       const opener = this.querySelector('fds-multiselect-opener');
       opener?.refreshOpener();
     });
+  }
+  #updateAriaDescribedBy() {
+    const opener = this.querySelector('fds-multiselect-opener');
+    if (!opener) return;
+    const helpTexts = this.querySelectorAll('fds-help-text');
+    setAriaDescribedBy(opener, [], helpTexts);
   }
   #setupHTML() {
     if (this.shadowRoot.querySelector('.opener-wrapper')) return;
@@ -9525,7 +9532,9 @@ class FDSMultiselect extends HTMLElement {
     this.#mutationObserver = new MutationObserver(this.#handleMutations);
     this.#mutationObserver.observe(this, {
       childList: true,
-      subtree: false
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['hidden', 'aria-hidden', 'id', 'class']
     });
   }
   #disconnectMutationObserver() {

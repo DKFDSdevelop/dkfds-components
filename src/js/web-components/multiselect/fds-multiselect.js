@@ -373,6 +373,7 @@ class FDSMultiselect extends HTMLElement {
         this.#syncRequiredToOpener();
         this.#updateRequiredStatus();
         this.#syncDisabledState();
+        this.#updateAriaDescribedBy();
 
         for (const sourceOption of this.querySelectorAll('fds-multiselect-option[default-selected]')) {
             this.#addTag(sourceOption);
@@ -386,6 +387,14 @@ class FDSMultiselect extends HTMLElement {
             const opener = this.querySelector('fds-multiselect-opener');
             opener?.refreshOpener();
         });
+    }
+
+    #updateAriaDescribedBy() {
+        const opener = this.querySelector('fds-multiselect-opener');
+        if (!opener) return;
+
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        CE.setAriaDescribedBy(opener, [], helpTexts);
     }
 
     #setupHTML() {
@@ -413,7 +422,12 @@ class FDSMultiselect extends HTMLElement {
     #connectMutationObserver() {
         if (this.#mutationObserver) return;
         this.#mutationObserver = new MutationObserver(this.#handleMutations);
-        this.#mutationObserver.observe(this, { childList: true, subtree: false });
+        this.#mutationObserver.observe(this, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['hidden', 'aria-hidden', 'id', 'class']
+        });
     }
 
     #disconnectMutationObserver() {

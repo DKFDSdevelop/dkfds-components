@@ -8164,7 +8164,7 @@ button.accordion-bulk-button[data-accordion-bulk-expand=false]{
   width:calc(100% - 16px - 16px);
 }
 
-.date-picker__button{
+button.date-picker__button{
   border:0;
   border-radius:0;
   font-weight:400;
@@ -8184,7 +8184,7 @@ button.accordion-bulk-button[data-accordion-bulk-expand=false]{
   display:block;
   cursor:pointer;
 }
-.date-picker__button:disabled, .date-picker__button.disabled{
+button.date-picker__button:disabled, button.date-picker__button.disabled{
   opacity:0.25;
   cursor:not-allowed;
 }
