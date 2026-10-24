@@ -91,7 +91,6 @@ class FDSMultiselectOptions extends HTMLElement {
     #setupHTML() {
         if (this.shadowRoot.querySelector('slot')) return;
 
-        // TODO: scroll container, visual only.
         const slot = document.createElement('slot');
         this.shadowRoot.appendChild(slot);
     }

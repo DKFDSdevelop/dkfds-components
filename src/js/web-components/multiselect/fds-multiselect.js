@@ -10,7 +10,7 @@ class FDSMultiselect extends HTMLElement {
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
     static formAssociated = true;
-    static observedAttributes = ['name', 'sr-tags-label', 'show-required-status', 'aria-required'];
+    static observedAttributes = ['name', 'sr-tags-label', 'show-required-status', 'required'];
 
     // #endregion
 
@@ -24,6 +24,9 @@ class FDSMultiselect extends HTMLElement {
 
     get showRequiredStatus() { return this.getAttribute('show-required-status'); }
     set showRequiredStatus(value) { value == null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
+
+    get required() { return this.hasAttribute('required') && this.getAttribute('required') !== 'false'; }
+    set required(value) { value ? this.setAttribute('required', '') : this.removeAttribute('required'); }
 
     get value() {
         const values = [];
@@ -274,10 +277,9 @@ class FDSMultiselect extends HTMLElement {
     }
 
     #updateValidity() {
-        const isRequired = this.hasAttribute('aria-required') && this.getAttribute('aria-required') !== 'false';
         const hasValue = this.value.length > 0;
 
-        if (isRequired && !hasValue) {
+        if (this.required && !hasValue) {
             const opener = this.querySelector('fds-multiselect-opener');
             this.#internals.setValidity({ valueMissing: true }, 'Vælg mindst én mulighed', opener);
         }
@@ -288,7 +290,8 @@ class FDSMultiselect extends HTMLElement {
 
     #updateRequiredStatus() {
         const label = this.querySelector('label');
-        if (!label) return;
+        const opener = this.querySelector('fds-multiselect-opener');
+        if (!label || !opener) return;
 
         const value = this.getAttribute('show-required-status');
 
@@ -298,7 +301,14 @@ class FDSMultiselect extends HTMLElement {
             return;
         }
 
-        CE.showRequiredStatus(label, this, value);
+        CE.showRequiredStatus(label, opener, value);
+    }
+
+    #syncRequiredToOpener() {
+        const opener = this.querySelector('fds-multiselect-opener');
+        if (!opener) return;
+
+        this.required ? opener.setAttribute('aria-required', 'true') : opener.removeAttribute('aria-required');
     }
 
     #getScrollableAncestor() {
@@ -328,6 +338,7 @@ class FDSMultiselect extends HTMLElement {
         if (opener) { opener.setAttribute('slot', 'opener'); }
         if (dialog) { dialog.setAttribute('slot', 'dialog'); }
 
+        this.#syncRequiredToOpener();
         this.#updateRequiredStatus();
 
         for (const sourceOption of this.querySelectorAll('fds-multiselect-option[default-selected]')) {
@@ -463,7 +474,8 @@ class FDSMultiselect extends HTMLElement {
             case 'show-required-status':
                 this.#updateRequiredStatus();
                 break;
-            case 'aria-required':
+            case 'required':
+                this.#syncRequiredToOpener();
                 this.#updateRequiredStatus();
                 this.#updateValidity();
                 break;
