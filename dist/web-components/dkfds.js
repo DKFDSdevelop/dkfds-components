@@ -10056,6 +10056,15 @@ class FDSMultiselectOptions extends HTMLElement {
           active.toggle();
         }
         break;
+      case 'Tab':
+        {
+          if (!event.shiftKey || currentIndex > 0) break;
+          const dialog = this.closest('fds-multiselect-dialog');
+          if (!dialog?.selectAll) break;
+          event.preventDefault();
+          dialog.focusSelectAllCheckbox();
+          break;
+        }
     }
   };
 
@@ -10413,21 +10422,30 @@ class FDSMultiselectDialog extends HTMLElement {
     }
   };
   #handleKeyDown = event => {
-    switch (event.key) {
-      case 'ArrowUp':
-        event.preventDefault();
-        break;
-      case 'ArrowDown':
-        event.preventDefault();
-        this.closest('fds-multiselect')?.querySelector('fds-multiselect-options')?.focus();
-        break;
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      return;
     }
+    const isTabForward = event.key === 'Tab' && !event.shiftKey;
+    if (event.key !== 'ArrowDown' && !isTabForward) return;
+    event.preventDefault();
+    this.#focusOptions();
   };
 
   // #endregion
 
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
+  #focusOptions() {
+    const options = this.querySelector('fds-multiselect-options');
+    if (!options) return;
+    options.focus({
+      preventScroll: true
+    });
+    options.querySelector('[data-active]')?.scrollIntoView({
+      block: 'nearest'
+    });
+  }
   #setupHTML() {
     if (this.shadowRoot.querySelector('slot')) return;
     const slot = document.createElement('slot');
@@ -10502,7 +10520,13 @@ class FDSMultiselectDialog extends HTMLElement {
   }
   focusSelectAllCheckbox() {
     const checkbox = this.shadowRoot.querySelector('.select-all-checkbox');
-    checkbox?.focus();
+    if (!checkbox) return;
+    checkbox.focus({
+      preventScroll: true
+    });
+    checkbox.scrollIntoView({
+      block: 'nearest'
+    });
   }
 
   // #endregion

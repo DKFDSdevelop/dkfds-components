@@ -36,8 +36,8 @@ class FDSMultiselectDialog extends HTMLElement {
         const dialogHit = event.composedPath()[0] === this;
 
         const selectAllHit = event.composedPath()[0].classList.contains('select-all') ||
-                             event.composedPath()[0].classList.contains('select-all-checkbox') ||
-                             event.composedPath()[0].classList.contains('select-all-label');
+            event.composedPath()[0].classList.contains('select-all-checkbox') ||
+            event.composedPath()[0].classList.contains('select-all-label');
 
         if (dialogHit || selectAllHit) {
             // Prevent closing the dialog when something else inside it is clicked.
@@ -47,21 +47,29 @@ class FDSMultiselectDialog extends HTMLElement {
     };
 
     #handleKeyDown = (event) => {
-        switch (event.key) {
-            case 'ArrowUp':
-                event.preventDefault();
-                break;
-
-            case 'ArrowDown':
-                event.preventDefault();
-                this.closest('fds-multiselect')?.querySelector('fds-multiselect-options')?.focus();
-                break;
+        if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            return;
         }
+
+        const isTabForward = event.key === 'Tab' && !event.shiftKey;
+        if (event.key !== 'ArrowDown' && !isTabForward) return;
+
+        event.preventDefault();
+        this.#focusOptions();
     };
 
     // #endregion
 
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+    #focusOptions() {
+        const options = this.querySelector('fds-multiselect-options');
+        if (!options) return;
+
+        options.focus({ preventScroll: true });
+        options.querySelector('[data-active]')?.scrollIntoView({ block: 'nearest' });
+    }
 
     #setupHTML() {
         if (this.shadowRoot.querySelector('slot')) return;
@@ -147,7 +155,10 @@ class FDSMultiselectDialog extends HTMLElement {
 
     focusSelectAllCheckbox() {
         const checkbox = this.shadowRoot.querySelector('.select-all-checkbox');
-        checkbox?.focus();
+        if (!checkbox) return;
+
+        checkbox.focus({ preventScroll: true });
+        checkbox.scrollIntoView({ block: 'nearest' });
     }
 
     // #endregion

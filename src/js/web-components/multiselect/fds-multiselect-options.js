@@ -73,6 +73,17 @@ class FDSMultiselectOptions extends HTMLElement {
                 event.preventDefault();
                 if (active) { active.toggle(); }
                 break;
+
+            case 'Tab': {
+                if (!event.shiftKey || currentIndex > 0) break;
+
+                const dialog = this.closest('fds-multiselect-dialog');
+                if (!dialog?.selectAll) break;
+
+                event.preventDefault();
+                dialog.focusSelectAllCheckbox();
+                break;
+            }
         }
     };
 
