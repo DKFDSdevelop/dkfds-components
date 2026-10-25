@@ -28,4 +28,62 @@ export const styles = `
     :host([hidden]) {
         display: none;
     }
+
+    .select-all {
+        border-bottom: 1px solid var(--color-gray-200);
+        padding-bottom: 7px;
+        margin-bottom: 8px;
+    }
+
+    .select-all-checkbox {
+        position: absolute;
+        opacity: 0;
+        width: 2.4rem;
+        height: 2.4rem;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .select-all-label {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        cursor: pointer;
+        padding: 8px 15px;
+    }
+
+    .select-all-box {
+        flex: 0 0 auto;
+        width: 2.4rem;
+        height: 2.4rem;
+        border: 2px solid var(--color-black);
+        border-radius: 4px;
+        background-color: var(--color-white);
+    }
+
+    .select-all-box .check-icon,
+    .select-all-box .indeterminate-icon {
+        display: none;
+    }
+
+    .select-all-checkbox:focus + .select-all-label {
+        outline: 3px solid #454545;
+        outline-offset: -3px;
+    }
+
+    .select-all-checkbox:checked + .select-all-label .select-all-box,
+    .select-all-checkbox:indeterminate + .select-all-label .select-all-box {
+        background-color: var(--color-black);
+        border: 0;
+    }
+
+    .select-all-checkbox:checked + .select-all-label .select-all-box .check-icon {
+        display: block;
+        fill: var(--color-white);
+    }
+
+    .select-all-checkbox:indeterminate + .select-all-label .select-all-box .indeterminate-icon {
+        display: block;
+        fill: var(--color-white);
+    }
 `;

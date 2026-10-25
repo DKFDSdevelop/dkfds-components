@@ -9514,9 +9514,13 @@ class FDSMultiselect extends HTMLElement {
   // fds-multiselect-opener may not have been upgraded yet when called on page load.
   // Ensure refreshOpener is called when the custom element is defined.
   #refreshOpener() {
+    const opener = this.querySelector('fds-multiselect-opener');
+    if (typeof opener?.refreshOpener === 'function') {
+      opener.refreshOpener();
+      return;
+    }
     customElements.whenDefined('fds-multiselect-opener').then(() => {
-      const opener = this.querySelector('fds-multiselect-opener');
-      opener?.refreshOpener();
+      this.querySelector('fds-multiselect-opener')?.refreshOpener();
     });
   }
   #notifySummaryOnceOpenerReady() {
@@ -10373,8 +10377,67 @@ const fds_multiselect_dialog_styling_styles = `
     :host([hidden]) {
         display: none;
     }
+
+    .select-all {
+        border-bottom: 1px solid var(--color-gray-200);
+        padding-bottom: 7px;
+        margin-bottom: 8px;
+    }
+
+    .select-all-checkbox {
+        position: absolute;
+        opacity: 0;
+        width: 2.4rem;
+        height: 2.4rem;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .select-all-label {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        cursor: pointer;
+        padding: 8px 15px;
+    }
+
+    .select-all-box {
+        flex: 0 0 auto;
+        width: 2.4rem;
+        height: 2.4rem;
+        border: 2px solid var(--color-black);
+        border-radius: 4px;
+        background-color: var(--color-white);
+    }
+
+    .select-all-box .check-icon,
+    .select-all-box .indeterminate-icon {
+        display: none;
+    }
+
+    .select-all-checkbox:focus + .select-all-label {
+        outline: 3px solid #454545;
+        outline-offset: -3px;
+    }
+
+    .select-all-checkbox:checked + .select-all-label .select-all-box,
+    .select-all-checkbox:indeterminate + .select-all-label .select-all-box {
+        background-color: var(--color-black);
+        border: 0;
+    }
+
+    .select-all-checkbox:checked + .select-all-label .select-all-box .check-icon {
+        display: block;
+        fill: var(--color-white);
+    }
+
+    .select-all-checkbox:indeterminate + .select-all-label .select-all-box .indeterminate-icon {
+        display: block;
+        fill: var(--color-white);
+    }
 `;
 ;// ./src/js/web-components/multiselect/fds-multiselect-dialog.js
+
 
 
 const fds_multiselect_dialog_sheet = new CSSStyleSheet();
@@ -10383,7 +10446,7 @@ const DEFAULT_HEADING = 'Vælg en eller flere muligheder';
 class FDSMultiselectDialog extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['sr-heading'];
+  static observedAttributes = ['sr-heading', 'select-all'];
 
   // #endregion
 
@@ -10414,7 +10477,7 @@ class FDSMultiselectDialog extends HTMLElement {
 
   #handleMouseDown = event => {
     const dialogHit = event.composedPath()[0] === this;
-    const selectAllHit = event.composedPath()[0].classList.contains('select-all') || event.composedPath()[0].classList.contains('select-all-checkbox') || event.composedPath()[0].classList.contains('select-all-label');
+    const selectAllHit = event.composedPath()[0].closest('.select-all');
     if (dialogHit || selectAllHit) {
       // Prevent closing the dialog when something else inside it is clicked.
       event.preventDefault();
@@ -10430,6 +10493,18 @@ class FDSMultiselectDialog extends HTMLElement {
     if (event.key !== 'ArrowDown' && !isTabForward) return;
     event.preventDefault();
     this.#focusOptions();
+  };
+  #handleSelectAllChange = event => {
+    const shouldSelectAll = event.target.checked;
+    for (const option of this.querySelectorAll('fds-multiselect-option')) {
+      if (option.selected !== shouldSelectAll) {
+        option.toggle();
+      }
+    }
+    this.#updateSelectAllState();
+  };
+  #handleOptionSelectedOrDeselected = () => {
+    this.#updateSelectAllState();
   };
 
   // #endregion
@@ -10465,21 +10540,46 @@ class FDSMultiselectDialog extends HTMLElement {
       checkbox.classList.add('select-all-checkbox');
       const checkboxId = generateAndVerifyUniqueId('select-all-checkbox');
       checkbox.id = checkboxId;
+      // Attached here so the listener is correctly wired even if the checkbox is (re)created later.
+      checkbox.addEventListener('change', this.#handleSelectAllChange);
+      const box = document.createElement('span');
+      box.classList.add('select-all-box');
+      const checkIcon = createSvgIcon('M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z');
+      checkIcon.classList.add('check-icon');
+      const indeterminateIcon = createSvgIcon('M200-440v-80h560v80H200Z');
+      indeterminateIcon.classList.add('indeterminate-icon');
+      box.append(checkIcon, indeterminateIcon);
       const label = document.createElement('label');
       label.htmlFor = checkboxId;
       label.classList.add('select-all-label');
-      label.textContent = 'Vælg alle';
+      const text = document.createElement('span');
+      text.textContent = 'Vælg alle';
+      label.append(box, text);
       wrapper.append(checkbox, label);
+      // Attached here so the listener is correctly wired even if the checkbox is (re)created later.
+      wrapper.addEventListener('keydown', this.#handleKeyDown);
       this.shadowRoot.insertBefore(wrapper, this.shadowRoot.querySelector('slot'));
     }
+    this.#updateSelectAllState();
+  }
+  #updateSelectAllState() {
+    const checkbox = this.shadowRoot.querySelector('.select-all-checkbox');
+    if (!checkbox) return;
+    const options = Array.from(this.querySelectorAll('fds-multiselect-option'));
+    const total = options.length;
+    const selectedCount = options.filter(option => option.selected).length;
+    checkbox.checked = total > 0 && selectedCount === total;
+    checkbox.indeterminate = selectedCount > 0 && selectedCount < total;
   }
   #addEventListeners() {
     this.addEventListener('mousedown', this.#handleMouseDown);
-    this.shadowRoot.querySelector('.select-all')?.addEventListener('keydown', this.#handleKeyDown);
+    this.addEventListener('fds-multiselect-option-selected', this.#handleOptionSelectedOrDeselected);
+    this.addEventListener('fds-multiselect-option-deselected', this.#handleOptionSelectedOrDeselected);
   }
   #removeEventListeners() {
     this.removeEventListener('mousedown', this.#handleMouseDown);
-    this.shadowRoot.querySelector('.select-all')?.removeEventListener('keydown', this.#handleKeyDown);
+    this.removeEventListener('fds-multiselect-option-selected', this.#handleOptionSelectedOrDeselected);
+    this.removeEventListener('fds-multiselect-option-deselected', this.#handleOptionSelectedOrDeselected);
   }
   #init() {
     this.#setupHTML();
@@ -10513,6 +10613,7 @@ class FDSMultiselectDialog extends HTMLElement {
   open() {
     if (!this.hidden) return;
     this.hidden = false;
+    this.#updateSelectAllState();
   }
   close() {
     if (this.hidden) return;

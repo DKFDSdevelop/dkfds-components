@@ -1,4 +1,5 @@
 import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
+import * as CE from '../custom-element-utils';
 import { styles } from './fds-multiselect-dialog-styling';
 
 const sheet = new CSSStyleSheet();
@@ -10,7 +11,7 @@ class FDSMultiselectDialog extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-    static observedAttributes = ['sr-heading'];
+    static observedAttributes = ['sr-heading', 'select-all'];
 
     // #endregion
 
@@ -35,9 +36,7 @@ class FDSMultiselectDialog extends HTMLElement {
     #handleMouseDown = (event) => {
         const dialogHit = event.composedPath()[0] === this;
 
-        const selectAllHit = event.composedPath()[0].classList.contains('select-all') ||
-            event.composedPath()[0].classList.contains('select-all-checkbox') ||
-            event.composedPath()[0].classList.contains('select-all-label');
+        const selectAllHit = event.composedPath()[0].closest('.select-all');
 
         if (dialogHit || selectAllHit) {
             // Prevent closing the dialog when something else inside it is clicked.
@@ -57,6 +56,20 @@ class FDSMultiselectDialog extends HTMLElement {
 
         event.preventDefault();
         this.#focusOptions();
+    };
+
+    #handleSelectAllChange = (event) => {
+        const shouldSelectAll = event.target.checked;
+
+        for (const option of this.querySelectorAll('fds-multiselect-option')) {
+            if (option.selected !== shouldSelectAll) { option.toggle(); }
+        }
+
+        this.#updateSelectAllState();
+    };
+
+    #handleOptionSelectedOrDeselected = () => {
+        this.#updateSelectAllState();
     };
 
     // #endregion
@@ -95,25 +108,60 @@ class FDSMultiselectDialog extends HTMLElement {
             checkbox.classList.add('select-all-checkbox');
             const checkboxId = generateAndVerifyUniqueId('select-all-checkbox');
             checkbox.id = checkboxId;
+            // Attached here so the listener is correctly wired even if the checkbox is (re)created later.
+            checkbox.addEventListener('change', this.#handleSelectAllChange);
+
+            const box = document.createElement('span');
+            box.classList.add('select-all-box');
+
+            const checkIcon = CE.createSvgIcon('M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z');
+            checkIcon.classList.add('check-icon');
+
+            const indeterminateIcon = CE.createSvgIcon('M200-440v-80h560v80H200Z');
+            indeterminateIcon.classList.add('indeterminate-icon');
+
+            box.append(checkIcon, indeterminateIcon);
 
             const label = document.createElement('label');
             label.htmlFor = checkboxId;
             label.classList.add('select-all-label');
-            label.textContent = 'Vælg alle';
 
+            const text = document.createElement('span');
+            text.textContent = 'Vælg alle';
+
+            label.append(box, text);
             wrapper.append(checkbox, label);
+            // Attached here so the listener is correctly wired even if the checkbox is (re)created later.
+            wrapper.addEventListener('keydown', this.#handleKeyDown);
+
             this.shadowRoot.insertBefore(wrapper, this.shadowRoot.querySelector('slot'));
         }
+
+        this.#updateSelectAllState();
+    }
+
+    #updateSelectAllState() {
+        const checkbox = this.shadowRoot.querySelector('.select-all-checkbox');
+        if (!checkbox) return;
+
+        const options = Array.from(this.querySelectorAll('fds-multiselect-option'));
+        const total = options.length;
+        const selectedCount = options.filter(option => option.selected).length;
+
+        checkbox.checked = total > 0 && selectedCount === total;
+        checkbox.indeterminate = selectedCount > 0 && selectedCount < total;
     }
 
     #addEventListeners() {
         this.addEventListener('mousedown', this.#handleMouseDown);
-        this.shadowRoot.querySelector('.select-all')?.addEventListener('keydown', this.#handleKeyDown);
+        this.addEventListener('fds-multiselect-option-selected', this.#handleOptionSelectedOrDeselected);
+        this.addEventListener('fds-multiselect-option-deselected', this.#handleOptionSelectedOrDeselected);
     }
 
     #removeEventListeners() {
         this.removeEventListener('mousedown', this.#handleMouseDown);
-        this.shadowRoot.querySelector('.select-all')?.removeEventListener('keydown', this.#handleKeyDown);
+        this.removeEventListener('fds-multiselect-option-selected', this.#handleOptionSelectedOrDeselected);
+        this.removeEventListener('fds-multiselect-option-deselected', this.#handleOptionSelectedOrDeselected);
     }
 
     #init() {
@@ -146,6 +194,7 @@ class FDSMultiselectDialog extends HTMLElement {
     open() {
         if (!this.hidden) return;
         this.hidden = false;
+        this.#updateSelectAllState();
     }
 
     close() {

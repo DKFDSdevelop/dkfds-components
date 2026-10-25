@@ -394,9 +394,14 @@ class FDSMultiselect extends HTMLElement {
     // fds-multiselect-opener may not have been upgraded yet when called on page load.
     // Ensure refreshOpener is called when the custom element is defined.
     #refreshOpener() {
+        const opener = this.querySelector('fds-multiselect-opener');
+        if (typeof opener?.refreshOpener === 'function') {
+            opener.refreshOpener();
+            return;
+        }
+
         customElements.whenDefined('fds-multiselect-opener').then(() => {
-            const opener = this.querySelector('fds-multiselect-opener');
-            opener?.refreshOpener();
+            this.querySelector('fds-multiselect-opener')?.refreshOpener();
         });
     }
 
