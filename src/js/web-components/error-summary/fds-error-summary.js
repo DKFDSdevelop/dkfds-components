@@ -9,7 +9,8 @@ const ERROR_WRAPPER_SELECTORS = [
     'fds-textarea',
     'fds-select',
     'fds-upload-file',
-    'fds-date-picker'
+    'fds-date-picker',
+    'fds-multiselect'
 ];
 
 const ERROR_WRAPPER_SELECTOR = ERROR_WRAPPER_SELECTORS.join(', ');

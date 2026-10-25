@@ -1452,7 +1452,7 @@ class FDSErrorMessage extends HTMLElement {
     }
 
     // Save reference to parent wrapper
-    this.#parentWrapper = this.closest('fds-input, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input, fds-textarea, fds-select, fds-upload-file, fds-date-picker');
+    this.#parentWrapper = this.closest('fds-input, fds-checkbox, fds-checkbox-group, fds-radio-button-group, fds-date-input, fds-textarea, fds-select, fds-upload-file, fds-date-picker, fds-multiselect');
     this.#dispatchErrorMessageCallback();
   }
 
@@ -5376,7 +5376,7 @@ function registerTextarea() {
 /* harmony default export */ const fds_textarea = (registerTextarea);
 ;// ./src/js/web-components/error-summary/fds-error-summary.js
 
-const ERROR_WRAPPER_SELECTORS = ['fds-input', 'fds-checkbox', 'fds-checkbox-group', 'fds-radio-button-group', 'fds-date-input', 'fds-textarea', 'fds-select', 'fds-upload-file', 'fds-date-picker'];
+const ERROR_WRAPPER_SELECTORS = ['fds-input', 'fds-checkbox', 'fds-checkbox-group', 'fds-radio-button-group', 'fds-date-input', 'fds-textarea', 'fds-select', 'fds-upload-file', 'fds-date-picker', 'fds-multiselect'];
 const ERROR_WRAPPER_SELECTOR = ERROR_WRAPPER_SELECTORS.join(', ');
 const ERROR_MESSAGE_SELECTOR = ERROR_WRAPPER_SELECTORS.map(selector => `${selector} fds-error-message`).join(', ');
 class FDSErrorSummary extends HTMLElement {
@@ -9275,7 +9275,15 @@ class FDSMultiselect extends HTMLElement {
       event.preventDefault();
     }
   };
-  #handleMutations = () => {
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target
+    } of records) {
+      if (attributeName === 'hidden' && target === this) {
+        notifySummaryOnVisibilityChange(this);
+      }
+    }
     this.#wireRelationships();
   };
   #handleWindowLoad = () => {
@@ -9490,6 +9498,9 @@ class FDSMultiselect extends HTMLElement {
     if (dialog) {
       dialog.setAttribute('slot', 'dialog');
     }
+    for (const errorMessage of this.querySelectorAll('fds-error-message')) {
+      errorMessage.setAttribute('slot', 'error');
+    }
     this.#syncRequiredToOpener();
     this.#updateRequiredStatus();
     this.#syncDisabledState();
@@ -9507,11 +9518,18 @@ class FDSMultiselect extends HTMLElement {
       opener?.refreshOpener();
     });
   }
+  #notifySummaryOnceOpenerReady() {
+    customElements.whenDefined('fds-multiselect-opener').then(() => {
+      notifySummaryOnVisibilityChange(this);
+    });
+  }
   #updateAriaDescribedBy() {
     const opener = this.querySelector('fds-multiselect-opener');
     if (!opener) return;
+    const errorMessages = this.querySelectorAll('fds-error-message');
     const helpTexts = this.querySelectorAll('fds-help-text');
-    setAriaDescribedBy(opener, [], helpTexts);
+    setAriaDescribedBy(opener, errorMessages, helpTexts);
+    setInvalid(opener, errorMessages);
   }
   #setupHTML() {
     if (this.shadowRoot.querySelector('.opener-wrapper')) return;
@@ -9522,10 +9540,12 @@ class FDSMultiselect extends HTMLElement {
     openerSlot.name = 'opener';
     const tags = document.createElement('div');
     tags.classList.add('tags');
-    openerWrapper.append(openerSlot, tags);
     const dialogSlot = document.createElement('slot');
     dialogSlot.name = 'dialog';
-    this.shadowRoot.append(labelSlot, openerWrapper, dialogSlot);
+    openerWrapper.append(openerSlot, tags, dialogSlot);
+    const errorSlot = document.createElement('slot');
+    errorSlot.name = 'error';
+    this.shadowRoot.append(labelSlot, openerWrapper, errorSlot);
   }
   #connectMutationObserver() {
     if (this.#mutationObserver) return;
@@ -9577,6 +9597,7 @@ class FDSMultiselect extends HTMLElement {
     this.#connectMutationObserver();
     this.#updateFormValue();
     this.#updateValidity();
+    this.#notifySummaryOnceOpenerReady();
     this.#initialized = true;
   }
 
@@ -9608,6 +9629,7 @@ class FDSMultiselect extends HTMLElement {
   // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
+    notifySummaryOnDisconnect(this);
     this.#removeEventListeners();
     this.#disconnectMutationObserver();
     this.#initialized = false;
@@ -9728,6 +9750,15 @@ const fds_multiselect_opener_styling_styles = `
 
     :host([aria-disabled="true"]) .chevron-icon {
         fill: #8E8E8E;
+    }
+
+    :host([aria-invalid="true"]) {
+        border: 2px solid var(--color-error);
+        padding: 6px 46px 6px 14px;
+    }
+
+    :host([aria-invalid="true"]) .chevron-icon {
+        right: 15px;
     }
 `;
 ;// ./src/js/web-components/multiselect/fds-multiselect-opener.js

@@ -131,7 +131,12 @@ class FDSMultiselect extends HTMLElement {
         }
     };
 
-    #handleMutations = () => {
+    #handleMutations = (records) => {
+        for (const { attributeName, target } of records) {
+            if (attributeName === 'hidden' && target === this) {
+                CE.notifySummaryOnVisibilityChange(this);
+            }
+        }
         this.#wireRelationships();
     };
 
@@ -370,6 +375,10 @@ class FDSMultiselect extends HTMLElement {
         if (opener) { opener.setAttribute('slot', 'opener'); }
         if (dialog) { dialog.setAttribute('slot', 'dialog'); }
 
+        for (const errorMessage of this.querySelectorAll('fds-error-message')) {
+            errorMessage.setAttribute('slot', 'error');
+        }
+
         this.#syncRequiredToOpener();
         this.#updateRequiredStatus();
         this.#syncDisabledState();
@@ -389,12 +398,20 @@ class FDSMultiselect extends HTMLElement {
         });
     }
 
+    #notifySummaryOnceOpenerReady() {
+        customElements.whenDefined('fds-multiselect-opener').then(() => {
+            CE.notifySummaryOnVisibilityChange(this);
+        });
+    }
+
     #updateAriaDescribedBy() {
         const opener = this.querySelector('fds-multiselect-opener');
         if (!opener) return;
 
+        const errorMessages = this.querySelectorAll('fds-error-message');
         const helpTexts = this.querySelectorAll('fds-help-text');
-        CE.setAriaDescribedBy(opener, [], helpTexts);
+        CE.setAriaDescribedBy(opener, errorMessages, helpTexts);
+        CE.setInvalid(opener, errorMessages);
     }
 
     #setupHTML() {
@@ -411,12 +428,15 @@ class FDSMultiselect extends HTMLElement {
         const tags = document.createElement('div');
         tags.classList.add('tags');
 
-        openerWrapper.append(openerSlot, tags);
-
         const dialogSlot = document.createElement('slot');
         dialogSlot.name = 'dialog';
 
-        this.shadowRoot.append(labelSlot, openerWrapper, dialogSlot);
+        openerWrapper.append(openerSlot, tags, dialogSlot);
+
+        const errorSlot = document.createElement('slot');
+        errorSlot.name = 'error';
+
+        this.shadowRoot.append(labelSlot, openerWrapper, errorSlot);
     }
 
     #connectMutationObserver() {
@@ -472,6 +492,7 @@ class FDSMultiselect extends HTMLElement {
         this.#connectMutationObserver();
         this.#updateFormValue();
         this.#updateValidity();
+        this.#notifySummaryOnceOpenerReady();
 
         this.#initialized = true;
     }
@@ -500,6 +521,7 @@ class FDSMultiselect extends HTMLElement {
     // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
+        CE.notifySummaryOnDisconnect(this);
         this.#removeEventListeners();
         this.#disconnectMutationObserver();
         this.#initialized = false;

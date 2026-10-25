@@ -63,4 +63,13 @@ export const styles = `
     :host([aria-disabled="true"]) .chevron-icon {
         fill: #8E8E8E;
     }
+
+    :host([aria-invalid="true"]) {
+        border: 2px solid var(--color-error);
+        padding: 6px 46px 6px 14px;
+    }
+
+    :host([aria-invalid="true"]) .chevron-icon {
+        right: 15px;
+    }
 `;
