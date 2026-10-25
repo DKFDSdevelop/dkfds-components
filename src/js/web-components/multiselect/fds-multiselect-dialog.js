@@ -83,7 +83,6 @@ class FDSMultiselectDialog extends HTMLElement {
     open() {
         if (!this.hidden) return;
         this.hidden = false;
-        this.querySelector('fds-multiselect-options')?.focus();
     }
 
     close() {

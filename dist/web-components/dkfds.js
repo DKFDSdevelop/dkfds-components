@@ -9812,7 +9812,11 @@ class FDSMultiselectOpener extends HTMLElement {
       case 'ArrowDown':
       case 'ArrowUp':
         event.preventDefault();
-        this.open();
+        if (this.expanded) {
+          this.closest('fds-multiselect')?.querySelector('fds-multiselect-options')?.focus();
+        } else {
+          this.open();
+        }
         break;
     }
   };
@@ -10434,7 +10438,6 @@ class FDSMultiselectDialog extends HTMLElement {
   open() {
     if (!this.hidden) return;
     this.hidden = false;
-    this.querySelector('fds-multiselect-options')?.focus();
   }
   close() {
     if (this.hidden) return;

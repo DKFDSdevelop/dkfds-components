@@ -40,7 +40,7 @@ class FDSMultiselectOpener extends HTMLElement {
 
     #handleKeyDown = (event) => {
         if (this.hasAttribute('aria-disabled')) return;
-        
+
         switch (event.key) {
             case 'Enter':
             case ' ':
@@ -51,7 +51,12 @@ class FDSMultiselectOpener extends HTMLElement {
             case 'ArrowDown':
             case 'ArrowUp':
                 event.preventDefault();
-                this.open();
+                if (this.expanded) {
+                    this.closest('fds-multiselect')?.querySelector('fds-multiselect-options')?.focus();
+                }
+                else {
+                    this.open();
+                }
                 break;
         }
     };
