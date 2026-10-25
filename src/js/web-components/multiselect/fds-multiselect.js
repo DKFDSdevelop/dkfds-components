@@ -70,7 +70,9 @@ class FDSMultiselect extends HTMLElement {
     };
 
     #handleLabelClick = (event) => {
-        const isLabelClick = event.composedPath().some(node => node.nodeName === 'LABEL');
+        const target = event.composedPath()[0];
+        const isLabelClick = target.tagName === 'LABEL' && !target.classList.contains('select-all-label');
+
         if (!isLabelClick) return;
 
         event.preventDefault();
@@ -107,7 +109,7 @@ class FDSMultiselect extends HTMLElement {
         const relatedTarget = event.relatedTarget;
 
         // Ensure the opener only closes when something outside the multiselect gets focus.
-        const stillInside = relatedTarget && (this.contains(relatedTarget) || this.shadowRoot.contains(relatedTarget));
+        const stillInside = relatedTarget && this.contains(relatedTarget);
         if (stillInside) return;
 
         const opener = this.querySelector('fds-multiselect-opener');

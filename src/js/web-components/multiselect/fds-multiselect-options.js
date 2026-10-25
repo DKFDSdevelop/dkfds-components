@@ -44,6 +44,15 @@ class FDSMultiselectOptions extends HTMLElement {
 
             case 'ArrowUp': {
                 event.preventDefault();
+
+                if (currentIndex <= 0) {
+                    const dialog = this.closest('fds-multiselect-dialog');
+                    if (dialog?.selectAll) {
+                        dialog.focusSelectAllCheckbox();
+                        break;
+                    }
+                }
+
                 const previousIndex = currentIndex < 0 ? 0 : Math.max(currentIndex - 1, 0);
                 this.#setActiveOption(options[previousIndex]);
                 break;

@@ -51,7 +51,12 @@ class FDSMultiselectOpener extends HTMLElement {
             case 'ArrowDown':
             case 'ArrowUp':
                 event.preventDefault();
-                if (this.expanded) {
+                const dialog = this.closest('fds-multiselect')?.querySelector('fds-multiselect-dialog');
+
+                if (this.expanded && dialog?.hasAttribute('select-all')) {
+                    dialog.focusSelectAllCheckbox();
+                }
+                else if (this.expanded) {
                     this.closest('fds-multiselect')?.querySelector('fds-multiselect-options')?.focus();
                 }
                 else {

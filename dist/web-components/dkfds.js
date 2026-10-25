@@ -9229,7 +9229,8 @@ class FDSMultiselect extends HTMLElement {
     this.#removeTag(event.target);
   };
   #handleLabelClick = event => {
-    const isLabelClick = event.composedPath().some(node => node.nodeName === 'LABEL');
+    const target = event.composedPath()[0];
+    const isLabelClick = target.tagName === 'LABEL' && !target.classList.contains('select-all-label');
     if (!isLabelClick) return;
     event.preventDefault();
     if (this.disabled) return;
@@ -9257,7 +9258,7 @@ class FDSMultiselect extends HTMLElement {
     const relatedTarget = event.relatedTarget;
 
     // Ensure the opener only closes when something outside the multiselect gets focus.
-    const stillInside = relatedTarget && (this.contains(relatedTarget) || this.shadowRoot.contains(relatedTarget));
+    const stillInside = relatedTarget && this.contains(relatedTarget);
     if (stillInside) return;
     const opener = this.querySelector('fds-multiselect-opener');
     opener?.close();
@@ -9812,7 +9813,10 @@ class FDSMultiselectOpener extends HTMLElement {
       case 'ArrowDown':
       case 'ArrowUp':
         event.preventDefault();
-        if (this.expanded) {
+        const dialog = this.closest('fds-multiselect')?.querySelector('fds-multiselect-dialog');
+        if (this.expanded && dialog?.hasAttribute('select-all')) {
+          dialog.focusSelectAllCheckbox();
+        } else if (this.expanded) {
           this.closest('fds-multiselect')?.querySelector('fds-multiselect-options')?.focus();
         } else {
           this.open();
@@ -10026,6 +10030,13 @@ class FDSMultiselectOptions extends HTMLElement {
       case 'ArrowUp':
         {
           event.preventDefault();
+          if (currentIndex <= 0) {
+            const dialog = this.closest('fds-multiselect-dialog');
+            if (dialog?.selectAll) {
+              dialog.focusSelectAllCheckbox();
+              break;
+            }
+          }
           const previousIndex = currentIndex < 0 ? 0 : Math.max(currentIndex - 1, 0);
           this.#setActiveOption(options[previousIndex]);
           break;
@@ -10375,6 +10386,12 @@ class FDSMultiselectDialog extends HTMLElement {
   set srHeading(value) {
     value == null ? this.removeAttribute('sr-heading') : this.setAttribute('sr-heading', value);
   }
+  get selectAll() {
+    return this.hasAttribute('select-all');
+  }
+  set selectAll(value) {
+    value ? this.setAttribute('select-all', '') : this.removeAttribute('select-all');
+  }
 
   // #endregion
 
@@ -10387,9 +10404,24 @@ class FDSMultiselectDialog extends HTMLElement {
   // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
   #handleMouseDown = event => {
-    if (event.target.closest('fds-multiselect-option')) return;
-    // Prevent closing the dialog when something else inside it than fds-multiselect-option is clicked.
-    event.preventDefault();
+    const dialogHit = event.composedPath()[0] === this;
+    const selectAllHit = event.composedPath()[0].classList.contains('select-all') || event.composedPath()[0].classList.contains('select-all-checkbox') || event.composedPath()[0].classList.contains('select-all-label');
+    if (dialogHit || selectAllHit) {
+      // Prevent closing the dialog when something else inside it is clicked.
+      event.preventDefault();
+      return;
+    }
+  };
+  #handleKeyDown = event => {
+    switch (event.key) {
+      case 'ArrowUp':
+        event.preventDefault();
+        break;
+      case 'ArrowDown':
+        event.preventDefault();
+        this.closest('fds-multiselect')?.querySelector('fds-multiselect-options')?.focus();
+        break;
+    }
   };
 
   // #endregion
@@ -10401,14 +10433,39 @@ class FDSMultiselectDialog extends HTMLElement {
     const slot = document.createElement('slot');
     this.shadowRoot.appendChild(slot);
   }
+  #updateSelectAllCheckbox() {
+    let wrapper = this.shadowRoot.querySelector('.select-all');
+    if (!this.selectAll) {
+      wrapper?.remove();
+      return;
+    }
+    if (!wrapper) {
+      wrapper = document.createElement('div');
+      wrapper.classList.add('select-all');
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.classList.add('select-all-checkbox');
+      const checkboxId = generateAndVerifyUniqueId('select-all-checkbox');
+      checkbox.id = checkboxId;
+      const label = document.createElement('label');
+      label.htmlFor = checkboxId;
+      label.classList.add('select-all-label');
+      label.textContent = 'Vælg alle';
+      wrapper.append(checkbox, label);
+      this.shadowRoot.insertBefore(wrapper, this.shadowRoot.querySelector('slot'));
+    }
+  }
   #addEventListeners() {
     this.addEventListener('mousedown', this.#handleMouseDown);
+    this.shadowRoot.querySelector('.select-all')?.addEventListener('keydown', this.#handleKeyDown);
   }
   #removeEventListeners() {
     this.removeEventListener('mousedown', this.#handleMouseDown);
+    this.shadowRoot.querySelector('.select-all')?.removeEventListener('keydown', this.#handleKeyDown);
   }
   #init() {
     this.#setupHTML();
+    this.#updateSelectAllCheckbox();
     this.setAttribute('role', 'dialog');
     this.setAttribute('aria-label', this.srHeading);
     if (!this.id) {
@@ -10443,6 +10500,10 @@ class FDSMultiselectDialog extends HTMLElement {
     if (this.hidden) return;
     this.hidden = true;
   }
+  focusSelectAllCheckbox() {
+    const checkbox = this.shadowRoot.querySelector('.select-all-checkbox');
+    checkbox?.focus();
+  }
 
   // #endregion
 
@@ -10470,8 +10531,13 @@ class FDSMultiselectDialog extends HTMLElement {
   attributeChangedCallback(attribute, oldValue, newValue) {
     if (!this.#initialized) return;
     if (oldValue === newValue) return;
-    if (attribute === 'sr-heading') {
-      this.setAttribute('aria-label', this.srHeading);
+    switch (attribute) {
+      case 'sr-heading':
+        this.setAttribute('aria-label', this.srHeading);
+        break;
+      case 'select-all':
+        this.#updateSelectAllCheckbox();
+        break;
     }
   }
 

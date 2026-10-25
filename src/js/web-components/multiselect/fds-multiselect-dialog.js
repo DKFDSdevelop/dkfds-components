@@ -19,6 +19,9 @@ class FDSMultiselectDialog extends HTMLElement {
     get srHeading() { return this.getAttribute('sr-heading') ?? DEFAULT_HEADING; }
     set srHeading(value) { value == null ? this.removeAttribute('sr-heading') : this.setAttribute('sr-heading', value); }
 
+    get selectAll() { return this.hasAttribute('select-all'); }
+    set selectAll(value) { value ? this.setAttribute('select-all', '') : this.removeAttribute('select-all'); }
+
     // #endregion
 
     // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
@@ -30,9 +33,30 @@ class FDSMultiselectDialog extends HTMLElement {
     // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleMouseDown = (event) => {
-        if (event.target.closest('fds-multiselect-option')) return;
-        // Prevent closing the dialog when something else inside it than fds-multiselect-option is clicked.
-        event.preventDefault();
+        const dialogHit = event.composedPath()[0] === this;
+
+        const selectAllHit = event.composedPath()[0].classList.contains('select-all') ||
+                             event.composedPath()[0].classList.contains('select-all-checkbox') ||
+                             event.composedPath()[0].classList.contains('select-all-label');
+
+        if (dialogHit || selectAllHit) {
+            // Prevent closing the dialog when something else inside it is clicked.
+            event.preventDefault();
+            return;
+        }
+    };
+
+    #handleKeyDown = (event) => {
+        switch (event.key) {
+            case 'ArrowUp':
+                event.preventDefault();
+                break;
+
+            case 'ArrowDown':
+                event.preventDefault();
+                this.closest('fds-multiselect')?.querySelector('fds-multiselect-options')?.focus();
+                break;
+        }
     };
 
     // #endregion
@@ -46,16 +70,47 @@ class FDSMultiselectDialog extends HTMLElement {
         this.shadowRoot.appendChild(slot);
     }
 
+    #updateSelectAllCheckbox() {
+        let wrapper = this.shadowRoot.querySelector('.select-all');
+
+        if (!this.selectAll) {
+            wrapper?.remove();
+            return;
+        }
+
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.classList.add('select-all');
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.classList.add('select-all-checkbox');
+            const checkboxId = generateAndVerifyUniqueId('select-all-checkbox');
+            checkbox.id = checkboxId;
+
+            const label = document.createElement('label');
+            label.htmlFor = checkboxId;
+            label.classList.add('select-all-label');
+            label.textContent = 'Vælg alle';
+
+            wrapper.append(checkbox, label);
+            this.shadowRoot.insertBefore(wrapper, this.shadowRoot.querySelector('slot'));
+        }
+    }
+
     #addEventListeners() {
         this.addEventListener('mousedown', this.#handleMouseDown);
+        this.shadowRoot.querySelector('.select-all')?.addEventListener('keydown', this.#handleKeyDown);
     }
 
     #removeEventListeners() {
         this.removeEventListener('mousedown', this.#handleMouseDown);
+        this.shadowRoot.querySelector('.select-all')?.removeEventListener('keydown', this.#handleKeyDown);
     }
 
     #init() {
         this.#setupHTML();
+        this.#updateSelectAllCheckbox();
 
         this.setAttribute('role', 'dialog');
         this.setAttribute('aria-label', this.srHeading);
@@ -90,6 +145,11 @@ class FDSMultiselectDialog extends HTMLElement {
         this.hidden = true;
     }
 
+    focusSelectAllCheckbox() {
+        const checkbox = this.shadowRoot.querySelector('.select-all-checkbox');
+        checkbox?.focus();
+    }
+
     // #endregion
 
     // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
@@ -115,8 +175,15 @@ class FDSMultiselectDialog extends HTMLElement {
         if (!this.#initialized) return;
         if (oldValue === newValue) return;
 
-        if (attribute === 'sr-heading') {
-            this.setAttribute('aria-label', this.srHeading);
+        switch (attribute) {
+
+            case 'sr-heading':
+                this.setAttribute('aria-label', this.srHeading);
+                break;
+
+            case 'select-all':
+                this.#updateSelectAllCheckbox();
+                break;
         }
     }
 
