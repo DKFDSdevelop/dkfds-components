@@ -10037,6 +10037,11 @@ const fds_multiselect_select_all_styling_styles = `
         padding-bottom: 8px;
     }
 
+    :host([data-active][data-listbox-focused]) .select-all-wrapper {
+        outline: 3px solid #454545;
+        outline-offset: -3px;
+    }
+
 `;
 ;// ./src/js/web-components/multiselect/fds-multiselect-select-all.js
 
@@ -10109,10 +10114,6 @@ class FDSMultiselectSelectAll extends HTMLElement {
   get checked() {
     return this.getAttribute('aria-checked') === 'true';
   }
-
-  // Called when the user directly interacts with this element (click, Enter, Space).
-  // Always toggles between true/false - "mixed" can only ever be reflected externally,
-  // since it depends on knowledge of sibling fds-multiselect-option states.
   toggle() {
     const willBeChecked = this.getAttribute('aria-checked') !== 'true';
     this.setAttribute('aria-checked', willBeChecked ? 'true' : 'false');
@@ -10124,8 +10125,7 @@ class FDSMultiselectSelectAll extends HTMLElement {
     }));
   }
 
-  // Called externally (by fds-multiselect-options) to reflect the real selection state
-  // of sibling options, including the "mixed" state.
+  // Called by fds-multiselect-options
   reflectState(state) {
     this.setAttribute('aria-checked', state);
   }
@@ -10183,12 +10183,6 @@ const fds_multiselect_options_styling_styles = `
         outline: 3px solid #454545;
         outline-offset: -3px;
     }
-
-    :host(:focus) ::slotted(fds-multiselect-select-all[data-active]) {
-        outline: 3px solid #454545;
-        outline-offset: -3px;
-    }
-
 `;
 ;// ./src/js/web-components/multiselect/fds-multiselect-options.js
 
@@ -10211,11 +10205,17 @@ class FDSMultiselectOptions extends HTMLElement {
     item.toggle();
   };
   #handleFocus = () => {
+    this.querySelector('fds-multiselect-select-all')?.setAttribute('data-listbox-focused', '');
     if (this.#getActiveOption()) return;
     const items = this.#getNavigableItems();
     if (items.length > 0) {
       this.#setActiveOption(items[0]);
     }
+  };
+
+  // Needed for proper styling of the "select all" option
+  #handleBlur = () => {
+    this.querySelector('fds-multiselect-select-all')?.removeAttribute('data-listbox-focused');
   };
   #handleKeyDown = event => {
     const items = this.#getNavigableItems();
@@ -10310,6 +10310,7 @@ class FDSMultiselectOptions extends HTMLElement {
   #addEventListeners() {
     this.addEventListener('click', this.#handleClick);
     this.addEventListener('focus', this.#handleFocus);
+    this.addEventListener('blur', this.#handleBlur);
     this.addEventListener('keydown', this.#handleKeyDown);
     this.addEventListener('fds-multiselect-select-all-toggled', this.#handleSelectAllToggled);
     this.addEventListener('fds-multiselect-option-selected', this.#handleOptionSelectedOrDeselected);
@@ -10318,6 +10319,7 @@ class FDSMultiselectOptions extends HTMLElement {
   #removeEventListeners() {
     this.removeEventListener('click', this.#handleClick);
     this.removeEventListener('focus', this.#handleFocus);
+    this.removeEventListener('blur', this.#handleBlur);
     this.removeEventListener('keydown', this.#handleKeyDown);
     this.removeEventListener('fds-multiselect-select-all-toggled', this.#handleSelectAllToggled);
     this.removeEventListener('fds-multiselect-option-selected', this.#handleOptionSelectedOrDeselected);
@@ -10367,6 +10369,7 @@ class FDSMultiselectOptions extends HTMLElement {
   // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
+    this.#handleBlur();
     this.#removeEventListeners();
     this.#initialized = false;
   }

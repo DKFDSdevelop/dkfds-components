@@ -23,10 +23,17 @@ class FDSMultiselectOptions extends HTMLElement {
     };
 
     #handleFocus = () => {
+        this.querySelector('fds-multiselect-select-all')?.setAttribute('data-listbox-focused', '');
+
         if (this.#getActiveOption()) return;
 
         const items = this.#getNavigableItems();
         if (items.length > 0) { this.#setActiveOption(items[0]); }
+    };
+
+    // Needed for proper styling of the "select all" option
+    #handleBlur = () => {
+        this.querySelector('fds-multiselect-select-all')?.removeAttribute('data-listbox-focused');
     };
 
     #handleKeyDown = (event) => {
@@ -131,6 +138,7 @@ class FDSMultiselectOptions extends HTMLElement {
     #addEventListeners() {
         this.addEventListener('click', this.#handleClick);
         this.addEventListener('focus', this.#handleFocus);
+        this.addEventListener('blur', this.#handleBlur);
         this.addEventListener('keydown', this.#handleKeyDown);
         this.addEventListener('fds-multiselect-select-all-toggled', this.#handleSelectAllToggled);
         this.addEventListener('fds-multiselect-option-selected', this.#handleOptionSelectedOrDeselected);
@@ -140,6 +148,7 @@ class FDSMultiselectOptions extends HTMLElement {
     #removeEventListeners() {
         this.removeEventListener('click', this.#handleClick);
         this.removeEventListener('focus', this.#handleFocus);
+        this.removeEventListener('blur', this.#handleBlur);
         this.removeEventListener('keydown', this.#handleKeyDown);
         this.removeEventListener('fds-multiselect-select-all-toggled', this.#handleSelectAllToggled);
         this.removeEventListener('fds-multiselect-option-selected', this.#handleOptionSelectedOrDeselected);
@@ -190,6 +199,7 @@ class FDSMultiselectOptions extends HTMLElement {
     // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
+        this.#handleBlur();
         this.#removeEventListeners();
         this.#initialized = false;
     }

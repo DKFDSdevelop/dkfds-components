@@ -24,10 +24,4 @@ export const styles = `
         outline: 3px solid #454545;
         outline-offset: -3px;
     }
-
-    :host(:focus) ::slotted(fds-multiselect-select-all[data-active]) {
-        outline: 3px solid #454545;
-        outline-offset: -3px;
-    }
-
 `;

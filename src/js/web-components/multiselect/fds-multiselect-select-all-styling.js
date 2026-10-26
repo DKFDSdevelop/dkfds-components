@@ -71,4 +71,9 @@ export const styles = `
         padding-bottom: 8px;
     }
 
+    :host([data-active][data-listbox-focused]) .select-all-wrapper {
+        outline: 3px solid #454545;
+        outline-offset: -3px;
+    }
+
 `;
