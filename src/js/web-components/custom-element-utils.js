@@ -93,7 +93,11 @@ export function showRequiredStatus(label, element, value) {
     if (value === '' && isRequired) text = 'skal udfyldes';
     if (value === '' && !isRequired) text = 'frivilligt';
 
-    statusIndicator.textContent = isRequired ? ` (*${text})` : ` (${text})`;
+    const nextText = isRequired ? ` (*${text})` : ` (${text})`;
+
+    if (statusIndicator.textContent !== nextText) {
+        statusIndicator.textContent = nextText;
+    }
 }
 
 /**
