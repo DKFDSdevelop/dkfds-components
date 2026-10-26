@@ -364,16 +364,20 @@ class FDSMultiselect extends HTMLElement {
     }
 
     #wireRelationships() {
+        // Find the elements that need to be linked.
         const label = this.querySelector('label');
         const opener = this.querySelector('fds-multiselect-opener');
         const dialog = this.querySelector('fds-multiselect-dialog');
 
+        // Give the opener and dialog IDs when they don't already have them.
         if (opener && !opener.id) { opener.id = generateAndVerifyUniqueId('multiselect-opener'); }
         if (dialog && !dialog.id) { dialog.id = generateAndVerifyUniqueId('multiselect-dialog'); }
 
+        // Associate the label with the opener, and the opener with the dialog.
         if (label && opener) { label.htmlFor = opener.id; }
         if (opener && dialog) { opener.setAttribute('aria-controls', dialog.id); }
 
+        // Place the opener, dialog, and error messages in their shadow DOM slots.
         if (opener) { opener.setAttribute('slot', 'opener'); }
         if (dialog) { dialog.setAttribute('slot', 'dialog'); }
 
@@ -381,13 +385,17 @@ class FDSMultiselect extends HTMLElement {
             errorMessage.setAttribute('slot', 'error');
         }
 
+        // Update the opener's required indicator, disabled state, and help/error references.
         this.#syncRequiredToOpener();
         this.#updateRequiredStatus();
         this.#syncDisabledState();
         this.#updateAriaDescribedBy();
 
-        for (const sourceOption of this.querySelectorAll('fds-multiselect-option[default-selected]')) {
-            this.#addTag(sourceOption);
+        // Ensure each selected option has a tag.
+        for (const sourceOption of this.querySelectorAll('fds-multiselect-option')) {
+            if (sourceOption.selected) {
+                this.#addTag(sourceOption);
+            }
         }
     }
 
