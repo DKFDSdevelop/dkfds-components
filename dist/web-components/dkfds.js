@@ -9819,7 +9819,9 @@ class FDSMultiselectOpener extends HTMLElement {
       case 'ArrowUp':
         event.preventDefault();
         if (this.expanded) {
-          this.closest('fds-multiselect')?.querySelector('fds-multiselect-options')?.focus();
+          this.closest('fds-multiselect')?.querySelector('fds-multiselect-options')?.focus({
+            preventScroll: true
+          });
         } else {
           this.open();
         }
