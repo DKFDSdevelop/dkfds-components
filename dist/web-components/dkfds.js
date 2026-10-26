@@ -9519,9 +9519,17 @@ class FDSMultiselect extends HTMLElement {
     this.#updateRequiredStatus();
     this.#syncDisabledState();
     this.#updateAriaDescribedBy();
+    const currentOptions = new Set(this.querySelectorAll('fds-multiselect-option'));
+
+    // Remove tags whose options are no longer in this multiselect.
+    for (const sourceOption of this.#optionTags.keys()) {
+      if (!currentOptions.has(sourceOption)) {
+        this.#removeTag(sourceOption);
+      }
+    }
 
     // Ensure each selected option has a tag.
-    for (const sourceOption of this.querySelectorAll('fds-multiselect-option')) {
+    for (const sourceOption of currentOptions) {
       if (sourceOption.selected) {
         this.#addTag(sourceOption);
       }
@@ -10281,6 +10289,9 @@ class FDSMultiselectOptions extends HTMLElement {
   #handleOptionSelectedOrDeselected = () => {
     this.#updateSelectAllState();
   };
+  #handleSlotChange = () => {
+    this.#updateSelectAllState();
+  };
 
   // #endregion
 
@@ -10328,20 +10339,20 @@ class FDSMultiselectOptions extends HTMLElement {
   #addEventListeners() {
     this.addEventListener('click', this.#handleClick);
     this.addEventListener('focus', this.#handleFocus);
-    this.addEventListener('blur', this.#handleBlur);
     this.addEventListener('keydown', this.#handleKeyDown);
     this.addEventListener('fds-multiselect-select-all-toggled', this.#handleSelectAllToggled);
     this.addEventListener('fds-multiselect-option-selected', this.#handleOptionSelectedOrDeselected);
     this.addEventListener('fds-multiselect-option-deselected', this.#handleOptionSelectedOrDeselected);
+    this.shadowRoot.querySelector('slot').addEventListener('slotchange', this.#handleSlotChange);
   }
   #removeEventListeners() {
     this.removeEventListener('click', this.#handleClick);
     this.removeEventListener('focus', this.#handleFocus);
-    this.removeEventListener('blur', this.#handleBlur);
     this.removeEventListener('keydown', this.#handleKeyDown);
     this.removeEventListener('fds-multiselect-select-all-toggled', this.#handleSelectAllToggled);
     this.removeEventListener('fds-multiselect-option-selected', this.#handleOptionSelectedOrDeselected);
     this.removeEventListener('fds-multiselect-option-deselected', this.#handleOptionSelectedOrDeselected);
+    this.shadowRoot.querySelector('slot')?.removeEventListener('slotchange', this.#handleSlotChange);
   }
   #init() {
     this.#setupHTML();

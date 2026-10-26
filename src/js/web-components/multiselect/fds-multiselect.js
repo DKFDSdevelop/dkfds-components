@@ -391,8 +391,17 @@ class FDSMultiselect extends HTMLElement {
         this.#syncDisabledState();
         this.#updateAriaDescribedBy();
 
+        const currentOptions = new Set(this.querySelectorAll('fds-multiselect-option'));
+
+        // Remove tags whose options are no longer in this multiselect.
+        for (const sourceOption of this.#optionTags.keys()) {
+            if (!currentOptions.has(sourceOption)) {
+                this.#removeTag(sourceOption);
+            }
+        }
+
         // Ensure each selected option has a tag.
-        for (const sourceOption of this.querySelectorAll('fds-multiselect-option')) {
+        for (const sourceOption of currentOptions) {
             if (sourceOption.selected) {
                 this.#addTag(sourceOption);
             }

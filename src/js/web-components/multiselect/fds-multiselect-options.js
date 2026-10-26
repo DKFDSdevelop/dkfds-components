@@ -88,6 +88,10 @@ class FDSMultiselectOptions extends HTMLElement {
         this.#updateSelectAllState();
     };
 
+    #handleSlotChange = () => {
+        this.#updateSelectAllState();
+    };
+
     // #endregion
 
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
@@ -138,21 +142,21 @@ class FDSMultiselectOptions extends HTMLElement {
     #addEventListeners() {
         this.addEventListener('click', this.#handleClick);
         this.addEventListener('focus', this.#handleFocus);
-        this.addEventListener('blur', this.#handleBlur);
         this.addEventListener('keydown', this.#handleKeyDown);
         this.addEventListener('fds-multiselect-select-all-toggled', this.#handleSelectAllToggled);
         this.addEventListener('fds-multiselect-option-selected', this.#handleOptionSelectedOrDeselected);
         this.addEventListener('fds-multiselect-option-deselected', this.#handleOptionSelectedOrDeselected);
+        this.shadowRoot.querySelector('slot').addEventListener('slotchange', this.#handleSlotChange);
     }
 
     #removeEventListeners() {
         this.removeEventListener('click', this.#handleClick);
         this.removeEventListener('focus', this.#handleFocus);
-        this.removeEventListener('blur', this.#handleBlur);
         this.removeEventListener('keydown', this.#handleKeyDown);
         this.removeEventListener('fds-multiselect-select-all-toggled', this.#handleSelectAllToggled);
         this.removeEventListener('fds-multiselect-option-selected', this.#handleOptionSelectedOrDeselected);
         this.removeEventListener('fds-multiselect-option-deselected', this.#handleOptionSelectedOrDeselected);
+        this.shadowRoot.querySelector('slot')?.removeEventListener('slotchange', this.#handleSlotChange);
     }
 
     #init() {
