@@ -65,22 +65,21 @@ fds-modal {
                     margin-top: 32px;
                 }
             }
-
-            &.has-fade {
-                $-mask-visible: rgba(0, 0, 0, 1);
-                $-mask-hidden: rgba(0, 0, 0, 0);
-
-                mask-image: linear-gradient(to bottom, $-mask-visible calc(100% - 24px), $-mask-hidden 100%);
-
-                &[data-at-bottom] {
-                    mask-image: none;
-                }
-            }
         }
 
         .fixed-area {
             overflow-y: hidden;
             flex-shrink: 0;
+        }
+
+        .scrollable-area.has-fade {
+            & + .fixed-area {
+                box-shadow: func.shadow('light');
+            }
+
+            &[data-at-bottom] + .fixed-area {
+                box-shadow: none;
+            }
         }
 
         .top-heading {
