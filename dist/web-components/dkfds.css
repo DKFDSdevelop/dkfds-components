@@ -13257,17 +13257,15 @@ fds-modal dialog .scrollable-area > fds-modal-closer:last-child, fds-modal dialo
     margin-top:32px;
   }
 }
-fds-modal dialog .scrollable-area.has-fade{
-  -webkit-mask-image:linear-gradient(to bottom, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0) 100%);
-          mask-image:linear-gradient(to bottom, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0) 100%);
-}
-fds-modal dialog .scrollable-area.has-fade[data-at-bottom]{
-  -webkit-mask-image:none;
-          mask-image:none;
-}
 fds-modal dialog .fixed-area{
   overflow-y:hidden;
   flex-shrink:0;
+}
+fds-modal dialog .scrollable-area.has-fade + .fixed-area{
+  box-shadow:0 4px 12px 0 rgba(0, 0, 0, 0.2);
+}
+fds-modal dialog .scrollable-area.has-fade[data-at-bottom] + .fixed-area{
+  box-shadow:none;
 }
 fds-modal dialog .top-heading{
   margin-top:1.6rem;
