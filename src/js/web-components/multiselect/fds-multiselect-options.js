@@ -15,76 +15,70 @@ class FDSMultiselectOptions extends HTMLElement {
     // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleClick = (event) => {
-        const option = event.target.closest('fds-multiselect-option');
-        if (!option) return;
+        const item = event.target.closest('fds-multiselect-select-all, fds-multiselect-option');
+        if (!item) return;
 
-        this.#setActiveOption(option);
-        option.toggle();
+        this.#setActiveOption(item);
+        item.toggle();
     };
 
     #handleFocus = () => {
         if (this.#getActiveOption()) return;
 
-        const options = this.querySelectorAll('fds-multiselect-option');
-        if (options.length > 0) { this.#setActiveOption(options[0]); }
+        const items = this.#getNavigableItems();
+        if (items.length > 0) { this.#setActiveOption(items[0]); }
     };
 
     #handleKeyDown = (event) => {
-        const options = Array.from(this.querySelectorAll('fds-multiselect-option'));
+        const items = this.#getNavigableItems();
         const active = this.#getActiveOption();
-        const currentIndex = active ? options.indexOf(active) : -1;
+        const currentIndex = active ? items.indexOf(active) : -1;
 
         switch (event.key) {
             case 'ArrowDown': {
                 event.preventDefault();
-                const nextIndex = Math.min(currentIndex + 1, options.length - 1);
-                this.#setActiveOption(options[nextIndex]);
+                const nextIndex = Math.min(currentIndex + 1, items.length - 1);
+                this.#setActiveOption(items[nextIndex]);
                 break;
             }
 
             case 'ArrowUp': {
                 event.preventDefault();
-
-                if (currentIndex <= 0) {
-                    const dialog = this.closest('fds-multiselect-dialog');
-                    if (dialog?.selectAll) {
-                        dialog.focusSelectAllCheckbox();
-                        break;
-                    }
-                }
-
                 const previousIndex = currentIndex < 0 ? 0 : Math.max(currentIndex - 1, 0);
-                this.#setActiveOption(options[previousIndex]);
+                this.#setActiveOption(items[previousIndex]);
                 break;
             }
 
             case 'Home':
                 event.preventDefault();
-                this.#setActiveOption(options[0]);
+                this.#setActiveOption(items[0]);
                 break;
 
             case 'End':
                 event.preventDefault();
-                this.#setActiveOption(options[options.length - 1]);
+                this.#setActiveOption(items[items.length - 1]);
                 break;
 
             case 'Enter':
             case ' ':
                 event.preventDefault();
-                if (active) { active.toggle(); }
+                active?.toggle();
                 break;
-
-            case 'Tab': {
-                if (!event.shiftKey || currentIndex > 0) break;
-
-                const dialog = this.closest('fds-multiselect-dialog');
-                if (!dialog?.selectAll) break;
-
-                event.preventDefault();
-                dialog.focusSelectAllCheckbox();
-                break;
-            }
         }
+    };
+
+    #handleSelectAllToggled = (event) => {
+        const shouldSelectAll = event.detail.checked;
+
+        for (const option of this.querySelectorAll('fds-multiselect-option')) {
+            if (option.selected !== shouldSelectAll) { option.toggle(); }
+        }
+
+        this.#updateSelectAllState();
+    };
+
+    #handleOptionSelectedOrDeselected = () => {
+        this.#updateSelectAllState();
     };
 
     // #endregion
@@ -108,6 +102,25 @@ class FDSMultiselectOptions extends HTMLElement {
         option.scrollIntoView({ block: 'nearest' });
     }
 
+    #getNavigableItems() {
+        return Array.from(this.querySelectorAll('fds-multiselect-select-all, fds-multiselect-option'));
+    }
+
+    #updateSelectAllState() {
+        const selectAll = this.querySelector('fds-multiselect-select-all');
+        if (!selectAll) return;
+
+        const options = Array.from(this.querySelectorAll('fds-multiselect-option'));
+        const total = options.length;
+        const selectedCount = options.filter(option => option.selected).length;
+
+        let state = 'false';
+        if (total > 0 && selectedCount === total) { state = 'true'; }
+        else if (selectedCount > 0) { state = 'mixed'; }
+
+        selectAll.reflectState(state);
+    }
+
     #setupHTML() {
         if (this.shadowRoot.querySelector('slot')) return;
 
@@ -119,12 +132,18 @@ class FDSMultiselectOptions extends HTMLElement {
         this.addEventListener('click', this.#handleClick);
         this.addEventListener('focus', this.#handleFocus);
         this.addEventListener('keydown', this.#handleKeyDown);
+        this.addEventListener('fds-multiselect-select-all-toggled', this.#handleSelectAllToggled);
+        this.addEventListener('fds-multiselect-option-selected', this.#handleOptionSelectedOrDeselected);
+        this.addEventListener('fds-multiselect-option-deselected', this.#handleOptionSelectedOrDeselected);
     }
 
     #removeEventListeners() {
         this.removeEventListener('click', this.#handleClick);
         this.removeEventListener('focus', this.#handleFocus);
         this.removeEventListener('keydown', this.#handleKeyDown);
+        this.removeEventListener('fds-multiselect-select-all-toggled', this.#handleSelectAllToggled);
+        this.removeEventListener('fds-multiselect-option-selected', this.#handleOptionSelectedOrDeselected);
+        this.removeEventListener('fds-multiselect-option-deselected', this.#handleOptionSelectedOrDeselected);
     }
 
     #init() {
@@ -136,6 +155,15 @@ class FDSMultiselectOptions extends HTMLElement {
         if (!this.id) { this.id = generateAndVerifyUniqueId('multiselect-options'); }
 
         this.#addEventListeners();
+
+        // fds-multiselect-select-all / fds-multiselect-option may not yet be upgraded when this
+        // runs, which would make the initial state computation see "selected" as false even for
+        // default-selected options. Recompute once upgrades are guaranteed to have happened.
+        Promise.all([
+            customElements.whenDefined('fds-multiselect-select-all'),
+            customElements.whenDefined('fds-multiselect-option')
+        ]).then(() => this.#updateSelectAllState());
+
         this.#initialized = true;
     }
 

@@ -71,7 +71,7 @@ class FDSMultiselect extends HTMLElement {
 
     #handleLabelClick = (event) => {
         const target = event.composedPath()[0];
-        const isLabelClick = target.tagName === 'LABEL' && !target.classList.contains('select-all-label');
+        const isLabelClick = target.tagName === 'LABEL';
 
         if (!isLabelClick) return;
 
