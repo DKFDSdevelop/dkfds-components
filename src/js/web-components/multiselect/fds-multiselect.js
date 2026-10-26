@@ -10,7 +10,7 @@ class FDSMultiselect extends HTMLElement {
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
     static formAssociated = true;
-    static observedAttributes = ['name', 'sr-tags-label', 'show-required-status', 'aria-required'];
+    static observedAttributes = ['name', 'sr-tags-label', 'show-required-status', 'required', 'disabled'];
 
     // #endregion
 
@@ -24,6 +24,12 @@ class FDSMultiselect extends HTMLElement {
 
     get showRequiredStatus() { return this.getAttribute('show-required-status'); }
     set showRequiredStatus(value) { value == null ? this.removeAttribute('show-required-status') : this.setAttribute('show-required-status', value); }
+
+    get required() { return this.hasAttribute('required'); }
+    set required(value) { value ? this.setAttribute('required', '') : this.removeAttribute('required'); }
+
+    get disabled() { return this.hasAttribute('disabled') || this.#formDisabled; }
+    set disabled(value) { value ? this.setAttribute('disabled', '') : this.removeAttribute('disabled'); }
 
     get value() {
         const values = [];
@@ -41,6 +47,7 @@ class FDSMultiselect extends HTMLElement {
     #mutationObserver = null;
     #optionTags = new Map();
     #internals;
+    #formDisabled = false;
 
     // #endregion
 
@@ -63,11 +70,14 @@ class FDSMultiselect extends HTMLElement {
     };
 
     #handleLabelClick = (event) => {
-        const isLabelClick = event.composedPath().some(node => node.nodeName === 'LABEL');
+        const target = event.composedPath()[0];
+        const isLabelClick = target.tagName === 'LABEL';
+
         if (!isLabelClick) return;
 
-        // Prevent the native label click from forwarding to the opener and opening the dialog.
         event.preventDefault();
+        if (this.disabled) return;
+
         this.querySelector('fds-multiselect-opener')?.focus();
     };
 
@@ -99,7 +109,7 @@ class FDSMultiselect extends HTMLElement {
         const relatedTarget = event.relatedTarget;
 
         // Ensure the opener only closes when something outside the multiselect gets focus.
-        const stillInside = relatedTarget && (this.contains(relatedTarget) || this.shadowRoot.contains(relatedTarget));
+        const stillInside = relatedTarget && this.contains(relatedTarget);
         if (stillInside) return;
 
         const opener = this.querySelector('fds-multiselect-opener');
@@ -117,7 +127,18 @@ class FDSMultiselect extends HTMLElement {
         opener.focus();
     };
 
-    #handleMutations = () => {
+    #handleMouseDown = (event) => {
+        if (this.disabled) {
+            event.preventDefault();
+        }
+    };
+
+    #handleMutations = (records) => {
+        for (const { attributeName, target } of records) {
+            if (attributeName === 'hidden' && target === this) {
+                CE.notifySummaryOnVisibilityChange(this);
+            }
+        }
         this.#wireRelationships();
     };
 
@@ -161,6 +182,7 @@ class FDSMultiselect extends HTMLElement {
 
         this.shadowRoot.querySelector('.tags').appendChild(tag);
         this.#optionTags.set(sourceOption, tag);
+        tag.disabled = this.disabled;
         this.#constrainTagWidth(tag);
 
         this.#refreshOpener();
@@ -236,12 +258,11 @@ class FDSMultiselect extends HTMLElement {
         const paddingLeft = parseFloat(tagStyle.paddingLeft);
         const paddingRight = parseFloat(tagStyle.paddingRight);
 
-        const tagLabelStyle = getComputedStyle(tagLabel);
-        const paddingRightLabel = parseFloat(tagLabelStyle.paddingRight);
-
+        const iconStyle = getComputedStyle(icon);
+        const marginLeft = parseFloat(iconStyle.marginLeft);
         const iconWidth = icon ? icon.getBoundingClientRect().width : 0;
 
-        tag.style.maxWidth = `${Math.ceil(widestLine + paddingLeft + paddingRight + paddingRightLabel + iconWidth)}px`;
+        tag.style.maxWidth = `${Math.ceil(widestLine + paddingLeft + paddingRight + marginLeft + iconWidth)}px`;
     }
 
     #updateTagsGroup() {
@@ -274,10 +295,9 @@ class FDSMultiselect extends HTMLElement {
     }
 
     #updateValidity() {
-        const isRequired = this.hasAttribute('aria-required') && this.getAttribute('aria-required') !== 'false';
         const hasValue = this.value.length > 0;
 
-        if (isRequired && !hasValue) {
+        if (this.required && !hasValue) {
             const opener = this.querySelector('fds-multiselect-opener');
             this.#internals.setValidity({ valueMissing: true }, 'Vælg mindst én mulighed', opener);
         }
@@ -288,7 +308,8 @@ class FDSMultiselect extends HTMLElement {
 
     #updateRequiredStatus() {
         const label = this.querySelector('label');
-        if (!label) return;
+        const opener = this.querySelector('fds-multiselect-opener');
+        if (!label || !opener) return;
 
         const value = this.getAttribute('show-required-status');
 
@@ -298,7 +319,35 @@ class FDSMultiselect extends HTMLElement {
             return;
         }
 
-        CE.showRequiredStatus(label, this, value);
+        CE.showRequiredStatus(label, opener, value);
+    }
+
+    #syncRequiredToOpener() {
+        const opener = this.querySelector('fds-multiselect-opener');
+        if (!opener) return;
+
+        this.required ? opener.setAttribute('aria-required', 'true') : opener.removeAttribute('aria-required');
+    }
+
+    #syncDisabledState() {
+        const opener = this.querySelector('fds-multiselect-opener');
+        const isDisabled = this.disabled;
+
+        if (opener) {
+            if (isDisabled) {
+                opener.setAttribute('aria-disabled', 'true');
+                opener.removeAttribute('tabindex');
+                if (opener.expanded) { opener.close(); }
+            }
+            else {
+                opener.removeAttribute('aria-disabled');
+                opener.tabIndex = 0;
+            }
+        }
+
+        for (const tag of this.shadowRoot.querySelectorAll('.tag')) {
+            tag.disabled = isDisabled;
+        }
     }
 
     #getScrollableAncestor() {
@@ -315,33 +364,78 @@ class FDSMultiselect extends HTMLElement {
     }
 
     #wireRelationships() {
+        // Find the elements that need to be linked.
         const label = this.querySelector('label');
         const opener = this.querySelector('fds-multiselect-opener');
         const dialog = this.querySelector('fds-multiselect-dialog');
 
+        // Give the opener and dialog IDs when they don't already have them.
         if (opener && !opener.id) { opener.id = generateAndVerifyUniqueId('multiselect-opener'); }
         if (dialog && !dialog.id) { dialog.id = generateAndVerifyUniqueId('multiselect-dialog'); }
 
+        // Associate the label with the opener, and the opener with the dialog.
         if (label && opener) { label.htmlFor = opener.id; }
         if (opener && dialog) { opener.setAttribute('aria-controls', dialog.id); }
 
+        // Place the opener, dialog, and error messages in their shadow DOM slots.
         if (opener) { opener.setAttribute('slot', 'opener'); }
         if (dialog) { dialog.setAttribute('slot', 'dialog'); }
 
-        this.#updateRequiredStatus();
+        for (const errorMessage of this.querySelectorAll('fds-error-message')) {
+            errorMessage.setAttribute('slot', 'error');
+        }
 
-        for (const sourceOption of this.querySelectorAll('fds-multiselect-option[default-selected]')) {
-            this.#addTag(sourceOption);
+        // Update the opener's required indicator, disabled state, and help/error references.
+        this.#syncRequiredToOpener();
+        this.#updateRequiredStatus();
+        this.#syncDisabledState();
+        this.#updateAriaDescribedBy();
+
+        const currentOptions = new Set(this.querySelectorAll('fds-multiselect-option'));
+
+        // Remove tags whose options are no longer in this multiselect.
+        for (const sourceOption of this.#optionTags.keys()) {
+            if (!currentOptions.has(sourceOption)) {
+                this.#removeTag(sourceOption);
+            }
+        }
+
+        // Ensure each selected option has a tag.
+        for (const sourceOption of currentOptions) {
+            if (sourceOption.selected) {
+                this.#addTag(sourceOption);
+            }
         }
     }
 
     // fds-multiselect-opener may not have been upgraded yet when called on page load.
     // Ensure refreshOpener is called when the custom element is defined.
     #refreshOpener() {
+        const opener = this.querySelector('fds-multiselect-opener');
+        if (typeof opener?.refreshOpener === 'function') {
+            opener.refreshOpener();
+            return;
+        }
+
         customElements.whenDefined('fds-multiselect-opener').then(() => {
-            const opener = this.querySelector('fds-multiselect-opener');
-            opener?.refreshOpener();
+            this.querySelector('fds-multiselect-opener')?.refreshOpener();
         });
+    }
+
+    #notifySummaryOnceOpenerReady() {
+        customElements.whenDefined('fds-multiselect-opener').then(() => {
+            CE.notifySummaryOnVisibilityChange(this);
+        });
+    }
+
+    #updateAriaDescribedBy() {
+        const opener = this.querySelector('fds-multiselect-opener');
+        if (!opener) return;
+
+        const errorMessages = this.querySelectorAll('fds-error-message');
+        const helpTexts = this.querySelectorAll('fds-help-text');
+        CE.setAriaDescribedBy(opener, errorMessages, helpTexts);
+        CE.setInvalid(opener, errorMessages);
     }
 
     #setupHTML() {
@@ -358,18 +452,26 @@ class FDSMultiselect extends HTMLElement {
         const tags = document.createElement('div');
         tags.classList.add('tags');
 
-        openerWrapper.append(openerSlot, tags);
-
         const dialogSlot = document.createElement('slot');
         dialogSlot.name = 'dialog';
 
-        this.shadowRoot.append(labelSlot, openerWrapper, dialogSlot);
+        openerWrapper.append(openerSlot, tags, dialogSlot);
+
+        const errorSlot = document.createElement('slot');
+        errorSlot.name = 'error';
+
+        this.shadowRoot.append(labelSlot, openerWrapper, errorSlot);
     }
 
     #connectMutationObserver() {
         if (this.#mutationObserver) return;
         this.#mutationObserver = new MutationObserver(this.#handleMutations);
-        this.#mutationObserver.observe(this, { childList: true, subtree: false });
+        this.#mutationObserver.observe(this, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['hidden', 'aria-hidden', 'id', 'class']
+        });
     }
 
     #disconnectMutationObserver() {
@@ -387,6 +489,7 @@ class FDSMultiselect extends HTMLElement {
         this.addEventListener('click', this.#handleLabelClick);
         this.addEventListener('focusout', this.#handleFocusOut);
         this.addEventListener('keydown', this.#handleKeyDown);
+        this.addEventListener('mousedown', this.#handleMouseDown);
         this.shadowRoot.addEventListener('click', this.#handleTagClick);
         window.addEventListener('load', this.#handleWindowLoad, { once: true });
     }
@@ -399,6 +502,7 @@ class FDSMultiselect extends HTMLElement {
         this.removeEventListener('click', this.#handleLabelClick);
         this.removeEventListener('focusout', this.#handleFocusOut);
         this.removeEventListener('keydown', this.#handleKeyDown);
+        this.removeEventListener('mousedown', this.#handleMouseDown);
         this.shadowRoot.removeEventListener('click', this.#handleTagClick);
         window.removeEventListener('load', this.#handleWindowLoad);
     }
@@ -412,6 +516,7 @@ class FDSMultiselect extends HTMLElement {
         this.#connectMutationObserver();
         this.#updateFormValue();
         this.#updateValidity();
+        this.#notifySummaryOnceOpenerReady();
 
         this.#initialized = true;
     }
@@ -440,6 +545,7 @@ class FDSMultiselect extends HTMLElement {
     // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
+        CE.notifySummaryOnDisconnect(this);
         this.#removeEventListeners();
         this.#disconnectMutationObserver();
         this.#initialized = false;
@@ -463,9 +569,13 @@ class FDSMultiselect extends HTMLElement {
             case 'show-required-status':
                 this.#updateRequiredStatus();
                 break;
-            case 'aria-required':
+            case 'required':
+                this.#syncRequiredToOpener();
                 this.#updateRequiredStatus();
                 this.#updateValidity();
+                break;
+            case 'disabled':
+                this.#syncDisabledState();
                 break;
         }
     }
@@ -478,6 +588,11 @@ class FDSMultiselect extends HTMLElement {
         for (const sourceOption of this.querySelectorAll('fds-multiselect-option')) {
             sourceOption.reset();
         }
+    }
+
+    formDisabledCallback(disabled) {
+        this.#formDisabled = disabled;
+        this.#syncDisabledState();
     }
 
     // #endregion

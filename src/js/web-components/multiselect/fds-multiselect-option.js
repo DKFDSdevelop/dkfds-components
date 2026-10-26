@@ -113,7 +113,6 @@ class FDSMultiselectOption extends HTMLElement {
     attributeChangedCallback(attribute, oldValue, newValue) {
         if (!this.#initialized) return;
         if (oldValue === newValue) return;
-        // TODO: handle default-selected changing after connect, if needed.
     }
 
     // #endregion

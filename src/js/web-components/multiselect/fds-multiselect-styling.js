@@ -33,6 +33,11 @@ export const styles = `
         z-index: 1;
     }
 
+    :host(:disabled) .tag {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
     .tags {
         grid-area: 1 / 1;
         z-index: 2;
@@ -69,11 +74,19 @@ export const styles = `
         outline-offset: 1px;
     }
 
+    .tag:disabled .icon-svg {
+        display: none;
+    }
+
     .tag-label {
         display: block;
         overflow-wrap: break-word;
         min-width: 0;
-        padding-right: 0.4rem;
+    }
+
+    :host(:disabled) ::slotted(label) {
+        color: var(--color-gray-500);
+        font-weight: 500;
     }
 
     .tag .icon-svg {
@@ -82,5 +95,6 @@ export const styles = `
         max-height: 1.6rem;
         max-width: 1.6rem;
         fill: var(--color-white);
+        margin-left: 0.4rem;
     }
 `;

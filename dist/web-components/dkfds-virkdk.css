@@ -13,6 +13,7 @@
   --color-gray-500:#707070;
   --color-gray-600:#454545;
   --color-black:#1a1a1a;
+  --color-error:#CC0000;
   --alert-background-color:var(--color-gray-100);
   --alert-border-color:var(--color-gray-400);
   --alert-heading-margin-top:0;

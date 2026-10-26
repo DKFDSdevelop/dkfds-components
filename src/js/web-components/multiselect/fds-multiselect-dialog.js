@@ -30,8 +30,9 @@ class FDSMultiselectDialog extends HTMLElement {
     // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleMouseDown = (event) => {
-        if (event.target.closest('fds-multiselect-option')) return;
-        // Prevent closing the dialog when something else inside it than fds-multiselect-option is clicked.
+        if (event.target.closest('fds-multiselect-options')) return;
+
+        // Prevent closing the dialog when something else inside it is clicked.
         event.preventDefault();
     };
 
@@ -83,7 +84,6 @@ class FDSMultiselectDialog extends HTMLElement {
     open() {
         if (!this.hidden) return;
         this.hidden = false;
-        this.querySelector('fds-multiselect-options')?.focus();
     }
 
     close() {

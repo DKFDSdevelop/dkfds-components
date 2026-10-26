@@ -15,7 +15,8 @@ export const styles = `
         outline: 0;
     }
 
-    ::slotted(fds-multiselect-option) {
+    ::slotted(fds-multiselect-option),
+    ::slotted(fds-multiselect-select-all) {
         min-width: 0;
     }
 

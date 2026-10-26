@@ -39,6 +39,11 @@ export const styles = `
         outline-offset: 1px;
     }
 
+    :host([aria-disabled="true"]) {
+        color: #707070;
+        cursor: not-allowed;
+    }
+
     .opener-text {
         flex: 1 1 auto;
         min-width: 0;
@@ -53,5 +58,18 @@ export const styles = `
         width: 2.4rem;
         height: 2.4rem;
         pointer-events: none;
+    }
+
+    :host([aria-disabled="true"]) .chevron-icon {
+        fill: #8E8E8E;
+    }
+
+    :host([aria-invalid="true"]) {
+        border: 2px solid var(--color-error);
+        padding: 6px 46px 6px 14px;
+    }
+
+    :host([aria-invalid="true"]) .chevron-icon {
+        right: 15px;
     }
 `;
