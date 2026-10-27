@@ -6287,6 +6287,10 @@ class FDSDropdownMenu extends HTMLElement {
 
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
+  // The dropdown menu should behave differently when it is used inside a modal drawer.
+  #isDrawerSubmenu() {
+    return !!this.closest('fds-main-menu') && !this.closest('fds-main-menu .main-menu-inner');
+  }
   #setupHTML() {
     // Dropdown button
     if (!this.querySelector(':scope > .dropdown-button')) {
@@ -6318,14 +6322,21 @@ class FDSDropdownMenu extends HTMLElement {
       this.querySelector(':scope > div')?.classList.add('dropdown-menu');
     }
 
+    // Mark interactive menu items so clicking them closes the dropdown
+    this.querySelectorAll(':scope > .dropdown-menu a, :scope > .dropdown-menu button').forEach(item => {
+      if (item.closest('fds-dropdown-menu') === this) {
+        item.setAttribute('data-menu-item', '');
+      }
+    });
+
     // Expanded attribute on fds-dropdown-menu
     if (!this.hasAttribute('expanded')) {
       this.setAttribute('expanded', 'false');
     }
     this.#updateExpanded(this.getAttribute('expanded'));
 
-    // If the overflow menu opens on top of content, ensure it doesn't close on misclick inside the opened menu
-    if (this.closest('fds-main-menu .main-menu-inner')) {
+    // Don't close the dropdown when something non-clickable inside it is clicked (like a subtitle)
+    if (!this.#isDrawerSubmenu()) {
       this.querySelector(':scope > .dropdown-menu').setAttribute('tabindex', '-1');
     }
   }
@@ -6336,14 +6347,14 @@ class FDSDropdownMenu extends HTMLElement {
       dropdownButton?.setAttribute('aria-expanded', 'false');
       menu?.classList.add('collapsed');
       menu.removeAttribute('style');
-      if (this.closest('fds-main-menu .main-menu-inner')) {
+      if (!this.#isDrawerSubmenu()) {
         document.removeEventListener('mousedown', this.#handleOutsideClick, false);
       }
       this.dispatchEvent(new Event('fds-dropdown-menu-closed'));
     } else {
       dropdownButton?.setAttribute('aria-expanded', 'true');
       menu?.classList.remove('collapsed');
-      if (this.closest('fds-main-menu .main-menu-inner')) {
+      if (!this.#isDrawerSubmenu()) {
         document.addEventListener('mousedown', this.#handleOutsideClick, false);
       }
 
@@ -6366,7 +6377,7 @@ class FDSDropdownMenu extends HTMLElement {
   }
   #addEventListeners() {
     this.querySelector(':scope > .dropdown-button')?.addEventListener('click', this.#handleClick);
-    if (this.closest('fds-main-menu .main-menu-inner')) {
+    if (!this.#isDrawerSubmenu()) {
       this.addEventListener('focusout', this.#handleFocusOut, false);
       this.addEventListener('keydown', this.#handleKeydown, false);
       this.querySelector('.dropdown-menu').addEventListener('click', this.#handleMenuItemClick, false);
@@ -6374,7 +6385,7 @@ class FDSDropdownMenu extends HTMLElement {
   }
   #removeEventListeners() {
     this.querySelector(':scope > .dropdown-button')?.removeEventListener('click', this.#handleClick);
-    if (this.closest('fds-main-menu .main-menu-inner')) {
+    if (!this.#isDrawerSubmenu()) {
       this.removeEventListener('focusout', this.#handleFocusOut, false);
       this.removeEventListener('keydown', this.#handleKeydown, false);
       this.querySelector('.dropdown-menu').removeEventListener('click', this.#handleMenuItemClick, false);
@@ -6411,7 +6422,7 @@ class FDSDropdownMenu extends HTMLElement {
 
   disconnectedCallback() {
     this.#removeEventListeners();
-    if (this.closest('fds-main-menu .main-menu-inner')) {
+    if (!this.#isDrawerSubmenu()) {
       document.removeEventListener('mousedown', this.#handleOutsideClick, false);
     }
     this.#initialized = false;

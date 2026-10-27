@@ -3,6 +3,11 @@
 @use "../mixins" as mixins;
 @use "../placeholder-selectors";
 
+/* ================================================================
+   BASE STYLING
+   Applies to every fds-dropdown-menu instance, regardless of variant.
+   ================================================================ */
+
 fds-dropdown-menu,
 .fds-dropdown-menu {
     display: block;
@@ -14,12 +19,19 @@ fds-dropdown-menu,
     }
 }
 
+/* ================================================================
+   DESKTOP MAIN MENU VARIANT
+   Submenu and "more menu" dropdowns inside the desktop main menu.
+   ================================================================ */
+
 fds-main-menu,
 .fds-main-menu {
     & > .main-menu-inner li {
 
         fds-dropdown-menu,
         .fds-dropdown-menu {
+
+            // Chevron icon (collapsed/expanded) next to the button text
 
             & > .dropdown-button > span {
                 .icon-svg {
@@ -45,7 +57,7 @@ fds-main-menu,
                 }
             }
 
-            // Styling of items inside the dropdown menu
+            // Styling of the floating dropdown menu itself
 
             & > .dropdown-menu {
                 position: absolute;
@@ -60,6 +72,8 @@ fds-main-menu,
                 &.collapsed {
                     display: none;
                 }
+
+                // Styling of items inside the dropdown menu
 
                 & > ul {
                     margin: 0;
@@ -144,8 +158,7 @@ fds-main-menu,
                             }
                         }
 
-                        // The main menu can contain a "more menu" which is a special case of the dropdown menu,
-                        // where additional elements and lists may be nested.
+                        // "More menu"
 
                         .sub-title {
                             font-weight: 500;
@@ -189,6 +202,8 @@ fds-main-menu,
             }
         }
 
+        // Highlight the top-level submenu button when one of its items is the current page
+
         &:not(.more-button) {
 
             & > fds-dropdown-menu,
@@ -201,10 +216,18 @@ fds-main-menu,
     }
 }
 
+/* ================================================================
+   DRAWER SUBMENU VARIANT
+   Submenu dropdowns inside the mobile drawer main menu.
+   ================================================================ */
+
 fds-modal .fds-main-menu fds-dropdown-menu,
 fds-modal .fds-main-menu .fds-dropdown-menu,
 fds-modal fds-main-menu fds-dropdown-menu,
 fds-modal fds-main-menu .fds-dropdown-menu {
+
+    // Plus/minus icon (collapsed/expanded) next to the button text
+
     & > .dropdown-button {
 
         & > span {
@@ -229,6 +252,8 @@ fds-modal fds-main-menu .fds-dropdown-menu {
             }
         }
     }
+
+    // The dropdown menu
 
     & > .dropdown-menu {
         &.collapsed {

@@ -12496,7 +12496,6 @@ fds-modal .fds-solution-info:last-child,
 .fds-modal .fds-solution-info:last-child{
   border-bottom:1px solid #8E8E8E;
 }
-
 fds-dropdown-menu,
 .fds-dropdown-menu{
   display:block;
@@ -12507,7 +12506,6 @@ fds-dropdown-menu > .dropdown-button > span,
   flex-wrap:nowrap;
   align-items:center;
 }
-
 fds-main-menu > .main-menu-inner li fds-dropdown-menu > .dropdown-button > span .icon-svg,
 fds-main-menu > .main-menu-inner li .fds-dropdown-menu > .dropdown-button > span .icon-svg,
 .fds-main-menu > .main-menu-inner li fds-dropdown-menu > .dropdown-button > span .icon-svg,
