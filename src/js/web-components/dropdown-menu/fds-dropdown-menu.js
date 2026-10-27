@@ -109,7 +109,7 @@ class FDSDropdownMenu extends HTMLElement {
 
         // Don't close the dropdown when something non-clickable inside it is clicked (like a subtitle)
         if (!this.#isDrawerSubmenu()) {
-            this.querySelector(':scope > .dropdown-menu').setAttribute('tabindex', '-1');
+            this.querySelector(':scope > .dropdown-menu')?.setAttribute('tabindex', '-1');
         }
     }
 
@@ -119,7 +119,7 @@ class FDSDropdownMenu extends HTMLElement {
         if (value === 'false') {
             dropdownButton?.setAttribute('aria-expanded', 'false');
             menu?.classList.add('collapsed');
-            menu.removeAttribute('style');
+            menu?.removeAttribute('style');
             if (!this.#isDrawerSubmenu()) {
                 document.removeEventListener('mousedown', this.#handleOutsideClick, false);
             }
@@ -134,17 +134,19 @@ class FDSDropdownMenu extends HTMLElement {
 
             /* Check if the dropdown is within the screen borders */
 
-            const rect = menu.getBoundingClientRect();
-            const viewportWidth = window.visualViewport?.width ?? document.documentElement.clientWidth;
+            if (menu) {
+                const rect = menu.getBoundingClientRect();
+                const viewportWidth = window.visualViewport?.width ?? document.documentElement.clientWidth;
 
-            if (menu.offsetWidth > viewportWidth) {
-                menu.style.maxWidth = `${viewportWidth}px`;
-            }
-            else if (rect.left < 0) {
-                menu.style.left = '0px';
-            }
-            else if (rect.left + menu.offsetWidth > viewportWidth) {
-                menu.style.right = '0px';
+                if (menu.offsetWidth > viewportWidth) {
+                    menu.style.maxWidth = `${viewportWidth}px`;
+                }
+                else if (rect.left < 0) {
+                    menu.style.left = '0px';
+                }
+                else if (rect.left + menu.offsetWidth > viewportWidth) {
+                    menu.style.right = '0px';
+                }
             }
 
             /* Dispatch event */
@@ -158,7 +160,7 @@ class FDSDropdownMenu extends HTMLElement {
         if (!this.#isDrawerSubmenu()) {
             this.addEventListener('focusout', this.#handleFocusOut, false);
             this.addEventListener('keydown', this.#handleKeydown, false);
-            this.querySelector('.dropdown-menu').addEventListener('click', this.#handleMenuItemClick, false);
+            this.querySelector(':scope > .dropdown-menu')?.addEventListener('click', this.#handleMenuItemClick, false);
         }
     }
 
@@ -167,7 +169,7 @@ class FDSDropdownMenu extends HTMLElement {
         if (!this.#isDrawerSubmenu()) {
             this.removeEventListener('focusout', this.#handleFocusOut, false);
             this.removeEventListener('keydown', this.#handleKeydown, false);
-            this.querySelector('.dropdown-menu').removeEventListener('click', this.#handleMenuItemClick, false);
+            this.querySelector(':scope > .dropdown-menu')?.removeEventListener('click', this.#handleMenuItemClick, false);
         }
     }
 
