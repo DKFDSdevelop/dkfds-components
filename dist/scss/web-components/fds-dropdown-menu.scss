@@ -12,7 +12,7 @@ fds-dropdown-menu,
 .fds-dropdown-menu {
     display: block;
 
-    & > .dropdown-button > span {
+    & > .dropdown-button > span:has(.collapsed-icon, .expanded-icon) {
         display: flex;
         flex-wrap: nowrap;
         align-items: center;
@@ -268,6 +268,165 @@ fds-modal fds-main-menu .fds-dropdown-menu {
 
         .expanded-icon {
             display: none;
+        }
+    }
+}
+
+/* ================================================================
+   OVERFLOW MENU VARIANT
+   Standalone dropdowns, not inside a header and not inside the
+   drawer main menu.
+   ================================================================ */
+
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu, fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu),
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu, fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) {
+
+    display: block;
+    position: relative;
+    width: 100%;
+
+    @include mixins.media-breakpoint-up(md) {
+        width: auto;
+        display: inline-block;
+    }
+
+    & > .dropdown-button {
+        position: relative;
+        background-color: rgba(0, 0, 0, 0);
+        color: inherit;
+        border: 0;
+        border-radius: 0;
+        font-weight: 400;
+        margin: 0;
+        text-align: left;
+        min-height: 40px;
+        min-width: 40px;
+        padding: 8px 0;
+        cursor: pointer;
+
+        // Arrow pointing from the panel up to the button
+
+        &::before,
+        &::after {
+            content: "";
+            left: 50%;
+            border: solid rgba(0, 0, 0, 0);
+            height: 0;
+            width: 0;
+            position: absolute;
+            pointer-events: none;
+            z-index: 3;
+            bottom: -9px;
+            display: none;
+        }
+
+        &::before {
+            border-bottom-color: #8e8e8e;
+            border-width: 8px;
+            margin-left: calc(8px * -1);
+        }
+
+        &::after {
+            border-bottom-color: #fff;
+            border-width: calc(8px - 1px);
+            margin-left: calc((8px - 1px) * -1);
+        }
+
+        &[aria-expanded="true"] {
+            &::before,
+            &::after {
+                display: block;
+            }
+        }
+    }
+
+    // Styling of the floating dropdown menu itself.
+
+    & > .dropdown-menu {
+        position: absolute;
+        width: calc(100% - 8px);
+        z-index: vars.$zindex-overflow;
+        border: func.border(vars.$overflow-menu-content-border);
+        box-shadow: func.shadow('light');
+        background: func.color(vars.$overflow-menu-content-background-color);
+        top: calc(100% + #{vars.$overflow-menu-dropdown-distance});
+        border-radius: func.border-radius('medium');
+
+        &.collapsed {
+            display: none;
+        }
+
+        @include mixins.media-breakpoint-up(md) {
+            left: calc(50% - 27px);
+            width: auto;
+            max-width: 30rem;
+        }
+
+        @include mixins.media-breakpoint-up(sm) {
+            min-width: 28rem;
+        }
+
+        // Styling of items inside the dropdown menu
+
+        & > ul {
+            margin: 0;
+            list-style-type: none;
+            padding-left: 0;
+            color: #1a1a1a;
+            font-size: 1.6rem;
+            line-height: 2.4rem;
+
+            & > li {
+                border-bottom: 1px solid #dcdcdc;
+                margin: 0;
+                margin-bottom: 0;
+                margin-top: 0;
+                padding-left: 0;
+                text-align: left;
+
+                &:first-child button,
+                &:first-child a {
+                    border-top-left-radius: func.border-radius('medium');
+                    border-top-right-radius: func.border-radius('medium');
+                }
+
+                &:last-child {
+                    border-bottom: 0;
+
+                    button,
+                    a {
+                        border-bottom-left-radius: func.border-radius('medium');
+                        border-bottom-right-radius: func.border-radius('medium');
+                    }
+                }
+                
+                &::before {
+                    content: "" !important;
+                    padding-right: 0 !important;
+                }
+
+                [data-menu-item] {
+                    display: block;
+                    width: 100%;
+                    padding: 8px 16px;
+                    text-align: left;
+                    text-decoration: none;
+                    color: #1a1a1a;
+                    background-color: transparent;
+                    border: 0;
+                    line-height: 1.5;
+                    cursor: pointer;
+
+                    &:hover {
+                        background-color: #f5f5f5;
+                    }
+
+                    &:focus {
+                        position: relative;
+                        z-index: 2;
+                    }
+                }
+            }
         }
     }
 }
