@@ -6238,7 +6238,18 @@ function registerSolutionInfo() {
 class FDSDropdownMenu extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['expanded'];
+  static observedAttributes = ['expanded', 'ready'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get ready() {
+    return this.getAttribute('ready') !== 'false';
+  }
+  set ready(value) {
+    this.setAttribute('ready', value ? 'true' : 'false');
+  }
 
   // #endregion
 
@@ -6398,6 +6409,11 @@ class FDSDropdownMenu extends HTMLElement {
 
   // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
+  init() {
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
   toggle() {
     this.getAttribute('expanded') === 'false' ? this.setAttribute('expanded', 'true') : this.setAttribute('expanded', 'false');
   }
@@ -6413,9 +6429,8 @@ class FDSDropdownMenu extends HTMLElement {
   // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
-    this.#setupHTML();
-    this.#addEventListeners();
-    this.#initialized = true;
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
   }
 
   // #endregion
@@ -6435,6 +6450,12 @@ class FDSDropdownMenu extends HTMLElement {
   // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
     if (!this.#initialized) return;
     if (oldValue === newValue) return;
     switch (attribute) {
