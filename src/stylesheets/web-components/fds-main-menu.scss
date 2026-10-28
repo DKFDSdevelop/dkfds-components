@@ -91,12 +91,22 @@ fds-main-menu,
         }
 
         .search {
-            @include mixins.media-breakpoint-down(md) {
-                padding-top: 16px;
-                padding-bottom: 16px;
+            padding-top: 16px;
+            padding-bottom: 16px;
+
+            input {
+                max-width: 100%;
+            }
+        }
+
+        @include mixins.media-breakpoint-up(vars.$nav-responsive-breakpoint) {
+            .search {
+                padding-top: 0;
+                padding-bottom: 0;
 
                 input {
-                    max-width: 100%;
+                    max-width: 24rem;
+                    min-width: 24rem;
                 }
             }
         }

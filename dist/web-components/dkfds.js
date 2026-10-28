@@ -6239,7 +6239,7 @@ function registerSolutionInfo() {
 class FDSDropdownMenu extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['expanded', 'ready'];
+  static observedAttributes = ['id', 'expanded', 'ready'];
 
   // #endregion
 
@@ -6258,6 +6258,7 @@ class FDSDropdownMenu extends HTMLElement {
 
   #initialized = false;
   #variant = null;
+  #generatedPanelId = false;
   #plusIcon = 'M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z';
   #minusIcon = 'M200-440v-80h560v80H200Z';
   #chevronDownIcon = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
@@ -6312,6 +6313,20 @@ class FDSDropdownMenu extends HTMLElement {
     if (!menu) return [];
     return [...menu.querySelectorAll('button[data-value]')].filter(option => option.closest('fds-dropdown-menu') === this);
   }
+  #syncPanelId() {
+    const menu = this.querySelector(':scope > .dropdown-menu');
+    const button = this.querySelector(':scope > .dropdown-button');
+    if (!menu) return;
+    if (!menu.id) {
+      // No panel ID was supplied: this component owns the generated ID.
+      this.#generatedPanelId = true;
+      menu.id = this.id ? `${this.id}-dropdown-menu-panel` : generateAndVerifyUniqueId('dropdown');
+    } else if (this.#generatedPanelId && this.id) {
+      // A parent may have assigned the dropdown's ID after initialization.
+      menu.id = `${this.id}-dropdown-menu-panel`;
+    }
+    button?.setAttribute('aria-controls', menu.id);
+  }
   #setupHTML() {
     // Dropdown button
     if (!this.querySelector(':scope > .dropdown-button')) {
@@ -6342,14 +6357,7 @@ class FDSDropdownMenu extends HTMLElement {
     if (!this.querySelector(':scope > .dropdown-menu')) {
       this.querySelector(':scope > div')?.classList.add('dropdown-menu');
     }
-    const dropdownButton = this.querySelector(':scope > .dropdown-button');
-    const menu = this.querySelector(':scope > .dropdown-menu');
-    if (menu) {
-      if (!menu.id) {
-        menu.id = generateAndVerifyUniqueId('dropdown');
-      }
-      dropdownButton?.setAttribute('aria-controls', menu.id);
-    }
+    this.#syncPanelId();
     this.querySelectorAll(':scope > .dropdown-menu a, :scope > .dropdown-menu button').forEach(item => {
       if (item.closest('fds-dropdown-menu') === this) {
         item.setAttribute('data-menu-item', '');
@@ -6517,7 +6525,9 @@ class FDSDropdownMenu extends HTMLElement {
       return;
     }
     if (!this.#initialized || oldValue === newValue) return;
-    if (attribute === 'expanded') {
+    if (attribute === 'id') {
+      this.#syncPanelId();
+    } else if (attribute === 'expanded') {
       this.#updateExpanded(newValue);
     }
   }
@@ -6557,11 +6567,21 @@ class FDSMainMenu extends HTMLElement {
     listItems.forEach(item => {
       item.setAttribute('data-menu-item', '');
     });
-
-    // More menu
-
     const isDesktopMainMenu = this.querySelector('.main-menu-inner');
     if (!isDesktopMainMenu) return;
+    const mainMenu = this.querySelector('.main-menu-inner > nav > ul');
+    if (!mainMenu) return;
+    const moreMenuListItem = mainMenu.querySelector(':scope > li.more-button');
+    const moreMenuId = this.getAttribute('more-menu-id');
+
+    // Reconnecting must not create another More menu.
+    if (moreMenuListItem) {
+      const dropdown = moreMenuListItem.querySelector(':scope > fds-dropdown-menu');
+      if (dropdown && moreMenuId !== null) {
+        dropdown.id = moreMenuId;
+      }
+      return;
+    }
     const moreMenuButtonSpan = document.createElement('span');
     moreMenuButtonSpan.textContent = 'Mere';
     const moreMenuButton = document.createElement('button');
@@ -6572,14 +6592,16 @@ class FDSMainMenu extends HTMLElement {
     moreMenuDropdown.appendChild(moreMenuDropdownList);
     const moreMenu = document.createElement('fds-dropdown-menu');
     moreMenu.setAttribute('expanded', 'false');
+    if (moreMenuId !== null) {
+      moreMenu.id = moreMenuId;
+    }
     moreMenu.appendChild(moreMenuButton);
     moreMenu.appendChild(moreMenuDropdown);
-    const moreMenuListItem = document.createElement('li');
-    moreMenuListItem.classList.add('more-button');
-    moreMenuListItem.setAttribute('data-hidden', '');
-    moreMenuListItem.appendChild(moreMenu);
-    const mainMenu = this.querySelector('.main-menu-inner > nav > ul');
-    mainMenu?.appendChild(moreMenuListItem);
+    const newMoreMenuListItem = document.createElement('li');
+    newMoreMenuListItem.classList.add('more-button');
+    newMoreMenuListItem.setAttribute('data-hidden', '');
+    newMoreMenuListItem.appendChild(moreMenu);
+    mainMenu.appendChild(newMoreMenuListItem);
   }
   #addEventListeners() {
     const isDesktopMainMenu = this.querySelector('.main-menu-inner');
@@ -6592,6 +6614,7 @@ class FDSMainMenu extends HTMLElement {
     this.#resizeObserver.observe(this);
   }
   #removeEventListeners() {
+    window.removeEventListener('load', this.#handleLoad);
     if (this.#resizeObserver) {
       this.#resizeObserver.disconnect();
       this.#resizeObserver = null;
@@ -6657,6 +6680,7 @@ class FDSMainMenu extends HTMLElement {
     const maxVisibleListItems = this.#maxVisibleListItems();
     this.querySelector('.more-button').toggleAttribute('data-hidden', listItems.length === maxVisibleListItems);
     const moreMenuDropdownMenu = this.querySelector('.main-menu-inner li.more-button > fds-dropdown-menu > .dropdown-menu > ul');
+    if (!moreMenuDropdownMenu) return;
     moreMenuDropdownMenu.innerHTML = '';
     listItems.forEach((item, index) => {
       if (index < maxVisibleListItems) {
@@ -6693,6 +6717,7 @@ class FDSMainMenu extends HTMLElement {
   // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
+    if (this.#initialized) return;
     this.#setupHTML();
     this.#addEventListeners();
     this.#initialized = true;

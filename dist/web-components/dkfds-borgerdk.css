@@ -13191,15 +13191,25 @@ fds-main-menu > .main-menu-inner .search-form,
 .fds-main-menu > .main-menu-inner .search-form{
   flex:0 0 auto;
 }
-@media (max-width: 991px){
+fds-main-menu > .main-menu-inner .search,
+.fds-main-menu > .main-menu-inner .search{
+  padding-top:16px;
+  padding-bottom:16px;
+}
+fds-main-menu > .main-menu-inner .search input,
+.fds-main-menu > .main-menu-inner .search input{
+  max-width:100%;
+}
+@media (min-width: 992px){
   fds-main-menu > .main-menu-inner .search,
   .fds-main-menu > .main-menu-inner .search{
-    padding-top:16px;
-    padding-bottom:16px;
+    padding-top:0;
+    padding-bottom:0;
   }
   fds-main-menu > .main-menu-inner .search input,
   .fds-main-menu > .main-menu-inner .search input{
-    max-width:100%;
+    max-width:24rem;
+    min-width:24rem;
   }
 }
 

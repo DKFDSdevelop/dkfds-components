@@ -27,14 +27,27 @@ class FDSMainMenu extends HTMLElement {
             item.setAttribute('data-menu-item', '');
         });
 
-        // More menu
-
         const isDesktopMainMenu = this.querySelector('.main-menu-inner');
-
         if (!isDesktopMainMenu) return;
+
+        const mainMenu = this.querySelector('.main-menu-inner > nav > ul');
+        if (!mainMenu) return;
+
+        const moreMenuListItem = mainMenu.querySelector(':scope > li.more-button');
+        const moreMenuId = this.getAttribute('more-menu-id');
+
+        // Reconnecting must not create another More menu.
+        if (moreMenuListItem) {
+            const dropdown = moreMenuListItem.querySelector(':scope > fds-dropdown-menu');
+            if (dropdown && moreMenuId !== null) {
+                dropdown.id = moreMenuId;
+            }
+            return;
+        }
 
         const moreMenuButtonSpan = document.createElement('span');
         moreMenuButtonSpan.textContent = 'Mere';
+
         const moreMenuButton = document.createElement('button');
         moreMenuButton.setAttribute('data-menu-item', '');
         moreMenuButton.appendChild(moreMenuButtonSpan);
@@ -45,16 +58,18 @@ class FDSMainMenu extends HTMLElement {
 
         const moreMenu = document.createElement('fds-dropdown-menu');
         moreMenu.setAttribute('expanded', 'false');
+        if (moreMenuId !== null) {
+            moreMenu.id = moreMenuId;
+        }
         moreMenu.appendChild(moreMenuButton);
         moreMenu.appendChild(moreMenuDropdown);
 
-        const moreMenuListItem = document.createElement('li');
-        moreMenuListItem.classList.add('more-button');
-        moreMenuListItem.setAttribute('data-hidden', '');
-        moreMenuListItem.appendChild(moreMenu);
+        const newMoreMenuListItem = document.createElement('li');
+        newMoreMenuListItem.classList.add('more-button');
+        newMoreMenuListItem.setAttribute('data-hidden', '');
+        newMoreMenuListItem.appendChild(moreMenu);
 
-        const mainMenu = this.querySelector('.main-menu-inner > nav > ul');
-        mainMenu?.appendChild(moreMenuListItem);
+        mainMenu.appendChild(newMoreMenuListItem);
     }
 
     #addEventListeners() {
@@ -70,6 +85,8 @@ class FDSMainMenu extends HTMLElement {
     }
 
     #removeEventListeners() {
+        window.removeEventListener('load', this.#handleLoad);
+
         if (this.#resizeObserver) {
             this.#resizeObserver.disconnect();
             this.#resizeObserver = null;
@@ -143,6 +160,7 @@ class FDSMainMenu extends HTMLElement {
         this.querySelector('.more-button').toggleAttribute('data-hidden', listItems.length === maxVisibleListItems);
 
         const moreMenuDropdownMenu = this.querySelector('.main-menu-inner li.more-button > fds-dropdown-menu > .dropdown-menu > ul');
+        if (!moreMenuDropdownMenu) return;
 
         moreMenuDropdownMenu.innerHTML = '';
 
@@ -168,7 +186,7 @@ class FDSMainMenu extends HTMLElement {
                     customListItem.appendChild(customUnorderedList);
 
                     const dropdownListItems = item.querySelectorAll('fds-dropdown-menu > .dropdown-menu > ul > li');
-                    dropdownListItems.forEach((dropdownItem) => {
+                    dropdownListItems.forEach(dropdownItem => {
                         const clone = dropdownItem.cloneNode(true);
                         customUnorderedList.appendChild(clone);
                     });
@@ -187,6 +205,8 @@ class FDSMainMenu extends HTMLElement {
     // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
+        if (this.#initialized) return;
+
         this.#setupHTML();
         this.#addEventListeners();
         this.#initialized = true;
