@@ -434,7 +434,6 @@ fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu, fds-modal :wher
     }
 
     &[direction="left"] {
-        
         & > .dropdown-menu {
             @include mixins.media-breakpoint-up(md) {
                 left: auto;
@@ -450,6 +449,158 @@ fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu, fds-modal :wher
                     .icon-svg {
                         float: right;
                         margin-right: 8px;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* ================================================================
+   LANGUAGE SWITCHER VARIANT
+   Language selector in the header bar.
+   ================================================================ */
+
+.language-switcher-header {
+    background-color: func.color(vars.$header-portal-background-color);
+    display: none;
+
+    @include mixins.media-breakpoint-up(vars.$nav-responsive-breakpoint) {
+        display: block;
+    }
+
+    .container {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+    }
+
+    fds-dropdown-menu,
+    .fds-dropdown-menu {
+        $icon-size: func.units(4, 'rem');
+        $button-icon-gap: func.units(2);
+        $list-icon-gap: func.units(3);
+        $inner-padding: func.units(4);
+        $border-width: 1px;
+
+        position: relative;
+
+        // The button
+
+        & > .dropdown-button {
+            display: flex;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0);
+            color: func.color(vars.$overflow-menu-button-text-color);
+            border: 0;
+            border-radius: 0;
+            font-size: func.font-size("xs");
+            font-weight: 400;
+            line-height: 1;
+            text-align: left;
+            text-decoration: underline;
+            cursor: pointer;
+            min-height: 0;
+            padding: 0;
+            margin: func.units(3) 0 func.units(2) 0;
+
+            & > span {
+                display: flex;
+                align-items: center;
+            }
+
+            .icon-svg {
+                flex-shrink: 0;
+                width: $icon-size;
+                height: $icon-size;
+                margin-right: $button-icon-gap;
+                fill: func.color("ink");
+            }
+        }
+
+        // The floating dropdown menu.
+
+        & > .dropdown-menu {
+            position: absolute;
+            z-index: vars.$zindex-overflow;
+            top: calc(100% + #{func.units(1)});
+            left: calc(#{$button-icon-gap} - #{$border-width} - #{$inner-padding} - #{$list-icon-gap});
+            width: max-content;
+            min-width: 0;
+            max-width: 30rem;
+            background-color: func.color(vars.$header-portal-background-color);
+            border: func.border(vars.$overflow-menu-content-border);
+            box-shadow: func.shadow('light');
+            border-radius: func.border-radius('medium');
+
+            &.collapsed {
+                display: none;
+            }
+
+            // Styling of items inside the dropdown menu
+
+            & > ul {
+                margin: 0;
+                list-style-type: none;
+                padding-left: 0;
+                color: #1a1a1a;
+                font-size: 1.6rem;
+                line-height: 2.4rem;
+
+                & > li {
+                    border-bottom: 1px solid #dcdcdc;
+                    margin: 0;
+                    padding-left: 0;
+                    text-align: left;
+
+                    &:last-child {
+                        border-bottom: 0;
+                    }
+
+                    &::before {
+                        content: "" !important;
+                        padding-right: 0 !important;
+                    }
+
+                    &:first-child [data-menu-item] {
+                        border-top-left-radius: func.border-radius('medium');
+                        border-top-right-radius: func.border-radius('medium');
+                    }
+
+                    &:last-child [data-menu-item] {
+                        border-bottom-left-radius: func.border-radius('medium');
+                        border-bottom-right-radius: func.border-radius('medium');
+                    }
+
+                    [data-menu-item] {
+                        display: flex;
+                        align-items: center;
+                        width: 100%;
+                        max-width: none;
+                        padding: 8px 16px 8px calc(#{$inner-padding} + #{$icon-size} + #{$list-icon-gap});
+                        color: #1a1a1a;
+                        background-color: transparent;
+                        border: 0;
+                        font-weight: func.font-weight("normal");
+                        line-height: 1.5;
+                        text-align: left;
+                        text-decoration: underline;
+                        cursor: pointer;
+
+                        &:focus {
+                            position: relative;
+                            z-index: 2;
+                        }
+
+                        // The currently selected language
+
+                        &[aria-current="true"] {
+                            font-weight: func.font-weight("semibold");
+                            text-decoration: none;
+                            @include mixins.add-background-svg('check');
+                            background-position: left $inner-padding center;
+                            background-size: $icon-size;
+                        }
                     }
                 }
             }
