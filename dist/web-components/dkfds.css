@@ -10874,10 +10874,11 @@ fds-error-message,
   color:#CC0000;
   margin-top:8px;
   max-width:66ch;
+  font-weight:600;
 }
 fds-error-message .icon-svg.alert-icon,
 .fds-error-message .icon-svg.alert-icon{
-  margin-right:8px;
+  margin-right:4px;
   min-width:24px;
   vertical-align:bottom;
 }
@@ -12496,18 +12497,16 @@ fds-modal .fds-solution-info:last-child,
 .fds-modal .fds-solution-info:last-child{
   border-bottom:1px solid #8E8E8E;
 }
-
 fds-dropdown-menu,
 .fds-dropdown-menu{
   display:block;
 }
-fds-dropdown-menu > .dropdown-button > span,
-.fds-dropdown-menu > .dropdown-button > span{
+fds-dropdown-menu > .dropdown-button > span:has(.collapsed-icon, .expanded-icon),
+.fds-dropdown-menu > .dropdown-button > span:has(.collapsed-icon, .expanded-icon){
   display:flex;
   flex-wrap:nowrap;
   align-items:center;
 }
-
 fds-main-menu > .main-menu-inner li fds-dropdown-menu > .dropdown-button > span .icon-svg,
 fds-main-menu > .main-menu-inner li .fds-dropdown-menu > .dropdown-button > span .icon-svg,
 .fds-main-menu > .main-menu-inner li fds-dropdown-menu > .dropdown-button > span .icon-svg,
@@ -12771,6 +12770,344 @@ fds-modal .fds-main-menu .fds-dropdown-menu[expanded=false] > .dropdown-button >
 fds-modal fds-main-menu fds-dropdown-menu[expanded=false] > .dropdown-button > span .expanded-icon,
 fds-modal fds-main-menu .fds-dropdown-menu[expanded=false] > .dropdown-button > span .expanded-icon{
   display:none;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu),
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu){
+  display:block;
+  position:relative;
+  width:100%;
+}
+@media (min-width: 768px){
+  fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu),
+  .fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu){
+    width:auto;
+    display:inline-block;
+  }
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-button,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-button{
+  position:relative;
+  background-color:rgba(0, 0, 0, 0);
+  color:inherit;
+  border:0;
+  border-radius:0;
+  font-weight:400;
+  margin:0;
+  text-align:left;
+  min-height:40px;
+  min-width:40px;
+  padding:8px 0;
+  cursor:pointer;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-button::before, fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-button::after,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-button::before,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-button::after{
+  content:"";
+  left:50%;
+  border:solid rgba(0, 0, 0, 0);
+  height:0;
+  width:0;
+  position:absolute;
+  pointer-events:none;
+  z-index:3;
+  bottom:-9px;
+  display:none;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-button::before,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-button::before{
+  border-bottom-color:#8e8e8e;
+  border-width:8px;
+  margin-left:-8px;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-button::after,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-button::after{
+  border-bottom-color:#fff;
+  border-width:7px;
+  margin-left:-7px;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-button[aria-expanded=true]::before, fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-button[aria-expanded=true]::after,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-button[aria-expanded=true]::before,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-button[aria-expanded=true]::after{
+  display:block;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-menu,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu{
+  position:absolute;
+  width:calc(100% - 8px);
+  z-index:2;
+  border:1px solid #8E8E8E;
+  box-shadow:0 4px 12px 0 rgba(0, 0, 0, 0.2);
+  background:white;
+  top:calc(100% + 8px);
+  border-radius:8px;
+  left:4px;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-menu.collapsed,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu.collapsed{
+  display:none;
+}
+@media (min-width: 768px){
+  fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-menu,
+  .fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu{
+    left:calc(50% - 27px);
+    width:auto;
+    max-width:30rem;
+  }
+}
+@media (min-width: 576px){
+  fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-menu,
+  .fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu{
+    min-width:28rem;
+  }
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-menu > ul,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu > ul{
+  margin:0;
+  list-style-type:none;
+  padding-left:0;
+  color:#1a1a1a;
+  font-size:1.6rem;
+  line-height:2.4rem;
+  max-width:none;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-menu > ul > li,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu > ul > li{
+  border-bottom:1px solid #dcdcdc;
+  margin:0;
+  margin-bottom:0;
+  margin-top:0;
+  padding-left:0;
+  text-align:left;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-menu > ul > li:first-child button, fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-menu > ul > li:first-child a,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu > ul > li:first-child button,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu > ul > li:first-child a{
+  border-top-left-radius:8px;
+  border-top-right-radius:8px;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-menu > ul > li:last-child,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu > ul > li:last-child{
+  border-bottom:0;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-menu > ul > li:last-child button,
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-menu > ul > li:last-child a,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu > ul > li:last-child button,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu > ul > li:last-child a{
+  border-bottom-left-radius:8px;
+  border-bottom-right-radius:8px;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-menu > ul > li::before,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu > ul > li::before{
+  content:"" !important;
+  padding-right:0 !important;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-menu > ul > li [data-menu-item],
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu > ul > li [data-menu-item]{
+  display:block;
+  width:100%;
+  max-width:none;
+  padding:8px 16px;
+  text-align:left;
+  text-decoration:none;
+  color:#1a1a1a;
+  background-color:transparent;
+  border:0;
+  line-height:1.5;
+  cursor:pointer;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-menu > ul > li [data-menu-item]:hover,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu > ul > li [data-menu-item]:hover{
+  background-color:#f5f5f5;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-menu > ul > li [data-menu-item]:focus,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu > ul > li [data-menu-item]:focus{
+  position:relative;
+  z-index:2;
+}
+@media (min-width: 768px){
+  fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu)[direction=left] > .dropdown-menu,
+  .fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu)[direction=left] > .dropdown-menu{
+    left:auto;
+    right:calc(50% - 27px);
+  }
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu)[direction=left] > .dropdown-menu > ul > li,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu)[direction=left] > .dropdown-menu > ul > li{
+  text-align:right;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu)[direction=left] > .dropdown-menu > ul > li [data-menu-item],
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu)[direction=left] > .dropdown-menu > ul > li [data-menu-item]{
+  text-align:right;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu)[direction=left] > .dropdown-menu > ul > li [data-menu-item] .icon-svg,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu)[direction=left] > .dropdown-menu > ul > li [data-menu-item] .icon-svg{
+  float:right;
+  margin-right:8px;
+}
+.language-switcher-header{
+  background-color:white;
+  display:none;
+}
+@media (min-width: 992px){
+  .language-switcher-header{
+    display:block;
+  }
+}
+.language-switcher-header .container{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+}
+.language-switcher-header fds-dropdown-menu,
+.language-switcher-header .fds-dropdown-menu{
+  position:relative;
+}
+.language-switcher-header fds-dropdown-menu > .dropdown-button,
+.language-switcher-header .fds-dropdown-menu > .dropdown-button{
+  display:flex;
+  align-items:center;
+  background-color:rgba(0, 0, 0, 0);
+  color:#1a1a1a;
+  border:0;
+  border-radius:0;
+  font-size:1.4rem;
+  font-weight:400;
+  line-height:1;
+  text-align:left;
+  text-decoration:underline;
+  cursor:pointer;
+  min-height:0;
+  padding:0;
+  margin:8px 0 4px 0;
+}
+.language-switcher-header fds-dropdown-menu > .dropdown-button > span,
+.language-switcher-header .fds-dropdown-menu > .dropdown-button > span{
+  display:flex;
+  align-items:center;
+}
+.language-switcher-header fds-dropdown-menu > .dropdown-button .icon-svg,
+.language-switcher-header .fds-dropdown-menu > .dropdown-button .icon-svg{
+  flex-shrink:0;
+  width:1.6rem;
+  height:1.6rem;
+  margin-right:4px;
+  fill:#1a1a1a;
+}
+.language-switcher-header fds-dropdown-menu > .dropdown-menu,
+.language-switcher-header .fds-dropdown-menu > .dropdown-menu{
+  position:absolute;
+  z-index:2;
+  top:calc(100% + 2px);
+  left:calc(4px - 1px - 16px - 8px);
+  width:max-content;
+  min-width:0;
+  max-width:30rem;
+  background-color:white;
+  border:1px solid #8E8E8E;
+  box-shadow:0 4px 12px 0 rgba(0, 0, 0, 0.2);
+  border-radius:8px;
+}
+.language-switcher-header fds-dropdown-menu > .dropdown-menu.collapsed,
+.language-switcher-header .fds-dropdown-menu > .dropdown-menu.collapsed{
+  display:none;
+}
+.language-switcher-header fds-dropdown-menu > .dropdown-menu > ul,
+.language-switcher-header .fds-dropdown-menu > .dropdown-menu > ul{
+  margin:0;
+  list-style-type:none;
+  padding-left:0;
+  color:#1a1a1a;
+  font-size:1.6rem;
+  line-height:2.4rem;
+}
+.language-switcher-header fds-dropdown-menu > .dropdown-menu > ul > li,
+.language-switcher-header .fds-dropdown-menu > .dropdown-menu > ul > li{
+  border-bottom:1px solid #dcdcdc;
+  margin:0;
+  padding-left:0;
+  text-align:left;
+}
+.language-switcher-header fds-dropdown-menu > .dropdown-menu > ul > li:last-child,
+.language-switcher-header .fds-dropdown-menu > .dropdown-menu > ul > li:last-child{
+  border-bottom:0;
+}
+.language-switcher-header fds-dropdown-menu > .dropdown-menu > ul > li::before,
+.language-switcher-header .fds-dropdown-menu > .dropdown-menu > ul > li::before{
+  content:"" !important;
+  padding-right:0 !important;
+}
+.language-switcher-header fds-dropdown-menu > .dropdown-menu > ul > li:first-child [data-menu-item],
+.language-switcher-header .fds-dropdown-menu > .dropdown-menu > ul > li:first-child [data-menu-item]{
+  border-top-left-radius:8px;
+  border-top-right-radius:8px;
+}
+.language-switcher-header fds-dropdown-menu > .dropdown-menu > ul > li:last-child [data-menu-item],
+.language-switcher-header .fds-dropdown-menu > .dropdown-menu > ul > li:last-child [data-menu-item]{
+  border-bottom-left-radius:8px;
+  border-bottom-right-radius:8px;
+}
+.language-switcher-header fds-dropdown-menu > .dropdown-menu > ul > li [data-menu-item],
+.language-switcher-header .fds-dropdown-menu > .dropdown-menu > ul > li [data-menu-item]{
+  display:flex;
+  align-items:center;
+  width:100%;
+  max-width:none;
+  padding:8px 16px 8px calc(16px + 1.6rem + 8px);
+  color:#1a1a1a;
+  background-color:transparent;
+  border:0;
+  font-weight:400;
+  line-height:1.5;
+  text-align:left;
+  text-decoration:underline;
+  cursor:pointer;
+}
+.language-switcher-header fds-dropdown-menu > .dropdown-menu > ul > li [data-menu-item]:focus,
+.language-switcher-header .fds-dropdown-menu > .dropdown-menu > ul > li [data-menu-item]:focus{
+  position:relative;
+  z-index:2;
+}
+.language-switcher-header fds-dropdown-menu > .dropdown-menu > ul > li [data-menu-item][aria-current=true],
+.language-switcher-header .fds-dropdown-menu > .dropdown-menu > ul > li [data-menu-item][aria-current=true]{
+  font-weight:600;
+  text-decoration:none;
+  background-image:url("../img/svg-icons/check.svg");
+  background-size:2.4rem;
+  background-repeat:no-repeat;
+  background-position:left 16px center;
+  background-size:1.6rem;
+}
+fds-dropdown-menu[variant=sort] > .dropdown-button,
+.fds-dropdown-menu[variant=sort] > .dropdown-button{
+  line-height:2.4rem;
+}
+fds-dropdown-menu[variant=sort] > .dropdown-button .selected-value,
+.fds-dropdown-menu[variant=sort] > .dropdown-button .selected-value{
+  display:inline-block;
+  margin-left:4px;
+  font-weight:600;
+  text-decoration:none;
+}
+fds-dropdown-menu[variant=sort] > .dropdown-button .icon-svg,
+.fds-dropdown-menu[variant=sort] > .dropdown-button .icon-svg{
+  margin-right:4px;
+}
+fds-dropdown-menu[variant=sort] > .dropdown-button > span,
+.fds-dropdown-menu[variant=sort] > .dropdown-button > span{
+  display:flex;
+  align-items:center;
+}
+fds-dropdown-menu[variant=sort] > .dropdown-button span:not(.selected-value):not(:has(.selected-value)),
+.fds-dropdown-menu[variant=sort] > .dropdown-button span:not(.selected-value):not(:has(.selected-value)){
+  text-decoration:underline;
+}
+fds-dropdown-menu[variant=sort] > .dropdown-menu [data-menu-item][aria-current=true],
+.fds-dropdown-menu[variant=sort] > .dropdown-menu [data-menu-item][aria-current=true]{
+  font-weight:600;
+  background-image:url("../img/svg-icons/check.svg");
+  background-size:2.4rem;
+  background-repeat:no-repeat;
+  background-position:calc(100% - 16px) center;
 }
 
 fds-main-menu,

@@ -6235,16 +6235,29 @@ function registerSolutionInfo() {
 /* harmony default export */ const fds_solution_info = (registerSolutionInfo);
 ;// ./src/js/web-components/dropdown-menu/fds-dropdown-menu.js
 
+
 class FDSDropdownMenu extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['expanded'];
+  static observedAttributes = ['expanded', 'ready'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get ready() {
+    return this.getAttribute('ready') !== 'false';
+  }
+  set ready(value) {
+    this.setAttribute('ready', value ? 'true' : 'false');
+  }
 
   // #endregion
 
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
+  #variant = null;
   #plusIcon = 'M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z';
   #minusIcon = 'M200-440v-80h560v80H200Z';
   #chevronDownIcon = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
@@ -6255,38 +6268,50 @@ class FDSDropdownMenu extends HTMLElement {
 
   // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
-  #handleClick = event => {
+  #handleClick = () => {
     this.toggle();
   };
   #handleFocusOut = event => {
-    const focusLeftDropdownMenu = !this.contains(event.relatedTarget);
-    if (focusLeftDropdownMenu) {
+    if (!this.contains(event.relatedTarget)) {
       this.close();
     }
   };
   #handleKeydown = event => {
-    switch (event.key) {
-      case 'Escape':
-        this.close();
-        this.querySelector(':scope > .dropdown-button')?.focus();
-        break;
+    if (event.key === 'Escape') {
+      this.close();
+      this.querySelector(':scope > .dropdown-button')?.focus();
     }
   };
-  #handleMenuItemClick = event => {
-    if (event.target.closest('[data-menu-item]')) {
-      this.close();
+  #handleItemClick = event => {
+    const item = event.target.closest('[data-menu-item]');
+    const menu = this.querySelector(':scope > .dropdown-menu');
+    if (!item || !menu?.contains(item) || item.closest('fds-dropdown-menu') !== this) return;
+    if (this.#variant === 'sort' && item.matches('button[data-value]')) {
+      this.selectSortValue(item.dataset.value);
     }
+    this.close();
   };
   #handleOutsideClick = event => {
     if (!this.contains(event.target)) {
       this.close();
     }
   };
+  #handleResize = () => {
+    this.#positionMenu();
+  };
 
   // #endregion
 
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
+  #isDrawerSubmenu() {
+    return !!this.closest('fds-main-menu') && !this.closest('fds-main-menu .main-menu-inner');
+  }
+  #getSortOptions() {
+    const menu = this.querySelector(':scope > .dropdown-menu');
+    if (!menu) return [];
+    return [...menu.querySelectorAll('button[data-value]')].filter(option => option.closest('fds-dropdown-menu') === this);
+  }
   #setupHTML() {
     // Dropdown button
     if (!this.querySelector(':scope > .dropdown-button')) {
@@ -6317,16 +6342,54 @@ class FDSDropdownMenu extends HTMLElement {
     if (!this.querySelector(':scope > .dropdown-menu')) {
       this.querySelector(':scope > div')?.classList.add('dropdown-menu');
     }
-
-    // Expanded attribute on fds-dropdown-menu
+    const dropdownButton = this.querySelector(':scope > .dropdown-button');
+    const menu = this.querySelector(':scope > .dropdown-menu');
+    if (menu) {
+      if (!menu.id) {
+        menu.id = generateAndVerifyUniqueId('dropdown');
+      }
+      dropdownButton?.setAttribute('aria-controls', menu.id);
+    }
+    this.querySelectorAll(':scope > .dropdown-menu a, :scope > .dropdown-menu button').forEach(item => {
+      if (item.closest('fds-dropdown-menu') === this) {
+        item.setAttribute('data-menu-item', '');
+      }
+    });
     if (!this.hasAttribute('expanded')) {
       this.setAttribute('expanded', 'false');
     }
     this.#updateExpanded(this.getAttribute('expanded'));
 
-    // If the overflow menu opens on top of content, ensure it doesn't close on misclick inside the opened menu
-    if (this.closest('fds-main-menu .main-menu-inner')) {
-      this.querySelector(':scope > .dropdown-menu').setAttribute('tabindex', '-1');
+    // Don't close the dropdown when something non-clickable inside it is clicked (like a subtitle)
+    if (!this.#isDrawerSubmenu()) {
+      this.querySelector(':scope > .dropdown-menu')?.setAttribute('tabindex', '-1');
+    }
+  }
+  #initializeSort() {
+    const options = this.#getSortOptions();
+    if (!options.length) return;
+    const defaultValue = this.getAttribute('default-value');
+    const initialOption = options.find(option => option.dataset.value === defaultValue) ?? options[0];
+
+    // Initial selection updates the UI without dispatching an event.
+    this.selectSortValue(initialOption.dataset.value, false);
+  }
+  #positionMenu() {
+    const menu = this.querySelector(':scope > .dropdown-menu');
+    if (!menu) return;
+    menu.style.removeProperty('max-width');
+    menu.style.removeProperty('left');
+    menu.style.removeProperty('right');
+    const rect = menu.getBoundingClientRect();
+    const viewportWidth = window.visualViewport?.width ?? document.documentElement.clientWidth;
+    if (menu.offsetWidth > viewportWidth) {
+      menu.style.maxWidth = `${viewportWidth}px`;
+    } else if (rect.left < 0) {
+      menu.style.left = '0px';
+      menu.style.right = 'auto';
+    } else if (rect.left + menu.offsetWidth > viewportWidth) {
+      menu.style.left = 'auto';
+      menu.style.right = '0px';
     }
   }
   #updateExpanded(value) {
@@ -6335,49 +6398,37 @@ class FDSDropdownMenu extends HTMLElement {
     if (value === 'false') {
       dropdownButton?.setAttribute('aria-expanded', 'false');
       menu?.classList.add('collapsed');
-      menu.removeAttribute('style');
-      if (this.closest('fds-main-menu .main-menu-inner')) {
+      menu?.removeAttribute('style');
+      window.removeEventListener('resize', this.#handleResize);
+      if (!this.#isDrawerSubmenu()) {
         document.removeEventListener('mousedown', this.#handleOutsideClick, false);
       }
       this.dispatchEvent(new Event('fds-dropdown-menu-closed'));
     } else {
       dropdownButton?.setAttribute('aria-expanded', 'true');
       menu?.classList.remove('collapsed');
-      if (this.closest('fds-main-menu .main-menu-inner')) {
+      if (!this.#isDrawerSubmenu()) {
         document.addEventListener('mousedown', this.#handleOutsideClick, false);
       }
-
-      /* Check if the dropdown is within the screen borders */
-
-      const rect = menu.getBoundingClientRect();
-      const viewportWidth = window.visualViewport?.width ?? document.documentElement.clientWidth;
-      if (menu.offsetWidth > viewportWidth) {
-        menu.style.maxWidth = `${viewportWidth}px`;
-      } else if (rect.left < 0) {
-        menu.style.left = '0px';
-      } else if (rect.left + menu.offsetWidth > viewportWidth) {
-        menu.style.right = '0px';
-      }
-
-      /* Dispatch event */
-
+      this.#positionMenu();
+      window.addEventListener('resize', this.#handleResize);
       this.dispatchEvent(new Event('fds-dropdown-menu-opened'));
     }
   }
   #addEventListeners() {
     this.querySelector(':scope > .dropdown-button')?.addEventListener('click', this.#handleClick);
-    if (this.closest('fds-main-menu .main-menu-inner')) {
+    if (!this.#isDrawerSubmenu()) {
       this.addEventListener('focusout', this.#handleFocusOut, false);
       this.addEventListener('keydown', this.#handleKeydown, false);
-      this.querySelector('.dropdown-menu').addEventListener('click', this.#handleMenuItemClick, false);
+      this.querySelector(':scope > .dropdown-menu')?.addEventListener('click', this.#handleItemClick, false);
     }
   }
   #removeEventListeners() {
     this.querySelector(':scope > .dropdown-button')?.removeEventListener('click', this.#handleClick);
-    if (this.closest('fds-main-menu .main-menu-inner')) {
+    if (!this.#isDrawerSubmenu()) {
       this.removeEventListener('focusout', this.#handleFocusOut, false);
       this.removeEventListener('keydown', this.#handleKeydown, false);
-      this.querySelector('.dropdown-menu').removeEventListener('click', this.#handleMenuItemClick, false);
+      this.querySelector(':scope > .dropdown-menu')?.removeEventListener('click', this.#handleItemClick, false);
     }
   }
 
@@ -6385,6 +6436,18 @@ class FDSDropdownMenu extends HTMLElement {
 
   // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
+  init() {
+    if (this.#initialized) return;
+
+    // Read once. Changes to variant after initialization are unsupported.
+    this.#variant = this.getAttribute('variant') === 'sort' ? 'sort' : null;
+    this.#setupHTML();
+    if (this.#variant === 'sort') {
+      this.#initializeSort();
+    }
+    this.#addEventListeners();
+    this.#initialized = true;
+  }
   toggle() {
     this.getAttribute('expanded') === 'false' ? this.setAttribute('expanded', 'true') : this.setAttribute('expanded', 'false');
   }
@@ -6394,15 +6457,39 @@ class FDSDropdownMenu extends HTMLElement {
   close() {
     this.setAttribute('expanded', 'false');
   }
+  selectSortValue(value) {
+    let dispatch = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+    if (this.#variant !== 'sort') return;
+    const options = this.#getSortOptions();
+    const option = options.find(item => item.dataset.value === value);
+    if (!option) return;
+    const previousValue = this.dataset.selectedValue ?? null;
+    if (value === previousValue) return;
+    options.forEach(item => item.removeAttribute('aria-current'));
+    option.setAttribute('aria-current', 'true');
+    this.dataset.selectedValue = value;
+    const label = this.querySelector(':scope > .dropdown-button .selected-value');
+    if (label) {
+      label.textContent = option.textContent.trim();
+    }
+    if (dispatch) {
+      this.dispatchEvent(new CustomEvent('fds-sort-menu-changed', {
+        bubbles: true,
+        detail: {
+          value,
+          previousValue
+        }
+      }));
+    }
+  }
 
   // #endregion
 
   // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
   connectedCallback() {
-    this.#setupHTML();
-    this.#addEventListeners();
-    this.#initialized = true;
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
   }
 
   // #endregion
@@ -6411,7 +6498,8 @@ class FDSDropdownMenu extends HTMLElement {
 
   disconnectedCallback() {
     this.#removeEventListeners();
-    if (this.closest('fds-main-menu .main-menu-inner')) {
+    window.removeEventListener('resize', this.#handleResize);
+    if (!this.#isDrawerSubmenu()) {
       document.removeEventListener('mousedown', this.#handleOutsideClick, false);
     }
     this.#initialized = false;
@@ -6422,12 +6510,15 @@ class FDSDropdownMenu extends HTMLElement {
   // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
   attributeChangedCallback(attribute, oldValue, newValue) {
-    if (!this.#initialized) return;
-    if (oldValue === newValue) return;
-    switch (attribute) {
-      case 'expanded':
-        this.#updateExpanded(newValue);
-        break;
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+    if (!this.#initialized || oldValue === newValue) return;
+    if (attribute === 'expanded') {
+      this.#updateExpanded(newValue);
     }
   }
 
