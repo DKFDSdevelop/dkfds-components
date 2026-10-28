@@ -13076,6 +13076,38 @@ fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :
   background-position:left 16px center;
   background-size:1.6rem;
 }
+fds-dropdown-menu[variant=sort] > .dropdown-button,
+.fds-dropdown-menu[variant=sort] > .dropdown-button{
+  line-height:2.4rem;
+}
+fds-dropdown-menu[variant=sort] > .dropdown-button .selected-value,
+.fds-dropdown-menu[variant=sort] > .dropdown-button .selected-value{
+  display:inline-block;
+  margin-left:4px;
+  font-weight:600;
+  text-decoration:none;
+}
+fds-dropdown-menu[variant=sort] > .dropdown-button .icon-svg,
+.fds-dropdown-menu[variant=sort] > .dropdown-button .icon-svg{
+  margin-right:4px;
+}
+fds-dropdown-menu[variant=sort] > .dropdown-button > span,
+.fds-dropdown-menu[variant=sort] > .dropdown-button > span{
+  display:flex;
+  align-items:center;
+}
+fds-dropdown-menu[variant=sort] > .dropdown-button span:not(.selected-value):not(:has(.selected-value)),
+.fds-dropdown-menu[variant=sort] > .dropdown-button span:not(.selected-value):not(:has(.selected-value)){
+  text-decoration:underline;
+}
+fds-dropdown-menu[variant=sort] > .dropdown-menu [data-menu-item][aria-current=true],
+.fds-dropdown-menu[variant=sort] > .dropdown-menu [data-menu-item][aria-current=true]{
+  font-weight:600;
+  background-image:url("../img/svg-icons/check.svg");
+  background-size:2.4rem;
+  background-repeat:no-repeat;
+  background-position:calc(100% - 16px) center;
+}
 
 fds-main-menu,
 .fds-main-menu{

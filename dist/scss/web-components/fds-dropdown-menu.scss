@@ -607,3 +607,40 @@ fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu, fds-modal :wher
         }
     }
 }
+
+/* ================================================================
+   SORT VARIANT
+   ================================================================ */
+
+fds-dropdown-menu[variant="sort"],
+.fds-dropdown-menu[variant="sort"] {
+    & > .dropdown-button {
+        line-height: func.units(5, 'rem');
+
+        .selected-value {
+            display: inline-block;
+            margin-left: func.units(2);
+            font-weight: func.font-weight("semibold");
+            text-decoration: none;
+        }
+
+        .icon-svg {
+            margin-right: func.units(2);
+        }
+
+        & > span {
+            display: flex;
+            align-items: center;
+        }
+
+        & span:not(.selected-value, :has(.selected-value)) {
+            text-decoration: underline;
+        }
+    }
+
+    & > .dropdown-menu [data-menu-item][aria-current="true"] {
+        font-weight: func.font-weight("semibold");
+        @include mixins.add-background-svg('check');
+        background-position: calc(100% - #{func.units(4)}) center;
+    }
+}

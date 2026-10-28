@@ -6256,6 +6256,7 @@ class FDSDropdownMenu extends HTMLElement {
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
+  #variant = null;
   #plusIcon = 'M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z';
   #minusIcon = 'M200-440v-80h560v80H200Z';
   #chevronDownIcon = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
@@ -6266,27 +6267,28 @@ class FDSDropdownMenu extends HTMLElement {
 
   // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
-  #handleClick = event => {
+  #handleClick = () => {
     this.toggle();
   };
   #handleFocusOut = event => {
-    const focusLeftDropdownMenu = !this.contains(event.relatedTarget);
-    if (focusLeftDropdownMenu) {
+    if (!this.contains(event.relatedTarget)) {
       this.close();
     }
   };
   #handleKeydown = event => {
-    switch (event.key) {
-      case 'Escape':
-        this.close();
-        this.querySelector(':scope > .dropdown-button')?.focus();
-        break;
+    if (event.key === 'Escape') {
+      this.close();
+      this.querySelector(':scope > .dropdown-button')?.focus();
     }
   };
-  #handleMenuItemClick = event => {
-    if (event.target.closest('[data-menu-item]')) {
-      this.close();
+  #handleItemClick = event => {
+    const item = event.target.closest('[data-menu-item]');
+    const menu = this.querySelector(':scope > .dropdown-menu');
+    if (!item || !menu?.contains(item) || item.closest('fds-dropdown-menu') !== this) return;
+    if (this.#variant === 'sort' && item.matches('button[data-value]')) {
+      this.selectSortValue(item.dataset.value);
     }
+    this.close();
   };
   #handleOutsideClick = event => {
     if (!this.contains(event.target)) {
@@ -6301,9 +6303,13 @@ class FDSDropdownMenu extends HTMLElement {
 
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
-  // The dropdown menu should behave differently when it is used inside a modal drawer.
   #isDrawerSubmenu() {
     return !!this.closest('fds-main-menu') && !this.closest('fds-main-menu .main-menu-inner');
+  }
+  #getSortOptions() {
+    const menu = this.querySelector(':scope > .dropdown-menu');
+    if (!menu) return [];
+    return [...menu.querySelectorAll('button[data-value]')].filter(option => option.closest('fds-dropdown-menu') === this);
   }
   #setupHTML() {
     // Dropdown button
@@ -6335,15 +6341,11 @@ class FDSDropdownMenu extends HTMLElement {
     if (!this.querySelector(':scope > .dropdown-menu')) {
       this.querySelector(':scope > div')?.classList.add('dropdown-menu');
     }
-
-    // Mark interactive menu items so clicking them closes the dropdown
     this.querySelectorAll(':scope > .dropdown-menu a, :scope > .dropdown-menu button').forEach(item => {
       if (item.closest('fds-dropdown-menu') === this) {
         item.setAttribute('data-menu-item', '');
       }
     });
-
-    // Expanded attribute on fds-dropdown-menu
     if (!this.hasAttribute('expanded')) {
       this.setAttribute('expanded', 'false');
     }
@@ -6354,8 +6356,15 @@ class FDSDropdownMenu extends HTMLElement {
       this.querySelector(':scope > .dropdown-menu')?.setAttribute('tabindex', '-1');
     }
   }
+  #initializeSort() {
+    const options = this.#getSortOptions();
+    if (!options.length) return;
+    const defaultValue = this.getAttribute('default-value');
+    const initialOption = options.find(option => option.dataset.value === defaultValue) ?? options[0];
 
-  // Ensure the dropdown doesn't cross the viewport's left or right side.
+    // Initial selection updates the UI without dispatching an event.
+    this.selectSortValue(initialOption.dataset.value, false);
+  }
   #positionMenu() {
     const menu = this.querySelector(':scope > .dropdown-menu');
     if (!menu) return;
@@ -6392,14 +6401,8 @@ class FDSDropdownMenu extends HTMLElement {
       if (!this.#isDrawerSubmenu()) {
         document.addEventListener('mousedown', this.#handleOutsideClick, false);
       }
-
-      /* Check if the dropdown is within the screen borders */
-
       this.#positionMenu();
       window.addEventListener('resize', this.#handleResize);
-
-      /* Dispatch event */
-
       this.dispatchEvent(new Event('fds-dropdown-menu-opened'));
     }
   }
@@ -6408,7 +6411,7 @@ class FDSDropdownMenu extends HTMLElement {
     if (!this.#isDrawerSubmenu()) {
       this.addEventListener('focusout', this.#handleFocusOut, false);
       this.addEventListener('keydown', this.#handleKeydown, false);
-      this.querySelector(':scope > .dropdown-menu')?.addEventListener('click', this.#handleMenuItemClick, false);
+      this.querySelector(':scope > .dropdown-menu')?.addEventListener('click', this.#handleItemClick, false);
     }
   }
   #removeEventListeners() {
@@ -6416,7 +6419,7 @@ class FDSDropdownMenu extends HTMLElement {
     if (!this.#isDrawerSubmenu()) {
       this.removeEventListener('focusout', this.#handleFocusOut, false);
       this.removeEventListener('keydown', this.#handleKeydown, false);
-      this.querySelector(':scope > .dropdown-menu')?.removeEventListener('click', this.#handleMenuItemClick, false);
+      this.querySelector(':scope > .dropdown-menu')?.removeEventListener('click', this.#handleItemClick, false);
     }
   }
 
@@ -6425,7 +6428,14 @@ class FDSDropdownMenu extends HTMLElement {
   // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
   init() {
+    if (this.#initialized) return;
+
+    // Read once. Changes to variant after initialization are unsupported.
+    this.#variant = this.getAttribute('variant') === 'sort' ? 'sort' : null;
     this.#setupHTML();
+    if (this.#variant === 'sort') {
+      this.#initializeSort();
+    }
     this.#addEventListeners();
     this.#initialized = true;
   }
@@ -6437,6 +6447,31 @@ class FDSDropdownMenu extends HTMLElement {
   }
   close() {
     this.setAttribute('expanded', 'false');
+  }
+  selectSortValue(value) {
+    let dispatch = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+    if (this.#variant !== 'sort') return;
+    const options = this.#getSortOptions();
+    const option = options.find(item => item.dataset.value === value);
+    if (!option) return;
+    const previousValue = this.dataset.selectedValue ?? null;
+    if (value === previousValue) return;
+    options.forEach(item => item.removeAttribute('aria-current'));
+    option.setAttribute('aria-current', 'true');
+    this.dataset.selectedValue = value;
+    const label = this.querySelector(':scope > .dropdown-button .selected-value');
+    if (label) {
+      label.textContent = option.textContent.trim();
+    }
+    if (dispatch) {
+      this.dispatchEvent(new CustomEvent('fds-sort-menu-changed', {
+        bubbles: true,
+        detail: {
+          value,
+          previousValue
+        }
+      }));
+    }
   }
 
   // #endregion
@@ -6472,12 +6507,9 @@ class FDSDropdownMenu extends HTMLElement {
       }
       return;
     }
-    if (!this.#initialized) return;
-    if (oldValue === newValue) return;
-    switch (attribute) {
-      case 'expanded':
-        this.#updateExpanded(newValue);
-        break;
+    if (!this.#initialized || oldValue === newValue) return;
+    if (attribute === 'expanded') {
+      this.#updateExpanded(newValue);
     }
   }
 
