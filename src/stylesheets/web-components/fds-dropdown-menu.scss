@@ -351,6 +351,7 @@ fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu, fds-modal :wher
         background: func.color(vars.$overflow-menu-content-background-color);
         top: calc(100% + #{vars.$overflow-menu-dropdown-distance});
         border-radius: func.border-radius('medium');
+        left: 4px;
 
         &.collapsed {
             display: none;
@@ -375,6 +376,7 @@ fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu, fds-modal :wher
             color: #1a1a1a;
             font-size: 1.6rem;
             line-height: 2.4rem;
+            max-width: none;
 
             & > li {
                 border-bottom: 1px solid #dcdcdc;
@@ -399,7 +401,7 @@ fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu, fds-modal :wher
                         border-bottom-right-radius: func.border-radius('medium');
                     }
                 }
-                
+
                 &::before {
                     content: "" !important;
                     padding-right: 0 !important;
@@ -408,6 +410,7 @@ fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu, fds-modal :wher
                 [data-menu-item] {
                     display: block;
                     width: 100%;
+                    max-width: none;
                     padding: 8px 16px;
                     text-align: left;
                     text-decoration: none;
@@ -424,6 +427,29 @@ fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu, fds-modal :wher
                     &:focus {
                         position: relative;
                         z-index: 2;
+                    }
+                }
+            }
+        }
+    }
+
+    &[direction="left"] {
+        
+        & > .dropdown-menu {
+            @include mixins.media-breakpoint-up(md) {
+                left: auto;
+                right: calc(50% - 27px);
+            }
+
+            & > ul > li {
+                text-align: right;
+
+                [data-menu-item] {
+                    text-align: right;
+
+                    .icon-svg {
+                        float: right;
+                        margin-right: 8px;
                     }
                 }
             }

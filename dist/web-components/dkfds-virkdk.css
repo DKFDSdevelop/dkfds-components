@@ -12839,6 +12839,7 @@ fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :
   background:white;
   top:calc(100% + 8px);
   border-radius:8px;
+  left:4px;
 }
 fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-menu.collapsed,
 .fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu.collapsed{
@@ -12866,6 +12867,7 @@ fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :
   color:#1a1a1a;
   font-size:1.6rem;
   line-height:2.4rem;
+  max-width:none;
 }
 fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu) > .dropdown-menu > ul > li,
 .fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu > ul > li{
@@ -12902,6 +12904,7 @@ fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :
 .fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu > ul > li [data-menu-item]{
   display:block;
   width:100%;
+  max-width:none;
   padding:8px 16px;
   text-align:left;
   text-decoration:none;
@@ -12919,6 +12922,26 @@ fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :
 .fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu) > .dropdown-menu > ul > li [data-menu-item]:focus{
   position:relative;
   z-index:2;
+}
+@media (min-width: 768px){
+  fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu)[direction=left] > .dropdown-menu,
+  .fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu)[direction=left] > .dropdown-menu{
+    left:auto;
+    right:calc(50% - 27px);
+  }
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu)[direction=left] > .dropdown-menu > ul > li,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu)[direction=left] > .dropdown-menu > ul > li{
+  text-align:right;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu)[direction=left] > .dropdown-menu > ul > li [data-menu-item],
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu)[direction=left] > .dropdown-menu > ul > li [data-menu-item]{
+  text-align:right;
+}
+fds-dropdown-menu:not(:where(header, .header) fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) fds-dropdown-menu)[direction=left] > .dropdown-menu > ul > li [data-menu-item] .icon-svg,
+.fds-dropdown-menu:not(:where(header, .header) .fds-dropdown-menu):not(fds-modal :where(fds-main-menu, .fds-main-menu) .fds-dropdown-menu)[direction=left] > .dropdown-menu > ul > li [data-menu-item] .icon-svg{
+  float:right;
+  margin-right:8px;
 }
 
 fds-main-menu,
