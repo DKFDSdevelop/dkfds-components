@@ -1,4 +1,5 @@
 import * as CE from '../custom-element-utils';
+import { generateAndVerifyUniqueId } from '../../utils/generate-unique-id';
 
 class FDSDropdownMenu extends HTMLElement {
 
@@ -118,6 +119,15 @@ class FDSDropdownMenu extends HTMLElement {
         // Dropdown menu
         if (!this.querySelector(':scope > .dropdown-menu')) {
             this.querySelector(':scope > div')?.classList.add('dropdown-menu');
+        }
+
+        const dropdownButton = this.querySelector(':scope > .dropdown-button');
+        const menu = this.querySelector(':scope > .dropdown-menu');
+
+        if (menu) {
+            if (!menu.id) { menu.id = generateAndVerifyUniqueId('dropdown'); }
+
+            dropdownButton?.setAttribute('aria-controls', menu.id);
         }
 
         this.querySelectorAll(':scope > .dropdown-menu a, :scope > .dropdown-menu button').forEach(item => {

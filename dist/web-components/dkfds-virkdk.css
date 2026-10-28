@@ -10874,10 +10874,11 @@ fds-error-message,
   color:#CC0000;
   margin-top:8px;
   max-width:66ch;
+  font-weight:600;
 }
 fds-error-message .icon-svg.alert-icon,
 .fds-error-message .icon-svg.alert-icon{
-  margin-right:8px;
+  margin-right:4px;
   min-width:24px;
   vertical-align:bottom;
 }

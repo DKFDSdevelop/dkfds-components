@@ -6235,6 +6235,7 @@ function registerSolutionInfo() {
 /* harmony default export */ const fds_solution_info = (registerSolutionInfo);
 ;// ./src/js/web-components/dropdown-menu/fds-dropdown-menu.js
 
+
 class FDSDropdownMenu extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -6340,6 +6341,14 @@ class FDSDropdownMenu extends HTMLElement {
     // Dropdown menu
     if (!this.querySelector(':scope > .dropdown-menu')) {
       this.querySelector(':scope > div')?.classList.add('dropdown-menu');
+    }
+    const dropdownButton = this.querySelector(':scope > .dropdown-button');
+    const menu = this.querySelector(':scope > .dropdown-menu');
+    if (menu) {
+      if (!menu.id) {
+        menu.id = generateAndVerifyUniqueId('dropdown');
+      }
+      dropdownButton?.setAttribute('aria-controls', menu.id);
     }
     this.querySelectorAll(':scope > .dropdown-menu a, :scope > .dropdown-menu button').forEach(item => {
       if (item.closest('fds-dropdown-menu') === this) {
