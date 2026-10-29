@@ -12444,7 +12444,6 @@ fds-modal .fds-solution-info .additional-info p,
 .fds-modal .fds-solution-info [slot=additional-info] p,
 .fds-modal .fds-solution-info .additional-info p{
   margin-top:0;
-  margin-bottom:8px;
   color:#1a1a1a;
 }
 fds-modal fds-solution-info [slot=additional-info] p:last-child,
@@ -13190,6 +13189,7 @@ fds-main-menu > .main-menu-inner .search-form,
 .fds-main-menu > .main-menu-inner .search,
 .fds-main-menu > .main-menu-inner .search-form{
   flex:0 0 auto;
+  margin-left:auto;
 }
 fds-main-menu > .main-menu-inner .search,
 .fds-main-menu > .main-menu-inner .search{
@@ -13210,6 +13210,13 @@ fds-main-menu > .main-menu-inner .search input,
   .fds-main-menu > .main-menu-inner .search input{
     max-width:24rem;
     min-width:24rem;
+  }
+}
+
+@media (min-width: 992px){
+  :where(fds-main-menu, .fds-main-menu) > .main-menu-inner:not(:has(nav)) .search{
+    padding-top:8px;
+    padding-bottom:8px;
   }
 }
 
@@ -13369,13 +13376,15 @@ fds-modal fds-main-menu > nav > ul:first-child li:first-child,
   border-top:0;
 }
 
-fds-solution-info + .fds-main-menu,
-.fds-solution-info + .fds-main-menu,
-fds-solution-info + fds-main-menu,
-.fds-solution-info + fds-main-menu{
+:where(fds-solution-info, .fds-solution-info) + :where(fds-main-menu, .fds-main-menu):has(input){
   border-top:1px solid #bfbfbf;
 }
 
+@media (min-width: 992px){
+  :where(fds-solution-info, .fds-solution-info) + :where(fds-main-menu, .fds-main-menu){
+    border-top:1px solid #bfbfbf;
+  }
+}
 fds-tooltip,
 .fds-tooltip{
   display:inline-flex;

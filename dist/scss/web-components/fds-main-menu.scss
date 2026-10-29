@@ -88,6 +88,7 @@ fds-main-menu,
         .search,
         .search-form {
             flex: 0 0 auto;
+            margin-left: auto;
         }
 
         .search {
@@ -109,6 +110,16 @@ fds-main-menu,
                     min-width: 24rem;
                 }
             }
+        }
+    }
+}
+
+:where(fds-main-menu, .fds-main-menu) > .main-menu-inner:not(:has(nav)) {
+
+    @include mixins.media-breakpoint-up(vars.$nav-responsive-breakpoint) {
+        .search {
+            padding-top: 8px;
+            padding-bottom: 8px;
         }
     }
 }
@@ -231,9 +242,12 @@ fds-modal fds-main-menu,
     }
 }
 
-fds-solution-info + .fds-main-menu,
-.fds-solution-info + .fds-main-menu,
-fds-solution-info + fds-main-menu,
-.fds-solution-info + fds-main-menu {
+:where(fds-solution-info, .fds-solution-info) + :where(fds-main-menu, .fds-main-menu):has(input) {
     border-top: 1px solid #bfbfbf;
+}
+
+@include mixins.media-breakpoint-up(vars.$nav-responsive-breakpoint) {
+    :where(fds-solution-info, .fds-solution-info) + :where(fds-main-menu, .fds-main-menu) {
+        border-top: 1px solid #bfbfbf;
+    }
 }
