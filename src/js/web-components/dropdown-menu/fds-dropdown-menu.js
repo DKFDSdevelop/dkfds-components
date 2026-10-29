@@ -5,7 +5,7 @@ class FDSDropdownMenu extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-    static observedAttributes = ['expanded', 'ready'];
+    static observedAttributes = ['id', 'expanded', 'ready'];
 
     // #endregion
 
@@ -20,6 +20,7 @@ class FDSDropdownMenu extends HTMLElement {
 
     #initialized = false;
     #variant = null;
+    #generatedPanelId = false;
     #plusIcon = 'M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z';
     #minusIcon = 'M200-440v-80h560v80H200Z';
     #chevronDownIcon = 'M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z';
@@ -35,7 +36,7 @@ class FDSDropdownMenu extends HTMLElement {
     };
 
     #handleFocusOut = (event) => {
-        if (!this.contains(event.relatedTarget)) {
+        if (event.relatedTarget && !this.contains(event.relatedTarget)) {
             this.close();
         }
     };
@@ -86,6 +87,24 @@ class FDSDropdownMenu extends HTMLElement {
             .filter(option => option.closest('fds-dropdown-menu') === this);
     }
 
+    #syncPanelId() {
+        const menu = this.querySelector(':scope > .dropdown-menu');
+        const button = this.querySelector(':scope > .dropdown-button');
+        if (!menu) return;
+
+        if (!menu.id) {
+            // No panel ID was supplied: this component owns the generated ID.
+            this.#generatedPanelId = true;
+            menu.id = this.id ? `${this.id}-dropdown-menu-panel` : generateAndVerifyUniqueId('dropdown');
+        }
+        else if (this.#generatedPanelId && this.id) {
+            // A parent may have assigned the dropdown's ID after initialization.
+            menu.id = `${this.id}-dropdown-menu-panel`;
+        }
+
+        button?.setAttribute('aria-controls', menu.id);
+    }
+
     #setupHTML() {
         // Dropdown button
         if (!this.querySelector(':scope > .dropdown-button')) {
@@ -121,14 +140,7 @@ class FDSDropdownMenu extends HTMLElement {
             this.querySelector(':scope > div')?.classList.add('dropdown-menu');
         }
 
-        const dropdownButton = this.querySelector(':scope > .dropdown-button');
-        const menu = this.querySelector(':scope > .dropdown-menu');
-
-        if (menu) {
-            if (!menu.id) { menu.id = generateAndVerifyUniqueId('dropdown'); }
-
-            dropdownButton?.setAttribute('aria-controls', menu.id);
-        }
+        this.#syncPanelId();
 
         this.querySelectorAll(':scope > .dropdown-menu a, :scope > .dropdown-menu button').forEach(item => {
             if (item.closest('fds-dropdown-menu') === this) {
@@ -324,7 +336,10 @@ class FDSDropdownMenu extends HTMLElement {
 
         if (!this.#initialized || oldValue === newValue) return;
 
-        if (attribute === 'expanded') {
+        if (attribute === 'id') {
+            this.#syncPanelId();
+        }
+        else if (attribute === 'expanded') {
             this.#updateExpanded(newValue);
         }
     }

@@ -88,17 +88,38 @@ fds-main-menu,
         .search,
         .search-form {
             flex: 0 0 auto;
+            margin-left: auto;
         }
 
         .search {
-            @include mixins.media-breakpoint-down(md) {
-                padding-top: 16px;
-                padding-bottom: 16px;
+            padding-top: 16px;
+            padding-bottom: 16px;
+
+            input {
+                max-width: 100%;
+            }
+        }
+
+        @include mixins.media-breakpoint-up(vars.$nav-responsive-breakpoint) {
+            .search {
+                padding-top: 0;
+                padding-bottom: 0;
 
                 input {
-                    max-width: 100%;
+                    max-width: 24rem;
+                    min-width: 24rem;
                 }
             }
+        }
+    }
+}
+
+:where(fds-main-menu, .fds-main-menu) > .main-menu-inner:not(:has(nav)) {
+
+    @include mixins.media-breakpoint-up(vars.$nav-responsive-breakpoint) {
+        .search {
+            padding-top: 8px;
+            padding-bottom: 8px;
         }
     }
 }
@@ -163,6 +184,8 @@ fds-modal fds-main-menu,
                 .helptext {
                     color: #707070;
                     font-weight: 400;
+                    display: inline-block;
+                    overflow-wrap: anywhere;
                 }
 
             }
@@ -221,9 +244,12 @@ fds-modal fds-main-menu,
     }
 }
 
-fds-solution-info + .fds-main-menu,
-.fds-solution-info + .fds-main-menu,
-fds-solution-info + fds-main-menu,
-.fds-solution-info + fds-main-menu {
+:where(fds-solution-info, .fds-solution-info) + :where(fds-main-menu, .fds-main-menu):has(input) {
     border-top: 1px solid #bfbfbf;
+}
+
+@include mixins.media-breakpoint-up(vars.$nav-responsive-breakpoint) {
+    :where(fds-solution-info, .fds-solution-info) + :where(fds-main-menu, .fds-main-menu) {
+        border-top: 1px solid #bfbfbf;
+    }
 }
