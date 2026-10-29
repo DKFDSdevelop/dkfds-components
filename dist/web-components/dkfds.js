@@ -6273,7 +6273,7 @@ class FDSDropdownMenu extends HTMLElement {
     this.toggle();
   };
   #handleFocusOut = event => {
-    if (!this.contains(event.relatedTarget)) {
+    if (event.relatedTarget && !this.contains(event.relatedTarget)) {
       this.close();
     }
   };

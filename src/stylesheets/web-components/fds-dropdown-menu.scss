@@ -103,27 +103,10 @@ fds-main-menu,
                             background-color: #f5f5f5;
                         }
 
-                        &:has([aria-current]) {
-                            border-left: 4px solid var(--color-primary);
-
-                            [data-menu-item] {
-                                margin-left: -4px;
-
-                                &:hover {
-                                    border-left: 4px solid var(--color-primary);
-                                    padding-left: 12px;
-                                }
-                            }
-
-                            li [data-menu-item]:hover {
-                                padding-left: 36px;
-                            }
-                        }
-
                         [data-menu-item] {
                             padding: 8px 16px;
                             white-space: normal;
-                            overflow-wrap: break-word;
+                            overflow-wrap: anywhere;
                             background-color: rgba(0, 0, 0, 0);
                             display: block;
                             text-decoration: none;
@@ -211,6 +194,27 @@ fds-main-menu,
                 &:has([aria-current]) > .dropdown-button {
                     @extend %current-main-menu-item;
                 }
+            }
+        }
+
+        &.more-button fds-dropdown-menu > .dropdown-menu > ul > li:has([aria-current]) {
+            border-left: 4px solid var(--color-primary);
+
+            .sub-title {
+                margin-left: -4px;
+            }
+
+            [data-menu-item] {
+                margin-left: -4px;
+
+                &:hover {
+                    border-left: 4px solid var(--color-primary);
+                    padding-left: 12px;
+                }
+            }
+
+            li [data-menu-item]:hover {
+                padding-left: 36px;
             }
         }
     }

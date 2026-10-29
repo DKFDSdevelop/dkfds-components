@@ -184,6 +184,8 @@ fds-modal fds-main-menu,
                 .helptext {
                     color: #707070;
                     font-weight: 400;
+                    display: inline-block;
+                    overflow-wrap: anywhere;
                 }
 
             }
