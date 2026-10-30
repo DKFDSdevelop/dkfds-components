@@ -9873,7 +9873,7 @@ const fds_multiselect_opener_styling_styles = `
         width: 100%;
         min-width: 0;
         padding: 7px 47px 7px 15px;
-        border: 1px solid #8E8E8E;
+        border: 1px solid var(--color-gray-400);
         border-radius: 8px;
         background-color: var(--color-white);
     }
@@ -9886,6 +9886,7 @@ const fds_multiselect_opener_styling_styles = `
     :host([aria-disabled="true"]) {
         color: #707070;
         cursor: not-allowed;
+        border-color: var(--color-gray-200);
     }
 
     .opener-text {
