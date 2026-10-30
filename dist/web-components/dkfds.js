@@ -7190,12 +7190,14 @@ class FDSTooltipIcon extends HTMLElement {
 
   // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
-  #handleClick = event => {
+  #handleClick = () => {
     this.toggle();
   };
-  #handleFocusOut = event => {
-    const focusLeftTooltip = !this.contains(event.relatedTarget);
-    if (focusLeftTooltip) {
+
+  // Close when focus moves outside the component. Listen for focusin on document rather
+  // than focusout on this element since a click may not focus the button in Safari.
+  #handleOutsideFocus = event => {
+    if (!this.contains(event.target)) {
       this.close();
     }
   };
@@ -7267,7 +7269,6 @@ class FDSTooltipIcon extends HTMLElement {
     if (tooltip === null) {
       tooltip = document.createElement('span');
       tooltip.setAttribute('id', uniqueId);
-      tooltip.setAttribute('tabindex', '-1');
       tooltip.classList.add('tooltip');
       ariaLive.appendChild(tooltip);
     }
@@ -7283,12 +7284,10 @@ class FDSTooltipIcon extends HTMLElement {
   }
   #addEventListeners() {
     this.querySelector('button').addEventListener('click', this.#handleClick, false);
-    this.addEventListener('focusout', this.#handleFocusOut, false);
     this.addEventListener('keydown', this.#handleKeydown, false);
   }
   #removeEventListeners() {
     this.querySelector('button')?.removeEventListener('click', this.#handleClick, false);
-    this.removeEventListener('focusout', this.#handleFocusOut, false);
     this.removeEventListener('keydown', this.#handleKeydown, false);
   }
   #connectIntersectionObserver() {
@@ -7331,6 +7330,7 @@ class FDSTooltipIcon extends HTMLElement {
     document.addEventListener('mousedown', this.#handleOutsideClick, false);
     document.addEventListener('scroll', this.#handleScroll, true);
     document.addEventListener('keydown', this.#handleKeydown, false);
+    document.addEventListener('focusin', this.#handleOutsideFocus, false);
     this.#connectIntersectionObserver();
 
     // Let the tooltip consume Escape key press before an ancestor dialog does.
@@ -7347,6 +7347,7 @@ class FDSTooltipIcon extends HTMLElement {
     document.removeEventListener('mousedown', this.#handleOutsideClick, false);
     document.removeEventListener('scroll', this.#handleScroll, true);
     document.removeEventListener('keydown', this.#handleKeydown, false);
+    document.removeEventListener('focusin', this.#handleOutsideFocus, false);
     this.#disconnectIntersectionObserver();
     this.#dialog?.removeEventListener('cancel', this.#handleDialogCancel);
     this.#dialog = null;
@@ -7375,6 +7376,7 @@ class FDSTooltipIcon extends HTMLElement {
     document.removeEventListener('mousedown', this.#handleOutsideClick, false);
     document.removeEventListener('scroll', this.#handleScroll, true);
     document.removeEventListener('keydown', this.#handleKeydown, false);
+    document.removeEventListener('focusin', this.#handleOutsideFocus, false);
     this.#disconnectIntersectionObserver();
     this.#dialog?.removeEventListener('cancel', this.#handleDialogCancel);
     this.#dialog = null;
