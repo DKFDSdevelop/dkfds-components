@@ -12727,13 +12727,19 @@ fds-main-menu > .main-menu-inner li.more-button fds-dropdown-menu > .dropdown-me
 .fds-main-menu > .main-menu-inner li.more-button fds-dropdown-menu > .dropdown-menu > ul > li:has([aria-current]) li [data-menu-item]:hover{
   padding-left:36px;
 }
+fds-modal .fds-main-menu fds-dropdown-menu > .dropdown-button,
+fds-modal .fds-main-menu .fds-dropdown-menu > .dropdown-button,
+fds-modal fds-main-menu fds-dropdown-menu > .dropdown-button,
+fds-modal fds-main-menu .fds-dropdown-menu > .dropdown-button{
+  position:relative;
+}
 fds-modal .fds-main-menu fds-dropdown-menu > .dropdown-button > span,
 fds-modal .fds-main-menu .fds-dropdown-menu > .dropdown-button > span,
 fds-modal fds-main-menu fds-dropdown-menu > .dropdown-button > span,
 fds-modal fds-main-menu .fds-dropdown-menu > .dropdown-button > span{
   display:inline-flex;
-  align-items:center;
   width:100%;
+  padding-right:5.6rem;
   overflow-wrap:break-word;
 }
 fds-modal .fds-main-menu fds-dropdown-menu > .dropdown-button > span .collapsed-icon,
@@ -12752,10 +12758,12 @@ fds-modal .fds-main-menu fds-dropdown-menu > .dropdown-button > span .icon-svg,
 fds-modal .fds-main-menu .fds-dropdown-menu > .dropdown-button > span .icon-svg,
 fds-modal fds-main-menu fds-dropdown-menu > .dropdown-button > span .icon-svg,
 fds-modal fds-main-menu .fds-dropdown-menu > .dropdown-button > span .icon-svg{
-  margin-left:auto;
+  position:absolute;
+  top:50%;
+  right:24px;
   min-width:2.8rem;
   min-height:2.4rem;
-  transform:translateX(0.2rem);
+  transform:translate(0.2rem, -50%);
 }
 fds-modal .fds-main-menu fds-dropdown-menu > .dropdown-menu.collapsed,
 fds-modal .fds-main-menu .fds-dropdown-menu > .dropdown-menu.collapsed,

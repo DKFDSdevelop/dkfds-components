@@ -233,11 +233,12 @@ fds-modal fds-main-menu .fds-dropdown-menu {
     // Plus/minus icon (collapsed/expanded) next to the button text
 
     & > .dropdown-button {
+        position: relative;
 
         & > span {
             display: inline-flex;
-            align-items: center;
             width: 100%;
+            padding-right: 5.6rem;
             overflow-wrap: break-word;
 
             .collapsed-icon {
@@ -249,10 +250,12 @@ fds-modal fds-main-menu .fds-dropdown-menu {
             }
 
             .icon-svg {
-                margin-left: auto;
+                position: absolute;
+                top: 50%;
+                right: 24px;
                 min-width: 2.8rem;
                 min-height: 2.4rem;
-                transform: translateX(0.2rem);
+                transform: translate(0.2rem, -50%);
             }
         }
     }
