@@ -9247,6 +9247,10 @@ const fds_multiselect_styling_styles = `
         padding: 0 0.8rem 0 0.8rem;
     }
 
+    .tag:hover {
+        background-color: var(--color-gray-500);
+    }
+
     .tag:focus-visible {
         outline: 3px solid #454545;
         outline-offset: 1px;
@@ -9873,7 +9877,7 @@ const fds_multiselect_opener_styling_styles = `
         width: 100%;
         min-width: 0;
         padding: 7px 47px 7px 15px;
-        border: 1px solid #8E8E8E;
+        border: 1px solid var(--color-gray-400);
         border-radius: 8px;
         background-color: var(--color-white);
     }
@@ -9886,6 +9890,7 @@ const fds_multiselect_opener_styling_styles = `
     :host([aria-disabled="true"]) {
         color: #707070;
         cursor: not-allowed;
+        border-color: var(--color-gray-200);
     }
 
     .opener-text {
@@ -10201,7 +10206,46 @@ const fds_multiselect_select_all_styling_styles = `
 
 const fds_multiselect_select_all_sheet = new CSSStyleSheet();
 fds_multiselect_select_all_sheet.replaceSync(fds_multiselect_select_all_styling_styles);
+const DEFAULT_LABEL = 'Vælg alle';
+const DEFAULT_TEXT_CHECKED = 'valgt';
+const DEFAULT_TEXT_UNCHECKED = 'ikke valgt';
+const DEFAULT_TEXT_MIXED = 'delvist valgt';
 class FDSMultiselectSelectAll extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['aria-checked', 'label', 'sr-text-checked', 'sr-text-unchecked', 'sr-text-mixed'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get label() {
+    return this.getAttribute('label') || DEFAULT_LABEL;
+  }
+  set label(value) {
+    value == null ? this.removeAttribute('label') : this.setAttribute('label', value);
+  }
+  get srTextChecked() {
+    return this.getAttribute('sr-text-checked') ?? DEFAULT_TEXT_CHECKED;
+  }
+  set srTextChecked(value) {
+    value == null ? this.removeAttribute('sr-text-checked') : this.setAttribute('sr-text-checked', value);
+  }
+  get srTextUnchecked() {
+    return this.getAttribute('sr-text-unchecked') ?? DEFAULT_TEXT_UNCHECKED;
+  }
+  set srTextUnchecked(value) {
+    value == null ? this.removeAttribute('sr-text-unchecked') : this.setAttribute('sr-text-unchecked', value);
+  }
+  get srTextMixed() {
+    return this.getAttribute('sr-text-mixed') ?? DEFAULT_TEXT_MIXED;
+  }
+  set srTextMixed(value) {
+    value == null ? this.removeAttribute('sr-text-mixed') : this.setAttribute('sr-text-mixed', value);
+  }
+
+  // #endregion
+
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
@@ -10221,12 +10265,33 @@ class FDSMultiselectSelectAll extends HTMLElement {
     const indeterminateIcon = createSvgIcon('M200-440v-80h560v80H200Z');
     indeterminateIcon.classList.add('indeterminate-icon');
     box.append(checkIcon, indeterminateIcon);
-    const labelWrapper = document.createElement('span');
-    labelWrapper.classList.add('select-all-label');
-    const slot = document.createElement('slot');
-    labelWrapper.appendChild(slot);
-    wrapper.append(box, labelWrapper);
+    const labelText = document.createElement('span');
+    labelText.classList.add('select-all-label');
+    wrapper.append(box, labelText);
     this.shadowRoot.appendChild(wrapper);
+  }
+  #updateVisibleLabel() {
+    const labelText = this.shadowRoot.querySelector('.select-all-label');
+    if (labelText) {
+      labelText.textContent = this.label;
+    }
+  }
+
+  // VoiceOver ignores aria-checked on role="option", so the state is also included in the
+  // option's accessible name.
+  #updateAccessibleName() {
+    let stateText;
+    switch (this.getAttribute('aria-checked')) {
+      case 'true':
+        stateText = this.srTextChecked;
+        break;
+      case 'mixed':
+        stateText = this.srTextMixed;
+        break;
+      default:
+        stateText = this.srTextUnchecked;
+    }
+    this.setAttribute('aria-label', `${this.label}, ${stateText}`);
   }
   #init() {
     this.#setupHTML();
@@ -10238,12 +10303,14 @@ class FDSMultiselectSelectAll extends HTMLElement {
     if (!this.hasAttribute('aria-checked')) {
       this.setAttribute('aria-checked', 'false');
     }
+    this.#updateVisibleLabel();
+    this.#updateAccessibleName();
     this.#initialized = true;
   }
   #warnIfMultipleSelectAll() {
     const selectAllElements = this.parentElement?.querySelectorAll('fds-multiselect-select-all');
-    if (selectAllElements.length > 1) {
-      console.warn(`<fds-multiselect-options> found ${selectAllElements.length} <fds-multiselect-select-all> elements. Only one is supported; extras will still render but may cause unexpected keyboard/selection behavior.`);
+    if (selectAllElements?.length > 1) {
+      console.warn(`<fds-multiselect-options> found ${selectAllElements.length} <fds-multiselect-select-all> elements. Only one is supported.`);
     }
   }
 
@@ -10298,6 +10365,27 @@ class FDSMultiselectSelectAll extends HTMLElement {
 
   disconnectedCallback() {
     this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'label':
+        this.#updateVisibleLabel();
+        this.#updateAccessibleName();
+        break;
+      case 'aria-checked':
+      case 'sr-text-checked':
+      case 'sr-text-unchecked':
+      case 'sr-text-mixed':
+        this.#updateAccessibleName();
+        break;
+    }
   }
 
   // #endregion
@@ -10410,7 +10498,6 @@ class FDSMultiselectOptions extends HTMLElement {
         option.toggle();
       }
     }
-    this.#updateSelectAllState();
   };
   #handleOptionSelectedOrDeselected = () => {
     this.#updateSelectAllState();

@@ -80,8 +80,6 @@ class FDSMultiselectOptions extends HTMLElement {
         for (const option of this.querySelectorAll('fds-multiselect-option')) {
             if (option.selected !== shouldSelectAll) { option.toggle(); }
         }
-
-        this.#updateSelectAllState();
     };
 
     #handleOptionSelectedOrDeselected = () => {

@@ -69,6 +69,10 @@ export const styles = `
         padding: 0 0.8rem 0 0.8rem;
     }
 
+    .tag:hover {
+        background-color: var(--color-gray-500);
+    }
+
     .tag:focus-visible {
         outline: 3px solid #454545;
         outline-offset: 1px;
