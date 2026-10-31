@@ -5379,14 +5379,13 @@ function registerTextarea() {
 }
 /* harmony default export */ const fds_textarea = (registerTextarea);
 ;// ./src/js/web-components/error-summary/fds-error-summary.js
-
 const ERROR_WRAPPER_SELECTORS = ['fds-input', 'fds-checkbox', 'fds-checkbox-group', 'fds-radio-button-group', 'fds-date-input', 'fds-textarea', 'fds-select', 'fds-upload-file', 'fds-date-picker', 'fds-multiselect'];
 const ERROR_WRAPPER_SELECTOR = ERROR_WRAPPER_SELECTORS.join(', ');
 const ERROR_MESSAGE_SELECTOR = ERROR_WRAPPER_SELECTORS.map(selector => `${selector} fds-error-message`).join(', ');
 class FDSErrorSummary extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static observedAttributes = ['heading', 'heading-level', 'heading-id', 'auto'];
+  static observedAttributes = ['heading', 'heading-level', 'auto'];
 
   // #endregion
 
@@ -5400,11 +5399,10 @@ class FDSErrorSummary extends HTMLElement {
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
   #getSummaryElements() {
-    const navElement = this.querySelector(':scope > nav');
-    const headingElement = navElement?.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
-    const listElement = navElement?.querySelector(':scope > ul');
+    const containerElement = this.querySelector(':scope > div');
+    const headingElement = containerElement?.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
+    const listElement = containerElement?.querySelector(':scope > ul');
     return {
-      navElement,
       headingElement,
       listElement
     };
@@ -5439,23 +5437,14 @@ class FDSErrorSummary extends HTMLElement {
     const hasErrors = !!listElement?.querySelector(':scope > li');
     this.hidden = !hasErrors;
   }
-  #updateHeadingId(headingId) {
-    const {
-      navElement,
-      headingElement
-    } = this.#getSummaryElements();
-    if (!navElement || !headingElement) return;
-    headingElement.id = headingId || headingElement.id || generateAndVerifyUniqueId('error-summary-heading');
-    navElement.setAttribute('aria-labelledby', headingElement.id);
-  }
   #ensureDOM() {
     const headingLevel = this.#normalizeHeadingLevel(this.getAttribute('heading-level'));
-    let navElement = this.querySelector(':scope > nav');
+    let containerElement = this.querySelector(':scope > div');
 
     // Attribute mode:
-    // No nav markup provided, so create canonical structure from attributes
-    if (!navElement) {
-      navElement = document.createElement('nav');
+    // No div markup provided, so create canonical structure from attributes
+    if (!containerElement) {
+      containerElement = document.createElement('div');
       const iconElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       iconElement.setAttribute('aria-label', 'Fejl');
       iconElement.setAttribute('focusable', 'false');
@@ -5465,27 +5454,25 @@ class FDSErrorSummary extends HTMLElement {
       const headingElement = document.createElement(headingLevel);
       headingElement.textContent = this.getAttribute('heading') || 'Der er problemer';
       const listElement = document.createElement('ul');
-      navElement.appendChild(iconElement);
-      navElement.appendChild(headingElement);
-      navElement.appendChild(listElement);
-      this.appendChild(navElement);
-      this.#updateHeadingId();
+      containerElement.appendChild(iconElement);
+      containerElement.appendChild(headingElement);
+      containerElement.appendChild(listElement);
+      this.appendChild(containerElement);
       return true;
     }
-    const headingElement = navElement.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
+    const headingElement = containerElement.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
     if (!headingElement) {
-      console.warn('<fds-error-summary> Missing direct child heading inside nav.');
+      console.warn('<fds-error-summary> Missing direct child heading inside div.');
       return false;
     }
 
-    // Enhance mode: 
-    // Nav exists, so the supported prerendered structure must already be present
-    const listElement = navElement.querySelector(':scope > ul');
+    // Enhance mode:
+    // Div exists, so the supported prerendered structure must already be present
+    const listElement = containerElement.querySelector(':scope > ul');
     if (!listElement) {
-      console.warn('<fds-error-summary> Missing direct child ul inside nav.');
+      console.warn('<fds-error-summary> Missing direct child ul inside div.');
       return false;
     }
-    this.#updateHeadingId();
     return true;
   }
   #updateHeading(heading) {
@@ -5499,7 +5486,6 @@ class FDSErrorSummary extends HTMLElement {
   #updateHeadingLevel(headingLevel) {
     const normalizedHeadingLevel = this.#normalizeHeadingLevel(headingLevel);
     const {
-      navElement,
       headingElement
     } = this.#getSummaryElements();
     if (!headingElement || headingElement.tagName.toLowerCase() === normalizedHeadingLevel) return;
@@ -5509,21 +5495,16 @@ class FDSErrorSummary extends HTMLElement {
     }
     newHeadingElement.append(...headingElement.childNodes);
     headingElement.replaceWith(newHeadingElement);
-    if (navElement && newHeadingElement.id) {
-      navElement.setAttribute('aria-labelledby', newHeadingElement.id);
-    }
   }
   #syncAll() {
     const heading = this.getAttribute('heading');
     const headingLevel = this.getAttribute('heading-level');
-    const headingId = this.getAttribute('heading-id');
     if (heading !== null) {
       this.#updateHeading(heading);
     }
     if (headingLevel !== null) {
       this.#updateHeadingLevel(headingLevel);
     }
-    this.#updateHeadingId(headingId);
   }
   #addError(errorId, message) {
     const {
@@ -5704,9 +5685,6 @@ class FDSErrorSummary extends HTMLElement {
     if (!this.#initialized) return;
     if (attribute === 'heading') {
       this.#updateHeading(newValue);
-    }
-    if (attribute === 'heading-id') {
-      this.#updateHeadingId(newValue);
     }
     if (attribute === 'heading-level') {
       this.#updateHeadingLevel(newValue);
