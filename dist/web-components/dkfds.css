@@ -12515,6 +12515,11 @@ fds-dropdown-menu > .dropdown-button > span:has(.collapsed-icon, .expanded-icon)
   flex-wrap:nowrap;
   align-items:center;
 }
+fds-dropdown-menu [data-menu-item] > span:first-child,
+.fds-dropdown-menu [data-menu-item] > span:first-child{
+  display:flex;
+  overflow-wrap:anywhere;
+}
 fds-main-menu > .main-menu-inner li fds-dropdown-menu > .dropdown-button > span .icon-svg,
 fds-main-menu > .main-menu-inner li .fds-dropdown-menu > .dropdown-button > span .icon-svg,
 .fds-main-menu > .main-menu-inner li fds-dropdown-menu > .dropdown-button > span .icon-svg,

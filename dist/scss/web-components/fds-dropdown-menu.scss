@@ -17,6 +17,11 @@ fds-dropdown-menu,
         flex-wrap: nowrap;
         align-items: center;
     }
+
+    [data-menu-item] > span:first-child {
+        display: flex;
+        overflow-wrap: anywhere;
+    }
 }
 
 /* ================================================================
