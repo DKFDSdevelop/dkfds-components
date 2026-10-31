@@ -9188,7 +9188,7 @@ const fds_multiselect_styling_styles = `
         position: relative;
     }
 
-    ::slotted(label) {
+    ::slotted([slot="label"]) {
         font-size: 1.6rem;
         line-height: 2.4rem;
         font-weight: 600;
@@ -9196,6 +9196,7 @@ const fds_multiselect_styling_styles = `
         overflow-wrap: break-word;
         display: inline-block;
         max-width: 66ch;
+        cursor: default;
     }
 
     .opener-wrapper {
@@ -9266,7 +9267,7 @@ const fds_multiselect_styling_styles = `
         min-width: 0;
     }
 
-    :host(:disabled) ::slotted(label) {
+    :host(:disabled) ::slotted([slot="label"]) {
         color: var(--color-gray-500);
         font-weight: 500;
     }
@@ -9363,10 +9364,8 @@ class FDSMultiselect extends HTMLElement {
     this.#removeTag(event.target);
   };
   #handleLabelClick = event => {
-    const target = event.composedPath()[0];
-    const isLabelClick = target.tagName === 'LABEL';
-    if (!isLabelClick) return;
-    event.preventDefault();
+    const label = this.#getLabel();
+    if (!label || !label.contains(event.target)) return;
     if (this.disabled) return;
     this.querySelector('fds-multiselect-opener')?.focus();
   };
@@ -9430,6 +9429,9 @@ class FDSMultiselect extends HTMLElement {
 
   // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
+  #getLabel() {
+    return this.querySelector(':scope > [slot="label"]');
+  }
   #findSourceForTag(tag) {
     for (const [source, tagEl] of this.#optionTags) {
       if (tagEl === tag) {
@@ -9530,7 +9532,7 @@ class FDSMultiselect extends HTMLElement {
   #updateTagsGroup() {
     const tags = this.shadowRoot.querySelector('.tags');
     const hasTags = tags.children.length > 0;
-    const label = this.querySelector('label');
+    const label = this.#getLabel();
     if (!hasTags || !label) {
       tags.removeAttribute('role');
       tags.removeAttribute('aria-label');
@@ -9562,7 +9564,7 @@ class FDSMultiselect extends HTMLElement {
     }
   }
   #updateRequiredStatus() {
-    const label = this.querySelector('label');
+    const label = this.#getLabel();
     const opener = this.querySelector('fds-multiselect-opener');
     if (!label || !opener) return;
     const value = this.getAttribute('show-required-status');
@@ -9613,11 +9615,14 @@ class FDSMultiselect extends HTMLElement {
   }
   #wireRelationships() {
     // Find the elements that need to be linked.
-    const label = this.querySelector('label');
+    const label = this.#getLabel();
     const opener = this.querySelector('fds-multiselect-opener');
     const dialog = this.querySelector('fds-multiselect-dialog');
 
-    // Give the opener and dialog IDs when they don't already have them.
+    // Give the label, opener and dialog IDs when they don't already have them.
+    if (label && !label.id) {
+      label.id = generateAndVerifyUniqueId('multiselect-label');
+    }
     if (opener && !opener.id) {
       opener.id = generateAndVerifyUniqueId('multiselect-opener');
     }
@@ -9625,9 +9630,9 @@ class FDSMultiselect extends HTMLElement {
       dialog.id = generateAndVerifyUniqueId('multiselect-dialog');
     }
 
-    // Associate the label with the opener, and the opener with the dialog.
-    if (label && opener) {
-      label.htmlFor = opener.id;
+    // Name the opener by the label, and associate the opener with the dialog.
+    if (opener) {
+      label ? opener.setAttribute('aria-labelledby', label.id) : opener.removeAttribute('aria-labelledby');
     }
     if (opener && dialog) {
       opener.setAttribute('aria-controls', dialog.id);
@@ -9694,6 +9699,8 @@ class FDSMultiselect extends HTMLElement {
   #setupHTML() {
     if (this.shadowRoot.querySelector('.opener-wrapper')) return;
     const labelSlot = document.createElement('slot');
+    labelSlot.name = 'label';
+    const defaultSlot = document.createElement('slot');
     const openerWrapper = document.createElement('div');
     openerWrapper.classList.add('opener-wrapper');
     const openerSlot = document.createElement('slot');
@@ -9705,7 +9712,7 @@ class FDSMultiselect extends HTMLElement {
     openerWrapper.append(openerSlot, tags, dialogSlot);
     const errorSlot = document.createElement('slot');
     errorSlot.name = 'error';
-    this.shadowRoot.append(labelSlot, openerWrapper, errorSlot);
+    this.shadowRoot.append(labelSlot, defaultSlot, openerWrapper, errorSlot);
   }
   #connectMutationObserver() {
     if (this.#mutationObserver) return;
@@ -9934,7 +9941,6 @@ const DEFAULT_PLACEHOLDER = 'Vælg en eller flere';
 class FDSMultiselectOpener extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-  static formAssociated = true;
   static observedAttributes = ['placeholder'];
 
   // #endregion
