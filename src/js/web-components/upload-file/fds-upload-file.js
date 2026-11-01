@@ -32,12 +32,52 @@ class FDSUploadFile extends HTMLElement {
     #dropzoneEl = null;
     #fileListEl = null;
 
-    #onClick;
-    #onInputChange;
-
     // #endregion
 
     // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+    #handleInputChange = (event) => {
+        this.#addFiles(event.target.files);
+    };
+
+    #handleClick = (event) => {
+        if (this.#inputEl?.disabled) return;
+
+        const removeBtn = event.target.closest('.fds-upload-remove');
+        if (removeBtn) {
+            const fileKey = removeBtn.dataset.fileKey;
+            if (fileKey) {
+                this.#removeFileByKey(fileKey);
+                return;
+            }
+        }
+
+        const addMore = event.target.closest('.fds-upload-add-more');
+        if (addMore) {
+            if (!this.#inputEl?.multiple) return;
+
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.multiple = true;
+            input.style.display = 'none';
+
+            const cleanup = () => {
+                input.remove();
+                window.removeEventListener('focus', cleanup);
+            };
+
+            input.addEventListener('change', event => {
+                if (event.target.files?.length) {
+                    this.#addFiles(event.target.files);
+                }
+                cleanup();
+            }, { once: true });
+
+            window.addEventListener('focus', cleanup, { once: true });
+            document.body.appendChild(input);
+            input.click();
+        }
+    };
 
     #handleMutations = (records) => {
         let shouldUpdateAccessibility = false;
@@ -158,13 +198,13 @@ class FDSUploadFile extends HTMLElement {
     }
 
     #addEventListeners() {
-        this.addEventListener('click', this.#onClick);
-        this.#inputEl?.addEventListener('change', this.#onInputChange);
+        this.addEventListener('click', this.#handleClick);
+        this.#inputEl?.addEventListener('change', this.#handleInputChange);
     }
 
     #removeEventListeners() {
-        this.removeEventListener('click', this.#onClick);
-        this.#inputEl?.removeEventListener('change', this.#onInputChange);
+        this.removeEventListener('click', this.#handleClick);
+        this.#inputEl?.removeEventListener('change', this.#handleInputChange);
     }
 
     #setText(selector, value) {
@@ -521,55 +561,6 @@ class FDSUploadFile extends HTMLElement {
             input,
             this.getAttribute('show-required-status')
         );
-    }
-
-    // #endregion
-
-    // #region - CONSTRUCTOR (do not access or add attributes in the constructor) ---------------------------
-
-    constructor() {
-        super();
-
-        this.#onInputChange = e => this.#addFiles(e.target.files);
-
-        this.#onClick = e => {
-            if (this.#inputEl?.disabled) return;
-
-            const removeBtn = e.target.closest('.fds-upload-remove');
-            if (removeBtn) {
-                const fileKey = removeBtn.dataset.fileKey;
-                if (fileKey) {
-                    this.#removeFileByKey(fileKey);
-                    return;
-                }
-            }
-
-            const addMore = e.target.closest('.fds-upload-add-more');
-            if (addMore) {
-                if (!this.#inputEl?.multiple) return;
-
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.multiple = true;
-                input.style.display = 'none';
-
-                const cleanup = () => {
-                    input.remove();
-                    window.removeEventListener('focus', cleanup);
-                };
-
-                input.addEventListener('change', e => {
-                    if (e.target.files?.length) {
-                        this.#addFiles(e.target.files);
-                    }
-                    cleanup();
-                }, { once: true });
-
-                window.addEventListener('focus', cleanup, { once: true });
-                document.body.appendChild(input);
-                input.click();
-            }
-        };
     }
 
     // #endregion
