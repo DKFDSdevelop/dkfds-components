@@ -2635,11 +2635,11 @@ function registerSelect() {
 
 class FDSUploadFile extends HTMLElement {
   /**
-  * Internal state:
-  * - #files holds the canonical list of selected files (source of truth).
-  * - UI (dropzone vs file list) is rendered based on #files.length.
-  * - DOM is partially cached (#dropzoneEl, #fileListEl) to allow toggling without recreating elements unnecessarily.
-  */
+   * Internal state:
+   * - #files holds the canonical list of selected files (source of truth).
+   * - UI (dropzone vs file list) is rendered based on #files.length.
+   * - DOM is partially cached (#dropzoneEl, #fileListEl) to allow toggling without recreating elements unnecessarily.
+   */
 
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -2761,8 +2761,6 @@ class FDSUploadFile extends HTMLElement {
       input.id = generateAndVerifyUniqueId('file-input');
     }
     label.setAttribute('for', input.id);
-    input.removeEventListener('change', this.#onInputChange);
-    input.addEventListener('change', this.#onInputChange);
     this.#inputEl = input;
     setDisabledClass(label, input);
     if (this.hasAttribute('show-required-status')) {
@@ -2771,6 +2769,14 @@ class FDSUploadFile extends HTMLElement {
   }
   #hydrateExistingDropzone() {
     this.#setupInput(this.querySelector('.fds-upload-dropzone input[type="file"]'));
+  }
+  #addEventListeners() {
+    this.addEventListener('click', this.#onClick);
+    this.#inputEl?.addEventListener('change', this.#onInputChange);
+  }
+  #removeEventListeners() {
+    this.removeEventListener('click', this.#onClick);
+    this.#inputEl?.removeEventListener('change', this.#onInputChange);
   }
   #setText(selector, value) {
     const element = this.querySelector(selector);
@@ -2945,7 +2951,6 @@ class FDSUploadFile extends HTMLElement {
     const content = document.createElement('div');
     content.className = 'fds-upload-dropzone-content';
     content.id = `dropzone-${input.id}`;
-    ;
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.classList.add('icon-svg');
     svg.setAttribute('aria-hidden', 'true');
@@ -3110,9 +3115,9 @@ class FDSUploadFile extends HTMLElement {
 
   init() {
     if (this.#initialized) return;
-    this.addEventListener('click', this.#onClick);
     this.#setupObserver();
     this.#setupHTML();
+    this.#addEventListeners();
     this.#setupAccessibility();
     this.#initialized = true;
   }
@@ -3155,8 +3160,7 @@ class FDSUploadFile extends HTMLElement {
   disconnectedCallback() {
     notifySummaryOnDisconnect(this);
     this.#initialized = false;
-    this.removeEventListener('click', this.#onClick);
-    this.#inputEl?.removeEventListener('change', this.#onInputChange);
+    this.#removeEventListeners();
     if (this.#uploadObserver) {
       this.#uploadObserver.disconnect();
       this.#uploadObserver = null;

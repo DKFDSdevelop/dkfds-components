@@ -4,11 +4,11 @@ import * as CE from '../custom-element-utils';
 class FDSUploadFile extends HTMLElement {
 
     /**
-    * Internal state:
-    * - #files holds the canonical list of selected files (source of truth).
-    * - UI (dropzone vs file list) is rendered based on #files.length.
-    * - DOM is partially cached (#dropzoneEl, #fileListEl) to allow toggling without recreating elements unnecessarily.
-    */
+     * Internal state:
+     * - #files holds the canonical list of selected files (source of truth).
+     * - UI (dropzone vs file list) is rendered based on #files.length.
+     * - DOM is partially cached (#dropzoneEl, #fileListEl) to allow toggling without recreating elements unnecessarily.
+     */
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -100,7 +100,7 @@ class FDSUploadFile extends HTMLElement {
     }
 
     #getFileListMore() {
-        return this.getAttribute('file-list-more') ?? 'Vælg flere filer'
+        return this.getAttribute('file-list-more') ?? 'Vælg flere filer';
     }
 
     #getFileListHeadingLevel() {
@@ -120,7 +120,7 @@ class FDSUploadFile extends HTMLElement {
 
         if (existingDropzone) {
             this.#hydrateExistingDropzone();
-        } 
+        }
         else {
             this.#setupInput(this.querySelector('input[type="file"]'));
         }
@@ -144,9 +144,6 @@ class FDSUploadFile extends HTMLElement {
 
         label.setAttribute('for', input.id);
 
-        input.removeEventListener('change', this.#onInputChange);
-        input.addEventListener('change', this.#onInputChange);
-
         this.#inputEl = input;
 
         CE.setDisabledClass(label, input);
@@ -158,6 +155,16 @@ class FDSUploadFile extends HTMLElement {
 
     #hydrateExistingDropzone() {
         this.#setupInput(this.querySelector('.fds-upload-dropzone input[type="file"]'));
+    }
+
+    #addEventListeners() {
+        this.addEventListener('click', this.#onClick);
+        this.#inputEl?.addEventListener('change', this.#onInputChange);
+    }
+
+    #removeEventListeners() {
+        this.removeEventListener('click', this.#onClick);
+        this.#inputEl?.removeEventListener('change', this.#onInputChange);
     }
 
     #setText(selector, value) {
@@ -374,7 +381,7 @@ class FDSUploadFile extends HTMLElement {
         // Dropzone content
         const content = document.createElement('div');
         content.className = 'fds-upload-dropzone-content';
-        content.id = `dropzone-${input.id}`;;
+        content.id = `dropzone-${input.id}`;
 
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.classList.add('icon-svg');
@@ -572,9 +579,9 @@ class FDSUploadFile extends HTMLElement {
     init() {
         if (this.#initialized) return;
 
-        this.addEventListener('click', this.#onClick);
         this.#setupObserver();
         this.#setupHTML();
+        this.#addEventListeners();
         this.#setupAccessibility();
 
         this.#initialized = true;
@@ -624,8 +631,7 @@ class FDSUploadFile extends HTMLElement {
 
         this.#initialized = false;
 
-        this.removeEventListener('click', this.#onClick);
-        this.#inputEl?.removeEventListener('change', this.#onInputChange);
+        this.#removeEventListeners();
         if (this.#uploadObserver) {
             this.#uploadObserver.disconnect();
             this.#uploadObserver = null;
