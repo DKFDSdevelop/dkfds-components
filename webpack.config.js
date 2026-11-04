@@ -113,6 +113,56 @@ const CSS_SASS_LOADER_COMPRESSED = {
     },
 }
 
+/* Returns a new object (and a new CssMinimizerPlugin instance) each time, so every config gets its own instance */
+const removeCommentsFromCSS = () => ({
+    /* File is not minified - this step just remove comments. List of options: https://cssnano.co/docs/what-are-optimisations/ */
+    minimize: true,
+    minimizer: [
+        new CssMinimizerPlugin({
+            minimizerOptions: {
+                preset: [
+                    "default",
+                    {
+                        autoprefixer: false,
+                        cssDeclarationSorter: false,
+                        calc: false,
+                        colormin: false,
+                        convertValues: false,
+                        discardComments: true, // Remove comments from CSS files
+                        discardDuplicates: false,
+                        discardEmpty: false,
+                        discardOverridden: false,
+                        discardUnused: false,
+                        mergeIdents: false,
+                        mergeLonghand: false,
+                        mergeRules: false,
+                        minifyFontValues: false,
+                        minifyGradients: false,
+                        minifyParams: false,
+                        minifySelectors: false,
+                        normalizeCharset: false,
+                        normalizeDisplayValues: false,
+                        normalizePositions: false,
+                        normalizeRepeatStyle: false,
+                        normalizeString: false,
+                        normalizeTimingFunctions: false,
+                        normalizeUnicode: false,
+                        normalizeUrl: false,
+                        normalizeWhitespace: false,
+                        orderedValues: false,
+                        reduceIdents: false,
+                        reduceInitial: false,
+                        reduceTransforms: false,
+                        svgo: false,
+                        uniqueSelectors: false,
+                        zindex: false
+                    },
+                ],
+            },
+        }),
+    ],
+});
+
 const CSS_OUTPUT_PATH = path.resolve(__dirname, 'dist');
 const CSS_OUTPUT_DEVTOOLMODULEFILENAMETEMPLATE = (info) => { return `${info.resourcePath}`.replace('./src/stylesheets', '../scss'); }
 
@@ -274,54 +324,7 @@ const createCSS = {
         maxAssetSize: 350000,
         maxEntrypointSize: 350000
     },
-    optimization: {
-        /* File is not minified - this step just remove comments. List of options: https://cssnano.co/docs/what-are-optimisations/ */
-        minimize: true,
-        minimizer: [
-            new CssMinimizerPlugin({
-                minimizerOptions: {
-                    preset: [
-                        "default",
-                        {
-                            autoprefixer: false,
-                            cssDeclarationSorter: false,
-                            calc: false,
-                            colormin: false,
-                            convertValues: false,
-                            discardComments: true, // Remove comments from CSS files
-                            discardDuplicates: false,
-                            discardEmpty: false,
-                            discardOverridden: false,
-                            discardUnused: false,
-                            mergeIdents: false,
-                            mergeLonghand: false,
-                            mergeRules: false,
-                            minifyFontValues: false,
-                            minifyGradients: false,
-                            minifyParams: false,
-                            minifySelectors: false,
-                            normalizeCharset: false,
-                            normalizeDisplayValues: false,
-                            normalizePositions: false,
-                            normalizeRepeatStyle: false,
-                            normalizeString: false,
-                            normalizeTimingFunctions: false,
-                            normalizeUnicode: false,
-                            normalizeUrl: false,
-                            normalizeWhitespace: false,
-                            orderedValues: false,
-                            reduceIdents: false,
-                            reduceInitial: false,
-                            reduceTransforms: false,
-                            svgo: false,
-                            uniqueSelectors: false,
-                            zindex: false
-                        },
-                    ],
-                },
-            }),
-        ],
-    },
+    optimization: removeCommentsFromCSS(),
     output: {
         path: CSS_OUTPUT_PATH
     },
@@ -408,54 +411,7 @@ const createWebComponentCSS = {
         maxAssetSize: 350000,
         maxEntrypointSize: 350000
     },
-    optimization: {
-        /* File is not minified - this step just remove comments. List of options: https://cssnano.co/docs/what-are-optimisations/ */
-        minimize: true,
-        minimizer: [
-            new CssMinimizerPlugin({
-                minimizerOptions: {
-                    preset: [
-                        "default",
-                        {
-                            autoprefixer: false,
-                            cssDeclarationSorter: false,
-                            calc: false,
-                            colormin: false,
-                            convertValues: false,
-                            discardComments: true, // Remove comments from CSS files
-                            discardDuplicates: false,
-                            discardEmpty: false,
-                            discardOverridden: false,
-                            discardUnused: false,
-                            mergeIdents: false,
-                            mergeLonghand: false,
-                            mergeRules: false,
-                            minifyFontValues: false,
-                            minifyGradients: false,
-                            minifyParams: false,
-                            minifySelectors: false,
-                            normalizeCharset: false,
-                            normalizeDisplayValues: false,
-                            normalizePositions: false,
-                            normalizeRepeatStyle: false,
-                            normalizeString: false,
-                            normalizeTimingFunctions: false,
-                            normalizeUnicode: false,
-                            normalizeUrl: false,
-                            normalizeWhitespace: false,
-                            orderedValues: false,
-                            reduceIdents: false,
-                            reduceInitial: false,
-                            reduceTransforms: false,
-                            svgo: false,
-                            uniqueSelectors: false,
-                            zindex: false
-                        },
-                    ],
-                },
-            }),
-        ],
-    },
+    optimization: removeCommentsFromCSS(),
     output: {
         path: CSS_OUTPUT_PATH
     },
