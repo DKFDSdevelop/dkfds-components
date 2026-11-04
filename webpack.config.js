@@ -199,6 +199,38 @@ const createMinifiedJavaScript = {
     stats: 'minimal',
 };
 
+const createMinifiedWebComponentJS = {
+    name: 'createMinifiedWebComponentJS',
+    dependencies: ['copyFilesAndCreateJavaScript'],
+    mode: 'production',
+    module: JS_BABEL,
+    optimization: {
+        minimize: true,
+        minimizer: [
+            new TerserPlugin({
+                test: /\.js(\?.*)?$/i,
+                extractComments: false,
+                terserOptions: {
+                    format: {
+                        comments: false,
+                    },
+                },
+            }),
+        ],
+    },
+    devtool: "source-map",
+    entry: {
+        "dkfds": './src/js/dkfds-web-components.js',
+    },
+    output: {
+        path: JS_OUTPUT_PATH,
+        filename: 'web-components/[name].min.js',
+        globalObject: 'this',
+        library: JS_OUTPUT_LIBRARY_WEB_COMPONENTS,
+    },
+    stats: 'minimal',
+};
+
 const createCSS = {
     name: 'createCSS',
     dependencies: ['copyFilesAndCreateJavaScript'],
@@ -428,8 +460,55 @@ const createWebComponentCSS = {
     stats: 'minimal',
 };
 
+const createMinifiedWebComponentCSS = {
+    name: 'createMinifiedWebComponentCSS',
+    dependencies: ['copyFilesAndCreateJavaScript'],
+    mode: 'production',
+    devtool: 'source-map',
+    entry: {
+        "dkfds-borgerdk": './src/stylesheets/dkfds-borgerdk-web-components.scss',
+        "dkfds-virkdk": './src/stylesheets/dkfds-virkdk-web-components.scss',
+        "dkfds": './src/stylesheets/dkfds-web-components.scss',
+    },
+    plugins: [
+        CSS_REMOVE_EMPTY_SCRIPTS,
+        new MiniCssExtractPlugin({
+            filename: 'web-components/[name].min.css'
+        }),
+    ],
+    module: {
+        rules: [
+            {
+                test: /\.s[ac]ss$/i,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    CSS_LOADER,
+                    CSS_POSTCSS_LOADER,
+                    CSS_SASS_LOADER_COMPRESSED,
+                ],
+            },
+        ],
+    },
+    /* Increased from the default 250000 */
+    performance: {
+        maxAssetSize: 350000,
+        maxEntrypointSize: 350000
+    },
+    optimization: {
+        minimize: true,
+        minimizer: [
+            new CssMinimizerPlugin(),
+        ],
+    },
+    output: {
+        path: CSS_OUTPUT_PATH,
+        devtoolModuleFilenameTemplate: CSS_OUTPUT_DEVTOOLMODULEFILENAMETEMPLATE
+    },
+    stats: 'minimal',
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 // module.exports
 ////////////////////////////////////////////////////////////////////////////////
 
-module.exports = [copyFilesAndCreateJavaScript, copyFilesAndCreateWebComponentJS, createMinifiedJavaScript, createCSS, createMinifiedCSS, createWebComponentCSS];
+module.exports = [copyFilesAndCreateJavaScript, copyFilesAndCreateWebComponentJS, createMinifiedJavaScript, createMinifiedWebComponentJS, createCSS, createMinifiedCSS, createWebComponentCSS, createMinifiedWebComponentCSS];
