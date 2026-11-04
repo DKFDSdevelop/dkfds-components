@@ -2354,9 +2354,7 @@ class FDSDateInput extends HTMLElement {
       const targets = errorMsg.getAttribute('targets');
       return targets && targets.includes(target);
     });
-    if (relevantErrors.length > 0) {
-      setInvalid(inputElement, relevantErrors);
-    }
+    setInvalid(inputElement, relevantErrors);
   }
   #init() {
     this.#setupHTML();
