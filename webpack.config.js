@@ -18,6 +18,10 @@ const JS_ENTRY = {
     "dkfds": './src/js/dkfds.js',
 };
 
+const JS_ENTRY_WEB_COMPONENTS = {
+    "dkfds": './src/js/dkfds-web-components.js',
+};
+
 const JS_OUTPUT_PATH = path.resolve(__dirname, 'dist');
 
 const JS_OUTPUT_LIBRARY = {
@@ -51,6 +55,12 @@ const CSS_ENTRY = {
     "dkfds-borgerdk": './src/stylesheets/dkfds-borgerdk.scss',
     "dkfds-virkdk": './src/stylesheets/dkfds-virkdk.scss',
     "dkfds": './src/stylesheets/dkfds.scss',
+};
+
+const CSS_ENTRY_WEB_COMPONENTS = {
+    "dkfds-borgerdk": './src/stylesheets/dkfds-borgerdk-web-components.scss',
+    "dkfds-virkdk": './src/stylesheets/dkfds-virkdk-web-components.scss',
+    "dkfds": './src/stylesheets/dkfds-web-components.scss',
 };
 
 const CSS_REMOVE_EMPTY_SCRIPTS =
@@ -157,9 +167,7 @@ const copyFilesAndCreateWebComponentJS = {
     optimization: {
         minimize: false
     },
-    entry: {
-        "dkfds": './src/js/dkfds-web-components.js',
-    },
+    entry: JS_ENTRY_WEB_COMPONENTS,
     output: {
         path: JS_OUTPUT_PATH,
         filename: 'web-components/[name].js',
@@ -219,9 +227,7 @@ const createMinifiedWebComponentJS = {
         ],
     },
     devtool: "source-map",
-    entry: {
-        "dkfds": './src/js/dkfds-web-components.js',
-    },
+    entry: JS_ENTRY_WEB_COMPONENTS,
     output: {
         path: JS_OUTPUT_PATH,
         filename: 'web-components/[name].min.js',
@@ -369,11 +375,7 @@ const createWebComponentCSS = {
     name: 'createWebComponentCSS',
     dependencies: ['copyFilesAndCreateJavaScript'],
     mode: 'production',
-    entry: {
-        "dkfds-borgerdk": './src/stylesheets/dkfds-borgerdk-web-components.scss',
-        "dkfds-virkdk": './src/stylesheets/dkfds-virkdk-web-components.scss',
-        "dkfds": './src/stylesheets/dkfds-web-components.scss',
-    },
+    entry: CSS_ENTRY_WEB_COMPONENTS,
     plugins: [
         CSS_REMOVE_EMPTY_SCRIPTS,
         /* Create stylesheets */
@@ -465,11 +467,7 @@ const createMinifiedWebComponentCSS = {
     dependencies: ['copyFilesAndCreateJavaScript'],
     mode: 'production',
     devtool: 'source-map',
-    entry: {
-        "dkfds-borgerdk": './src/stylesheets/dkfds-borgerdk-web-components.scss',
-        "dkfds-virkdk": './src/stylesheets/dkfds-virkdk-web-components.scss',
-        "dkfds": './src/stylesheets/dkfds-web-components.scss',
-    },
+    entry: CSS_ENTRY_WEB_COMPONENTS,
     plugins: [
         CSS_REMOVE_EMPTY_SCRIPTS,
         new MiniCssExtractPlugin({
