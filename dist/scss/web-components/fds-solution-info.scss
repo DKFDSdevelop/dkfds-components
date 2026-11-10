@@ -44,7 +44,7 @@ fds-solution-info,
         overflow-wrap: break-word;
 
         .authority-name {
-            color: var(--header-solution-authority-name);
+            color: var(--header-solution-authority-name-color);
             font-weight: func.font-weight("semibold");
             font-size: func.font-size(vars.$header-solution-authority-name-font-size);
             line-height: 2.4rem;
