@@ -1,3 +1,5 @@
 :root {
-    --color-primary: #454545;
+    --color-primary: var(--color-gray-600);
+
+    --header-portal-background-color: var(--color-white);
 }

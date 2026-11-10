@@ -1,10 +1,10 @@
 @charset "UTF-8";
 :root{
   --color-primary:#0059B3;
+  --header-portal-background-color:var(--color-white);
 }
 
 :root{
-  --header-portal-background-color:white;
   --color-white:#FFFFFF;
   --color-gray-100:#F5F5F5;
   --color-gray-200:#DCDCDC;
@@ -20,6 +20,7 @@
   --alert-heading-margin-bottom:0;
   --alert-content-margin-top:0;
   --alert-content-margin-bottom:0;
+  --header-solution-authority-name-color:var(--color-black);
   --tab-panel-background-color:rgba(0, 0, 0, 0);
   --tab-panel-border-color:var(--color-gray-400);
   --tabs-tablist-width:100%;
@@ -12194,7 +12195,7 @@ fds-solution-info [slot=additional-info] .authority-name,
 fds-solution-info .additional-info .authority-name,
 .fds-solution-info [slot=additional-info] .authority-name,
 .fds-solution-info .additional-info .authority-name{
-  color:#454545;
+  color:var(--header-solution-authority-name-color);
   font-weight:600;
   font-size:1.6rem;
   line-height:2.4rem;
