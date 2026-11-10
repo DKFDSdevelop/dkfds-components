@@ -1,6 +1,7 @@
 @charset "UTF-8";
 :root{
-  --color-primary:#454545;
+  --color-primary:var(--color-gray-600);
+  --header-portal-background-color:var(--color-white);
 }
 
 :root{
@@ -19,7 +20,6 @@
   --alert-heading-margin-bottom:0;
   --alert-content-margin-top:0;
   --alert-content-margin-bottom:0;
-  --header-portal-background-color:white;
   --header-solution-authority-name:var(--color-black);
   --tab-panel-background-color:rgba(0, 0, 0, 0);
   --tab-panel-border-color:var(--color-gray-400);
