@@ -30,7 +30,7 @@ fds-select,
         @extend %basic-form-element;
         background-color: func.color(vars.$select-background-color);
         @include mixins.add-background-svg('chevron-down');
-        background-position: calc(100% - 10px);
+        background-position: calc(100% - 16px);
         background-size: func.units(5, 'rem');
         border: func.border(vars.$select-border);
         color: func.color(vars.$select-text-color);
@@ -38,7 +38,7 @@ fds-select,
         line-height: func.units(vars.$select-line-height, 'rem');
         height: calc(#{func.units(vars.$select-line-height, 'rem')} + (8px * 2));
         padding: calc(8px - #{func.border-width(vars.$select-border)}) calc(16px - #{func.border-width(vars.$select-border)});
-        padding-right: func.units(6);
+        padding-right: func.units(7);
 
         &::-ms-expand {
             display: none;
@@ -58,7 +58,7 @@ fds-select,
         select {
             border: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
             padding: $input-top-bottom-padding-feedback $input-left-right-padding-feedback;
-            padding-right: func.units(6);
+            padding-right: func.units(7);
         }
 
     }

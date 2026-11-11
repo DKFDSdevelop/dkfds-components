@@ -11465,7 +11465,7 @@ fds-select select,
   background-image:url("../img/svg-icons/chevron-down.svg");
   background-size:2.4rem;
   background-repeat:no-repeat;
-  background-position:calc(100% - 10px);
+  background-position:calc(100% - 16px);
   background-size:2.4rem;
   border:1px solid #8E8E8E;
   color:#1a1a1a;
@@ -11473,7 +11473,7 @@ fds-select select,
   line-height:2.4rem;
   height:calc(2.4rem + 16px);
   padding:calc(8px - 1px) calc(16px - 1px);
-  padding-right:32px;
+  padding-right:40px;
 }
 fds-select select::-ms-expand,
 .fds-select select::-ms-expand{
@@ -11493,7 +11493,7 @@ fds-select:has(select[aria-invalid=true]) select,
 .fds-select:has(select[aria-invalid=true]) select{
   border:2px solid #CC0000;
   padding:calc(8px - 2px) calc(16px - 2px);
-  padding-right:32px;
+  padding-right:40px;
 }
 fds-select:has(select[disabled]) label,
 .fds-select:has(select[disabled]) label{
