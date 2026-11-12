@@ -52,7 +52,6 @@ fds-date-picker,
     }
 
     &:has(input[aria-invalid="true"]) {
-
         input {
             border-left: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
             border-top: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
@@ -64,8 +63,12 @@ fds-date-picker,
             border-right: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
             border-top: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
             border-bottom: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
-        }
 
+            // Prevent the button's left gray border from overlapping the red error border
+            box-shadow: inset 1px 0 0 0 var(--color-gray-400);
+            border-left: 0;
+            padding-left: 17px;
+        }
     }
 
     .input-wrapper {
