@@ -11562,6 +11562,9 @@ fds-date-picker:has(input[aria-invalid=true]) .date-button, fds-date-picker:has(
   border-right:2px solid #CC0000;
   border-top:2px solid #CC0000;
   border-bottom:2px solid #CC0000;
+  box-shadow:inset 1px 0 0 0 var(--color-gray-400);
+  border-left:0;
+  padding-left:17px;
 }
 fds-date-picker .input-wrapper,
 .fds-date-picker .input-wrapper{
