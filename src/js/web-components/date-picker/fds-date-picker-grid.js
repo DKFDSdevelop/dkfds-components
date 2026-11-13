@@ -21,22 +21,22 @@ class FDSDatePickerGrid extends HTMLElement {
 
     #initialized = false;
 
-    #previousMinDate;
-    #previousMaxDate;
-    #correctedMinDate;
-    #correctedMaxDate;
+    #previousMinDate = 0;
+    #previousMaxDate = 0;
+    #correctedMinDate = null;
+    #correctedMaxDate = null;
 
     #MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
     #DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
     #GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
-    #TOTAL_GRIDCELLS;
+    #TOTAL_GRIDCELLS = this.#GRID_ROWS * this.#DAYS.length; // Must be declared after #GRID_ROWS and #DAYS
     #CELL_DATE_FORMAT = 'DAY. MONTH YEAR';
 
-    #DEFAULT_MIN_DATE;
-    #DEFAULT_MAX_DATE;
+    #DEFAULT_MIN_DATE = Util.getTodayPlusYears(0);
+    #DEFAULT_MAX_DATE = Util.getTodayPlusYears(10);
 
-    #textMinDate;
-    #textMaxDate;
+    #textMinDate = 'tidligste valgbare dato';
+    #textMaxDate = 'seneste valgbare dato';
 
     // #endregion
 
@@ -714,21 +714,6 @@ class FDSDatePickerGrid extends HTMLElement {
         super();
         this.attachShadow({ mode: 'open' });
         this.shadowRoot.adoptedStyleSheets = [sheet];
-
-        this.#TOTAL_GRIDCELLS = this.#GRID_ROWS * this.#DAYS.length;
-        this.#CELL_DATE_FORMAT = 'DAY. MONTH YEAR';
-        this.#textMinDate = 'tidligste valgbare dato';
-        this.#textMaxDate = 'seneste valgbare dato';
-
-        this.#DEFAULT_MIN_DATE = new Date();
-        this.#DEFAULT_MIN_DATE.setHours(0, 0, 0, 0);
-        this.#DEFAULT_MAX_DATE = new Date(this.#DEFAULT_MIN_DATE);
-        this.#DEFAULT_MAX_DATE.setFullYear(this.#DEFAULT_MIN_DATE.getFullYear() + 10);
-
-        this.#previousMinDate = 0;
-        this.#previousMaxDate = 0;
-        this.#correctedMinDate = null;
-        this.#correctedMaxDate = null;
     }
 
     // #endregion

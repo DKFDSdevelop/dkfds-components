@@ -2881,6 +2881,19 @@ function getNextYear(date) {
 }
 
 /**
+ * Get today's date with the time set to 00:00:00, offset by a number of years
+ *
+ * @param {number} years - Number of years to add (use a negative number to subtract)
+ * @return {Date} New Date representing today plus the given number of years
+ */
+function getTodayPlusYears(years) {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setFullYear(date.getFullYear() + years);
+  return date;
+}
+
+/**
  * Checks if two dates are exactly the same
  * 
  * @param {Date} date1 - The first date to compare
@@ -3644,19 +3657,19 @@ class FDSDatePickerGrid extends HTMLElement {
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
-  #previousMinDate;
-  #previousMaxDate;
-  #correctedMinDate;
-  #correctedMaxDate;
+  #previousMinDate = 0;
+  #previousMaxDate = 0;
+  #correctedMinDate = null;
+  #correctedMaxDate = null;
   #MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
   #DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
   #GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
-  #TOTAL_GRIDCELLS;
+  #TOTAL_GRIDCELLS = (() => this.#GRID_ROWS * this.#DAYS.length)(); // Must be declared after #GRID_ROWS and #DAYS
   #CELL_DATE_FORMAT = 'DAY. MONTH YEAR';
-  #DEFAULT_MIN_DATE;
-  #DEFAULT_MAX_DATE;
-  #textMinDate;
-  #textMaxDate;
+  #DEFAULT_MIN_DATE = (() => getTodayPlusYears(0))();
+  #DEFAULT_MAX_DATE = (() => getTodayPlusYears(10))();
+  #textMinDate = 'tidligste valgbare dato';
+  #textMaxDate = 'seneste valgbare dato';
 
   // #endregion
 
@@ -4290,18 +4303,6 @@ class FDSDatePickerGrid extends HTMLElement {
       mode: 'open'
     });
     this.shadowRoot.adoptedStyleSheets = [sheet];
-    this.#TOTAL_GRIDCELLS = this.#GRID_ROWS * this.#DAYS.length;
-    this.#CELL_DATE_FORMAT = 'DAY. MONTH YEAR';
-    this.#textMinDate = 'tidligste valgbare dato';
-    this.#textMaxDate = 'seneste valgbare dato';
-    this.#DEFAULT_MIN_DATE = new Date();
-    this.#DEFAULT_MIN_DATE.setHours(0, 0, 0, 0);
-    this.#DEFAULT_MAX_DATE = new Date(this.#DEFAULT_MIN_DATE);
-    this.#DEFAULT_MAX_DATE.setFullYear(this.#DEFAULT_MIN_DATE.getFullYear() + 10);
-    this.#previousMinDate = 0;
-    this.#previousMaxDate = 0;
-    this.#correctedMinDate = null;
-    this.#correctedMaxDate = null;
   }
 
   // #endregion
