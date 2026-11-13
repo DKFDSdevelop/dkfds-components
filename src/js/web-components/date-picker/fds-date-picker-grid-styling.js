@@ -120,6 +120,12 @@ export const styles = `
         background-color: #ffffff;
     }
 
+    @supports (field-sizing: content) {
+        .selected-month {
+            field-sizing: content;
+        }
+    }
+        
     .previous-month,
     .next-month {
         display: inline-flex;

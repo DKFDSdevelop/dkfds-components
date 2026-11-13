@@ -3482,6 +3482,12 @@ const styles = `
         background-color: #ffffff;
     }
 
+    @supports (field-sizing: content) {
+        .selected-month {
+            field-sizing: content;
+        }
+    }
+        
     .previous-month,
     .next-month {
         display: inline-flex;
@@ -3647,6 +3653,7 @@ const CHEVRON_LEFT_PATH = 'M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z
 const CHEVRON_RIGHT_PATH = 'M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z';
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(styles);
+const SUPPORTS_FIELD_SIZING = CSS.supports('field-sizing', 'content');
 class FDSDatePickerGrid extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -4317,7 +4324,10 @@ class FDSDatePickerGrid extends HTMLElement {
   focusFocusableDate() {
     this.shadowRoot.querySelector('td[tabindex="0"]')?.focus();
   }
+
+  // Ensure the chevron in the <select> stays right next to the month name
   resizeMonth() {
+    if (SUPPORTS_FIELD_SIZING) return;
     const monthSelect = this.shadowRoot.querySelector('.selected-month');
     if (!monthSelect) return;
     const ROOT_FONT_SIZE = 10; // px, result of the 62.5% trick

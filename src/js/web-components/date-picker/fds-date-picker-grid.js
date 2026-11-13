@@ -9,6 +9,8 @@ const CHEVRON_RIGHT_PATH = 'M504-480 320-664l56-56 240 240-240 240-56-56 184-184
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(styles);
 
+const SUPPORTS_FIELD_SIZING = CSS.supports('field-sizing', 'content');
+
 class FDSDatePickerGrid extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
@@ -729,7 +731,12 @@ class FDSDatePickerGrid extends HTMLElement {
         this.shadowRoot.querySelector('td[tabindex="0"]')?.focus();
     }
 
+    // Ensure the chevron in the <select> stays right next to the month name
     resizeMonth() {
+        // field-sizing is a rather new feature. Use the property if possible. 
+        if (SUPPORTS_FIELD_SIZING) return;
+
+        // If field-sizing isn't supported, fall back to setting the chevron manually.
         const monthSelect = this.shadowRoot.querySelector('.selected-month');
         if (!monthSelect) return;
 
