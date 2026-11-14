@@ -40,6 +40,8 @@ class FDSDatePickerGrid extends HTMLElement {
     #textMinDate = 'tidligste valgbare dato';
     #textMaxDate = 'seneste valgbare dato';
 
+    #hoveredDate = null;
+
     // #endregion
 
     // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
@@ -173,6 +175,29 @@ class FDSDatePickerGrid extends HTMLElement {
 
     #handleDateClick = (event) => {
         this.#dateClicked(event);
+    };
+
+    #handleMouseover = (event) => {
+        const cell = event.target.closest('td[data-date]');
+
+        if (cell && !cell.hasAttribute('aria-disabled')) {
+            this.#hoveredDate = cell.getAttribute('data-date');
+            this.#updateRangePreviewInGrids();
+            return;
+        }
+
+        // Prevent the preview from disappearing when moving the cursor between two dates.
+        if (event.target.matches('table, tbody, tr')) return;
+
+        // Over a disabled date, an empty cell or the header
+        this.#handleMouseleave();
+    };
+
+    #handleMouseleave = () => {
+        if (this.#hoveredDate === null) return;
+
+        this.#hoveredDate = null;
+        this.#updateRangePreviewInGrids();
     };
 
     // #endregion
@@ -449,6 +474,7 @@ class FDSDatePickerGrid extends HTMLElement {
             gridcells[i].removeAttribute('aria-selected');
             gridcells[i].removeAttribute('aria-disabled');
             gridcells[i].removeAttribute('aria-current');
+            gridcells[i].removeAttribute('data-in-range');
             gridcells[i].setAttribute('aria-hidden', 'true');
             gridcells[i].innerHTML = '';
         }
@@ -538,6 +564,11 @@ class FDSDatePickerGrid extends HTMLElement {
         else {
             nextMonthButton.removeAttribute('disabled');
         }
+
+        // Highlight the range between the two selected dates in start/end grids
+        const ownSelectedDate = this.getAttribute('selected-date');
+        const linkedSelectedDate = this.#getLinkedGrid()?.getAttribute('selected-date');
+        this.#setRangeHighlight(ownSelectedDate, linkedSelectedDate);
 
         // If wanted, set focus on the date causing the redraw unless the grid is hidden or the focus is on the date input field
         const isDisplayed = this.offsetParent;
@@ -669,6 +700,8 @@ class FDSDatePickerGrid extends HTMLElement {
 
     #addEventListeners() {
         this.shadowRoot.querySelector('.grid-container').addEventListener('keydown', this.#handleKeydown, false);
+        this.shadowRoot.querySelector('.grid-container').addEventListener('mouseover', this.#handleMouseover, false);
+        this.shadowRoot.querySelector('.grid-container').addEventListener('mouseleave', this.#handleMouseleave, false);
         this.shadowRoot.querySelector('.selected-month').addEventListener('change', this.#handleChangeMonth, false);
         this.shadowRoot.querySelector('.selected-year').addEventListener('change', this.#handleChangeYear, false);
         this.shadowRoot.querySelector('.previous-month').addEventListener('click', this.#handlePrevMonth, false);
@@ -680,6 +713,8 @@ class FDSDatePickerGrid extends HTMLElement {
 
     #removeEventListeners() {
         this.shadowRoot.querySelector('.grid-container').removeEventListener('keydown', this.#handleKeydown, false);
+        this.shadowRoot.querySelector('.grid-container').removeEventListener('mouseover', this.#handleMouseover, false);
+        this.shadowRoot.querySelector('.grid-container').removeEventListener('mouseleave', this.#handleMouseleave, false);
         this.shadowRoot.querySelector('.selected-month').removeEventListener('change', this.#handleChangeMonth, false);
         this.shadowRoot.querySelector('.selected-year').removeEventListener('change', this.#handleChangeYear, false);
         this.shadowRoot.querySelector('.previous-month').removeEventListener('click', this.#handlePrevMonth, false);
@@ -706,6 +741,67 @@ class FDSDatePickerGrid extends HTMLElement {
 
         const focusableDate = linkedGrid.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
         linkedGrid.forceCompleteRedraw(Util.stringToDate(focusableDate));
+    }
+
+    // Called from mouseover or mouseleave events
+    #updateRangePreviewInGrids() {
+        const linkedGrid = this.#getLinkedGrid();
+
+        // Check if the browser has upgraded the linked grid to a custom element
+        const linkedGridIsReady = linkedGrid instanceof FDSDatePickerGrid;
+        if (!linkedGridIsReady) return;
+
+        const thisGridHasSelectedDate = Util.isValidDateStr(this.getAttribute('selected-date'));
+        const linkedSelectedDate = linkedGrid.getAttribute('selected-date');
+        const linkedGridHasSelectedDate = Util.isValidDateStr(linkedSelectedDate);
+
+        // If both dates are selected, show the preview permanently. Hover must not change anything.
+        if (thisGridHasSelectedDate && linkedGridHasSelectedDate) return;
+
+        // A new date was hovered in this grid and the linked grid has a selected date --> Update the preview
+        if (this.#hoveredDate && linkedGridHasSelectedDate) {
+            this.#setRangeHighlight(linkedSelectedDate, this.#hoveredDate);
+            linkedGrid.#setRangeHighlight(linkedSelectedDate, this.#hoveredDate);
+        }
+        // No date is hovered, or the linked grid has no selected date. Remove the preview.
+        else {
+            this.#clearRangeHighlight();
+            linkedGrid.#clearRangeHighlight();
+        }
+    }
+
+    // Mark the dates in this grid that fall between the two given dates
+    #setRangeHighlight(startDate, endDate) {
+        if (!Util.isValidDateStr(startDate) || !Util.isValidDateStr(endDate)) {
+            this.#clearRangeHighlight();
+            return;
+        }
+
+        // Normalize to YYYY-MM-DD, which can be compared as text
+        const first = Util.ISOFormatFromDate(Util.stringToDate(startDate));
+        const second = Util.ISOFormatFromDate(Util.stringToDate(endDate));
+        const from = first <= second ? first : second;
+        const to = first <= second ? second : first;
+
+        this.shadowRoot.querySelectorAll('td[data-date]').forEach(td => {
+            const date = td.getAttribute('data-date');
+
+            if (date < from || to < date) {
+                td.removeAttribute('data-in-range');
+                return;
+            }
+
+            let position = 'middle';
+            if (date === from && date === to) { position = 'only'; }
+            else if (date === from) { position = 'start'; }
+            else if (date === to) { position = 'end'; }
+
+            td.setAttribute('data-in-range', position);
+        });
+    }
+
+    #clearRangeHighlight() {
+        this.shadowRoot.querySelectorAll('td[data-in-range]').forEach(td => td.removeAttribute('data-in-range'));
     }
 
     // #endregion
@@ -821,7 +917,10 @@ class FDSDatePickerGrid extends HTMLElement {
                     this.#redraw(Util.stringToDate(dateWithCurrentFocus), setFocusOnDate);
                 }
                 this.dispatchEvent(new Event('date-selected'));
+
+                // If a linked grid exists, redraw its selectable dates and range highlight
                 this.#redrawLinkedGrid();
+
                 break;
             }
             case 'min-date':

@@ -46,6 +46,7 @@ export const styles = `
     }
 
     .grid-container {
+        isolation: isolate;
         width: fit-content;
     }
 
@@ -226,6 +227,7 @@ export const styles = `
     }
 
     td {
+        position: relative;
         height: 40px;
         width: 40px;
         max-width: 40px;
@@ -252,8 +254,35 @@ export const styles = `
     }
 
     td[aria-selected]:active {
-        background-color: #DCDCDC;
+        background-color: var(--color-gray-200);
         text-decoration: underline;
+    }
+
+    td[data-in-range]::before {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        top: 0;
+        bottom: 0;
+        left: -0.4rem;
+        right: -0.4rem;
+        background-color: var(--color-gray-200);
+    }
+
+    td[data-in-range="start"]::before {
+        left: 0;
+        border-radius: 20px 0 0 20px;
+    }
+
+    td[data-in-range="end"]::before {
+        right: 0;
+        border-radius: 0 20px 20px 0;
+    }
+
+    td[data-in-range="only"]::before {
+        left: 0;
+        right: 0;
+        border-radius: 20px;
     }
 
     td[aria-selected="true"],
