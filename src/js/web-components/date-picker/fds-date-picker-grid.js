@@ -182,11 +182,11 @@ class FDSDatePickerGrid extends HTMLElement {
 
         if (cell && !cell.hasAttribute('aria-disabled')) {
             this.#hoveredDate = cell.getAttribute('data-date');
-            this.#updateRangePreviewInGrids();
+            this.#updateHoverHighlightInGrids();
             return;
         }
 
-        // Prevent the preview from disappearing when moving the cursor between two dates.
+        // Prevent the highlight from disappearing when moving the cursor between two dates.
         if (event.target.matches('table, tbody, tr')) return;
 
         // Over a disabled date, an empty cell or the header
@@ -197,7 +197,7 @@ class FDSDatePickerGrid extends HTMLElement {
         if (this.#hoveredDate === null) return;
 
         this.#hoveredDate = null;
-        this.#updateRangePreviewInGrids();
+        this.#updateHoverHighlightInGrids();
     };
 
     // #endregion
@@ -570,10 +570,11 @@ class FDSDatePickerGrid extends HTMLElement {
             nextMonthButton.removeAttribute('disabled');
         }
 
-        // Highlight the range between the two selected dates in start/end grids
-        const ownSelectedDate = this.getAttribute('selected-date');
-        const linkedSelectedDate = this.#getLinkedGrid()?.getAttribute('selected-date');
-        this.#setRangeHighlight(ownSelectedDate, linkedSelectedDate);
+        // Highlight the range between two selected dates (only relevant for linked start/end grids)
+        if (this.#hasLinkedUpgradedGrid()) {
+            const linkedSelectedDate = this.#getLinkedGrid().getAttribute('selected-date');
+            this.#setRangeHighlight(selectedDate, linkedSelectedDate);
+        }
 
         // If wanted, set focus on the date causing the redraw unless the grid is hidden or the focus is on the date input field
         const isDisplayed = this.offsetParent;
@@ -755,8 +756,7 @@ class FDSDatePickerGrid extends HTMLElement {
         linkedGrid.forceCompleteRedraw(Util.stringToDate(focusableDate));
     }
 
-    // Called from mouseover or mouseleave events
-    #updateRangePreviewInGrids() {
+    #updateHoverHighlightInGrids() {
         if (!this.#hasLinkedUpgradedGrid()) return;
 
         const linkedGrid = this.#getLinkedGrid();
@@ -764,15 +764,15 @@ class FDSDatePickerGrid extends HTMLElement {
         const linkedSelectedDate = linkedGrid.getAttribute('selected-date');
         const linkedGridHasSelectedDate = Util.isValidDateStr(linkedSelectedDate);
 
-        // If both dates are selected, show the preview permanently. Hover must not change anything.
+        // If both dates are selected, show the highlight permanently. Hover must not change anything.
         if (thisGridHasSelectedDate && linkedGridHasSelectedDate) return;
 
-        // A new date was hovered in this grid and the linked grid has a selected date --> Update the preview
+        // A new date was hovered in this grid and the linked grid has a selected date --> Update the highlight
         if (this.#hoveredDate && linkedGridHasSelectedDate) {
             this.#setRangeHighlight(this.#hoveredDate, linkedSelectedDate);
             linkedGrid.#setRangeHighlight(linkedSelectedDate, this.#hoveredDate);
         }
-        // No date is hovered, or the linked grid has no selected date. Remove the preview.
+        // No date is hovered, or the linked grid has no selected date. Remove the highlight.
         else {
             this.#clearRangeHighlight();
             linkedGrid.#clearRangeHighlight();
@@ -784,9 +784,16 @@ class FDSDatePickerGrid extends HTMLElement {
         if (!this.#hasLinkedUpgradedGrid()) return;
 
         // A start grid is linked to an end grid and vice versa
-        const isStartGrid = this.hasAttribute('start-date-id');
-        const startDate = isStartGrid ? dateInThisGrid : dateInLinkedGrid;
-        const endDate = isStartGrid ? dateInLinkedGrid : dateInThisGrid;
+        let startDate;
+        let endDate;
+        if (this.hasAttribute('start-date-id')) {
+            startDate = dateInThisGrid;
+            endDate = dateInLinkedGrid;
+        }
+        else if (this.hasAttribute('end-date-id')) {
+            startDate = dateInLinkedGrid;
+            endDate = dateInThisGrid;
+        }
 
         if (!Util.isValidDateStr(startDate) || !Util.isValidDateStr(endDate)) {
             this.#clearRangeHighlight();
