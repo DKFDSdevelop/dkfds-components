@@ -400,8 +400,8 @@ class FDSDatePickerGrid extends HTMLElement {
                         if (this.hasAttribute('start-date-id')) {
                             if (linkedDate < this.#correctedMaxDate) { this.#correctedMaxDate = linkedDate; }
                         }
-                        else if (this.#correctedMinDate < linkedDate) {
-                            this.#correctedMinDate = linkedDate;
+                        else if (this.hasAttribute('end-date-id')) {
+                            if (this.#correctedMinDate < linkedDate) { this.#correctedMinDate = linkedDate; }
                         }
                     }
                 }
@@ -767,7 +767,7 @@ class FDSDatePickerGrid extends HTMLElement {
         // If both dates are selected, show the highlight permanently. Hover must not change anything.
         if (thisGridHasSelectedDate && linkedGridHasSelectedDate) return;
 
-        // A new date was hovered in this grid and the linked grid has a selected date --> Update the highlight
+        // A date is hovered in this grid and the linked grid has a selected date --> Update the highlight
         if (this.#hoveredDate && linkedGridHasSelectedDate) {
             this.#setRangeHighlight(this.#hoveredDate, linkedSelectedDate);
             linkedGrid.#setRangeHighlight(linkedSelectedDate, this.#hoveredDate);
