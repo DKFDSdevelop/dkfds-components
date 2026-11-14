@@ -4328,12 +4328,16 @@ class FDSDatePickerGrid extends HTMLElement {
   }
   #addEventListeners() {
     this.shadowRoot.querySelector('.grid-container').addEventListener('keydown', this.#handleKeydown, false);
-    this.shadowRoot.querySelector('.grid-container').addEventListener('mouseover', this.#handleLinkedGridMouseover, false);
-    this.shadowRoot.querySelector('.grid-container').addEventListener('mouseleave', this.#handleLinkedGridMouseleave, false);
     this.shadowRoot.querySelector('.selected-month').addEventListener('change', this.#handleChangeMonth, false);
     this.shadowRoot.querySelector('.selected-year').addEventListener('change', this.#handleChangeYear, false);
     this.shadowRoot.querySelector('.previous-month').addEventListener('click', this.#handlePrevMonth, false);
     this.shadowRoot.querySelector('.next-month').addEventListener('click', this.#handleNextMonth, false);
+
+    // Hover is only used for the range highlight, which only exists in linked start/end grids
+    if (this.hasAttribute('start-date-id') || this.hasAttribute('end-date-id')) {
+      this.shadowRoot.querySelector('.grid-container').addEventListener('mouseover', this.#handleLinkedGridMouseover, false);
+      this.shadowRoot.querySelector('.grid-container').addEventListener('mouseleave', this.#handleLinkedGridMouseleave, false);
+    }
 
     // Event listener added to each cell for proper iOS VoiceOver support
     this.shadowRoot.querySelectorAll('td').forEach(td => td.addEventListener('click', this.#handleDateClick, false));
