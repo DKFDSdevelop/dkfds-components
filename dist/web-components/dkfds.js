@@ -3202,6 +3202,15 @@ class FDSDatePicker extends HTMLElement {
       this.querySelector('fds-date-picker-grid')?.setAttribute('text-months', str);
     }
   }
+  #updateLinkedDateButtonState() {
+    const grid = this.querySelector('fds-date-picker-grid');
+    const button = this.querySelector('.date-button');
+    const picker = this.querySelector('.ce-date-picker');
+    if (!button || !picker) return;
+    const isOpen = !picker.classList.contains('d-none');
+    const isLinked = grid != null && (grid.hasAttribute('start-date-id') || grid.hasAttribute('end-date-id'));
+    button.classList.toggle('linked-grid-open', isLinked && isOpen);
+  }
 
   // #endregion
 
@@ -3243,17 +3252,23 @@ class FDSDatePicker extends HTMLElement {
   // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
   open() {
-    if (!this.querySelector('.ce-date-picker')) return;
-    this.querySelector('.ce-date-picker').classList.remove('d-none');
+    const picker = this.querySelector('.ce-date-picker');
+    if (!picker) return;
+    picker.classList.remove('d-none');
+    this.#updateLinkedDateButtonState();
     this.querySelector('fds-date-picker-grid').resizeMonth();
   }
   close() {
-    if (!this.querySelector('.ce-date-picker')) return;
-    this.querySelector('.ce-date-picker').classList.add('d-none');
+    const picker = this.querySelector('.ce-date-picker');
+    if (!picker) return;
+    picker.classList.add('d-none');
+    this.#updateLinkedDateButtonState();
   }
   toggle() {
-    if (!this.querySelector('.ce-date-picker')) return;
-    this.querySelector('.ce-date-picker').classList.toggle('d-none');
+    const picker = this.querySelector('.ce-date-picker');
+    if (!picker) return;
+    picker.classList.toggle('d-none');
+    this.#updateLinkedDateButtonState();
     this.querySelector('fds-date-picker-grid').resizeMonth();
   }
 

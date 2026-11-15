@@ -11556,7 +11556,8 @@ fds-date-picker:has(input[aria-invalid=true]) input,
   border-bottom:2px solid #CC0000;
   padding:calc(8px - 2px) calc(16px - 2px);
 }
-fds-date-picker:has(input[aria-invalid=true]) .date-button, fds-date-picker:has(input[aria-invalid=true]) .date-button:hover,
+fds-date-picker:has(input[aria-invalid=true]) .date-button,
+fds-date-picker:has(input[aria-invalid=true]) .date-button:hover,
 .fds-date-picker:has(input[aria-invalid=true]) .date-button,
 .fds-date-picker:has(input[aria-invalid=true]) .date-button:hover{
   border-right:2px solid #CC0000;
@@ -11588,6 +11589,10 @@ fds-date-picker .button.date-button:hover, fds-date-picker .button.date-button:d
 .fds-date-picker .button.date-button:hover,
 .fds-date-picker .button.date-button:disabled{
   border:1px solid #8E8E8E;
+}
+fds-date-picker .button.date-button.linked-grid-open,
+.fds-date-picker .button.date-button.linked-grid-open{
+  background-color:var(--color-gray-200);
 }
 fds-date-picker .ce-date-picker[role=dialog],
 .fds-date-picker .ce-date-picker[role=dialog]{

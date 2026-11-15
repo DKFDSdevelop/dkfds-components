@@ -59,7 +59,8 @@ fds-date-picker,
             padding: $input-top-bottom-padding-feedback $input-left-right-padding-feedback;
         }
 
-        .date-button, .date-button:hover {
+        .date-button,
+        .date-button:hover {
             border-right: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
             border-top: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
             border-bottom: vars.$input-border-width-feedback solid func.color(vars.$input-border-color-feedback-error);
@@ -88,8 +89,13 @@ fds-date-picker,
         padding-left: func.units(4);
         padding-right: func.units(4);
 
-        &:hover, &:disabled {
+        &:hover,
+        &:disabled {
             border: func.border(vars.$input-border);
+        }
+
+        &.linked-grid-open {
+            background-color: var(--color-gray-200);
         }
     }
 
