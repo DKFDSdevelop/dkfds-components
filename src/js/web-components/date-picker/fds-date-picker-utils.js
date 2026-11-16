@@ -275,6 +275,19 @@ export function getNextYear(date) {
 }
 
 /**
+ * Get today's date with the time set to 00:00:00, offset by a number of years
+ *
+ * @param {number} years - Number of years to add (use a negative number to subtract)
+ * @return {Date} New Date representing today plus the given number of years
+ */
+export function getTodayPlusYears(years) {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    date.setFullYear(date.getFullYear() + years);
+    return date;
+}
+
+/**
  * Checks if two dates are exactly the same
  * 
  * @param {Date} date1 - The first date to compare

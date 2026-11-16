@@ -2881,6 +2881,19 @@ function getNextYear(date) {
 }
 
 /**
+ * Get today's date with the time set to 00:00:00, offset by a number of years
+ *
+ * @param {number} years - Number of years to add (use a negative number to subtract)
+ * @return {Date} New Date representing today plus the given number of years
+ */
+function getTodayPlusYears(years) {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setFullYear(date.getFullYear() + years);
+  return date;
+}
+
+/**
  * Checks if two dates are exactly the same
  * 
  * @param {Date} date1 - The first date to compare
@@ -3189,6 +3202,15 @@ class FDSDatePicker extends HTMLElement {
       this.querySelector('fds-date-picker-grid')?.setAttribute('text-months', str);
     }
   }
+  #updateLinkedDateButtonState() {
+    const grid = this.querySelector('fds-date-picker-grid');
+    const button = this.querySelector('.date-button');
+    const picker = this.querySelector('.ce-date-picker');
+    if (!button || !picker) return;
+    const isOpen = !picker.classList.contains('d-none');
+    const isLinked = grid != null && (grid.hasAttribute('start-date-id') || grid.hasAttribute('end-date-id'));
+    button.classList.toggle('linked-grid-open', isLinked && isOpen);
+  }
 
   // #endregion
 
@@ -3230,17 +3252,23 @@ class FDSDatePicker extends HTMLElement {
   // #region - PUBLIC METHODS -----------------------------------------------------------------------------
 
   open() {
-    if (!this.querySelector('.ce-date-picker')) return;
-    this.querySelector('.ce-date-picker').classList.remove('d-none');
+    const picker = this.querySelector('.ce-date-picker');
+    if (!picker) return;
+    picker.classList.remove('d-none');
+    this.#updateLinkedDateButtonState();
     this.querySelector('fds-date-picker-grid').resizeMonth();
   }
   close() {
-    if (!this.querySelector('.ce-date-picker')) return;
-    this.querySelector('.ce-date-picker').classList.add('d-none');
+    const picker = this.querySelector('.ce-date-picker');
+    if (!picker) return;
+    picker.classList.add('d-none');
+    this.#updateLinkedDateButtonState();
   }
   toggle() {
-    if (!this.querySelector('.ce-date-picker')) return;
-    this.querySelector('.ce-date-picker').classList.toggle('d-none');
+    const picker = this.querySelector('.ce-date-picker');
+    if (!picker) return;
+    picker.classList.toggle('d-none');
+    this.#updateLinkedDateButtonState();
     this.querySelector('fds-date-picker-grid').resizeMonth();
   }
 
@@ -3395,6 +3423,7 @@ const styles = `
     }
 
     .grid-container {
+        isolation: isolate;
         width: fit-content;
     }
 
@@ -3469,6 +3498,12 @@ const styles = `
         background-color: #ffffff;
     }
 
+    @supports (field-sizing: content) {
+        .selected-month {
+            field-sizing: content;
+        }
+    }
+        
     .previous-month,
     .next-month {
         display: inline-flex;
@@ -3569,6 +3604,7 @@ const styles = `
     }
 
     td {
+        position: relative;
         height: 40px;
         width: 40px;
         max-width: 40px;
@@ -3595,8 +3631,35 @@ const styles = `
     }
 
     td[aria-selected]:active {
-        background-color: #DCDCDC;
+        background-color: var(--color-gray-200);
         text-decoration: underline;
+    }
+
+    td[data-in-range]::before {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        top: 0;
+        bottom: 0;
+        left: -0.4rem;
+        right: -0.4rem;
+        background-color: var(--color-gray-200);
+    }
+
+    td[data-in-range="start"]::before {
+        left: 0;
+        border-radius: 20px 0 0 20px;
+    }
+
+    td[data-in-range="end"]::before {
+        right: 0;
+        border-radius: 0 20px 20px 0;
+    }
+
+    td[data-in-range="only"]::before {
+        left: 0;
+        right: 0;
+        border-radius: 20px;
     }
 
     td[aria-selected="true"],
@@ -3634,6 +3697,7 @@ const CHEVRON_LEFT_PATH = 'M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z
 const CHEVRON_RIGHT_PATH = 'M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z';
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(styles);
+const SUPPORTS_FIELD_SIZING = CSS.supports('field-sizing', 'content');
 class FDSDatePickerGrid extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -3644,21 +3708,20 @@ class FDSDatePickerGrid extends HTMLElement {
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
-  #previousMinDate;
-  #previousMaxDate;
-  #correctedMinDate;
-  #correctedMaxDate;
+  #previousMinDate = 0;
+  #previousMaxDate = 0;
+  #correctedMinDate = null;
+  #correctedMaxDate = null;
   #MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
   #DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
   #GRID_ROWS = 6; // To avoid potential height changes when changing month, the calendar grid has a fixed set of rows
-  #TOTAL_GRIDCELLS;
+  #TOTAL_GRIDCELLS = (() => this.#GRID_ROWS * this.#DAYS.length)(); // Must be declared after #GRID_ROWS and #DAYS
   #CELL_DATE_FORMAT = 'DAY. MONTH YEAR';
-  #DEFAULT_MIN_DATE;
-  #DEFAULT_MAX_DATE;
-  #textMinDate;
-  #textMaxDate;
-  #hasDatePickerConnection;
-  #linkedGrid = null;
+  #DEFAULT_MIN_DATE = (() => getTodayPlusYears(0))();
+  #DEFAULT_MAX_DATE = (() => getTodayPlusYears(10))();
+  #textMinDate = 'tidligste valgbare dato';
+  #textMaxDate = 'seneste valgbare dato';
+  #hoveredDate = null;
 
   // #endregion
 
@@ -3809,13 +3872,24 @@ class FDSDatePickerGrid extends HTMLElement {
   #handleDateClick = event => {
     this.#dateClicked(event);
   };
-  #handleRedrawLinkedGrid = () => {
-    const focusableDate = this.#linkedGrid?.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
-    this.#linkedGrid?.forceCompleteRedraw(stringToDate(focusableDate));
+  #handleLinkedGridMouseover = event => {
+    const cell = event.target.closest('td[data-date]');
+    if (cell && !cell.hasAttribute('aria-disabled')) {
+      this.#hoveredDate = cell.getAttribute('data-date');
+      this.#updateHoverHighlightInGrids();
+      return;
+    }
+
+    // Prevent the highlight from disappearing when moving the cursor between two dates.
+    if (event.target.matches('table, tbody, tr')) return;
+
+    // Over a disabled date, an empty cell or the header
+    this.#handleLinkedGridMouseleave();
   };
-  #handleRedrawSelf = () => {
-    const focusableDate = this.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
-    this.forceCompleteRedraw(stringToDate(focusableDate));
+  #handleLinkedGridMouseleave = () => {
+    if (this.#hoveredDate === null) return;
+    this.#hoveredDate = null;
+    this.#updateHoverHighlightInGrids();
   };
 
   // #endregion
@@ -3836,6 +3910,9 @@ class FDSDatePickerGrid extends HTMLElement {
     this.#redraw(dateToFocus, false);
     this.#addEventListeners();
     this.#initialized = true;
+
+    // Signal to a linked grid that this grid is ready and that it should redraw
+    this.#redrawLinkedGrid();
   }
   #setDayHeader(th, day) {
     const visible = document.createElement('span');
@@ -3985,20 +4062,20 @@ class FDSDatePickerGrid extends HTMLElement {
       }
 
       // If the grid has another connected date picker grid, the min-date or max-date might need adjustment
-      if (this.hasAttribute('start-date-id')) {
-        const endDateGrid = document.querySelector(`[end-date-id="${this.getAttribute('start-date-id')}"]`);
-        if (endDateGrid && endDateGrid.hasAttribute('selected-date')) {
-          const potentialMaxDate = stringToDate(endDateGrid.getAttribute('selected-date'));
-          if (isValidDate(potentialMaxDate) && potentialMaxDate < this.#correctedMaxDate) {
-            this.#correctedMaxDate = potentialMaxDate;
-          }
-        }
-      } else if (this.hasAttribute('end-date-id')) {
-        const startDateGrid = document.querySelector(`[start-date-id="${this.getAttribute('end-date-id')}"]`);
-        if (startDateGrid && startDateGrid.hasAttribute('selected-date')) {
-          const potentialMinDate = stringToDate(startDateGrid.getAttribute('selected-date'));
-          if (isValidDate(potentialMinDate) && this.#correctedMinDate < potentialMinDate) {
-            this.#correctedMinDate = potentialMinDate;
+      if (this.#hasLinkedUpgradedGrid()) {
+        const linkedGrid = this.#getLinkedGrid();
+        if (linkedGrid.hasAttribute('selected-date')) {
+          const linkedDate = stringToDate(linkedGrid.getAttribute('selected-date'));
+          if (isValidDate(linkedDate)) {
+            if (this.hasAttribute('start-date-id')) {
+              if (linkedDate < this.#correctedMaxDate) {
+                this.#correctedMaxDate = linkedDate;
+              }
+            } else if (this.hasAttribute('end-date-id')) {
+              if (this.#correctedMinDate < linkedDate) {
+                this.#correctedMinDate = linkedDate;
+              }
+            }
           }
         }
       }
@@ -4070,6 +4147,7 @@ class FDSDatePickerGrid extends HTMLElement {
       gridcells[i].removeAttribute('aria-selected');
       gridcells[i].removeAttribute('aria-disabled');
       gridcells[i].removeAttribute('aria-current');
+      gridcells[i].removeAttribute('data-in-range');
       gridcells[i].setAttribute('aria-hidden', 'true');
       gridcells[i].innerHTML = '';
     }
@@ -4148,6 +4226,12 @@ class FDSDatePickerGrid extends HTMLElement {
       nextMonthButton.setAttribute('disabled', '');
     } else {
       nextMonthButton.removeAttribute('disabled');
+    }
+
+    // Highlight the range between two selected dates (only relevant for linked start/end grids)
+    if (this.#hasLinkedUpgradedGrid()) {
+      const linkedSelectedDate = this.#getLinkedGrid().getAttribute('selected-date');
+      this.#setRangeHighlight(selectedDate, linkedSelectedDate);
     }
 
     // If wanted, set focus on the date causing the redraw unless the grid is hidden or the focus is on the date input field
@@ -4264,16 +4348,116 @@ class FDSDatePickerGrid extends HTMLElement {
     this.shadowRoot.querySelector('.previous-month').addEventListener('click', this.#handlePrevMonth, false);
     this.shadowRoot.querySelector('.next-month').addEventListener('click', this.#handleNextMonth, false);
 
+    // Hover is only used for the range highlight, which only exists in linked start/end grids
+    if (this.hasAttribute('start-date-id') || this.hasAttribute('end-date-id')) {
+      this.shadowRoot.querySelector('.grid-container').addEventListener('mouseover', this.#handleLinkedGridMouseover, false);
+      this.shadowRoot.querySelector('.grid-container').addEventListener('mouseleave', this.#handleLinkedGridMouseleave, false);
+    }
+
     // Event listener added to each cell for proper iOS VoiceOver support
     this.shadowRoot.querySelectorAll('td').forEach(td => td.addEventListener('click', this.#handleDateClick, false));
   }
   #removeEventListeners() {
     this.shadowRoot.querySelector('.grid-container').removeEventListener('keydown', this.#handleKeydown, false);
+    this.shadowRoot.querySelector('.grid-container').removeEventListener('mouseover', this.#handleLinkedGridMouseover, false);
+    this.shadowRoot.querySelector('.grid-container').removeEventListener('mouseleave', this.#handleLinkedGridMouseleave, false);
     this.shadowRoot.querySelector('.selected-month').removeEventListener('change', this.#handleChangeMonth, false);
     this.shadowRoot.querySelector('.selected-year').removeEventListener('change', this.#handleChangeYear, false);
     this.shadowRoot.querySelector('.previous-month').removeEventListener('click', this.#handlePrevMonth, false);
     this.shadowRoot.querySelector('.next-month').removeEventListener('click', this.#handleNextMonth, false);
     this.shadowRoot.querySelectorAll('td').forEach(td => td.removeEventListener('click', this.#handleDateClick, false));
+  }
+
+  /**
+   * Finds the grid this grid is linked with: The end grid for a start grid, and the start grid for an end grid.
+   *
+   * @returns {FDSDatePickerGrid | null} The linked grid or null
+   */
+  #getLinkedGrid() {
+    if (this.hasAttribute('start-date-id')) {
+      return document.querySelector(`[end-date-id="${this.getAttribute('start-date-id')}"]`);
+    }
+    if (this.hasAttribute('end-date-id')) {
+      return document.querySelector(`[start-date-id="${this.getAttribute('end-date-id')}"]`);
+    }
+    return null;
+  }
+
+  // True if this grid is linked to another grid that the browser has upgraded to a custom element
+  #hasLinkedUpgradedGrid() {
+    return this.#getLinkedGrid() instanceof FDSDatePickerGrid;
+  }
+  #redrawLinkedGrid() {
+    if (!this.#hasLinkedUpgradedGrid()) return;
+    const linkedGrid = this.#getLinkedGrid();
+    const focusableDate = linkedGrid.shadowRoot.querySelector('td[tabindex="0"]')?.getAttribute('data-date');
+    linkedGrid.forceCompleteRedraw(stringToDate(focusableDate));
+  }
+  #updateHoverHighlightInGrids() {
+    if (!this.#hasLinkedUpgradedGrid()) return;
+    const linkedGrid = this.#getLinkedGrid();
+    const thisGridHasSelectedDate = isValidDateStr(this.getAttribute('selected-date'));
+    const linkedSelectedDate = linkedGrid.getAttribute('selected-date');
+    const linkedGridHasSelectedDate = isValidDateStr(linkedSelectedDate);
+
+    // If both dates are selected, show the highlight permanently. Hover must not change anything.
+    if (thisGridHasSelectedDate && linkedGridHasSelectedDate) return;
+
+    // A date is hovered in this grid and the linked grid has a selected date --> Update the highlight
+    if (this.#hoveredDate && linkedGridHasSelectedDate) {
+      this.#setRangeHighlight(this.#hoveredDate, linkedSelectedDate);
+      linkedGrid.#setRangeHighlight(linkedSelectedDate, this.#hoveredDate);
+    }
+    // No date is hovered, or the linked grid has no selected date. Remove the highlight.
+    else {
+      this.#clearRangeHighlight();
+      linkedGrid.#clearRangeHighlight();
+    }
+  }
+
+  // Mark the dates in this grid that fall between a date in this grid and a date in the linked grid
+  #setRangeHighlight(dateInThisGrid, dateInLinkedGrid) {
+    if (!this.#hasLinkedUpgradedGrid()) return;
+
+    // A start grid is linked to an end grid and vice versa
+    let startDate;
+    let endDate;
+    if (this.hasAttribute('start-date-id')) {
+      startDate = dateInThisGrid;
+      endDate = dateInLinkedGrid;
+    } else if (this.hasAttribute('end-date-id')) {
+      startDate = dateInLinkedGrid;
+      endDate = dateInThisGrid;
+    }
+    if (!isValidDateStr(startDate) || !isValidDateStr(endDate)) {
+      this.#clearRangeHighlight();
+      return;
+    }
+
+    // Normalize to YYYY-MM-DD, which can be compared as text
+    const from = ISOFormatFromDate(stringToDate(startDate));
+    const to = ISOFormatFromDate(stringToDate(endDate));
+    this.shadowRoot.querySelectorAll('td[data-date]').forEach(td => {
+      const date = td.getAttribute('data-date');
+
+      // If the start date is later than the end date, no date is in range
+      if (date < from || to < date) {
+        td.removeAttribute('data-in-range');
+        return;
+      }
+      let position = 'middle';
+      if (date === from && date === to) {
+        position = 'only';
+      } else if (date === from) {
+        position = 'start';
+      } else if (date === to) {
+        position = 'end';
+      }
+      td.setAttribute('data-in-range', position);
+    });
+  }
+  #clearRangeHighlight() {
+    this.shadowRoot.querySelectorAll('td[data-in-range]').forEach(td => td.removeAttribute('data-in-range'));
   }
 
   // #endregion
@@ -4286,19 +4470,6 @@ class FDSDatePickerGrid extends HTMLElement {
       mode: 'open'
     });
     this.shadowRoot.adoptedStyleSheets = [sheet];
-    this.#TOTAL_GRIDCELLS = this.#GRID_ROWS * this.#DAYS.length;
-    this.#CELL_DATE_FORMAT = 'DAY. MONTH YEAR';
-    this.#textMinDate = 'tidligste valgbare dato';
-    this.#textMaxDate = 'seneste valgbare dato';
-    this.#DEFAULT_MIN_DATE = new Date();
-    this.#DEFAULT_MIN_DATE.setHours(0, 0, 0, 0);
-    this.#DEFAULT_MAX_DATE = new Date(this.#DEFAULT_MIN_DATE);
-    this.#DEFAULT_MAX_DATE.setFullYear(this.#DEFAULT_MIN_DATE.getFullYear() + 10);
-    this.#previousMinDate = 0;
-    this.#previousMaxDate = 0;
-    this.#correctedMinDate = null;
-    this.#correctedMaxDate = null;
-    this.#hasDatePickerConnection = false;
   }
 
   // #endregion
@@ -4310,16 +4481,16 @@ class FDSDatePickerGrid extends HTMLElement {
     this.#previousMaxDate = 0; // Force update of select element with possible years
     this.#redraw(date, setFocus);
   }
-  setHasDatePickerConnection(val) {
-    this.#hasDatePickerConnection = val;
-  }
-  getHasDatePickerConnection() {
-    return this.#hasDatePickerConnection;
-  }
   focusFocusableDate() {
     this.shadowRoot.querySelector('td[tabindex="0"]')?.focus();
   }
+
+  // Ensure the chevron in the <select> stays right next to the month name
   resizeMonth() {
+    // field-sizing is a rather new feature. Use the property if possible.
+    if (SUPPORTS_FIELD_SIZING) return;
+
+    // If field-sizing isn't supported, fall back to setting the chevron manually.
     const monthSelect = this.shadowRoot.querySelector('.selected-month');
     if (!monthSelect) return;
     const ROOT_FONT_SIZE = 10; // px, result of the 62.5% trick
@@ -4367,33 +4538,6 @@ class FDSDatePickerGrid extends HTMLElement {
       this.#updateTextNextButton(this.getAttribute('text-nextbutton'));
     }
 
-    // If the date picker is part of a "duo" defining start date and end date, add event listeners when both grids exist
-    const isStartDate = this.hasAttribute('start-date-id');
-    const isEndDate = this.hasAttribute('end-date-id');
-    const startDateGrid = document.querySelector(`[start-date-id="${this.getAttribute('end-date-id')}"]`);
-    const endDateGrid = document.querySelector(`[end-date-id="${this.getAttribute('start-date-id')}"]`);
-    if (isStartDate && endDateGrid) {
-      customElements.whenDefined('fds-date-picker-grid').then(() => {
-        if (!this.getHasDatePickerConnection() && !endDateGrid?.getHasDatePickerConnection()) {
-          this.#linkedGrid = endDateGrid;
-          this.addEventListener('date-selected', this.#handleRedrawLinkedGrid);
-          endDateGrid.addEventListener('date-selected', this.#handleRedrawSelf);
-          this.setHasDatePickerConnection(true);
-          endDateGrid.setHasDatePickerConnection(true);
-        }
-      });
-    } else if (isEndDate && startDateGrid) {
-      customElements.whenDefined('fds-date-picker-grid').then(() => {
-        if (!this.getHasDatePickerConnection() && !startDateGrid?.getHasDatePickerConnection()) {
-          this.#linkedGrid = startDateGrid;
-          startDateGrid.addEventListener('date-selected', this.#handleRedrawSelf);
-          this.addEventListener('date-selected', this.#handleRedrawLinkedGrid);
-          startDateGrid.setHasDatePickerConnection(true);
-          this.setHasDatePickerConnection(true);
-        }
-      });
-    }
-
     // Resize again on load - the font may initially be missing, when the width of the month <select> is calculated
     const onLoad = () => {
       this.resizeMonth();
@@ -4408,9 +4552,6 @@ class FDSDatePickerGrid extends HTMLElement {
 
   disconnectedCallback() {
     this.#removeEventListeners();
-    this.removeEventListener('date-selected', this.#handleRedrawLinkedGrid);
-    this.#linkedGrid?.removeEventListener('date-selected', this.#handleRedrawSelf);
-    this.#linkedGrid = null;
     this.#initialized = false;
   }
 
@@ -4436,6 +4577,9 @@ class FDSDatePickerGrid extends HTMLElement {
             this.#redraw(stringToDate(dateWithCurrentFocus), setFocusOnDate);
           }
           this.dispatchEvent(new Event('date-selected'));
+
+          // If a linked grid exists, redraw its selectable dates and range highlight
+          this.#redrawLinkedGrid();
           break;
         }
       case 'min-date':
