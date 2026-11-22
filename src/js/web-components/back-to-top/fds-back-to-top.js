@@ -4,44 +4,30 @@ class FDSBackToTop extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
-    static observedAttributes = ['attr', 'ready'];
+    static observedAttributes = ['button-text', 'sr-text'];
 
     // #endregion
 
     // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
 
-    get attr() { return this.getAttribute('attr'); }
-    set attr(value) { value == null ? this.removeAttribute('attr') : this.setAttribute('attr', value); }
+    get buttonText() { return this.getAttribute('button-text'); }
+    set buttonText(value) { value == null ? this.removeAttribute('button-text') : this.setAttribute('button-text', value); }
 
-    get ready() { return this.getAttribute('ready') !== 'false'; }
-    set ready(value) { this.setAttribute('ready', value ? 'true' : 'false'); }
+    get srText() { return this.getAttribute('sr-text'); }
+    set srText(value) { value == null ? this.removeAttribute('sr-text') : this.setAttribute('sr-text', value); }
 
     // #endregion
 
     // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
-    #mutationObserver = null;
 
     // #endregion
 
     // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
-    #handleClick = (event) => {
-        console.log('Click event:', event);
-    };
-
-    #handleKeyDown = (event) => {
-        console.log('KeyDown event:', event);
-    };
-
-    #handleMutations = (records) => {
-        for (const { attributeName, target, addedNodes, removedNodes } of records) {
-            console.log('attributeName', attributeName);
-            console.log('target', target);
-            console.log('addedNodes', addedNodes);
-            console.log('removedNodes', removedNodes);
-        }
+    #handleClick = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     // #endregion
@@ -50,37 +36,49 @@ class FDSBackToTop extends HTMLElement {
 
     #setupHTML() {
         // --- Button ---
-        let button = this.querySelector(':scope > button');
-        if (!button) {
-            button = document.createElement('button');
+        const button = this.querySelector(':scope > button') ?? document.createElement('button');
+        button.setAttribute('type', 'button');
+
+        // --- Icon ---
+        let icon = button.querySelector(':scope > svg.icon-svg');
+        if (!icon) {
+            icon = CE.createSvgIcon('M440-160v-487L216-423l-56-57 320-320 320 320-56 57-224-224v487h-80Z');
+            button.appendChild(icon);
+        }
+
+        // --- Screen-reader-only text ---
+        let srSpan = button.querySelector(':scope > span.sr-only');
+        if (!srSpan) {
+            srSpan = document.createElement('span');
+            srSpan.className = 'sr-only';
+            button.appendChild(srSpan);
+        }
+        srSpan.textContent = this.srText ?? 'Til toppen af siden';
+
+        // --- Visible text (hidden below md breakpoint) ---
+        let textSpan = button.querySelector(':scope > span.d-none');
+        if (!textSpan) {
+            textSpan = document.createElement('span');
+            textSpan.className = 'd-none d-md-inline-block';
+            textSpan.setAttribute('aria-hidden', 'true');
+            button.appendChild(textSpan);
+        }
+        textSpan.textContent = this.buttonText ?? 'Til toppen';
+
+        // --- Add the button if not already present ---
+        if (!button.isConnected) {
             this.appendChild(button);
         }
-        button.textContent = 'Click me';
     }
 
     #addEventListeners() {
         const button = this.querySelector(':scope > button');
         button?.addEventListener('click', this.#handleClick);
-        button?.addEventListener('keydown', this.#handleKeyDown);
     }
 
     #removeEventListeners() {
         const button = this.querySelector(':scope > button');
         button?.removeEventListener('click', this.#handleClick);
-        button?.removeEventListener('keydown', this.#handleKeyDown);
-    }
-
-    #connectMutationObserver(config = CE.mutationObserverConfig) {
-        if (this.#mutationObserver) return;
-        this.#mutationObserver = new MutationObserver(this.#handleMutations);
-        this.#mutationObserver.observe(this, config);
-    }
-
-    #disconnectMutationObserver() {
-        if (this.#mutationObserver) {
-            this.#mutationObserver.disconnect();
-            this.#mutationObserver = null;
-        }
     }
 
     // #endregion
@@ -92,7 +90,6 @@ class FDSBackToTop extends HTMLElement {
 
         this.#setupHTML();
         this.#addEventListeners();
-        this.#connectMutationObserver(); // Connected after setup so our own DOM changes aren't observed
         this.#initialized = true;
     }
 
@@ -101,10 +98,6 @@ class FDSBackToTop extends HTMLElement {
     // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
 
     connectedCallback() {
-        // The 'ready' attribute can be used to defer initialization, e.g. until child content is available.
-        // Omit the attribute or set it to anything other than 'false' to initialize immediately.
-        if (this.getAttribute('ready') === 'false') return;
-
         this.init();
     }
 
@@ -114,7 +107,6 @@ class FDSBackToTop extends HTMLElement {
 
     disconnectedCallback() {
         this.#removeEventListeners();
-        this.#disconnectMutationObserver();
         this.#initialized = false;
     }
 
@@ -123,19 +115,18 @@ class FDSBackToTop extends HTMLElement {
     // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
 
     attributeChangedCallback(attribute, oldValue, newValue) {
-        if (attribute === 'ready') {
-            if (!this.#initialized && this.isConnected && newValue !== 'false') {
-                this.init();
-            }
-            return;
-        }
-
         if (!this.#initialized) return;
         if (oldValue === newValue) return;
 
         switch (attribute) {
-            case 'attr':
-                console.log('attr changed to', newValue);
+            case 'button-text':
+                const textSpan = this.querySelector(':scope > button span.d-none');
+                if (textSpan) { textSpan.textContent = newValue ?? 'Til toppen'; }
+                break;
+
+            case 'sr-text':
+                const srSpan = this.querySelector(':scope > button span.sr-only');
+                if (srSpan) { srSpan.textContent = newValue ?? 'Til toppen af siden'; }
                 break;
         }
     }
