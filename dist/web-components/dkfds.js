@@ -44,6 +44,8 @@ __webpack_require__.d(__webpack_exports__, {
   registerAccordion: () => (/* reexport */ fds_accordion),
   registerAccordionGroup: () => (/* reexport */ fds_accordion_group),
   registerAlert: () => (/* reexport */ fds_alert),
+  registerBackToTop: () => (/* reexport */ fds_back_to_top),
+  registerBackToTopMarker: () => (/* reexport */ fds_back_to_top_marker),
   registerCharacterLimit: () => (/* reexport */ fds_character_limit),
   registerCheckbox: () => (/* reexport */ fds_checkbox),
   registerCheckboxGroup: () => (/* reexport */ fds_checkbox_group),
@@ -8377,6 +8379,310 @@ function registerAlert() {
   }
 }
 /* harmony default export */ const fds_alert = (registerAlert);
+;// ./src/js/web-components/back-to-top/fds-back-to-top.js
+
+class FDSBackToTop extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['attr', 'ready'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get attr() {
+    return this.getAttribute('attr');
+  }
+  set attr(value) {
+    value == null ? this.removeAttribute('attr') : this.setAttribute('attr', value);
+  }
+  get ready() {
+    return this.getAttribute('ready') !== 'false';
+  }
+  set ready(value) {
+    this.setAttribute('ready', value ? 'true' : 'false');
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+  #mutationObserver = null;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleClick = event => {
+    console.log('Click event:', event);
+  };
+  #handleKeyDown = event => {
+    console.log('KeyDown event:', event);
+  };
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      console.log('attributeName', attributeName);
+      console.log('target', target);
+      console.log('addedNodes', addedNodes);
+      console.log('removedNodes', removedNodes);
+    }
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    // --- Button ---
+    let button = this.querySelector(':scope > button');
+    if (!button) {
+      button = document.createElement('button');
+      this.appendChild(button);
+    }
+    button.textContent = 'Click me';
+  }
+  #addEventListeners() {
+    const button = this.querySelector(':scope > button');
+    button?.addEventListener('click', this.#handleClick);
+    button?.addEventListener('keydown', this.#handleKeyDown);
+  }
+  #removeEventListeners() {
+    const button = this.querySelector(':scope > button');
+    button?.removeEventListener('click', this.#handleClick);
+    button?.removeEventListener('keydown', this.#handleKeyDown);
+  }
+  #connectMutationObserver() {
+    let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mutationObserverConfig;
+    if (this.#mutationObserver) return;
+    this.#mutationObserver = new MutationObserver(this.#handleMutations);
+    this.#mutationObserver.observe(this, config);
+  }
+  #disconnectMutationObserver() {
+    if (this.#mutationObserver) {
+      this.#mutationObserver.disconnect();
+      this.#mutationObserver = null;
+    }
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  init() {
+    if (this.#initialized) return;
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#connectMutationObserver(); // Connected after setup so our own DOM changes aren't observed
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    // The 'ready' attribute can be used to defer initialization, e.g. until child content is available.
+    // Omit the attribute or set it to anything other than 'false' to initialize immediately.
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#disconnectMutationObserver();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'attr':
+        console.log('attr changed to', newValue);
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerBackToTop() {
+  if (!customElements.get('fds-back-to-top')) {
+    customElements.define('fds-back-to-top', FDSBackToTop);
+  }
+}
+/* harmony default export */ const fds_back_to_top = (registerBackToTop);
+;// ./src/js/web-components/back-to-top/fds-back-to-top-marker.js
+
+class FDSBackToTopMarker extends HTMLElement {
+  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
+
+  static observedAttributes = ['attr', 'ready'];
+
+  // #endregion
+
+  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
+
+  get attr() {
+    return this.getAttribute('attr');
+  }
+  set attr(value) {
+    value == null ? this.removeAttribute('attr') : this.setAttribute('attr', value);
+  }
+  get ready() {
+    return this.getAttribute('ready') !== 'false';
+  }
+  set ready(value) {
+    this.setAttribute('ready', value ? 'true' : 'false');
+  }
+
+  // #endregion
+
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+  #mutationObserver = null;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleClick = event => {
+    console.log('Click event:', event);
+  };
+  #handleKeyDown = event => {
+    console.log('KeyDown event:', event);
+  };
+  #handleMutations = records => {
+    for (const {
+      attributeName,
+      target,
+      addedNodes,
+      removedNodes
+    } of records) {
+      console.log('attributeName', attributeName);
+      console.log('target', target);
+      console.log('addedNodes', addedNodes);
+      console.log('removedNodes', removedNodes);
+    }
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    // --- Button ---
+    let button = this.querySelector(':scope > button');
+    if (!button) {
+      button = document.createElement('button');
+      this.appendChild(button);
+    }
+    button.textContent = 'Click me';
+  }
+  #addEventListeners() {
+    const button = this.querySelector(':scope > button');
+    button?.addEventListener('click', this.#handleClick);
+    button?.addEventListener('keydown', this.#handleKeyDown);
+  }
+  #removeEventListeners() {
+    const button = this.querySelector(':scope > button');
+    button?.removeEventListener('click', this.#handleClick);
+    button?.removeEventListener('keydown', this.#handleKeyDown);
+  }
+  #connectMutationObserver() {
+    let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mutationObserverConfig;
+    if (this.#mutationObserver) return;
+    this.#mutationObserver = new MutationObserver(this.#handleMutations);
+    this.#mutationObserver.observe(this, config);
+  }
+  #disconnectMutationObserver() {
+    if (this.#mutationObserver) {
+      this.#mutationObserver.disconnect();
+      this.#mutationObserver = null;
+    }
+  }
+
+  // #endregion
+
+  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
+
+  init() {
+    if (this.#initialized) return;
+    this.#setupHTML();
+    this.#addEventListeners();
+    this.#connectMutationObserver(); // Connected after setup so our own DOM changes aren't observed
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    // The 'ready' attribute can be used to defer initialization, e.g. until child content is available.
+    // Omit the attribute or set it to anything other than 'false' to initialize immediately.
+    if (this.getAttribute('ready') === 'false') return;
+    this.init();
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.#removeEventListeners();
+    this.#disconnectMutationObserver();
+    this.#initialized = false;
+  }
+
+  // #endregion
+
+  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
+
+  attributeChangedCallback(attribute, oldValue, newValue) {
+    if (attribute === 'ready') {
+      if (!this.#initialized && this.isConnected && newValue !== 'false') {
+        this.init();
+      }
+      return;
+    }
+    if (!this.#initialized) return;
+    if (oldValue === newValue) return;
+    switch (attribute) {
+      case 'attr':
+        console.log('attr changed to', newValue);
+        break;
+    }
+  }
+
+  // #endregion
+}
+function registerBackToTopMarker() {
+  if (!customElements.get('fds-back-to-top-marker')) {
+    customElements.define('fds-back-to-top-marker', FDSBackToTopMarker);
+  }
+}
+/* harmony default export */ const fds_back_to_top_marker = (registerBackToTopMarker);
 ;// ./src/js/web-components/multiselect/fds-multiselect-styling.js
 const fds_multiselect_styling_styles = `
     *,
@@ -10229,6 +10535,8 @@ function registerMultiselectDialog() {
 
 
 
+
+
 const registerCustomElements = () => {
   fds_accordion();
   fds_accordion_group();
@@ -10261,6 +10569,8 @@ const registerCustomElements = () => {
   fds_tab_panel();
   fds_tabs();
   fds_alert();
+  fds_back_to_top();
+  fds_back_to_top_marker();
   fds_multiselect_option();
   fds_multiselect_select_all();
   fds_multiselect_options();
