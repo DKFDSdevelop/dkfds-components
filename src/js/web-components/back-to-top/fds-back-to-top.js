@@ -35,50 +35,61 @@ class FDSBackToTop extends HTMLElement {
     // #region - PRIVATE METHODS ----------------------------------------------------------------------------
 
     #setupHTML() {
-        // --- Button ---
-        const button = this.querySelector(':scope > button') ?? document.createElement('button');
-        button.setAttribute('type', 'button');
+        const triggers = this.querySelectorAll(':scope > a, :scope > button');
+        if (triggers.length > 1) {
+            console.warn('fds-back-to-top: More than one trigger was found. Only the first one will be used.');
+        }
+        const trigger = triggers[0] ?? document.createElement('button');
 
-        // --- Icon ---
-        let icon = button.querySelector(':scope > svg.icon-svg');
-        if (!icon) {
-            icon = CE.createSvgIcon('M440-160v-487L216-423l-56-57 320-320 320 320-56 57-224-224v487h-80Z');
-            button.appendChild(icon);
+        // Ensure type="button" on buttons
+        if (trigger instanceof HTMLButtonElement) {
+            trigger.setAttribute('type', 'button');
         }
 
-        // --- Screen-reader-only text ---
-        let srSpan = button.querySelector(':scope > span.sr-only');
+        // Icon
+        let icon = trigger.querySelector(':scope > svg.icon-svg');
+        if (!icon) {
+            icon = CE.createSvgIcon('M440-160v-487L216-423l-56-57 320-320 320 320-56 57-224-224v487h-80Z');
+            trigger.appendChild(icon);
+        }
+
+        // Screen-reader-only text
+        let srSpan = trigger.querySelector(':scope > span.sr-only');
         if (!srSpan) {
             srSpan = document.createElement('span');
             srSpan.className = 'sr-only';
-            button.appendChild(srSpan);
+            trigger.appendChild(srSpan);
         }
         srSpan.textContent = this.srText ?? 'Til toppen af siden';
 
-        // --- Visible text (hidden below md breakpoint) ---
-        let textSpan = button.querySelector(':scope > span.d-none');
+        // Visible text (hidden below md breakpoint)
+        let textSpan = trigger.querySelector(':scope > span.d-none');
         if (!textSpan) {
             textSpan = document.createElement('span');
             textSpan.className = 'd-none d-md-inline-block';
             textSpan.setAttribute('aria-hidden', 'true');
-            button.appendChild(textSpan);
+            trigger.appendChild(textSpan);
         }
         textSpan.textContent = this.buttonText ?? 'Til toppen';
 
-        // --- Add the button if not already present ---
-        if (!button.isConnected) {
-            this.appendChild(button);
+        // Add the trigger if not already present
+        if (!trigger.isConnected) {
+            this.appendChild(trigger);
         }
     }
 
     #addEventListeners() {
-        const button = this.querySelector(':scope > button');
-        button?.addEventListener('click', this.#handleClick);
+        const trigger = this.querySelector(':scope > a, :scope > button');
+        if (trigger instanceof HTMLButtonElement) {
+            trigger.addEventListener('click', this.#handleClick);
+        }
     }
 
     #removeEventListeners() {
-        const button = this.querySelector(':scope > button');
-        button?.removeEventListener('click', this.#handleClick);
+        const trigger = this.querySelector(':scope > a, :scope > button');
+        if (trigger instanceof HTMLButtonElement) {
+            trigger.removeEventListener('click', this.#handleClick);
+        }
     }
 
     // #endregion
@@ -120,12 +131,12 @@ class FDSBackToTop extends HTMLElement {
 
         switch (attribute) {
             case 'button-text':
-                const textSpan = this.querySelector(':scope > button span.d-none');
+                const textSpan = this.querySelector(':scope > a span.d-none, :scope > button span.d-none');
                 if (textSpan) { textSpan.textContent = newValue ?? 'Til toppen'; }
                 break;
 
             case 'sr-text':
-                const srSpan = this.querySelector(':scope > button span.sr-only');
+                const srSpan = this.querySelector(':scope > a span.sr-only, :scope > button span.sr-only');
                 if (srSpan) { srSpan.textContent = newValue ?? 'Til toppen af siden'; }
                 break;
         }
