@@ -21,6 +21,8 @@ class FDSBackToTop extends HTMLElement {
     // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
     #initialized = false;
+    #markerPassed = false;
+    #markerIntersectionObserver = null;
 
     // #endregion
 
@@ -28,6 +30,13 @@ class FDSBackToTop extends HTMLElement {
 
     #handleClick = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    #handleMarkerIntersection = (entries) => {
+        entries.forEach(entry => {
+            this.#markerPassed = !entry.isIntersecting && entry.boundingClientRect.bottom <= 0;
+            this.#updateState();
+        });
     };
 
     // #endregion
@@ -92,6 +101,35 @@ class FDSBackToTop extends HTMLElement {
         }
     }
 
+    #findFirstMarker() {
+        return document.querySelector('fds-back-to-top-marker');
+    }
+
+    #connectMarkerIntersectionObserver() {
+        if (this.#markerIntersectionObserver) return;
+
+        const marker = this.#findFirstMarker();
+        if (!marker) return;
+
+        this.#markerIntersectionObserver = new IntersectionObserver(this.#handleMarkerIntersection);
+        this.#markerIntersectionObserver.observe(marker);
+    }
+
+    #disconnectMarkerIntersectionObserver() {
+        if (this.#markerIntersectionObserver) {
+            this.#markerIntersectionObserver.disconnect();
+            this.#markerIntersectionObserver = null;
+        }
+    }
+
+    #updateState() {
+        const visible = this.#markerPassed;
+        const newState = visible ? 'floating' : 'hidden';
+        if (this.getAttribute('data-state') !== newState) {
+            this.setAttribute('data-state', newState);
+        }
+    }
+
     // #endregion
 
     // #region - PUBLIC METHODS -----------------------------------------------------------------------------
@@ -101,6 +139,8 @@ class FDSBackToTop extends HTMLElement {
 
         this.#setupHTML();
         this.#addEventListeners();
+        this.#updateState();
+        this.#connectMarkerIntersectionObserver();
         this.#initialized = true;
     }
 
@@ -118,6 +158,8 @@ class FDSBackToTop extends HTMLElement {
 
     disconnectedCallback() {
         this.#removeEventListeners();
+        this.#disconnectMarkerIntersectionObserver();
+        this.#markerPassed = false;
         this.#initialized = false;
     }
 

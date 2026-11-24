@@ -8408,6 +8408,8 @@ class FDSBackToTop extends HTMLElement {
   // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
 
   #initialized = false;
+  #markerPassed = false;
+  #markerIntersectionObserver = null;
 
   // #endregion
 
@@ -8417,6 +8419,12 @@ class FDSBackToTop extends HTMLElement {
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
+    });
+  };
+  #handleMarkerIntersection = entries => {
+    entries.forEach(entry => {
+      this.#markerPassed = !entry.isIntersecting && entry.boundingClientRect.bottom <= 0;
+      this.#updateState();
     });
   };
 
@@ -8479,6 +8487,29 @@ class FDSBackToTop extends HTMLElement {
       trigger.removeEventListener('click', this.#handleClick);
     }
   }
+  #findFirstMarker() {
+    return document.querySelector('fds-back-to-top-marker');
+  }
+  #connectMarkerIntersectionObserver() {
+    if (this.#markerIntersectionObserver) return;
+    const marker = this.#findFirstMarker();
+    if (!marker) return;
+    this.#markerIntersectionObserver = new IntersectionObserver(this.#handleMarkerIntersection);
+    this.#markerIntersectionObserver.observe(marker);
+  }
+  #disconnectMarkerIntersectionObserver() {
+    if (this.#markerIntersectionObserver) {
+      this.#markerIntersectionObserver.disconnect();
+      this.#markerIntersectionObserver = null;
+    }
+  }
+  #updateState() {
+    const visible = this.#markerPassed;
+    const newState = visible ? 'floating' : 'hidden';
+    if (this.getAttribute('data-state') !== newState) {
+      this.setAttribute('data-state', newState);
+    }
+  }
 
   // #endregion
 
@@ -8488,6 +8519,8 @@ class FDSBackToTop extends HTMLElement {
     if (this.#initialized) return;
     this.#setupHTML();
     this.#addEventListeners();
+    this.#updateState();
+    this.#connectMarkerIntersectionObserver();
     this.#initialized = true;
   }
 
@@ -8505,6 +8538,8 @@ class FDSBackToTop extends HTMLElement {
 
   disconnectedCallback() {
     this.#removeEventListeners();
+    this.#disconnectMarkerIntersectionObserver();
+    this.#markerPassed = false;
     this.#initialized = false;
   }
 
@@ -8540,151 +8575,7 @@ function registerBackToTop() {
 }
 /* harmony default export */ const fds_back_to_top = (registerBackToTop);
 ;// ./src/js/web-components/back-to-top/fds-back-to-top-marker.js
-
-class FDSBackToTopMarker extends HTMLElement {
-  // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
-
-  static observedAttributes = ['attr', 'ready'];
-
-  // #endregion
-
-  // #region - GETTERS AND SETTERS ------------------------------------------------------------------------
-
-  get attr() {
-    return this.getAttribute('attr');
-  }
-  set attr(value) {
-    value == null ? this.removeAttribute('attr') : this.setAttribute('attr', value);
-  }
-  get ready() {
-    return this.getAttribute('ready') !== 'false';
-  }
-  set ready(value) {
-    this.setAttribute('ready', value ? 'true' : 'false');
-  }
-
-  // #endregion
-
-  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
-
-  #initialized = false;
-  #mutationObserver = null;
-
-  // #endregion
-
-  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
-
-  #handleClick = event => {
-    console.log('Click event:', event);
-  };
-  #handleKeyDown = event => {
-    console.log('KeyDown event:', event);
-  };
-  #handleMutations = records => {
-    for (const {
-      attributeName,
-      target,
-      addedNodes,
-      removedNodes
-    } of records) {
-      console.log('attributeName', attributeName);
-      console.log('target', target);
-      console.log('addedNodes', addedNodes);
-      console.log('removedNodes', removedNodes);
-    }
-  };
-
-  // #endregion
-
-  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
-
-  #setupHTML() {
-    // --- Button ---
-    let button = this.querySelector(':scope > button');
-    if (!button) {
-      button = document.createElement('button');
-      this.appendChild(button);
-    }
-    button.textContent = 'Click me';
-  }
-  #addEventListeners() {
-    const button = this.querySelector(':scope > button');
-    button?.addEventListener('click', this.#handleClick);
-    button?.addEventListener('keydown', this.#handleKeyDown);
-  }
-  #removeEventListeners() {
-    const button = this.querySelector(':scope > button');
-    button?.removeEventListener('click', this.#handleClick);
-    button?.removeEventListener('keydown', this.#handleKeyDown);
-  }
-  #connectMutationObserver() {
-    let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mutationObserverConfig;
-    if (this.#mutationObserver) return;
-    this.#mutationObserver = new MutationObserver(this.#handleMutations);
-    this.#mutationObserver.observe(this, config);
-  }
-  #disconnectMutationObserver() {
-    if (this.#mutationObserver) {
-      this.#mutationObserver.disconnect();
-      this.#mutationObserver = null;
-    }
-  }
-
-  // #endregion
-
-  // #region - PUBLIC METHODS -----------------------------------------------------------------------------
-
-  init() {
-    if (this.#initialized) return;
-    this.#setupHTML();
-    this.#addEventListeners();
-    this.#connectMutationObserver(); // Connected after setup so our own DOM changes aren't observed
-    this.#initialized = true;
-  }
-
-  // #endregion
-
-  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
-
-  connectedCallback() {
-    // The 'ready' attribute can be used to defer initialization, e.g. until child content is available.
-    // Omit the attribute or set it to anything other than 'false' to initialize immediately.
-    if (this.getAttribute('ready') === 'false') return;
-    this.init();
-  }
-
-  // #endregion
-
-  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
-
-  disconnectedCallback() {
-    this.#removeEventListeners();
-    this.#disconnectMutationObserver();
-    this.#initialized = false;
-  }
-
-  // #endregion
-
-  // #region - ATTRIBUTE(S) CHANGED -----------------------------------------------------------------------
-
-  attributeChangedCallback(attribute, oldValue, newValue) {
-    if (attribute === 'ready') {
-      if (!this.#initialized && this.isConnected && newValue !== 'false') {
-        this.init();
-      }
-      return;
-    }
-    if (!this.#initialized) return;
-    if (oldValue === newValue) return;
-    switch (attribute) {
-      case 'attr':
-        console.log('attr changed to', newValue);
-        break;
-    }
-  }
-
-  // #endregion
-}
+class FDSBackToTopMarker extends HTMLElement {}
 function registerBackToTopMarker() {
   if (!customElements.get('fds-back-to-top-marker')) {
     customElements.define('fds-back-to-top-marker', FDSBackToTopMarker);

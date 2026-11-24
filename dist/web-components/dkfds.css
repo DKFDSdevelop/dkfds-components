@@ -13736,6 +13736,20 @@ fds-alert [slot=content] a.icon-link:not(.function-link):hover .icon-svg{
   fill:var(--color-black);
 }
 
+fds-back-to-top-marker{
+  display:block;
+  height:0;
+  padding:0;
+  margin:0;
+  border:0;
+  pointer-events:none;
+}
+
+fds-back-to-top[data-state=hidden] > a,
+fds-back-to-top[data-state=hidden] > button{
+  display:none;
+}
+
 fds-back-to-top > a,
 fds-back-to-top > [type=button]{
   display:inline-block;
