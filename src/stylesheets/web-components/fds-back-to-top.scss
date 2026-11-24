@@ -1,3 +1,55 @@
 @use "../variables" as vars;
 @use "../functions" as func;
 @use "../mixins" as mixins;
+
+$-border-width: func.units(1);
+
+fds-back-to-top > a,
+fds-back-to-top > [type=button] {
+    display: inline-block;
+    box-shadow: func.shadow('light');
+    width: auto;
+    position: fixed;
+    inset: auto func.units(5) func.units(5) auto;
+    z-index: vars.$zindex-back-to-top;
+    font-weight: func.font-weight('semibold');
+    font-size: func.font-size('sm');
+    min-height: func.units(7);
+    padding: calc(func.units(3) - $-border-width) calc(func.units(4) - $-border-width);
+
+    border-radius: func.border-radius('medium');
+    border-width: $-border-width;
+    border-style: solid;
+
+    background-color: func.color(vars.$back-to-top-button-background);
+    border-color: func.color(vars.$back-to-top-button-border-color);
+    color: func.color(vars.$back-to-top-button-color);
+
+    .icon-svg {
+        margin-right: func.units(3);
+        vertical-align: bottom;
+    }
+
+    &:hover {
+        background-color: func.color(vars.$back-to-top-hover-background-color);
+        border-color: func.color(vars.$back-to-top-hover-border-color);
+        color: func.color(vars.$back-to-top-hover-color);
+        text-decoration: underline;
+    }
+
+    &:active {
+        background-color: func.color(vars.$back-to-top-active-background-color);
+        border-color: func.color(vars.$back-to-top-active-border-color);
+        color: func.color(vars.$back-to-top-active-color);
+    }
+
+    &:visited {
+        color: func.color(vars.$back-to-top-button-color);
+    }
+
+    @include mixins.media-breakpoint-down(sm) {
+        .icon-svg {
+            margin-right: func.units(0);
+        }
+    }
+}
