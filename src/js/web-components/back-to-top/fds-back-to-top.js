@@ -1,5 +1,7 @@
 import * as CE from '../custom-element-utils';
 
+let warnedAboutMultipleInstances = false;
+
 class FDSBackToTop extends HTMLElement {
 
     // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
@@ -23,6 +25,7 @@ class FDSBackToTop extends HTMLElement {
     #initialized = false;
     #markerPassed = false;
     #markerIntersectionObserver = null;
+    #scrollThreshold = 0;
 
     // #endregion
 
@@ -37,6 +40,15 @@ class FDSBackToTop extends HTMLElement {
             this.#markerPassed = !entry.isIntersecting && entry.boundingClientRect.bottom <= 0;
             this.#updateState();
         });
+    };
+
+    #handleScroll = () => {
+        this.#updateState();
+    };
+
+    #handleResize = () => {
+        this.#scrollThreshold = this.#computeScrollThreshold();
+        this.#updateState();
     };
 
     // #endregion
@@ -105,6 +117,15 @@ class FDSBackToTop extends HTMLElement {
         return document.querySelector('fds-back-to-top-marker');
     }
 
+    #computeScrollThreshold() {
+        const heightOfViewport = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+        return heightOfViewport * 2;
+    }
+
+    #isThresholdPassed() {
+        return window.scrollY >= this.#scrollThreshold;
+    }
+
     #connectMarkerIntersectionObserver() {
         if (this.#markerIntersectionObserver) return;
 
@@ -123,7 +144,7 @@ class FDSBackToTop extends HTMLElement {
     }
 
     #updateState() {
-        const visible = this.#markerPassed;
+        const visible = this.#markerPassed || this.#isThresholdPassed();
         const newState = visible ? 'floating' : 'hidden';
         if (this.getAttribute('data-state') !== newState) {
             this.setAttribute('data-state', newState);
@@ -137,8 +158,16 @@ class FDSBackToTop extends HTMLElement {
     init() {
         if (this.#initialized) return;
 
+        if (!warnedAboutMultipleInstances && document.querySelectorAll('fds-back-to-top').length > 1) {
+            warnedAboutMultipleInstances = true;
+            console.warn('fds-back-to-top: Multiple instances found. Only one is supported.');
+        }
+
         this.#setupHTML();
         this.#addEventListeners();
+        this.#scrollThreshold = this.#computeScrollThreshold();
+        window.addEventListener('scroll', this.#handleScroll, { passive: true });
+        window.addEventListener('resize', this.#handleResize, { passive: true });
         this.#updateState();
         this.#connectMarkerIntersectionObserver();
         this.#initialized = true;
@@ -159,8 +188,13 @@ class FDSBackToTop extends HTMLElement {
     disconnectedCallback() {
         this.#removeEventListeners();
         this.#disconnectMarkerIntersectionObserver();
+        window.removeEventListener('scroll', this.#handleScroll);
+        window.removeEventListener('resize', this.#handleResize);
         this.#markerPassed = false;
         this.#initialized = false;
+        if (document.querySelectorAll('fds-back-to-top').length === 0) {
+            warnedAboutMultipleInstances = false;
+        }
     }
 
     // #endregion
