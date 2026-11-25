@@ -8412,6 +8412,8 @@ class FDSBackToTop extends HTMLElement {
   #markerPassed = false;
   #markerIntersectionObserver = null;
   #scrollThreshold = 0;
+  #hostVisible = false;
+  #selfIntersectionObserver = null;
 
   // #endregion
 
@@ -8428,6 +8430,13 @@ class FDSBackToTop extends HTMLElement {
       this.#markerPassed = !entry.isIntersecting && entry.boundingClientRect.bottom <= 0;
       this.#updateState();
     });
+  };
+  #handleSelfIntersection = entries => {
+    const visible = entries[0].isIntersecting;
+    if (visible !== this.#hostVisible) {
+      this.#hostVisible = visible;
+      this.#updateState();
+    }
   };
   #handleScroll = () => {
     this.#updateState();
@@ -8506,6 +8515,12 @@ class FDSBackToTop extends HTMLElement {
   #isThresholdPassed() {
     return window.scrollY >= this.#scrollThreshold;
   }
+  #isHostElementVisible() {
+    const rect = this.getBoundingClientRect();
+    const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+    return rect.top < viewportHeight && rect.bottom > 0 && rect.left < viewportWidth && rect.right > 0;
+  }
   #connectMarkerIntersectionObserver() {
     if (this.#markerIntersectionObserver) return;
     const marker = this.#findFirstMarker();
@@ -8519,10 +8534,28 @@ class FDSBackToTop extends HTMLElement {
       this.#markerIntersectionObserver = null;
     }
   }
+  #connectSelfIntersectionObserver() {
+    if (this.#selfIntersectionObserver) return;
+    this.#selfIntersectionObserver = new IntersectionObserver(this.#handleSelfIntersection);
+    this.#selfIntersectionObserver.observe(this);
+  }
+  #disconnectSelfIntersectionObserver() {
+    if (this.#selfIntersectionObserver) {
+      this.#selfIntersectionObserver.disconnect();
+      this.#selfIntersectionObserver = null;
+    }
+  }
   #updateState() {
-    const visible = this.#markerPassed || this.#isThresholdPassed();
-    const newState = visible ? 'floating' : 'hidden';
-    if (this.getAttribute('data-state') !== newState) {
+    const shouldShow = this.#markerPassed || this.#isThresholdPassed();
+    let newState;
+    if (!shouldShow) {
+      newState = 'hidden';
+    } else if (this.#hostVisible) {
+      newState = 'docked';
+    } else {
+      newState = 'floating';
+    }
+    if (newState !== this.getAttribute('data-state')) {
       this.setAttribute('data-state', newState);
     }
   }
@@ -8546,6 +8579,8 @@ class FDSBackToTop extends HTMLElement {
     window.addEventListener('resize', this.#handleResize, {
       passive: true
     });
+    this.#connectSelfIntersectionObserver();
+    this.#hostVisible = this.#isHostElementVisible();
     this.#updateState();
     this.#connectMarkerIntersectionObserver();
     this.#initialized = true;
@@ -8566,9 +8601,11 @@ class FDSBackToTop extends HTMLElement {
   disconnectedCallback() {
     this.#removeEventListeners();
     this.#disconnectMarkerIntersectionObserver();
+    this.#disconnectSelfIntersectionObserver();
     window.removeEventListener('scroll', this.#handleScroll);
     window.removeEventListener('resize', this.#handleResize);
     this.#markerPassed = false;
+    this.#hostVisible = false;
     this.#initialized = false;
     if (document.querySelectorAll('fds-back-to-top').length === 0) {
       warnedAboutMultipleInstances = false;

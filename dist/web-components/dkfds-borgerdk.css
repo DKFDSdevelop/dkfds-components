@@ -13750,14 +13750,16 @@ fds-back-to-top[data-state=hidden] > button{
   display:none;
 }
 
+fds-back-to-top[data-state=docked] > a,
+fds-back-to-top[data-state=docked] > button{
+  margin-top:16px;
+}
+
 fds-back-to-top > a,
 fds-back-to-top > [type=button]{
   display:inline-block;
   box-shadow:0 4px 12px 0 rgba(0, 0, 0, 0.2);
   width:auto;
-  position:fixed;
-  inset:auto 24px 24px auto;
-  z-index:9;
   font-weight:600;
   font-size:1.6rem;
   min-height:40px;
@@ -13796,4 +13798,21 @@ fds-back-to-top > [type=button]:visited{
   fds-back-to-top > [type=button] .icon-svg{
     margin-right:0;
   }
+}
+
+fds-back-to-top[data-state=floating] > a,
+fds-back-to-top[data-state=floating] > [type=button]{
+  position:fixed;
+  inset:auto 24px 24px auto;
+  z-index:9;
+}
+
+footer fds-back-to-top{
+  position:absolute;
+  right:24px;
+  z-index:auto;
+}
+
+footer:has(fds-back-to-top){
+  position:relative;
 }

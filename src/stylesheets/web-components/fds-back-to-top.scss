@@ -18,14 +18,16 @@ fds-back-to-top[data-state="hidden"] > button {
     display: none;
 }
 
+fds-back-to-top[data-state="docked"] > a,
+fds-back-to-top[data-state="docked"] > button {
+    margin-top: func.units(4);
+}
+
 fds-back-to-top > a,
 fds-back-to-top > [type=button] {
     display: inline-block;
     box-shadow: func.shadow('light');
     width: auto;
-    position: fixed;
-    inset: auto func.units(5) func.units(5) auto;
-    z-index: vars.$zindex-back-to-top;
     font-weight: func.font-weight('semibold');
     font-size: func.font-size('sm');
     min-height: func.units(7);
@@ -66,4 +68,21 @@ fds-back-to-top > [type=button] {
             margin-right: func.units(0);
         }
     }
+}
+
+fds-back-to-top[data-state="floating"] > a,
+fds-back-to-top[data-state="floating"] > [type=button] {
+    position: fixed;
+    inset: auto func.units(5) func.units(5) auto;
+    z-index: vars.$zindex-back-to-top;
+}
+
+footer fds-back-to-top {
+    position: absolute;
+    right: 24px;
+    z-index: auto;
+}
+
+footer:has(fds-back-to-top) {
+    position: relative;
 }
