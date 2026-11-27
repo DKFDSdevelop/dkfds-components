@@ -34,6 +34,7 @@ import registerTabs from './web-components/tabs/fds-tabs';
 import registerAlert from './web-components/alert/fds-alert';
 import registerBackToTop from './web-components/back-to-top/fds-back-to-top';
 import registerBackToTopMarker from './web-components/back-to-top/fds-back-to-top-marker';
+import registerBackToTopLanding from './web-components/back-to-top/fds-back-to-top-landing';
 import registerMultiselect from './web-components/multiselect/fds-multiselect';
 import registerMultiselectOpener from './web-components/multiselect/fds-multiselect-opener';
 import registerMultiselectSelectAll from './web-components/multiselect/fds-multiselect-select-all';
@@ -75,6 +76,7 @@ const registerCustomElements = () => {
     registerAlert();
     registerBackToTop();
     registerBackToTopMarker();
+    registerBackToTopLanding();
     registerMultiselectOption();
     registerMultiselectSelectAll();
     registerMultiselectOptions();
@@ -90,4 +92,4 @@ else {
     registerCustomElements();
 }
 
-export { registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerPortalInfo, registerSolutionInfo, registerDropdownMenu, registerMainMenu, registerTooltip, registerTooltipIcon, registerToggleSwitch, registerModalOpener, registerModalCloser, registerModal, registerTab, registerTabPanel, registerTabs, registerAlert, registerBackToTop, registerBackToTopMarker, registerMultiselect, registerMultiselectSelectAll, registerMultiselectOpener, registerMultiselectDialog, registerMultiselectOptions, registerMultiselectOption };
+export { registerCustomElements, registerAccordion, registerAccordionGroup, registerInput, registerHelpText, registerCharacterLimit, registerErrorMessage, registerCheckbox, registerCheckboxGroup, registerRadioButton, registerRadioButtonGroup, registerDateInput, registerSelect, registerDatePicker, registerDatePickerGrid, registerTextarea, registerErrorSummary, registerInputAffix, registerPortalInfo, registerSolutionInfo, registerDropdownMenu, registerMainMenu, registerTooltip, registerTooltipIcon, registerToggleSwitch, registerModalOpener, registerModalCloser, registerModal, registerTab, registerTabPanel, registerTabs, registerAlert, registerBackToTop, registerBackToTopMarker, registerBackToTopLanding, registerMultiselect, registerMultiselectSelectAll, registerMultiselectOpener, registerMultiselectDialog, registerMultiselectOptions, registerMultiselectOption };

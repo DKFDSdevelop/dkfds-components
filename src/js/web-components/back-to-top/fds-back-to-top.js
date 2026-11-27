@@ -1,6 +1,9 @@
 import * as CE from '../custom-element-utils';
 
 let warnedAboutMultipleInstances = false;
+let warnedAboutMissingLandingElement = false;
+
+const SCROLL_ANIMATION_DURATION_MS = 200;
 
 class FDSBackToTop extends HTMLElement {
 
@@ -27,13 +30,36 @@ class FDSBackToTop extends HTMLElement {
     #markerIntersectionObserver = null;
     #scrollThreshold = 0;
     #dockingReferenceTop = null;
+    #scrollAnimationFrameId = null;
+    #scrollFromTime = null;
+    #scrollFromY = null;
 
     // #endregion
 
     // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
     #handleClick = () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        this.#startScrollAnimation();
+    };
+
+    #handleScrollComplete = () => {
+        const landingElement = this.#findLandingElement();
+        if (landingElement) {
+            landingElement.focus();
+        }
+        else if (!warnedAboutMissingLandingElement) {
+            warnedAboutMissingLandingElement = true;
+            console.warn('fds-back-to-top: No <fds-back-to-top-landing> element found on the page.');
+        }
+    };
+
+    #handleScrollAnimationInterruptAttempt = (event) => {
+        const trigger = this.querySelector(':scope > button');
+        if (event.type === 'click' && trigger && trigger.contains(event.target)) {
+            this.#startScrollAnimation();
+            return;
+        }
+        this.#cancelScrollAnimation();
     };
 
     #handleMarkerIntersection = (entries) => {
@@ -112,6 +138,17 @@ class FDSBackToTop extends HTMLElement {
         if (trigger instanceof HTMLButtonElement) {
             trigger.addEventListener('click', this.#handleClick);
         }
+
+        this.addEventListener('fds-back-to-top-scroll-complete', this.#handleScrollComplete);
+
+        window.addEventListener('scroll', this.#handleScroll, { passive: true });
+        window.addEventListener('resize', this.#handleResize, { passive: true });
+
+        if (document.readyState !== 'complete') {
+            // The page (including fonts/images) may not be fully loaded yet, which
+            // can make the measurement above unreliable. Re-measure once it is.
+            window.addEventListener('load', this.#handleLoad, { once: true });
+        }
     }
 
     #removeEventListeners() {
@@ -119,10 +156,80 @@ class FDSBackToTop extends HTMLElement {
         if (trigger instanceof HTMLButtonElement) {
             trigger.removeEventListener('click', this.#handleClick);
         }
+
+        this.removeEventListener('fds-back-to-top-scroll-complete', this.#handleScrollComplete);
+
+        window.removeEventListener('scroll', this.#handleScroll);
+        window.removeEventListener('resize', this.#handleResize);
+        window.removeEventListener('load', this.#handleLoad);
     }
 
     #findFirstMarker() {
         return document.querySelector('fds-back-to-top-marker');
+    }
+
+    #findLandingElement() {
+        return document.querySelector('fds-back-to-top-landing');
+    }
+
+    #easeOutQuad(t) {
+        return 1 - (1 - t) * (1 - t);
+    }
+
+    #startScrollAnimation() {
+        if (this.#scrollAnimationFrameId !== null) {
+            cancelAnimationFrame(this.#scrollAnimationFrameId);
+        }
+
+        this.#scrollFromTime = performance.now();
+        this.#scrollFromY = window.scrollY;
+
+        document.addEventListener('click', this.#handleScrollAnimationInterruptAttempt);
+        document.addEventListener('keydown', this.#handleScrollAnimationInterruptAttempt);
+
+        this.#scrollAnimationFrameId = requestAnimationFrame(() => this.#stepScrollAnimation());
+    }
+
+    #stepScrollAnimation() {
+        const elapsed = performance.now() - this.#scrollFromTime;
+        // t is the animation progress (0-1), clamped so it never exceeds 1 after the duration has elapsed.
+        const t = Math.min(elapsed / SCROLL_ANIMATION_DURATION_MS, 1);
+        const y = this.#scrollFromY * (1 - this.#easeOutQuad(t));
+
+        window.scrollTo(0, y);
+
+        if (t < 1) {
+            this.#scrollAnimationFrameId = requestAnimationFrame(() => this.#stepScrollAnimation());
+        }
+        else {
+            this.#finishScrollAnimation();
+        }
+    }
+
+    #finishScrollAnimation() {
+        window.scrollTo(0, 0);
+
+        document.removeEventListener('click', this.#handleScrollAnimationInterruptAttempt);
+        document.removeEventListener('keydown', this.#handleScrollAnimationInterruptAttempt);
+
+        this.#scrollAnimationFrameId = null;
+        this.#scrollFromTime = null;
+        this.#scrollFromY = null;
+
+        this.dispatchEvent(new Event('fds-back-to-top-scroll-complete'));
+    }
+
+    #cancelScrollAnimation() {
+        if (this.#scrollAnimationFrameId !== null) {
+            cancelAnimationFrame(this.#scrollAnimationFrameId);
+        }
+
+        document.removeEventListener('click', this.#handleScrollAnimationInterruptAttempt);
+        document.removeEventListener('keydown', this.#handleScrollAnimationInterruptAttempt);
+
+        this.#scrollAnimationFrameId = null;
+        this.#scrollFromTime = null;
+        this.#scrollFromY = null;
     }
 
     #computeScrollThreshold() {
@@ -230,13 +337,6 @@ class FDSBackToTop extends HTMLElement {
         this.#addEventListeners();
         this.#scrollThreshold = this.#computeScrollThreshold();
         this.#measureDockingReferenceTop();
-        window.addEventListener('scroll', this.#handleScroll, { passive: true });
-        window.addEventListener('resize', this.#handleResize, { passive: true });
-        if (document.readyState !== 'complete') {
-            // The page (including fonts/images) may not be fully loaded yet, which
-            // can make the measurement above unreliable. Re-measure once it is.
-            window.addEventListener('load', this.#handleLoad, { once: true });
-        }
         this.#updateState();
         this.#connectMarkerIntersectionObserver();
         this.#initialized = true;
@@ -255,11 +355,9 @@ class FDSBackToTop extends HTMLElement {
     // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
     disconnectedCallback() {
+        this.#cancelScrollAnimation();
         this.#removeEventListeners();
         this.#disconnectMarkerIntersectionObserver();
-        window.removeEventListener('scroll', this.#handleScroll);
-        window.removeEventListener('resize', this.#handleResize);
-        window.removeEventListener('load', this.#handleLoad);
         this.#markerPassed = false;
         this.#dockingReferenceTop = null;
         this.#initialized = false;

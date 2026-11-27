@@ -13747,6 +13747,10 @@ fds-back-to-top-marker{
   pointer-events:none;
 }
 
+fds-back-to-top-landing{
+  display:block;
+}
+
 fds-back-to-top[data-state=hidden] > a,
 fds-back-to-top[data-state=hidden] > button{
   display:none;

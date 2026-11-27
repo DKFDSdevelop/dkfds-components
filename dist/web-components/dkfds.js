@@ -45,6 +45,7 @@ __webpack_require__.d(__webpack_exports__, {
   registerAccordionGroup: () => (/* reexport */ fds_accordion_group),
   registerAlert: () => (/* reexport */ fds_alert),
   registerBackToTop: () => (/* reexport */ fds_back_to_top),
+  registerBackToTopLanding: () => (/* reexport */ fds_back_to_top_landing),
   registerBackToTopMarker: () => (/* reexport */ fds_back_to_top_marker),
   registerCharacterLimit: () => (/* reexport */ fds_character_limit),
   registerCheckbox: () => (/* reexport */ fds_checkbox),
@@ -8382,6 +8383,8 @@ function registerAlert() {
 ;// ./src/js/web-components/back-to-top/fds-back-to-top.js
 
 let warnedAboutMultipleInstances = false;
+let warnedAboutMissingLandingElement = false;
+const SCROLL_ANIMATION_DURATION_MS = 200;
 class FDSBackToTop extends HTMLElement {
   // #region - ATTRIBUTES (can invoke attributeChangedCallback()) -----------------------------------------
 
@@ -8413,16 +8416,33 @@ class FDSBackToTop extends HTMLElement {
   #markerIntersectionObserver = null;
   #scrollThreshold = 0;
   #dockingReferenceTop = null;
+  #scrollAnimationFrameId = null;
+  #scrollFromTime = null;
+  #scrollFromY = null;
 
   // #endregion
 
   // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
 
   #handleClick = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    this.#startScrollAnimation();
+  };
+  #handleScrollComplete = () => {
+    const landingElement = this.#findLandingElement();
+    if (landingElement) {
+      landingElement.focus();
+    } else if (!warnedAboutMissingLandingElement) {
+      warnedAboutMissingLandingElement = true;
+      console.warn('fds-back-to-top: No <fds-back-to-top-landing> element found on the page.');
+    }
+  };
+  #handleScrollAnimationInterruptAttempt = event => {
+    const trigger = this.querySelector(':scope > button');
+    if (event.type === 'click' && trigger && trigger.contains(event.target)) {
+      this.#startScrollAnimation();
+      return;
+    }
+    this.#cancelScrollAnimation();
   };
   #handleMarkerIntersection = entries => {
     entries.forEach(entry => {
@@ -8496,15 +8516,80 @@ class FDSBackToTop extends HTMLElement {
     if (trigger instanceof HTMLButtonElement) {
       trigger.addEventListener('click', this.#handleClick);
     }
+    this.addEventListener('fds-back-to-top-scroll-complete', this.#handleScrollComplete);
+    window.addEventListener('scroll', this.#handleScroll, {
+      passive: true
+    });
+    window.addEventListener('resize', this.#handleResize, {
+      passive: true
+    });
+    if (document.readyState !== 'complete') {
+      // The page (including fonts/images) may not be fully loaded yet, which
+      // can make the measurement above unreliable. Re-measure once it is.
+      window.addEventListener('load', this.#handleLoad, {
+        once: true
+      });
+    }
   }
   #removeEventListeners() {
     const trigger = this.querySelector(':scope > a, :scope > button');
     if (trigger instanceof HTMLButtonElement) {
       trigger.removeEventListener('click', this.#handleClick);
     }
+    this.removeEventListener('fds-back-to-top-scroll-complete', this.#handleScrollComplete);
+    window.removeEventListener('scroll', this.#handleScroll);
+    window.removeEventListener('resize', this.#handleResize);
+    window.removeEventListener('load', this.#handleLoad);
   }
   #findFirstMarker() {
     return document.querySelector('fds-back-to-top-marker');
+  }
+  #findLandingElement() {
+    return document.querySelector('fds-back-to-top-landing');
+  }
+  #easeOutQuad(t) {
+    return 1 - (1 - t) * (1 - t);
+  }
+  #startScrollAnimation() {
+    if (this.#scrollAnimationFrameId !== null) {
+      cancelAnimationFrame(this.#scrollAnimationFrameId);
+    }
+    this.#scrollFromTime = performance.now();
+    this.#scrollFromY = window.scrollY;
+    document.addEventListener('click', this.#handleScrollAnimationInterruptAttempt);
+    document.addEventListener('keydown', this.#handleScrollAnimationInterruptAttempt);
+    this.#scrollAnimationFrameId = requestAnimationFrame(() => this.#stepScrollAnimation());
+  }
+  #stepScrollAnimation() {
+    const elapsed = performance.now() - this.#scrollFromTime;
+    // t is the animation progress (0-1), clamped so it never exceeds 1 after the duration has elapsed.
+    const t = Math.min(elapsed / SCROLL_ANIMATION_DURATION_MS, 1);
+    const y = this.#scrollFromY * (1 - this.#easeOutQuad(t));
+    window.scrollTo(0, y);
+    if (t < 1) {
+      this.#scrollAnimationFrameId = requestAnimationFrame(() => this.#stepScrollAnimation());
+    } else {
+      this.#finishScrollAnimation();
+    }
+  }
+  #finishScrollAnimation() {
+    window.scrollTo(0, 0);
+    document.removeEventListener('click', this.#handleScrollAnimationInterruptAttempt);
+    document.removeEventListener('keydown', this.#handleScrollAnimationInterruptAttempt);
+    this.#scrollAnimationFrameId = null;
+    this.#scrollFromTime = null;
+    this.#scrollFromY = null;
+    this.dispatchEvent(new Event('fds-back-to-top-scroll-complete'));
+  }
+  #cancelScrollAnimation() {
+    if (this.#scrollAnimationFrameId !== null) {
+      cancelAnimationFrame(this.#scrollAnimationFrameId);
+    }
+    document.removeEventListener('click', this.#handleScrollAnimationInterruptAttempt);
+    document.removeEventListener('keydown', this.#handleScrollAnimationInterruptAttempt);
+    this.#scrollAnimationFrameId = null;
+    this.#scrollFromTime = null;
+    this.#scrollFromY = null;
   }
   #computeScrollThreshold() {
     const heightOfViewport = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
@@ -8592,19 +8677,6 @@ class FDSBackToTop extends HTMLElement {
     this.#addEventListeners();
     this.#scrollThreshold = this.#computeScrollThreshold();
     this.#measureDockingReferenceTop();
-    window.addEventListener('scroll', this.#handleScroll, {
-      passive: true
-    });
-    window.addEventListener('resize', this.#handleResize, {
-      passive: true
-    });
-    if (document.readyState !== 'complete') {
-      // The page (including fonts/images) may not be fully loaded yet, which
-      // can make the measurement above unreliable. Re-measure once it is.
-      window.addEventListener('load', this.#handleLoad, {
-        once: true
-      });
-    }
     this.#updateState();
     this.#connectMarkerIntersectionObserver();
     this.#initialized = true;
@@ -8623,11 +8695,9 @@ class FDSBackToTop extends HTMLElement {
   // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
 
   disconnectedCallback() {
+    this.#cancelScrollAnimation();
     this.#removeEventListeners();
     this.#disconnectMarkerIntersectionObserver();
-    window.removeEventListener('scroll', this.#handleScroll);
-    window.removeEventListener('resize', this.#handleResize);
-    window.removeEventListener('load', this.#handleLoad);
     this.#markerPassed = false;
     this.#dockingReferenceTop = null;
     this.#initialized = false;
@@ -8679,6 +8749,79 @@ function registerBackToTopMarker() {
   }
 }
 /* harmony default export */ const fds_back_to_top_marker = (registerBackToTopMarker);
+;// ./src/js/web-components/back-to-top/fds-back-to-top-landing.js
+const DEFAULT_ANNOUNCEMENT = 'Viser toppen af siden';
+class FDSBackToTopLanding extends HTMLElement {
+  // #region - PRIVATE INSTANCE FIELDS --------------------------------------------------------------------
+
+  #initialized = false;
+  #liveRegion = null;
+
+  // #endregion
+
+  // #region - PRIVATE EVENT HANDLERS ---------------------------------------------------------------------
+
+  #handleFocus = () => {
+    if (this.#liveRegion) {
+      this.#liveRegion.textContent = DEFAULT_ANNOUNCEMENT;
+    }
+  };
+  #handleBlur = () => {
+    if (this.#liveRegion) {
+      this.#liveRegion.textContent = '';
+    }
+  };
+
+  // #endregion
+
+  // #region - PRIVATE METHODS ----------------------------------------------------------------------------
+
+  #setupHTML() {
+    let liveRegion = this.querySelector(':scope > span.sr-only[aria-live="polite"]');
+    if (!liveRegion) {
+      liveRegion = document.createElement('span');
+      liveRegion.className = 'sr-only';
+      liveRegion.setAttribute('aria-live', 'polite');
+      this.appendChild(liveRegion);
+    }
+    liveRegion.textContent = '';
+    this.#liveRegion = liveRegion;
+  }
+
+  // #endregion
+
+  // #region - ADDED TO DOCUMENT --------------------------------------------------------------------------
+
+  connectedCallback() {
+    if (this.#initialized) return;
+    if (!this.hasAttribute('tabindex')) {
+      this.setAttribute('tabindex', '-1');
+    }
+    this.#setupHTML();
+    this.addEventListener('focus', this.#handleFocus);
+    this.addEventListener('blur', this.#handleBlur);
+    this.#initialized = true;
+  }
+
+  // #endregion
+
+  // #region - REMOVED FROM DOCUMENT ----------------------------------------------------------------------
+
+  disconnectedCallback() {
+    this.removeEventListener('focus', this.#handleFocus);
+    this.removeEventListener('blur', this.#handleBlur);
+    this.#liveRegion = null;
+    this.#initialized = false;
+  }
+
+  // #endregion
+}
+function registerBackToTopLanding() {
+  if (!customElements.get('fds-back-to-top-landing')) {
+    customElements.define('fds-back-to-top-landing', FDSBackToTopLanding);
+  }
+}
+/* harmony default export */ const fds_back_to_top_landing = (registerBackToTopLanding);
 ;// ./src/js/web-components/multiselect/fds-multiselect-styling.js
 const fds_multiselect_styling_styles = `
     *,
@@ -10533,6 +10676,7 @@ function registerMultiselectDialog() {
 
 
 
+
 const registerCustomElements = () => {
   fds_accordion();
   fds_accordion_group();
@@ -10567,6 +10711,7 @@ const registerCustomElements = () => {
   fds_alert();
   fds_back_to_top();
   fds_back_to_top_marker();
+  fds_back_to_top_landing();
   fds_multiselect_option();
   fds_multiselect_select_all();
   fds_multiselect_options();
