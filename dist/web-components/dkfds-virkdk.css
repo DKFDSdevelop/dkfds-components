@@ -26,6 +26,8 @@
   --tabs-tablist-width:100%;
   --tooltip-arrow-height:8px;
   --tooltip-arrow-distance-to-target:4px;
+  --fds-back-to-top-floating-offset-bottom:24px;
+  --fds-back-to-top-docked-margin-top:16px;
 }
 
 @font-face{
@@ -13752,7 +13754,7 @@ fds-back-to-top[data-state=hidden] > button{
 
 fds-back-to-top[data-state=docked] > a,
 fds-back-to-top[data-state=docked] > button{
-  margin-top:16px;
+  margin-top:var(--fds-back-to-top-docked-margin-top);
 }
 
 fds-back-to-top > a,
@@ -13803,7 +13805,7 @@ fds-back-to-top > [type=button]:visited{
 fds-back-to-top[data-state=floating] > a,
 fds-back-to-top[data-state=floating] > [type=button]{
   position:fixed;
-  inset:auto 24px 24px auto;
+  inset:auto 24px var(--fds-back-to-top-floating-offset-bottom) auto;
   z-index:9;
 }
 

@@ -8412,8 +8412,7 @@ class FDSBackToTop extends HTMLElement {
   #markerPassed = false;
   #markerIntersectionObserver = null;
   #scrollThreshold = 0;
-  #hostVisible = false;
-  #selfIntersectionObserver = null;
+  #dockingReferenceTop = null;
 
   // #endregion
 
@@ -8431,18 +8430,17 @@ class FDSBackToTop extends HTMLElement {
       this.#updateState();
     });
   };
-  #handleSelfIntersection = entries => {
-    const visible = entries[0].isIntersecting;
-    if (visible !== this.#hostVisible) {
-      this.#hostVisible = visible;
-      this.#updateState();
-    }
-  };
   #handleScroll = () => {
     this.#updateState();
   };
   #handleResize = () => {
     this.#scrollThreshold = this.#computeScrollThreshold();
+    this.#measureDockingReferenceTop();
+    this.#updateState();
+  };
+  #handleLoad = () => {
+    // When the page has fully loaded, re-measure to get the correct value of #dockingReferenceTop.
+    this.#measureDockingReferenceTop();
     this.#updateState();
   };
 
@@ -8515,11 +8513,42 @@ class FDSBackToTop extends HTMLElement {
   #isThresholdPassed() {
     return window.scrollY >= this.#scrollThreshold;
   }
-  #isHostElementVisible() {
-    const rect = this.getBoundingClientRect();
-    const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-    const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
-    return rect.top < viewportHeight && rect.bottom > 0 && rect.left < viewportWidth && rect.right > 0;
+  #measureTriggerHeight(trigger) {
+    const height = trigger.getBoundingClientRect().height;
+    if (height > 0) return height;
+
+    // If the trigger's height is 0, The trigger is most likely hidden and 
+    // therefore has no measurable height. 
+    // Temporarily change display and visibility so its height can be measured.
+    const originalDisplay = trigger.style.display;
+    const originalVisibility = trigger.style.visibility;
+    trigger.style.display = 'inline-block';
+    trigger.style.visibility = 'hidden';
+    const measuredHeight = trigger.getBoundingClientRect().height;
+    trigger.style.display = originalDisplay;
+    trigger.style.visibility = originalVisibility;
+    return measuredHeight;
+  }
+
+  /**
+   * When scrolling on the web page, the button changes state from 'floating' to 'docked'
+   * once the actual button placement on the page is reached. To ensure a smooth visual
+   * transition between the states, set the value of #dockingReferenceTop so it is known
+   * exactly when the button state should switch, taking spacing such as margin into account.
+   */
+  #measureDockingReferenceTop() {
+    const trigger = this.querySelector(':scope > a, :scope > button');
+    if (!trigger) return;
+    const triggerHeight = this.#measureTriggerHeight(trigger);
+    if (triggerHeight <= 0) return;
+    const hostStyle = getComputedStyle(this);
+    const floatingBottomOffset = parseFloat(hostStyle.getPropertyValue('--fds-back-to-top-floating-offset-bottom')) || 0;
+    const dockedTopGap = parseFloat(hostStyle.getPropertyValue('--fds-back-to-top-docked-margin-top')) || 0;
+    const floatingTriggerTop = window.innerHeight - floatingBottomOffset - triggerHeight;
+    this.#dockingReferenceTop = floatingTriggerTop - dockedTopGap;
+  }
+  #isPastDockingPoint() {
+    return this.#dockingReferenceTop !== null && this.getBoundingClientRect().top <= this.#dockingReferenceTop;
   }
   #connectMarkerIntersectionObserver() {
     if (this.#markerIntersectionObserver) return;
@@ -8534,23 +8563,12 @@ class FDSBackToTop extends HTMLElement {
       this.#markerIntersectionObserver = null;
     }
   }
-  #connectSelfIntersectionObserver() {
-    if (this.#selfIntersectionObserver) return;
-    this.#selfIntersectionObserver = new IntersectionObserver(this.#handleSelfIntersection);
-    this.#selfIntersectionObserver.observe(this);
-  }
-  #disconnectSelfIntersectionObserver() {
-    if (this.#selfIntersectionObserver) {
-      this.#selfIntersectionObserver.disconnect();
-      this.#selfIntersectionObserver = null;
-    }
-  }
   #updateState() {
     const shouldShow = this.#markerPassed || this.#isThresholdPassed();
     let newState;
     if (!shouldShow) {
       newState = 'hidden';
-    } else if (this.#hostVisible) {
+    } else if (this.#isPastDockingPoint()) {
       newState = 'docked';
     } else {
       newState = 'floating';
@@ -8573,14 +8591,20 @@ class FDSBackToTop extends HTMLElement {
     this.#setupHTML();
     this.#addEventListeners();
     this.#scrollThreshold = this.#computeScrollThreshold();
+    this.#measureDockingReferenceTop();
     window.addEventListener('scroll', this.#handleScroll, {
       passive: true
     });
     window.addEventListener('resize', this.#handleResize, {
       passive: true
     });
-    this.#connectSelfIntersectionObserver();
-    this.#hostVisible = this.#isHostElementVisible();
+    if (document.readyState !== 'complete') {
+      // The page (including fonts/images) may not be fully loaded yet, which
+      // can make the measurement above unreliable. Re-measure once it is.
+      window.addEventListener('load', this.#handleLoad, {
+        once: true
+      });
+    }
     this.#updateState();
     this.#connectMarkerIntersectionObserver();
     this.#initialized = true;
@@ -8601,11 +8625,11 @@ class FDSBackToTop extends HTMLElement {
   disconnectedCallback() {
     this.#removeEventListeners();
     this.#disconnectMarkerIntersectionObserver();
-    this.#disconnectSelfIntersectionObserver();
     window.removeEventListener('scroll', this.#handleScroll);
     window.removeEventListener('resize', this.#handleResize);
+    window.removeEventListener('load', this.#handleLoad);
     this.#markerPassed = false;
-    this.#hostVisible = false;
+    this.#dockingReferenceTop = null;
     this.#initialized = false;
     if (document.querySelectorAll('fds-back-to-top').length === 0) {
       warnedAboutMultipleInstances = false;
@@ -8625,12 +8649,16 @@ class FDSBackToTop extends HTMLElement {
         if (textSpan) {
           textSpan.textContent = newValue ?? 'Til toppen';
         }
+        this.#measureDockingReferenceTop();
+        this.#updateState();
         break;
       case 'sr-text':
         const srSpan = this.querySelector(':scope > a span.sr-only, :scope > button span.sr-only');
         if (srSpan) {
           srSpan.textContent = newValue ?? 'Til toppen af siden';
         }
+        this.#measureDockingReferenceTop();
+        this.#updateState();
         break;
     }
   }

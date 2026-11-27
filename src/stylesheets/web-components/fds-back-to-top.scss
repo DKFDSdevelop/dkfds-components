@@ -20,7 +20,7 @@ fds-back-to-top[data-state="hidden"] > button {
 
 fds-back-to-top[data-state="docked"] > a,
 fds-back-to-top[data-state="docked"] > button {
-    margin-top: func.units(4);
+    margin-top: var(--fds-back-to-top-docked-margin-top);
 }
 
 fds-back-to-top > a,
@@ -73,7 +73,7 @@ fds-back-to-top > [type=button] {
 fds-back-to-top[data-state="floating"] > a,
 fds-back-to-top[data-state="floating"] > [type=button] {
     position: fixed;
-    inset: auto func.units(5) func.units(5) auto;
+    inset: auto func.units(5) var(--fds-back-to-top-floating-offset-bottom) auto;
     z-index: vars.$zindex-back-to-top;
 }
 
