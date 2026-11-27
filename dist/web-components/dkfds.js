@@ -8649,16 +8649,22 @@ class FDSBackToTop extends HTMLElement {
     }
   }
   #updateState() {
-    const shouldShow = this.#markerPassed || this.#isThresholdPassed();
+    const previousState = this.getAttribute('data-state');
+    const wasHidden = previousState === null || previousState === 'hidden';
+    const pastDockingPoint = this.#isPastDockingPoint();
+    const thresholdPassed = this.#isThresholdPassed();
+    const shouldShow = this.#markerPassed || thresholdPassed;
     let newState;
     if (!shouldShow) {
       newState = 'hidden';
-    } else if (this.#isPastDockingPoint()) {
-      newState = 'docked';
+    } else if (pastDockingPoint) {
+      // Avoid having the button suddenly appear in the docked location.
+      // Mostly relevant on short pages using an fds-back-to-top-marker.
+      newState = wasHidden && !thresholdPassed ? 'hidden' : 'docked';
     } else {
       newState = 'floating';
     }
-    if (newState !== this.getAttribute('data-state')) {
+    if (newState !== previousState) {
       this.setAttribute('data-state', newState);
     }
   }
