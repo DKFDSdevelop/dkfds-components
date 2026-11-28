@@ -8414,6 +8414,7 @@ class FDSBackToTop extends HTMLElement {
   #initialized = false;
   #markerPassed = false;
   #markerIntersectionObserver = null;
+  #triggerResizeObserver = null;
   #scrollThreshold = 0;
   #dockingReferenceTop = null;
   #scrollAnimationFrameId = null;
@@ -8449,6 +8450,10 @@ class FDSBackToTop extends HTMLElement {
       this.#markerPassed = !entry.isIntersecting && entry.boundingClientRect.bottom <= 0;
       this.#updateState();
     });
+  };
+  #handleTriggerResize = () => {
+    this.#measureDockingReferenceTop();
+    this.#updateState();
   };
   #handleScroll = () => {
     this.#updateState();
@@ -8648,6 +8653,23 @@ class FDSBackToTop extends HTMLElement {
       this.#markerIntersectionObserver = null;
     }
   }
+
+  /**
+   * Ensure button is updated on font resize.
+   */
+  #connectTriggerResizeObserver() {
+    if (this.#triggerResizeObserver) return;
+    const trigger = this.querySelector(':scope > a, :scope > button');
+    if (!trigger) return;
+    this.#triggerResizeObserver = new ResizeObserver(this.#handleTriggerResize);
+    this.#triggerResizeObserver.observe(trigger);
+  }
+  #disconnectTriggerResizeObserver() {
+    if (this.#triggerResizeObserver) {
+      this.#triggerResizeObserver.disconnect();
+      this.#triggerResizeObserver = null;
+    }
+  }
   #updateState() {
     const previousState = this.getAttribute('data-state');
     const wasHidden = previousState === null || previousState === 'hidden';
@@ -8685,6 +8707,7 @@ class FDSBackToTop extends HTMLElement {
     this.#measureDockingReferenceTop();
     this.#updateState();
     this.#connectMarkerIntersectionObserver();
+    this.#connectTriggerResizeObserver();
     this.#initialized = true;
   }
 
@@ -8704,6 +8727,7 @@ class FDSBackToTop extends HTMLElement {
     this.#cancelScrollAnimation();
     this.#removeEventListeners();
     this.#disconnectMarkerIntersectionObserver();
+    this.#disconnectTriggerResizeObserver();
     this.#markerPassed = false;
     this.#dockingReferenceTop = null;
     this.#initialized = false;
